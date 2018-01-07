@@ -40,8 +40,13 @@ message(STATUS "Found ${module_display}")
 ################################################################################
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
-# Register custom cmake commands
-list(APPEND CMAKE_MODULE_PATH "$ENV{develroot}/cmake")
+# Download repo with custom cmake config and register modules
+if (IS_ROOT_PROJECT AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+  execute_process(COMMAND git submodule update --init cmake
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(compile-options)
 include(build-modes)
 include(custom-cmds)
