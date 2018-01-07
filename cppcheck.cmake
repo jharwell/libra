@@ -1,7 +1,7 @@
 set(CPPCHECK_ENABLED OFF)
 
 # Function to register a target for cppcheck
-function(register_cppcheck check_target target)
+function(do_register_cppcheck check_target target)
   set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
   add_custom_target(${check_target})
 
@@ -10,13 +10,12 @@ function(register_cppcheck check_target target)
       COMMAND
       ${cppcheck_EXECUTABLE}
       "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
-      --check-config
-      --enable=all
+      --enable=warning,style,performance,portability
       --template= "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
       --quiet
-      --std=c++11
       --verbose
-      --suppress=missingIncludeSystem
+      --suppress=missingInclude
+      --suppress=unusedFunction
       ${file}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       )
@@ -27,6 +26,31 @@ function(register_cppcheck check_target target)
     )
 
   add_dependencies(${check_target} ${target})
+endfunction()
+
+# Registers all sources with the cppcheck checker
+function(register_cppcheck_checker target)
+  if (NOT CPPCHECK_ENABLED)
+    return()
+  endif()
+
+  if(NOT TARGET cppcheck-all)
+    add_custom_target(cppcheck-all)
+
+    set_target_properties(cppcheck-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+
+  if (IS_ROOT_TARGET)
+    do_register_cppcheck(cppcheck-${target} ${target} ${ARGN})
+  else()
+    do_register_cppcheck(cppcheck-${target} ${root_target}-${target} ${ARGN})
+  endif()
+
+  add_dependencies(cppcheck-all cppcheck-${target})
+  add_dependencies(check-${target} cppcheck-all)
 endfunction()
 
 # Enable or disable cppcheck for health checks
@@ -51,6 +75,6 @@ function(toggle_cppcheck status)
 
     set(CPPCHECK_ENABLED ${status} PARENT_SCOPE)
     if (IS_ROOT_PROJECT)
-      message(STATUS "  Checker cppcheck [enabled]")
+      message(STATUS "  Checker cppcheck [enabled=${cppcheck_EXECUTABLE}]")
     endif()
 endfunction()

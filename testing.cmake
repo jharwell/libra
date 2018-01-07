@@ -37,15 +37,21 @@ foreach(t ${c_tests} ${cxx_tests})
   if (TARGET ${current_proj_name}-${test_name})
     continue()
   endif()
-
   add_executable(${current_proj_name}-${test_name} EXCLUDE_FROM_ALL ${c_test_harness} ${cxx_test_harness} ${${target}_TEST_PATH}/${test_file})
   add_dependencies(${current_proj_name}-${test_name} ${root_target})
   set_target_properties(${current_proj_name}-${test_name} PROPERTIES LINKER_LANGUAGE CXX)
+
+  # If the project is a C project, then we will probably be casting in the C
+  # way, so turn off the  usual compile warnings about this.
+  if ("${${root_target}_CHECK_LANGUAGE}" MATCHES "C")
+    target_compile_options(${current_proj_name}-${test_name} PUBLIC -Wno-old-style-cast)
+  endif()
 
   # Tests might also depend on the special 'tests' submodule in the root
   # project (a library of common test code), so add it as a dependency to the
   # test if it exists.
   if (TARGET ${current_proj_name}-tests)
+    add_dependencies(${current_proj_name}-${test_name} ${current_proj_name}-tests)
     target_link_libraries(${current_proj_name}-${test_name}
       ${current_proj_name}-tests
       ${current_proj_name}
@@ -55,6 +61,7 @@ foreach(t ${c_tests} ${cxx_tests})
       ${current_proj_name}
       )
   endif()
+   target_include_directories(${current_proj_name}-${test_name} PUBLIC "${${target}_INCLUDE_DIRS}")
 
   # Add dependencies on the global unit_tests target, which will build ALL
   # unit tests known to cmake.
