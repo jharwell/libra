@@ -1,4 +1,17 @@
 ################################################################################
+# Testing Targets                                                              #
+################################################################################
+# We are not the root project--we are a submodule. Add ourselves to the
+# dependencies of the root target.
+if (NOT IS_ROOT_PROJECT AND "${target}" STREQUAL "tests" AND NOT TARGET ${target})
+  if (${target} STREQUAL "${current_proj_name}")
+    add_library(${target} OBJECT ${${target}_SRC})
+  else()
+    add_library(${current_proj_name}-${target} ${${target}_SRC})
+  endif()
+endif()
+
+################################################################################
 # Testing Options                                                              #
 ################################################################################
 enable_testing()

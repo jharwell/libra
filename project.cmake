@@ -142,21 +142,13 @@ if (NOT IS_ROOT_PROJECT)
       # files out of compilation of the module that gets processed SECOND by
       # cmake.
       #
-      # It's safer just to do this all the time
+      # It's safer just to do this all the time.
       if (${target} STREQUAL "${current_proj_name}")
         add_library(${target} OBJECT ${${target}_SRC})
       else()
         add_library(${current_proj_name}-${target} OBJECT ${${target}_SRC})
       endif()
     endif()
-    else() # handling tests submodule
-      if (NOT TARGET ${target})
-        if (${target} STREQUAL "${current_proj_name}")
-          add_library(${target} OBJECT ${${target}_SRC})
-        else()
-          add_library(${current_proj_name}-${target} ${${target}_SRC})
-        endif()
-      endif()
   endif()
 endif()
 
