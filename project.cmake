@@ -132,7 +132,7 @@ if (NOT IS_ROOT_PROJECT)
 
     # We may actually be part of a larger project, and thus our target has
     # already been created but a separate submodule depending on us.
-    if (NOT TARGET ${target})
+    if (NOT TARGET ${current_proj_name}-${target})
 
       # If you have two different projects with the same submodule, say
       # 'common', then you will need to prefix the targets with the project
@@ -143,11 +143,7 @@ if (NOT IS_ROOT_PROJECT)
       # cmake.
       #
       # It's safer just to do this all the time.
-      if (${target} STREQUAL "${current_proj_name}")
-        add_library(${target} OBJECT ${${target}_SRC})
-      else()
-        add_library(${current_proj_name}-${target} OBJECT ${${target}_SRC})
-      endif()
+      add_library(${current_proj_name}-${target} OBJECT ${${target}_SRC})
     endif()
   endif()
 endif()
