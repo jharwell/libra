@@ -12,6 +12,7 @@ set(BASE_DIAG_OPTIONS
   -Wsuggest-attribute=noreturn
   -Wfloat-equal
   -Wshadow
+  -Wno-return-type
   -g
   )
 

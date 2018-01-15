@@ -74,7 +74,6 @@ toggle_clang_tidy_fix(ON)
 
 option(SHARED_LIBS    "Build shared instead of static libraries."              ON)
 option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
-option(SELF_CONTAINED "Create a self-contained install with all dependencies." OFF)
 option(BUILD_TESTS    "Build tests."                                           OFF)
 option(WITH_OPENMP    "Enable OpenMP code."                                    ON)
 option(WITH_MPI       "Enable MPI code."                                       OFF)
