@@ -3,6 +3,73 @@ include(${CMAKE_CURRENT_LIST_DIR}/clang_tidy.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/clang_format.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/clang_check.cmake)
 
+# Registers all sources with the cppcheck checker
+function(register_cppcheck_checker target)
+  if (CPPCHECK_ENABLED)
+    if(NOT TARGET cppcheck-all)
+    add_custom_target(cppcheck-all)
+
+    set_target_properties(cppcheck-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+
+  if (IS_ROOT_TARGET)
+      register_cppcheck(cppcheck-${target} ${target} ${ARGN})
+    else()
+      register_cppcheck(cppcheck-${target} ${current_proj_name}-${target} ${ARGN})
+    endif()
+
+    add_dependencies(check-${target} cppcheck-${target})
+    add_dependencies(cppcheck-all cppcheck-${target})
+  endif()
+endfunction()
+
+# Registers all sources with the clang_tidy checker
+function(register_clang_tidy_checker target)
+if (CLANG_TIDY_CHECK_ENABLED)
+    if(NOT TARGET tidy-check-all)
+    add_custom_target(tidy-check-all)
+
+    set_target_properties(tidy-check-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+
+  if (IS_ROOT_TARGET)
+      register_clang_tidy_check(tidy-check-${target} ${target} ${ARGN})
+    else()
+      register_clang_tidy_check(tidy-check-${target} ${current_proj_name}-${target} ${ARGN})
+    endif()
+    add_dependencies(check-${target} tidy-check-${target})
+    add_dependencies(tidy-check-all tidy-check-${target})
+  endif()
+endfunction()
+
+# Registers all sources with the clang_check checker
+function(register_clang_check_checker target)
+  if (CLANG_STATIC_CHECK_ENABLED)
+    if(NOT TARGET clang-check-all)
+    add_custom_target(clang-check-all)
+
+    set_target_properties(clang-check-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+  if (IS_ROOT_TARGET)
+      register_clang_static_check(clang-check-${target} ${target} ${ARGN})
+    else()
+      register_clang_static_check(clang-check-${target} ${current_proj_name}-${target} ${ARGN})
+    endif()
+
+    add_dependencies(check-${target} clang-check-${target})
+    add_dependencies(clang-check-all clang-check-${target})
+  endif()
+endfunction()
+
 # Function to register a target for enabled code checkers
 function(register_checkers target)
   if(NOT TARGET check-all)
@@ -20,47 +87,9 @@ function(register_checkers target)
     PROPERTIES
     EXCLUDE_FROM_DEFAULT_BUILD 1
     )
-  if (CPPCHECK_ENABLED)
-    if(NOT TARGET cppcheck-all)
-    add_custom_target(cppcheck-all)
-
-    set_target_properties(cppcheck-all
-      PROPERTIES
-      EXCLUDE_FROM_DEFAULT_BUILD 1
-      )
-  endif()
-    register_cppcheck(cppcheck-${target} ${target} ${ARGN})
-    add_dependencies(check-${target} cppcheck-${target})
-    add_dependencies(cppcheck-all cppcheck-${target})
-  endif()
-
-  if (CLANG_TIDY_CHECK_ENABLED)
-    if(NOT TARGET tidy-check-all)
-    add_custom_target(tidy-check-all)
-
-    set_target_properties(tidy-check-all
-      PROPERTIES
-      EXCLUDE_FROM_DEFAULT_BUILD 1
-      )
-  endif()
-    register_clang_tidy_check(clang-tidy-check-${target} ${target} ${ARGN})
-    add_dependencies(check-${target} clang-tidy-check-${target})
-    add_dependencies(tidy-check-all clang-tidy-check-${target})
-  endif()
-
-  if (CLANG_STATIC_CHECK_ENABLED)
-    if(NOT TARGET clang-check-all)
-    add_custom_target(clang-check-all)
-
-    set_target_properties(clang-check-all
-      PROPERTIES
-      EXCLUDE_FROM_DEFAULT_BUILD 1
-      )
-  endif()
-    register_clang_static_check(clang-check-${target} ${target} ${ARGN})
-    add_dependencies(check-${target} clang-check-${target})
-    add_dependencies(clang-check-all clang-check-${target})
-  endif()
+  register_cppcheck_checker(${target} ${ARGN})
+  register_clang_tidy_checker(${target} ${ARGN})
+  register_clang_check_checker(${target} ${ARGN})
 
   add_dependencies(check-all check-${target})
 endfunction()
@@ -84,7 +113,11 @@ function(register_auto_formatters target)
     )
 
   if (CLANG_FORMAT_ENABLED)
-    register_clang_format(clang-format-${target} ${target} ${ARGN})
+    if (IS_ROOT_TARGET)
+      register_clang_format(clang-format-${target} ${target} ${ARGN})
+    else()
+      register_clang_format(clang-format-${target} ${current_proj_name}-${target} ${ARGN})
+    endif()
     add_dependencies(format-${target} clang-format-${target})
   endif()
 
@@ -110,7 +143,12 @@ function(register_auto_fixers target)
     )
 
   if (CLANG_TIDY_FIX_ENABLED)
-    register_clang_tidy_fix(clang-tidy-fix-${target} ${target} ${ARGN})
+    if (IS_ROOT_TARGET)
+      register_clang_tidy_fix(clang-tidy-fix-${target} ${target} ${ARGN})
+    else()
+      register_clang_tidy_fix(clang-tidy-fix-${target} ${current_proj_name}-${target} ${ARGN})
+    endif()
+
     add_dependencies(fix-${target} clang-tidy-fix-${target})
   endif()
 

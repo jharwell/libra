@@ -8,6 +8,9 @@ set(BASE_DIAG_OPTIONS
   -Wno-padded
   -Wno-packed
   -Wno-gnu-zero-variadic-macro-arguments
+  -Wno-language-extension-token
+  -Wno-gnu-statement-expression
+  -Wshorten-64-to-32
   -Wno-cast-align
   -Wno-weak-vtables
   -g

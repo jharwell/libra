@@ -22,6 +22,7 @@ set(CMAKE_CXX_FLAGS_DEV ${CXXDFLAGS} CACHE string
 ################################################################################
 # Optimized Mode                                                               #
 ################################################################################
+set(OPTCFLAGS "")
 foreach(arg ${C_OPT_OPTIONS} ${C_DIAG_OPTIONS} ${C_PARALLEL_OPTIONS} ${CC_OPT_DEFS} ${EXTRA_FLAGS})
   set(OPTCFLAGS "${OPTCFLAGS} ${arg}")
 endforeach(arg)
@@ -30,6 +31,7 @@ set(CMAKE_C_FLAGS_OPT ${OPTCFLAGS} CACHE string
   "Flags used by the C compiler during optimized builds."
   FORCE)
 
+set(OPTCXXFLAGS "")
 foreach(arg ${CXX_OPT_OPTIONS} ${CXX_DIAG_OPTIONS} ${CXX_PARALLEL_OPTIONS} ${CC_OPT_DEFS} ${EXTRA_FLAGS})
   set(OPTCXXFLAGS "${OPTCXXFLAGS} ${arg}")
 endforeach(arg)

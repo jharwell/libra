@@ -8,7 +8,16 @@ function(register_clang_static_check check_target target)
   # || true is to ignore all return code errors. I added this because Qt
   # expects to be compiled with -fPIC, and because it is not, the analyzer
   # will stop on the first Qt file it gets to.
+
   foreach(file ${ARGN})
+    get_filename_component(fname ${file}, EXT)
+    string(FIND ${fname} "cpp" position)
+    if(NOT "${position}" MATCHES "-1")
+      set(STD gnu++${CMAKE_CXX_STANDARD})
+    else()
+      set(STD gnu${CMAKE_C_STANDARD})
+    endif()
+
     add_custom_command(TARGET ${check_target}
       COMMAND
       ${clang_check_EXECUTABLE}
@@ -17,7 +26,7 @@ function(register_clang_static_check check_target target)
       ${file}
       -ast-dump --
       "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
-      -std=c++${CMAKE_CXX_STANDARD}
+      -std=${STD}
        || true
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   add_custom_command(TARGET ${check_target} COMMAND

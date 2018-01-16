@@ -17,6 +17,7 @@ include_directories(${root_include_path})
 file(GLOB_RECURSE all_headers "${root_include_path}/*.h")
 set(root_test_dir "${CMAKE_SOURCE_DIR}/tests")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g")
+link_libraries(pthread)
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)

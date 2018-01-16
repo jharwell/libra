@@ -12,7 +12,6 @@ set(BASE_DIAG_OPTIONS
   -Wsuggest-attribute=noreturn
   -Wfloat-equal
   -Wshadow
-  -Wno-return-type
   -g
   )
 
@@ -54,6 +53,7 @@ set(BASE_OPT_OPTIONS
   -funroll-loops
   -march=native
   -mtune=native
+  -Winline
   -DNDEBUG
   )
 

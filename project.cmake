@@ -27,6 +27,12 @@ else()
   set(IS_ROOT_PROJECT FALSE)
 endif()
 
+if ("${target}" STREQUAL "${root_target}")
+  set(IS_ROOT_TARGET TRUE)
+else()
+  set(IS_ROOT_TARGET FALSE)
+endif()
+
 # Output some nice status info.
 if(IS_ROOT_PROJECT)
   set(module_display "${root_target}")
@@ -92,7 +98,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ################################################################################
 # Sources
 set(${target}_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src")
-file(GLOB_RECURSE ${target}_ROOT_SRC ${${target}_SRC_PATH}/*.c ${${target}_SRC_PATH}/*.cpp)
+
+if (IS_ROOT_TARGET)
+  file(GLOB_RECURSE ${target}_ROOT_C_SRC ${${target}_SRC_PATH}/*.c)
+  file(GLOB_RECURSE ${target}_ROOT_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
+  set(${target}_ROOT_SRC ${${target}_ROOT_C_SRC} ${${target}_ROOT_CXX_SRC})
+endif()
+
 file(GLOB ${target}_SRC ${${target}_SRC_PATH}/*.c ${${target}_SRC_PATH}/*.cpp)
 file(GLOB ${target}_C_SRC ${${target}_SRC_PATH}/*.c )
 file(GLOB ${target}_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
@@ -111,6 +123,13 @@ file(GLOB c_tests ${${target}_TEST_PATH}/*-test.c)
 file(GLOB c_test_harness ${${target}_TEST_PATH}/*_test.c ${${target}_TEST_PATH}/*.h ${${target}_TEST_PATH}/*.hpp)
 file(GLOB cxx_tests ${${target}_TEST_PATH}/*-test.cpp)
 file(GLOB cxx_test_harness ${${target}_TEST_PATH}/*_test.cpp  ${${target}_TEST_PATH}/*.hpp)
+
+################################################################################
+# Testing Targets                                                              #
+################################################################################
+if (NOT IS_ROOT_PROJECT AND "${target}" STREQUAL "tests" AND NOT TARGET ${target})
+  add_library(${current_proj_name}-${target} ${${target}_SRC})
+endif()
 
 ################################################################################
 # Target Definitions                                                           #
@@ -154,17 +173,36 @@ endif()
 # (i.e. semi-independent subjprojects, then register each submodules' source
 # independently so that it can be built/checked independently. Otherwise, add
 # the source as one big blob.)
-if (${${root_target}_HAS_RECURSIVE_DIRS})
-  if (NOT IS_ROOT_PROJECT)
-    register_checkers(${target} ${${target}_SRC})
-    register_auto_formatters(${target} ${${target}_SRC})
-    register_auto_fixers(${target} ${${target}_SRC})
+
+if("${${root_target}_CHECK_LANGUAGE}" STREQUAL "C")
+  if (IS_ROOT_TARGET)
+    set(${root_target}_ROOT_CHECK_SRC ${${root_target}_ROOT_C_SRC})
+  else()
+    set(${target}_CHECK_SRC ${${target}_C_SRC})
   endif()
 else()
-  if (IS_ROOT_PROJECT)
-    register_checkers(${target} ${${target}_ROOT_SRC})
-    register_auto_formatters(${target} ${${target}_ROOT_SRC})
-    register_auto_fixers(${target} ${${target}_ROOT_SRC})
+  set(${root_target}_ROOT_CHECK_SRC ${${root_target}_ROOT_CXX_SRC})
+  set(${target}_CHECK_SRC} ${${target}_CXX_SRC})
+endif()
+
+if (${${root_target}_HAS_RECURSIVE_DIRS})
+
+  if (IS_ROOT_TARGET)
+    register_checkers(${target} ${${target}_ROOT_CHECK_SRC})
+    register_auto_formatters(${target} ${${target}_ROOT_CHECK_SRC})
+    register_auto_fixers(${target} ${${target}_ROOT_CHECK_SRC})
+  else()
+    register_checkers(${target} ${${target}_CHECK_SRC})
+    register_auto_formatters(${target} ${${target}_CHECK_SRC})
+    register_auto_fixers(${target} ${${target}_CHECK_SRC})
+  endif()
+endif()
+
+if (NOT ${${root_target}_HAS_RECURSIVE_DIRS})
+  if (IS_ROOT_TARGET)
+    register_checkers(${target} ${${target}_ROOT_CHECK_SRC})
+    register_auto_formatters(${target} ${${target}_ROOT_CHECK_SRC})
+    register_auto_fixers(${target} ${${target}_ROOT_CHECK_SRC})
   endif()
 endif()
 

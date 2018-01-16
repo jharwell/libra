@@ -1,17 +1,4 @@
 ################################################################################
-# Testing Targets                                                              #
-################################################################################
-# We are not the root project--we are a submodule. Add ourselves to the
-# dependencies of the root target.
-if (NOT IS_ROOT_PROJECT AND "${target}" STREQUAL "tests" AND NOT TARGET ${target})
-  if (${target} STREQUAL "${current_proj_name}")
-    add_library(${target} OBJECT ${${target}_SRC})
-  else()
-    add_library(${current_proj_name}-${target} ${${target}_SRC})
-  endif()
-endif()
-
-################################################################################
 # Testing Options                                                              #
 ################################################################################
 enable_testing()
@@ -59,6 +46,7 @@ foreach(t ${c_tests} ${cxx_tests})
   # project (a library of common test code), so add it as a dependency to the
   # test if it exists.
   if (TARGET ${current_proj_name}-tests)
+    add_dependencies(${current_proj_name}-${test_name} ${current_proj_name}-tests)
     target_link_libraries(${current_proj_name}-${test_name}
       ${current_proj_name}-tests
       ${current_proj_name}
