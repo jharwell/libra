@@ -161,7 +161,10 @@ if (NOT IS_ROOT_PROJECT)
       # cmake.
       #
       # It's safer just to do this all the time.
-      add_library(${current_proj_name}-${target} OBJECT ${${target}_SRC})
+
+      if (NOT "${current_proj_name}" STREQUAL "${target}")
+        add_library(${current_proj_name}-${target} OBJECT ${${target}_SRC})
+        endif()
     endif()
   endif()
 endif()
@@ -181,17 +184,21 @@ if("${${root_target}_CHECK_LANGUAGE}" STREQUAL "C")
     set(${target}_CHECK_SRC ${${target}_C_SRC})
   endif()
 else()
-  set(${root_target}_ROOT_CHECK_SRC ${${root_target}_ROOT_CXX_SRC})
-  set(${target}_CHECK_SRC} ${${target}_CXX_SRC})
+  if (IS_ROOT_TARGET)
+    set(${root_target}_ROOT_CHECK_SRC ${${root_target}_ROOT_CXX_SRC})
+  else()
+    set(${target}_CHECK_SRC ${${target}_CXX_SRC})
+    endif()
 endif()
 
-if (${${root_target}_HAS_RECURSIVE_DIRS})
 
+if (${${root_target}_HAS_RECURSIVE_DIRS})
   if (IS_ROOT_TARGET)
     register_checkers(${target} ${${target}_ROOT_CHECK_SRC})
     register_auto_formatters(${target} ${${target}_ROOT_CHECK_SRC})
     register_auto_fixers(${target} ${${target}_ROOT_CHECK_SRC})
   else()
+
     register_checkers(${target} ${${target}_CHECK_SRC})
     register_auto_formatters(${target} ${${target}_CHECK_SRC})
     register_auto_fixers(${target} ${${target}_CHECK_SRC})
