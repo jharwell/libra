@@ -1,7 +1,7 @@
 set(CLANG_STATIC_CHECK_ENABLED OFF)
 
 # Function to register a target for clang-tidy checking
-function(register_clang_static_check check_target target)
+function(do_register_clang_check_checker check_target target)
   set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
 
   add_custom_target(${check_target})
@@ -39,6 +39,31 @@ function(register_clang_static_check check_target target)
     )
 
   add_dependencies(${check_target} ${target})
+endfunction()
+
+# Registers all sources with the clang_check checker
+function(register_clang_check_checker target)
+  if (NOT CLANG_STATIC_CHECK_ENABLED)
+    return()
+  endif()
+
+  if(NOT TARGET static-check-all)
+    add_custom_target(static-check-all)
+
+    set_target_properties(static-check-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+
+  if (IS_ROOT_TARGET)
+    do_register_clang_check_checker(static-check-${target} ${target} ${ARGN})
+  else()
+    do_register_clang_check_checker(static-check-${target} ${root_target}-${target} ${ARGN})
+  endif()
+
+  add_dependencies(static-check-all static-check-${target})
+  add_dependencies(check-${target} static-check-all)
 endfunction()
 
 # Enable or disable clang-check checking

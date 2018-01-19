@@ -1,8 +1,10 @@
+################################################################################
+# Cmake Environment                                                            #
+################################################################################
 set(CLANG_TIDY_CHECK_ENABLED OFF)
-set(CLANG_TIDY_FIX_ENABLED OFF)
 
 # Function to register a target for clang-tidy checking
-function(register_clang_tidy_check check_target target)
+function(do_register_clang_tidy_check check_target target)
   set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
 
   add_custom_target(${check_target})
@@ -26,29 +28,30 @@ endforeach()
   add_dependencies(${check_target} ${target})
 endfunction()
 
-# Function to register a target for clang-tidy fixing
-function(register_clang_tidy_fix check_target target)
-  set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
+# Registers all sources with the clang_tidy checker
+function(register_clang_tidy_checker target)
+  if (NOT CLANG_TIDY_CHECK_ENABLED)
+    return()
+  endif()
 
-  add_custom_target(
-    ${check_target}
-    COMMAND
-    ${clang_tidy_EXECUTABLE}
-    -p\t${PROJECT_BINARY_DIR}
-    ${ARGN}
-    -fix
-    -fix-errors
-    -checks=cert*,clang-analyzer*,cppcoreguidelnes*,google*,llvm*,modernize*,readability*,-readability-else-after-return,modernize*
-    "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+  if(NOT TARGET tidy-check-all)
+    add_custom_target(tidy-check-all)
 
-  set_target_properties(${check_target}
-    PROPERTIES
-    EXCLUDE_FROM_DEFAULT_BUILD 1
-    )
+    set_target_properties(tidy-check-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
 
-  add_dependencies(${check_target} ${target})
+  if (IS_ROOT_TARGET)
+    do_register_clang_tidy_check(tidy-check-${target} ${target} ${ARGN})
+  else()
+    do_register_clang_tidy_check(tidy-check-${target} ${root_target}-${target} ${ARGN})
+  endif()
+
+  add_dependencies(tidy-check-all tidy-check-${target})
+  add_dependencies(check-${target} tidy-check-all)
+
 endfunction()
 
 # Enable or disable clang-tidy checking
@@ -77,6 +80,58 @@ function(toggle_clang_tidy_check status)
       endif()
 
     set(CMAKE_EXPORT_COMPILE_COMMANDS On PARENT_SCOPE)
+endfunction()
+
+################################################################################
+# Clang Tidy Fixer                                                             #
+################################################################################
+set(CLANG_TIDY_FIX_ENABLED OFF)
+
+# Function to register a target for clang-tidy fixing
+function(do_register_clang_tidy_fix check_target target)
+  set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
+  add_custom_target(
+    ${check_target}
+    COMMAND
+    ${clang_tidy_EXECUTABLE}
+    -p\t${PROJECT_BINARY_DIR}
+    ${ARGN}
+    -fix
+    -fix-errors
+    -checks=cert*,clang-analyzer*,cppcoreguidelnes*,google*,llvm*,modernize*,readability*,-readability-else-after-return,modernize*
+    "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+  set_target_properties(${check_target}
+    PROPERTIES
+    EXCLUDE_FROM_DEFAULT_BUILD 1
+    )
+
+  add_dependencies(${check_target} ${target})
+endfunction()
+
+function(register_clang_tidy_fix target)
+  if (NOT CLANG_TIDY_FIX_ENABLED)
+    return()
+  endif()
+
+  if (NOT TARGET tidy-fix-all)
+    add_custom_target(tidy-fix-all)
+
+    set_target_properties(tidy-fix-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+
+  if (IS_ROOT_TARGET)
+    do_register_clang_tidy_fix(__tidy-fix-${target} ${target} ${ARGN})
+  else()
+    do_register_clang_tidy_fix(__tidy-fix-${target} ${root_target}-${target} ${ARGN})
+  endif()
+
+  add_dependencies(tidy-fix-all __tidy-fix-${target})
 endfunction()
 
 # Enable or disable clang-tidy fixing

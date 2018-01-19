@@ -1,7 +1,7 @@
 set(CLANG_FORMAT_ENABLED OFF)
 
 # Function to register a target for clang_format
-function(register_clang_format check_target target)
+function(do_register_clang_format check_target target)
   if (${${root_target}_HAS_RECURSIVE_DIRS})
     file(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/${root_target}/${target}/*.hpp
       ${CMAKE_SOURCE_DIR}/include/${root_target}/*/${target}/*.hpp)
@@ -25,6 +25,29 @@ function(register_clang_format check_target target)
     )
 
   add_dependencies(${check_target} ${target})
+endfunction()
+
+function(register_clang_format target)
+    if (NOT CLANG_FORMAT_ENABLED)
+    return()
+  endif()
+
+  if (NOT TARGET format-all)
+    add_custom_target(format-all)
+
+    set_target_properties(format-all
+      PROPERTIES
+      EXCLUDE_FROM_DEFAULT_BUILD 1
+      )
+  endif()
+
+  if (IS_ROOT_TARGET)
+    do_register_clang_format(__format-${target} ${target} ${ARGN})
+  else()
+    do_register_clang_format(__format-${target} ${root_target}-${target} ${ARGN})
+  endif()
+
+  add_dependencies(format-all __format-${target})
 endfunction()
 
 # Enable or disable clang_format for auto-formatting
