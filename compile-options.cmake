@@ -26,6 +26,9 @@ if (CCACHE_FOUND)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif()
 
+# Configure iwyu if available
+find_program(iwyu_path NAMES include-what-you-use iwyu)
+
 #################################################################################
 # Definitions                                                                   #
 #################################################################################
