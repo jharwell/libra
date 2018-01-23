@@ -55,8 +55,10 @@ set(BASE_OPT_OPTIONS
   -mtune=native
   -Winline
   -DNDEBUG
+  -flto
   )
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
