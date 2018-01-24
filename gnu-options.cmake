@@ -29,7 +29,7 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 ################################################################################
 set(BASE_CHECK_OPTIONS
   -fstack-protector-all
-  -fstack-protector-strong`1`
+  -fstack-protector-strong
   -fsanitize=address,undefined
   -O1
   -fno-omit-frame-pointer
