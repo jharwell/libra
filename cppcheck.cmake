@@ -75,6 +75,6 @@ function(toggle_cppcheck status)
 
     set(CPPCHECK_ENABLED ${status} PARENT_SCOPE)
     if (IS_ROOT_PROJECT)
-      message(STATUS "  Checker cppcheck [enabled]")
+      message(STATUS "  Checker cppcheck [enabled=${cppcheck_EXECUTABLE}]")
     endif()
 endfunction()
