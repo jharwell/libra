@@ -73,13 +73,13 @@ endif ()
 if(GUIDED_OPT)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -guide
-    -parallel
     -guide-par
     -guide-vec
     -guide-data-trans
     )
 endif()
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 

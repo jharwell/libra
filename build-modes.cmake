@@ -35,7 +35,6 @@ set(OPTCXXFLAGS "")
 foreach(arg ${CXX_OPT_OPTIONS} ${CXX_DIAG_OPTIONS} ${CXX_PARALLEL_OPTIONS} ${CC_OPT_DEFS} ${EXTRA_FLAGS})
   set(OPTCXXFLAGS "${OPTCXXFLAGS} ${arg}")
 endforeach(arg)
-
 set(CMAKE_CXX_FLAGS_OPT ${OPTCXXFLAGS} CACHE string
   "Flags used by the C++ compiler during optimized builds."
   FORCE)
