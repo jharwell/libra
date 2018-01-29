@@ -53,20 +53,29 @@ set(BASE_OPT_OPTIONS
   -funroll-loops
   -march=native
   -mtune=native
-  -Winline
-  -DNDEBUG
   -flto
   )
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(CMAKE_AR "gcc-ar")
-set(CMAKE_RANLIB "gcc-ranlib")
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  set(CMAKE_AR "gcc-ar")
+  set(CMAKE_RANLIB "gcc-ranlib")
+endif()
 
 ################################################################################
 # Reporting Options                                                            #
 ################################################################################
-set(REPORT_OPTIONS
-  -fopt-info-optimized-optall=$(REPORTDIR)/$(patsubst %.o,%.rprt,$(notdir $@))
+
+set(BASE_REPORT_OPTIONS
+  -fopt-info-optimized-optall
+  -fprofile-arcs
+  -ftest-coverage
   )
+
+if (WITH_REPORTS)
+  set(C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+  set(CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+endif()
