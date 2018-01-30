@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (SHARED_LIBS)
+if (BUILD_SHARED_LIBS)
   set(EXTRA_FLAGS "-fPIC")
 endif()
 
@@ -33,7 +33,12 @@ find_program(iwyu_path NAMES include-what-you-use iwyu)
 # Definitions                                                                   #
 #################################################################################
 set(CC_DEV_DEFS "-DFPC_TYPE=FPC_ABORT")
-set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN")
+
+if (WITH_ER_NDEBUG)
+  set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DER_NDEBUG=1")
+else()
+  set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN")
+endif()
 
 #################################################################################
 # GNU Compiler Options                                                          #
