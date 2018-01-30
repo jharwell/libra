@@ -79,14 +79,14 @@ toggle_clang_static_check(ON)
 toggle_clang_format(ON)
 toggle_clang_tidy_fix(ON)
 
-option(BUILD_SHARED_LIBS    "Build shared instead of static libraries."              ON)
+option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
 option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
 option(BUILD_TESTS    "Build tests."                                           OFF)
 option(WITH_OPENMP    "Enable OpenMP code."                                    OFF)
 option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and optimization, if applicable ." OFF)
 option(WITH_MPI       "Enable MPI code." OFF)
 option(WITH_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
-option(WITH_ER_NDEBUG "0 to enable failure messages on assert() even when NDEBUG is passed." 0)
+option(WITH_ER_NDEBUG "NO to enable failure messages on assert() even when NDEBUG is passed." NO)
 set(FPC FPC_TYPE="${WITH_FPC}")
 
 # Set output directories. If we are the root project, then this is
