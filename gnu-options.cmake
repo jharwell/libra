@@ -12,6 +12,18 @@ set(BASE_DIAG_OPTIONS
   -Wsuggest-attribute=noreturn
   -Wfloat-equal
   -Wshadow
+  -Wcast-align
+  -Wcast-qual
+  -Wdisabled-optimization
+  -Wformat=2
+  -Winit-self
+  -Wlogical-op
+  -Wmissing-declarations
+  -Wmissing-include-dirs
+  -Wredundant-decls
+  -Wstrict-overflow=5
+  -Wswitch-default
+  -Wundef
   -g
   )
 
@@ -23,7 +35,14 @@ set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
   -Wsuggest-override
+    -Wstrict-null-sentinel
+  -Wsign-promo
+  -Wnoexcept
+  -Wold-style-cast
+  -Woverloaded-virtual
+  -Wctor-dtor-privacy
   )
+
 ################################################################################
 # Checking Options                                                             #
 ################################################################################
@@ -68,7 +87,6 @@ endif()
 ################################################################################
 # Reporting Options                                                            #
 ################################################################################
-
 set(BASE_REPORT_OPTIONS
   -fopt-info-optimized-optall
   -fprofile-arcs
