@@ -21,7 +21,7 @@ set(BASE_DIAG_OPTIONS
   -Wmissing-declarations
   -Wmissing-include-dirs
   -Wredundant-decls
-  -Wstrict-overflow=5
+  -Wstrict-overflow
   -Wswitch-default
   -Wundef
   -g
@@ -35,7 +35,7 @@ set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
   -Wsuggest-override
-    -Wstrict-null-sentinel
+  -Wstrict-null-sentinel
   -Wsign-promo
   -Wnoexcept
   -Wold-style-cast
