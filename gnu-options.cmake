@@ -25,6 +25,7 @@ set(BASE_DIAG_OPTIONS
   -Wswitch-default
   -Wundef
   -g
+  -Og
   )
 
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
@@ -50,7 +51,7 @@ set(BASE_CHECK_OPTIONS
   -fstack-protector-all
   -fstack-protector-strong
   -fsanitize=address,undefined
-  -O1
+  -Og
   -fno-omit-frame-pointer
   )
 
@@ -66,12 +67,12 @@ endif()
 ################################################################################
 set(BASE_OPT_OPTIONS
   -O3
+  -Ofast
   -fno-trapping-math
   -fno-signed-zeros
   -frename-registers
   -funroll-loops
   -march=native
-  -mtune=native
   -flto
   )
 
