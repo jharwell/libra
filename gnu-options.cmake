@@ -25,7 +25,7 @@ set(BASE_DIAG_OPTIONS
   -Wswitch-default
   -Wundef
   -g
-  -Og
+  -O0
   )
 
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
