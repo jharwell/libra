@@ -55,14 +55,12 @@ endif()
 ################################################################################
 set(BASE_OPT_OPTIONS
   -O3
-  -ipo
   -no-prec-div
   -xHost
-  -fp-model
-  fast=2
+  -fp-model fast=2
   )
 
-if (ENABLE_OPENMP)
+if (WITH_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -qopenmp
     -parallel
@@ -79,14 +77,21 @@ if(GUIDED_OPT)
     )
 endif()
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 ################################################################################
 # Reporting Options                                                            #
 ################################################################################
-set(REPORT_OPTIONS
+set(BASE_REPORT_OPTIONS
   -qopt-report-phase=all
-  -qopt-report-file=$(REPORTDIR)/opt.rprt
+  -qopt-report=4
+  -qopt-report-file=${REPORT_DIR}/opt.rprt
   )
+
+if (WITH_REPORTS)
+  set(C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+  set(CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+endif()
