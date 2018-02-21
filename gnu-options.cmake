@@ -24,6 +24,7 @@ set(BASE_DIAG_OPTIONS
   -Wstrict-overflow
   -Wswitch-default
   -Wundef
+  -Wno-unknown-pragmas
   -g
   -O0
   )
