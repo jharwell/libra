@@ -53,6 +53,9 @@ if (IS_ROOT_PROJECT AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/cotire/CMake")
+
+include(cotire)
 include(compile-options)
 include(reporting)
 include(build-modes)
@@ -106,7 +109,7 @@ if (IS_ROOT_TARGET)
   file(GLOB_RECURSE ${target}_ROOT_C_SRC ${${target}_SRC_PATH}/*.c)
   file(GLOB_RECURSE ${target}_ROOT_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
   set(${target}_ROOT_SRC ${${target}_ROOT_C_SRC} ${${target}_ROOT_CXX_SRC})
-endif()
+pendif()
 
 file(GLOB ${target}_SRC ${${target}_SRC_PATH}/*.c ${${target}_SRC_PATH}/*.cpp)
 file(GLOB ${target}_C_SRC ${${target}_SRC_PATH}/*.c )
