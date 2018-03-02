@@ -109,7 +109,7 @@ if (IS_ROOT_TARGET)
   file(GLOB_RECURSE ${target}_ROOT_C_SRC ${${target}_SRC_PATH}/*.c)
   file(GLOB_RECURSE ${target}_ROOT_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
   set(${target}_ROOT_SRC ${${target}_ROOT_C_SRC} ${${target}_ROOT_CXX_SRC})
-pendif()
+endif()
 
 file(GLOB ${target}_SRC ${${target}_SRC_PATH}/*.c ${${target}_SRC_PATH}/*.cpp)
 file(GLOB ${target}_C_SRC ${${target}_SRC_PATH}/*.c )
