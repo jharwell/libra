@@ -5,12 +5,14 @@
 include(FindPackageHandleStandardArgs)
 
 find_program(clang_format_EXECUTABLE
-    NAMES
-    clang-format-4.0
-    clang-format-3.8
-    clang-format
-    PATHS
-        "${CLANG_FORMAT_DIR}"
+  NAMES
+  clang-format-6.0
+  clang-format-5.0
+  clang-format-4.0
+  clang-format-3.8
+  clang-format
+  PATHS
+  "${CLANG_FORMAT_DIR}"
 )
 
 find_package_handle_standard_args(clang_format

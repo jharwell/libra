@@ -5,12 +5,14 @@
 include(FindPackageHandleStandardArgs)
 
 find_program(clang_check_EXECUTABLE
-    NAMES
-        clang-check-4.0
-        clang-check-3.8
-        clang-check
-    PATHS
-        "${CLANG_CHECK_DIR}"
+  NAMES
+  clang-check-6.0
+  clang-check-5.0
+  clang-check-4.0
+  clang-check-3.8
+  clang-check
+  PATHS
+  "${CLANG_CHECK_DIR}"
 )
 
 find_package_handle_standard_args(clang_check
