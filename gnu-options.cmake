@@ -26,8 +26,11 @@ set(BASE_DIAG_OPTIONS
   -Wundef
   -Wno-unknown-pragmas
   -g
-  -O0
   )
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -O0)
+endif()
 
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wstrict-prototypes

@@ -41,7 +41,7 @@ else()
 endif()
 
 if (WITH_ER_NREPORT)
-  set(CC_OPT_DEFS ${CC_OPT_DEFS} "-DNREPORT=1")
+  set(CC_OPT_DEFS ${CC_OPT_DEFS} "-DER_NREPORT=1")
 endif()
 
 #################################################################################
