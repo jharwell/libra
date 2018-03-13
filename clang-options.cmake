@@ -43,10 +43,26 @@ endif()
 set(BASE_OPT_OPTIONS
   -O3
   -Ofast
+  -fno-trapping-math
+  -fno-signed-zeros
+  -frename-registers
+  -funroll-loops
+  -march=native
+  -fnostack-protector
+  -flto
   )
 
+if (WITH_OPENMP)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
+    -fopenmp
+    )
+endif()
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+endif()
 
 ################################################################################
 # Reporting Options                                                            #

@@ -52,7 +52,7 @@ set(BASE_CHECK_OPTIONS
   -fstack-protector-all
   -fstack-protector-strong
   -fsanitize=address,undefined
-  -Og
+  -O0
   -fno-omit-frame-pointer
   )
 
@@ -74,8 +74,17 @@ set(BASE_OPT_OPTIONS
   -frename-registers
   -funroll-loops
   -march=native
+  -fno-stack-protector
   -flto
   )
+
+if (WITH_OPENMP)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
+    -fopenmp
+    -floop-parallelize-all
+    -ftree-parallelize-loops=4
+    )
+endif()
 
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
