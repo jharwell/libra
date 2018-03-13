@@ -90,6 +90,7 @@ option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and opt
 option(WITH_MPI       "Enable MPI code." OFF)
 option(WITH_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
 option(WITH_ER_NDEBUG "NO to enable failure messages on assert() even when NDEBUG is passed." NO)
+option(WITH_ER_NREPORT "YES to disable all ER reporting." YES)
 set(FPC FPC_TYPE="${WITH_FPC}")
 
 # Set output directories. If we are the root project, then this is

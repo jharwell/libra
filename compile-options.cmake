@@ -40,6 +40,10 @@ else()
   set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DNDEBUG")
 endif()
 
+if (WITH_ER_NREPORT)
+  set(CC_OPT_DEFS ${CC_OPT_DEFS} "-DNREPORT=1")
+endif()
+
 #################################################################################
 # GNU Compiler Options                                                          #
 #################################################################################
