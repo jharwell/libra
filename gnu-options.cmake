@@ -52,18 +52,40 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 # Checking Options                                                             #
 ################################################################################
 set(BASE_CHECK_OPTIONS
-  -fstack-protector-all
-  -fstack-protector-strong
-  -fsanitize=address,undefined
-  -O0
   -fno-omit-frame-pointer
   )
+set(MEM_CHECK_OPTIONS
+  -fsanitize=leak
+  )
+set(ADDR_CHECK_OPTIONS
+  -fsanitize=address
+  )
+set(STACK_CHECK_OPTIONS
+  -fstack-protector-all
+  -fstack-protector-strong
+  )
+set(MISC_CHECK_OPTIONS
+  -fsanitize=undefined
+  )
 
-if (WITH_CHECKS)
-  set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS}
-    -fsanitize=vptr
-    )
+set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+
+if ("${WITH_CHECKS}" MATCHES "MEM")
+  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  endif()
+if ("${WITH_CHECKS}" MATCHES "ADDR")
+  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${ADDR_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${ADDR_CHECK_OPTIONS})
+endif()
+if ("${WITH_CHECKS}" MATCHES "STACK")
+  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
+endif()
+if ("${WITH_CHECKS}" MATCHES "MISC")
+  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
 endif()
 
 ################################################################################

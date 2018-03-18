@@ -40,14 +40,28 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 # Checking Options                                                             #
 ################################################################################
 set(BASE_CHECK_OPTIONS
-  -check=conversions,stack,uninit
+  -fno-omit-frame-pointer
+  )
+set(MEM_CHECK_OPTIONS
   -check-pointers=rw
   -check-pointers-dangling=all
   -check-pointers-undimensioned
   )
-if (WITH_CHECKS)
-  set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+set(STACK_CHECK_OPTIONS
+  -check=conversions,stack,uninit
+  -fstack-protector-all
+  -fstack-protector-strong
+  )
+set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+
+if ("${WITH_CHECKS}" MATCHES "MEM")
+  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+endif()
+if ("${WITH_CHECKS}" MATCHES "STACK")
+  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
 endif()
 
 ################################################################################
