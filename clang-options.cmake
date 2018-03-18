@@ -28,12 +28,22 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 # Checking Options                                                             #
 ################################################################################
 set(BASE_CHECK_OPTIONS
-  -fsanitize=address,integer,undefined,dataflow
-  -fsanitize-undefined-trap-on-error
+  -fno-omit-frame-pointer
+  )
+set(MEM_CHECK_OPTIONS
+  -fsanitize=memory
+  -fsanitize-memory-track-origins
+  -fsanitize-memory-use-after-dtor
+  )
+set(ADDR_CHECK_OPTIONS
+  -fsanitize=address,leak
+  )
+set(MISC_CHECK_OPTIONS
+  -fsanitize=undefined
   )
 if (WITH_CHECKS)
-  set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS}
+  set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS}
     -fsanitize=vptr
     )
 endif()
