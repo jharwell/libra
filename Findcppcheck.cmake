@@ -1,4 +1,3 @@
-
 # Findcppcheck results:
 # cppcheck_FOUND
 # cppcheck_EXECUTABLE

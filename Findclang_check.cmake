@@ -9,7 +9,6 @@ find_program(clang_check_EXECUTABLE
   clang-check-6.0
   clang-check-5.0
   clang-check-4.0
-  clang-check-3.8
   clang-check
   PATHS
   "${CLANG_CHECK_DIR}"
