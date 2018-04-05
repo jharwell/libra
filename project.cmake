@@ -84,7 +84,7 @@ toggle_clang_tidy_fix(ON)
 
 option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
 option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
-option(BUILD_TESTS    "Build tests."                                           OFF)
+option(WITH_TESTS     "Build tests."                                           OFF)
 option(WITH_OPENMP    "Enable OpenMP code."                                    OFF)
 option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and optimization, if applicable ." OFF)
 option(WITH_MPI       "Enable MPI code." OFF)
@@ -223,7 +223,7 @@ endif()
 ################################################################################
 # Testing Options                                                              #
 ################################################################################
-if (BUILD_TESTS)
+if (WITH_TESTS)
   include(testing)
 endif()
 
