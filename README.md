@@ -116,10 +116,10 @@ configuration:
   option 'WITH_CHECKS' [Default=NO]. When passed, the value should be
   a command-separated list of checks to enable:
 
-  `MEM` - Memory checking/sanitization.
-  `ADDR` - Address sanitization.
-  `STACK` - Agressive stack checking.
-  `MISC` - Other potentially helpful checks.
+  - `MEM` - Memory checking/sanitization.
+  - `ADDR` - Address sanitization.
+  - `STACK` - Agressive stack checking.
+  - `MISC` - Other potentially helpful checks.
 
   Not all compilerconfigurations use all categories, and not all
   combinations of checkers are compatible, so use with care.
