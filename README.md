@@ -15,6 +15,10 @@ can be avoided.
 
 - A recent version of Linux.
 
+- cmake >= 3.2
+
+- make >= 3.2
+
 - cppcheck >= 1.72.
 
 - clang-check >= 4.0. Higher versions recommended (better warnings).
