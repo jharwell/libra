@@ -56,6 +56,7 @@ foreach(t ${c_tests} ${cxx_tests})
       ${current_proj_name}
       )
   endif()
+   target_include_directories(${current_proj_name}-${test_name} PUBLIC "${${target}_INCLUDE_DIRS}")
 
   # Add dependencies on the global unit_tests target, which will build ALL
   # unit tests known to cmake.
