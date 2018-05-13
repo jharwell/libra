@@ -55,7 +55,6 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/cotire/CMake")
 
-include(cotire)
 include(compile-options)
 include(reporting)
 include(build-modes)
