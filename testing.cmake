@@ -42,10 +42,17 @@ foreach(t ${c_tests} ${cxx_tests})
   add_dependencies(${current_proj_name}-${test_name} ${root_target})
   set_target_properties(${current_proj_name}-${test_name} PROPERTIES LINKER_LANGUAGE CXX)
 
+  # If the project is a C project, then we will probably be casting in the C
+  # way, so turn off the  usual compile warnings about this.
+  if ("${${root_target}_CHECK_LANGUAGE}" MATCHES "C")
+    target_compile_options(${current_proj_name}-${test_name} PUBLIC -Wno-old-style-cast)
+  endif()
+
   # Tests might also depend on the special 'tests' submodule in the root
   # project (a library of common test code), so add it as a dependency to the
   # test if it exists.
   if (TARGET ${current_proj_name}-tests)
+    target_include_directories(${current_proj_name}-${test_name} PUBLIC ${CMAKE_SOURCE_DIR}/src/tests/include)
     add_dependencies(${current_proj_name}-${test_name} ${current_proj_name}-tests)
     target_link_libraries(${current_proj_name}-${test_name}
       ${current_proj_name}-tests
