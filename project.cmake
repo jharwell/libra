@@ -53,7 +53,6 @@ if (IS_ROOT_PROJECT AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/cotire/CMake")
 
 include(compile-options)
 include(reporting)
@@ -117,12 +116,6 @@ file(GLOB ${target}_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
 
 set(${target}_INC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 set(${target}_ROOT_INC_PATH "${CMAKE_SOURCE_DIR}/include/")
-
-# Might need the common test definitions under src/tests/include, so add it to
-# the global include path if it exists
-if (EXISTS src/tests/include)
-  include_directories(src/tests/include)
-endif()
 
 set(${target}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 file(GLOB c_tests ${${target}_TEST_PATH}/*-test.c)
