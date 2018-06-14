@@ -19,7 +19,6 @@ set(BASE_DIAG_OPTIONS
   -Winit-self
   -Wlogical-op
   -Wmissing-declarations
-  -Wmissing-include-dirs
   -Wredundant-decls
   -Wstrict-overflow
   -Wswitch-default
