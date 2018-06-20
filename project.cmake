@@ -128,6 +128,7 @@ file(GLOB cxx_test_harness ${${target}_TEST_PATH}/*_test.cpp  ${${target}_TEST_P
 ################################################################################
 if (NOT IS_ROOT_PROJECT AND "${target}" STREQUAL "tests" AND NOT TARGET ${target})
   add_library(${current_proj_name}-${target} ${${target}_SRC})
+  target_include_directories(${current_proj_name}-${target} PUBLIC include)
 endif()
 
 ################################################################################

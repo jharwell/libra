@@ -52,7 +52,6 @@ foreach(t ${c_tests} ${cxx_tests})
   # project (a library of common test code), so add it as a dependency to the
   # test if it exists.
   if (TARGET ${current_proj_name}-tests)
-    target_include_directories(${current_proj_name}-${test_name} PUBLIC ${CMAKE_SOURCE_DIR}/src/tests/include)
     add_dependencies(${current_proj_name}-${test_name} ${current_proj_name}-tests)
     target_link_libraries(${current_proj_name}-${test_name}
       ${current_proj_name}-tests
