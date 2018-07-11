@@ -3,6 +3,7 @@ set(CLANG_STATIC_CHECK_ENABLED OFF)
 # Function to register a target for clang-tidy checking
 function(do_register_clang_check_checker check_target target)
   set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
+  set(defs "$<TARGET_PROPERTY:${target},COMPILE_DEFINITIONS>")
 
   add_custom_target(${check_target})
   # || true is to ignore all return code errors. I added this because Qt
@@ -21,11 +22,12 @@ function(do_register_clang_check_checker check_target target)
     add_custom_command(TARGET ${check_target}
       COMMAND
       ${clang_check_EXECUTABLE}
-      -p\t${CMAKE_SOURCE_DIR}
+      -p\t${CMAKE_CURRENT_SOURCE_DIR}
       -analyze
       ${file}
       -ast-dump --
       "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
+      "$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>"
       -std=${STD}
        || true
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

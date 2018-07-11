@@ -6,6 +6,7 @@ set(CLANG_TIDY_CHECK_ENABLED OFF)
 # Function to register a target for clang-tidy checking
 function(do_register_clang_tidy_check check_target target)
   set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
+  set(defs "$<TARGET_PROPERTY:${target},COMPILE_DEFINITIONS>")
 
   add_custom_target(${check_target})
 
@@ -17,6 +18,8 @@ function(do_register_clang_tidy_check check_target target)
       -p\t${PROJECT_BINARY_DIR}
       ${file}
       "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+      "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+      -extra-arg=-Wno-unknown-warning-option
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       )
 endforeach()
