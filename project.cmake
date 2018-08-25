@@ -87,7 +87,7 @@ option(WITH_OPENMP    "Enable OpenMP code."                                    O
 option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and optimization, if applicable ." OFF)
 option(WITH_MPI       "Enable MPI code." OFF)
 option(WITH_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
-option(WITH_ER_NDEBUG "NO to enable failure messages on assert() even when NDEBUG is passed." NO)
+option(WITH_ER_NDEBUG "YES to disable all assert() statements as well as event reporting on assertion failure." YES)
 option(WITH_ER_NREPORT "YES to disable all ER reporting." YES)
 set(FPC FPC_TYPE="${WITH_FPC}")
 
