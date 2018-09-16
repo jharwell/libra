@@ -9,6 +9,8 @@
 # 2015 - One of the effective C++ warnings for always using // for comments
 # 2012 - Another effective C++ warnings for not using #defines
 # 11071 - Warnings about inlines not being honored
+# 1476 - Tail padding of a base class
+# 1505 - Size of class affected by tail padding
 ###############################################################################
 set(BASE_DIAG_OPTIONS
   -w2
@@ -33,6 +35,8 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -wd2012
   -wd1082
   -wd11071
+  -wd1476
+  -wd1505
   -std=c++11
   )
 
@@ -72,6 +76,7 @@ set(BASE_OPT_OPTIONS
   -no-prec-div
   -xHost
   -fp-model fast=2
+  -ipo
   )
 
 if (WITH_OPENMP)
@@ -91,10 +96,15 @@ if(GUIDED_OPT)
     )
 endif()
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
+endif()
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 
 ################################################################################
 # Reporting Options                                                            #

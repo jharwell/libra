@@ -72,11 +72,3 @@ if (WITH_MPI)
   find_package(MPI REQUIRED)
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
-
-# Setup OpenMP
-if (WITH_OPENMP)
-  find_package(OpenMP REQUIRED)
-  set(C_PARALLEL_OPTIONS ${OpenMP_C_FLAGS})
-  set(CXX_PARALLEL_OPTIONS ${OpenMP_C_FLAGS})
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()

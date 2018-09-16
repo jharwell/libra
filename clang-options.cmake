@@ -74,10 +74,9 @@ set(BASE_OPT_OPTIONS
   -Ofast
   -fno-trapping-math
   -fno-signed-zeros
-  -frename-registers
   -funroll-loops
   -march=native
-  -fnostack-protector
+  -fno-stack-protector
   -flto
   )
 
