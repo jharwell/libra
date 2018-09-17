@@ -23,6 +23,7 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wno-c++98-compat
   -Wno-c++98-compat-pedantic
   -Weffc++
+  -Wno-c99-extensions
   )
 
 ################################################################################
@@ -77,7 +78,6 @@ set(BASE_OPT_OPTIONS
   -funroll-loops
   -march=native
   -fno-stack-protector
-  -flto
   )
 
 if (WITH_OPENMP)
@@ -89,7 +89,7 @@ set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 
 ################################################################################
