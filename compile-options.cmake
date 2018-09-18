@@ -33,11 +33,7 @@ find_program(iwyu_path NAMES include-what-you-use iwyu)
 # Definitions                                                                   #
 #################################################################################
 set(CC_DEV_DEFS "-DFPC_TYPE=FPC_ABORT")
-set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN")
-
-if (WITH_ER_NDEBUG)
-  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DER_NDEBUG=1 -DNDEBUG")
-endif()
+set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DNDEBUG")
 
 if (WITH_ER_NREPORT)
   set(CC_OPT_DEFS "${CC_OPT_DEFS} -DER_NREPORT=1")

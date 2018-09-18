@@ -146,9 +146,6 @@ configuration:
 
     [Default=`FPC_ABORT`].
 
-- `ER_NDEBUG` - Disable printing of assertion failures when `NDEBUG` is defined
-  (as for optimized builds). [Default=undefined].
-
 - `ER_NREPORT` - Disable reporting entirely (both debug printing and
   logging). [Default=undefined].
 
