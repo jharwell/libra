@@ -25,7 +25,7 @@ set(BASE_DIAG_OPTIONS
   -Wswitch-default
   -Wundef
   -Wno-unknown-pragmas
-  -g
+  -ggdb
   )
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
@@ -106,8 +106,7 @@ set(BASE_OPT_OPTIONS
 if (WITH_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -fopenmp
-    -floop-parallelize-all
-    -ftree-parallelize-loops=4
+    -D_GLIBCXX_PARALLEL
     )
 endif()
 
