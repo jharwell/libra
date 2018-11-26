@@ -17,6 +17,13 @@ set(BASE_DIAG_OPTIONS
   -g
   )
 
+if (WITH_OPENMP)
+  set(BASE_DIAG_OPTIONS "${BASE_DIAG_OPTIONS}"
+    -fopenmp
+    )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+endif()
+
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS})
 set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -fdiagnostics-show-template-tree
@@ -25,6 +32,7 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
   -Wno-c99-extensions
   )
+
 
 ################################################################################
 # Checking Options                                                             #
@@ -85,6 +93,7 @@ if (WITH_OPENMP)
     -fopenmp
     )
 endif()
+
 set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
