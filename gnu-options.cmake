@@ -1,18 +1,50 @@
 ################################################################################
+# Optimization Options                                                         #
+################################################################################
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
+  set(OPT_LEVEL -O0 -ggdb)
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
+  set(OPT_LEVEL -Og -ggdb)
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(OPT_LEVEL -O3 -ggdb)
+endif()
+
+set(BASE_OPT_OPTIONS
+  -Ofast
+  -fno-trapping-math
+  -fno-signed-zeros
+  -frename-registers
+  -funroll-loops
+  -march=native
+  -fno-stack-protector
+  -flto
+  )
+
+if (WITH_OPENMP)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
+    -fopenmp
+    -D_GLIBCXX_PARALLEL
+    )
+endif()
+
+set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  set(CMAKE_AR "gcc-ar")
+  set(CMAKE_RANLIB "gcc-ranlib")
+endif()
+
+################################################################################
 # Diagnostic Options                                                           #
 ################################################################################
 set(BASE_DIAG_OPTIONS
   -W
   -Wall
   -Wextra
-  -fmessage-length=0
-  -fdiagnostics-color=always
-  -Wsuggest-attribute=pure
-  -Wsuggest-attribute=const
-  -Wsuggest-attribute=noreturn
-  -Wfloat-equal
-  -Wshadow
   -Wcast-align
+  -Wcast-qual
   -Wcast-qual
   -Wdisabled-optimization
   -Wformat=2
@@ -20,21 +52,31 @@ set(BASE_DIAG_OPTIONS
   -Wlogical-op
   -Wmissing-declarations
   -Wmissing-include-dirs
+  -Wstrict-overflow=5
+  -Wsuggest-attribute=pure
+  -Wsuggest-attribute=const
+  -Wsuggest-attribute=noreturn
+  -Wfloat-equal
+  -Wshadow
   -Wredundant-decls
   -Wstrict-overflow
   -Wswitch-default
   -Wundef
+  -ansi
+  -Wpointer-arith
   -Wno-unknown-pragmas
-  -ggdb
+  -Wstack-protector
+  -Wunreachable-code
+  -Wmissing-noreturn
+  -Wmissing-format-attribute
+  -Wunused-macros
   )
-
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -O0)
-endif()
 
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wstrict-prototypes
   -Wmissing-prototypes
+  -Wbad-function-cast
+  -Wnested-externs
   )
 
 set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
@@ -46,6 +88,7 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wold-style-cast
   -Woverloaded-virtual
   -Wctor-dtor-privacy
+  -Wdelete-non-virtual-dtor
   )
 
 ################################################################################
@@ -88,36 +131,6 @@ if ("${WITH_CHECKS}" MATCHES "MISC")
   set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
 endif()
 
-################################################################################
-# Optimization Options                                                         #
-################################################################################
-set(BASE_OPT_OPTIONS
-  -O3
-  -Ofast
-  -fno-trapping-math
-  -fno-signed-zeros
-  -frename-registers
-  -funroll-loops
-  -march=native
-  -fno-stack-protector
-  -flto
-  )
-
-if (WITH_OPENMP)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
-    -fopenmp
-    -D_GLIBCXX_PARALLEL
-    )
-endif()
-
-set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
-  set(CMAKE_AR "gcc-ar")
-  set(CMAKE_RANLIB "gcc-ranlib")
-endif()
 
 ################################################################################
 # Reporting Options                                                            #

@@ -1,3 +1,48 @@
+################################################################################
+# Optimization Options                                                         #
+################################################################################
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
+  set(OPT_LEVEL -O0 -ggdb)
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
+  set(OPT_LEVEL -Og -ggdb)
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(OPT_LEVEL -O3 -ggdb)
+endif()
+
+set(BASE_OPT_OPTIONS
+  -no-prec-div
+  -xHost
+  -fp-model fast=2
+  -ipo
+  )
+
+if (WITH_OPENMP)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
+    -qopenmp
+    -parallel
+    -parallel-source-info=2
+    )
+endif ()
+
+if(GUIDED_OPT)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
+    -guide
+    -guide-par
+    -guide-vec
+    -guide-data-trans
+    )
+endif()
+
+set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
+endif()
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
+
 ###############################################################################
 # Diagnostic Options
 #
@@ -26,8 +71,8 @@ set(BASE_DIAG_OPTIONS
   -wd981
   -wd2282
   -wd10382
-  -g
   )
+
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS})
 set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
@@ -67,44 +112,6 @@ if ("${WITH_CHECKS}" MATCHES "STACK")
   set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
   set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
 endif()
-
-################################################################################
-# Optimization Options                                                         #
-################################################################################
-set(BASE_OPT_OPTIONS
-  -O3
-  -no-prec-div
-  -xHost
-  -fp-model fast=2
-  -ipo
-  )
-
-if (WITH_OPENMP)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
-    -qopenmp
-    -parallel
-    -parallel-source-info=2
-    )
-endif ()
-
-if(GUIDED_OPT)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
-    -guide
-    -guide-par
-    -guide-vec
-    -guide-data-trans
-    )
-endif()
-
-set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
-endif()
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 
 ################################################################################
 # Reporting Options                                                            #

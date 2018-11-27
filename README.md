@@ -81,6 +81,21 @@ can be avoided.
   This is configurable per-project with the `project-local.cmake`
   file.
 
+## Build Modes
+
+There are 3 build modes that I use, which are different from the default ones
+that cmake uses, because they did not do what I wanted.
+
+- `DEV` - Development mode. Turns on all compiler warnings and NO optimizations.
+
+- `DEVOPT` - Development mode + light optimizations. Turns on all compiler
+             warnings + `-Og` + parallelization (if configured). Does not define
+             `NDEBUG`.
+
+- `OPT` - Optimized mode. Turns on all compiler warnings and maximum
+          optimizations, which is separate from enabled automatic/OpenMP based
+          paralellization. Defines `NDEBUG`.
+
 ## project-local.cmake
 
 
