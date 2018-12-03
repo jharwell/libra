@@ -6,17 +6,12 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
   set(OPT_LEVEL -Og -ggdb)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(OPT_LEVEL -O3 -ggdb)
+  set(OPT_LEVEL -O2 -ggdb)
 endif()
 
 set(BASE_OPT_OPTIONS
-  -Ofast
-  -fno-trapping-math
-  -fno-signed-zeros
-  -frename-registers
-  -funroll-loops
   -march=native
-  -fno-stack-protector
+  -mtune=native
   -flto
   )
 
@@ -44,7 +39,6 @@ set(BASE_DIAG_OPTIONS
   -Wall
   -Wextra
   -Wcast-align
-  -Wcast-qual
   -Wcast-qual
   -Wdisabled-optimization
   -Wformat=2
@@ -94,41 +88,39 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 ################################################################################
 # Checking Options                                                             #
 ################################################################################
-set(BASE_CHECK_OPTIONS
-  -fno-omit-frame-pointer
-  )
 set(MEM_CHECK_OPTIONS
+  -fno-omit-frame-pointer
   -fsanitize=leak
   )
 set(ADDR_CHECK_OPTIONS
+  -fno-omit-frame-pointer
   -fsanitize=address
   )
 set(STACK_CHECK_OPTIONS
+  -fno-omit-frame-pointer
   -fstack-protector-all
   -fstack-protector-strong
   )
 set(MISC_CHECK_OPTIONS
+  -fno-omit-frame-pointer
   -fsanitize=undefined
   )
 
-set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
-set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
-
 if ("${WITH_CHECKS}" MATCHES "MEM")
-  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  set(C_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
   endif()
 if ("${WITH_CHECKS}" MATCHES "ADDR")
-  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${ADDR_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${ADDR_CHECK_OPTIONS})
+  set(C_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
 endif()
 if ("${WITH_CHECKS}" MATCHES "STACK")
-  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
+  set(C_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
 endif()
 if ("${WITH_CHECKS}" MATCHES "MISC")
-  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
+  set(C_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
+  set(CXX_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
 endif()
 
 

@@ -37,7 +37,6 @@ foreach(t ${c_tests} ${cxx_tests})
   if (TARGET ${current_proj_name}-${test_name})
     continue()
   endif()
-
   add_executable(${current_proj_name}-${test_name} EXCLUDE_FROM_ALL ${c_test_harness} ${cxx_test_harness} ${${target}_TEST_PATH}/${test_file})
   add_dependencies(${current_proj_name}-${test_name} ${root_target})
   set_target_properties(${current_proj_name}-${test_name} PROPERTIES LINKER_LANGUAGE CXX)

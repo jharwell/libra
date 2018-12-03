@@ -6,7 +6,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
   set(OPT_LEVEL -Og -ggdb)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(OPT_LEVEL -O3 -ggdb)
+  set(OPT_LEVEL -O2 -ggdb)
 endif()
 
 set(BASE_OPT_OPTIONS

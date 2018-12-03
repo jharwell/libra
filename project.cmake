@@ -87,7 +87,7 @@ option(WITH_OPENMP    "Enable OpenMP code."                                    O
 option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and optimization, if applicable ." OFF)
 option(WITH_MPI       "Enable MPI code." OFF)
 option(WITH_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
-option(WITH_ER_NREPORT "YES to disable all ER reporting." YES)
+option(WITH_ER_NREPORT "YES to disable all ER reporting (for applications that use RCPPSW ER framework)." YES)
 set(FPC FPC_TYPE="${WITH_FPC}")
 
 # Set output directories. If we are the root project, then this is
@@ -109,9 +109,9 @@ if (IS_ROOT_TARGET)
   set(${target}_ROOT_SRC ${${target}_ROOT_C_SRC} ${${target}_ROOT_CXX_SRC})
 endif()
 
-file(GLOB ${target}_SRC ${${target}_SRC_PATH}/*.c ${${target}_SRC_PATH}/*.cpp)
-file(GLOB ${target}_C_SRC ${${target}_SRC_PATH}/*.c )
-file(GLOB ${target}_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
+file(GLOB_RECURSE ${target}_SRC ${${target}_SRC_PATH}/*.c ${${target}_SRC_PATH}/*.cpp)
+file(GLOB_RECURSE ${target}_C_SRC ${${target}_SRC_PATH}/*.c )
+file(GLOB_RECURSE ${target}_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
 
 set(${target}_INC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 set(${target}_ROOT_INC_PATH "${CMAKE_SOURCE_DIR}/include/")
@@ -190,26 +190,10 @@ else()
     endif()
 endif()
 
-
-if (${${root_target}_HAS_RECURSIVE_DIRS})
-  if (IS_ROOT_TARGET)
-    register_checkers(${target} ${${target}_ROOT_CHECK_SRC})
-    register_auto_formatters(${target} ${${target}_ROOT_CHECK_SRC})
-    register_auto_fixers(${target} ${${target}_ROOT_CHECK_SRC})
-  else()
-
-    register_checkers(${target} ${${target}_CHECK_SRC})
-    register_auto_formatters(${target} ${${target}_CHECK_SRC})
-    register_auto_fixers(${target} ${${target}_CHECK_SRC})
-  endif()
-endif()
-
-if (NOT ${${root_target}_HAS_RECURSIVE_DIRS})
-  if (IS_ROOT_TARGET)
-    register_checkers(${target} ${${target}_ROOT_CHECK_SRC})
-    register_auto_formatters(${target} ${${target}_ROOT_CHECK_SRC})
-    register_auto_fixers(${target} ${${target}_ROOT_CHECK_SRC})
-  endif()
+if (IS_ROOT_TARGET)
+  register_checkers(${target} ${${target}_ROOT_CHECK_SRC})
+  register_auto_formatters(${target} ${${target}_ROOT_CHECK_SRC})
+  register_auto_fixers(${target} ${${target}_ROOT_CHECK_SRC})
 endif()
 
 ################################################################################
