@@ -1,7 +1,9 @@
-# Reusable cmake Configuration
+# Luigi Build Reusable Automation (LIBRA)
 
 This is a repository containing 100% reusable cmake scaffolding that
-can be used for nested/flat C/C++ projects (even mixing the two).
+can be used for nested/flat C/C++ projects (even mixing the two), and provides
+resuable build "plumbing" that can be transferred without modification between
+projects. 
 
 ## Motivation
 
@@ -69,18 +71,6 @@ can be avoided.
   repository containing any project specific bits (i.e. adding
   subdirectories, what libraries to create, etc.).
 
-- All projects can be organized as "flat", an not utilize modules, in
-  which there are no subdirectories/submodules under `src/` or
-  `include/`. For these projects, all source files are always
-  built/analyzed/etc. as a single unit.
-
-  Projects can also be organized hierarchically, with any depth of
-  nested submodules which are themselves projects (and must therefore
-  adhere to all the same requirements).
-
-  This is configurable per-project with the `project-local.cmake`
-  file.
-
 ## Build Modes
 
 There are 3 build modes that I use, which are different from the default ones
@@ -93,8 +83,8 @@ that cmake uses, because they did not do what I wanted.
              `NDEBUG`.
 
 - `OPT` - Optimized mode. Turns on all compiler warnings and maximum
-          optimizations, which is separate from enabled automatic/OpenMP based
-          paralellization. Defines `NDEBUG`.
+          optimizations (`O2`), which is separate from enabled automatic/OpenMP
+          based paralellization. Defines `NDEBUG`.
 
 ## project-local.cmake
 
@@ -113,13 +103,6 @@ configuration:
   - `"value"` can be either "C" or "C++", and defines the language that the
     different checkers will use for checking the project.
 
-- `set(${target}_HAS_RECURSIVE_DIRS VALUE)`
-
-  Controls whether or not the project has smaller modules/sub projects within
-  it, that each have their own CMakeLists.txt and can be compiled/checked/etc
-  independently of each other and the main project.
-
-  - `VALUE` can be either YES or NO.
 
 ## Capabilities
 
@@ -194,7 +177,7 @@ enables the following additional capabilities via makefile targets.
       in the root of the repo.
 
 # License
-This project is licensed under GPL 2.0. See [LICENSE](LICENSE.md).
+This project is licensed under GPL 3.0. See [LICENSE](LICENSE.md).
 
 # Donate
 If you've found this project helpful, please consider donating somewhere between

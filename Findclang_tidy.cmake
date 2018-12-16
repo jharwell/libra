@@ -1,4 +1,3 @@
-
 # Findclang_tidy results:
 # clang_tidy_FOUND
 # clang_tidy_EXECUTABLE
