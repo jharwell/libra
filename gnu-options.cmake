@@ -27,8 +27,6 @@ set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
-  set(CMAKE_AR "gcc-ar")
-  set(CMAKE_RANLIB "gcc-ranlib")
 endif()
 
 ################################################################################
