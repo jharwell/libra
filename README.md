@@ -3,7 +3,7 @@
 This is a repository containing 100% reusable cmake scaffolding that
 can be used for nested/flat C/C++ projects (even mixing the two), and provides
 resuable build "plumbing" that can be transferred without modification between
-projects. 
+projects.
 
 ## Motivation
 
@@ -17,29 +17,34 @@ can be avoided.
 
 - A recent version of Linux.
 
-- cmake >= 3.2
+- cmake >= 3.2 (`cmake` on ubuntu)
 
-- make >= 3.2
+- make >= 3.2 (`make` on ubuntu)
 
-- cppcheck >= 1.72.
+- cppcheck >= 1.72. (`cppcheck` on ubuntu)
 
-- clang-check >= 4.0. Higher versions recommended (better warnings).
-
-- clang-format >= 6.0. Versions older than 6.0 will not work, as they
-  do not nest namespace forward declarations appropriately (well, what
-  I consider to be appropriate).
-
-- clang-tidy >= 4.0. Higher versions recommended (better warnings).
-
-- gcc/g++ >= 5.4.0. Only required if you want to use the GNU
+- gcc/g++ >= 7.0 (`gcc-7` on ubuntu). Only required if you want to use the GNU
   compilers. If you want to use another compiler, this is not required.
-
-- clang/clang++ >= 4.0. Only required if you want to use the LLVM
-  compilers. If you want to use another compiler, this is not
-  required.
 
 - icpc/icc >= 18.0. Only required if you want to use the Intel
   compilers. If you want to use another compiler, this is not required.
+
+- clang/clang++ >= 6.0. Only required if you want to use the LLVM
+  compilers. If you want to use another compiler, this is not
+  required.
+
+### Clang Tooling
+
+Everything should have version >= 6.0 for best results. However, if that version
+of the tools is not in the package repositories, you can replace it with 5.0 or
+4.0, and things should still work.
+
+- Base tooling and clang-check (`libclang-6.0-dev` and `clang-tools-6.0`).
+
+- clang-format >= 6.0 (`clang-format-6.0`).
+
+- clang-tidy >= 4.0 (`clang-tidy-6.0`).
+
 
 ## Source Requirements
 
