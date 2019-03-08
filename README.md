@@ -1,17 +1,15 @@
 # Luigi Build Reusable Automation (LIBRA)
 
-This is a repository containing 100% reusable cmake scaffolding that
-can be used for nested/flat C/C++ projects (even mixing the two), and provides
-resuable build "plumbing" that can be transferred without modification between
-projects.
+This is a repository containing 100% reusable cmake scaffolding that can be used
+for nested/flat C/C++ projects (even mixing the two), and provides resuable
+build "plumbing" that can be transferred without modification between projects.
 
 ## Motivation
 
-I've found myself frequently copying and pasting CmakeLists.txt
-between projects, and when I find a new flag I want to add, or a new
-static analysis checker, etc., I would have to go and add it to EVERY
-project individually. By using this repository as a submodule, that
-can be avoided.
+I've found myself frequently copying and pasting CmakeLists.txt between
+projects, and when I find a new flag I want to add, or a new static analysis
+checker, etc., I would have to go and add it to EVERY project individually. By
+using this repository as a submodule, that can be avoided.
 
 ## Platform Requirements
 
@@ -22,6 +20,10 @@ can be avoided.
 - make >= 3.2 (`make` on ubuntu)
 
 - cppcheck >= 1.72. (`cppcheck` on ubuntu)
+
+- graphviz (`graphviz` on ubuntu)
+
+- doxygen (`doxygen` on ubuntu)
 
 - gcc/g++ >= 7.0 (`gcc-7` on ubuntu). Only required if you want to use the GNU
   compilers. If you want to use another compiler, this is not required.
@@ -111,50 +113,47 @@ configuration:
 
 ## Capabilities
 
-- The cmake config supports the following compilers: `g++, clang++,
-  icpc`; any one can be selected as the `CMAKE_CXX_COMPILER`, and the
-  correct compile options will be populated (as in the ones defined in
-  the corresponding .cmake files in this repository). Same for the C
-  compilers for each of the 3 vendors. Note that the C and CXX
-  compiler vendors should almost always match, in order to avoid
-  strange build issues.
+### Compiler Support `g++, clang++, icpc`/`gcc, clangc, icc`
 
-- Build in run-time checking of code using any compiler via the cmake
-  option 'WITH_CHECKS' [Default=NO]. When passed, the value should be
-  a command-separated list of checks to enable:
+A recent version of any supported compiler can be selected as the
+`CMAKE_CXX_COMPILER` via command line [Default=`g++`]. The correct compile
+options will be populated (as in the ones defined in the corresponding .cmake
+files in this repository). Same for `CMAKE_C_COMPILER`. Note that the C and CXX
+compiler vendors should almost always match, in order to avoid strange build
+issues.
 
-  - `MEM` - Memory checking/sanitization.
-  - `ADDR` - Address sanitization.
-  - `STACK` - Agressive stack checking.
-  - `MISC` - Other potentially helpful checks.
+### Compiler Runtime Checking
+Build in run-time checking of code using any compiler via the cmake option
+`WITH_CHECKS` [Default=NO]. When passed, the value should be a command-separated
+list of checks to enable:
 
-  Not all compilerconfigurations use all categories, and not all
-  combinations of checkers are compatible, so use with care.
+- `MEM` - Memory checking/sanitization.
+- `ADDR` - Address sanitization.
+- `STACK` - Agressive stack checking.
+- `MISC` - Other potentially helpful checks.
 
-- Enable building of unit tests via cmake option `WITH_TESTS`. [Default=NO]
+Not all compilerconfigurations use all categories, and not all combinations of
+checkers are compatible, so use with care.
 
-- Enable OpenMP code via cmake option `WITH_OPENMP` [Default=NO].
+### Variables
 
-- Enable MPI code via cmake option `WITH_MPI` [Defaut=NO].
+Uses the following variables for fine-tuning the build process
 
-- Enable function precondition checking (mostly used in C) via cmake
-  option `WITH_FPC`. This is very helpful for debugging. Possible
-  values are:
+| Variable          | Description                                                                                           | Default     |
+|-------------------|-------------------------------------------------------------------------------------------------------|-------------|
+| `WITH_TESTS`      | Enable building of unit tests via `make unit_tests`                                                   | NO          |
+| `WITH_OPENMP`     | Enable OpenMP code                                                                                    | NO          |
+| `WITH_MPI`        | Enable MPI code                                                                                       | NO          |
+| `WITH_FPC`        | Enable function precondition checking (mostly used in C) This is very helpful for debugging. Possible | `FPC_ABORT` |
+|                   | values are:                                                                                           |             |
+|                   | `FPC_RETURN` - Return without executing a function, but do not assert().                              |             |
+|                   | `FPC_ABORT` - Abort the program whenever a function precondition.                                     |             |
+| `WITH_ER_NREPORT` | Disable event reporting entirely, and do not link with log4cxx.                                       | NO          |
 
-    - `FPC_RETURN` - Return without executing a function, but do not
-      assert().
+## Automation via Make Targets
 
-    - `FPC_ABORT` - Abort the program whenever a function precondition
-             fails
-
-    [Default=`FPC_ABORT`].
-
-- `ER_NREPORT` - Disable reporting entirely (both debug printing and
-  logging). [Default=undefined].
-
-
-In addition to being able to actually build the software, this project
-enables the following additional capabilities via makefile targets.
+In addition to being able to actually build the software, this project enables
+the following additional capabilities via makefile targets.
 
 - `format-all` - Run the clang formatter on the repository, using the
   `.clang-format` in the root of the repo.
@@ -166,20 +165,10 @@ enables the following additional capabilities via makefile targets.
 
     - `cppcheck-all` - Runs cppcheck on the repository.
 
-    - `cppcheck-<module_name>` - Runs cppcheck on the specified module within
-      the repository, if applicable.
-
     - `static-check-all` - Runs the clang static checker on the repository.
-
-    - `static-check-<module_name>` - Runs the clang static checker on the
-      specified module within the repository, if applicable.
 
     - `tidy-check-all` - Runs the clang-tidy checker on the
       repository, using the `.clang-format` in the root of the repo.
-
-    - `tidy-check-<module>` - Runs the clang-tidy checker on the
-      specified module with the repository, using the `.clang-format`
-      in the root of the repo.
 
 # License
 This project is licensed under GPL 3.0. See [LICENSE](LICENSE.md).
