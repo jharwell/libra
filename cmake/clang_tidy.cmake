@@ -101,7 +101,6 @@ function(do_register_clang_tidy_fix check_target target)
     ${ARGN}
     -fix
     -fix-errors
-    -checks=cert*,clang-analyzer*,cppcoreguidelnes*,google*,llvm*,modernize*,readability*,-readability-else-after-return,modernize*
     "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )

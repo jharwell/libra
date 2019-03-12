@@ -1,6 +1,7 @@
 ---
 Checks:
-'*,-modernize-redundant-void-arg,-readability-redundant-member-init,-llvm-header-guard,-cppcoreguidelines-special-member-functions,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-google-runtime-references,-llvm-include-order,-llvm-namespace-comment,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-constant-array-index,-readability-identifier-naming,-readability-named-parameter,-cert-err34-c,-cppcoreguidelines-pro-type-static-cast-downcast,-clang-diagnostic-*,-readability-else-after-return,-clang-diagnostic-documentation,-fuchsia-default-arguments,-hicpp-vararg,-fuchsia-overloaded-operator,-hicpp-no-array-decay,-hicpp-special-member-functions
+'*,-modernize-redundant-void-arg,-readability-redundant-member-init,-llvm-header-guard,-cppcoreguidelines-special-member-functions,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-google-runtime-references,-llvm-include-order,-llvm-namespace-comment,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-bounds-constant-array-index,-readability-identifier-naming,-readability-named-parameter,-cert-err34-c,-cppcoreguidelines-pro-type-static-cast-downcast,-clang-diagnostic-*,-readability-else-after-return,-clang-diagnostic-documentation,-fuchsia-default-arguments,-hicpp-vararg,-fuchsia-overloaded-operator,-hicpp-no-array-decay,-hicpp-special-member-functions,-fuchsia-virtual-inheritance,-cert-err58-cpp
+
 '
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

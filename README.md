@@ -4,6 +4,12 @@ This is a repository containing 100% reusable cmake scaffolding that can be used
 for nested/flat C/C++ projects (even mixing the two), and provides resuable
 build "plumbing" that can be transferred without modification between projects.
 
+Also contains some generally useful guides:
+
+- [C++ Development Guide](cxx-devel-guide.md)
+- [Git Commit Guide](git-commit-guide.md)
+- [Issue Usage Guide](git-issue-guide.md)
+
 ## Motivation
 
 I've found myself frequently copying and pasting CmakeLists.txt between

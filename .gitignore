@@ -43,10 +43,8 @@ Thumbs.db
 GPATH
 GRTAGS
 GTAGS
-.clang_complete
 compile_options.json
 
 # Build process
 build
-docs/html
-docs/latex
+node_modules
