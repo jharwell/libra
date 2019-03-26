@@ -45,6 +45,14 @@ this project. In particular:
   on smart pointers
   [here](https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/)).
 
+  - If a constructor has more than 3-5 parameters, *especially* if many/all of
+    the parameters are primitive types the compiler will silently convert if a
+    `double` is passed where an `int` is expected (for example), then the
+    constructor should be made to take a pointer to a parameter struct
+    containing the primitive members, in order to reduce the chance of subtle
+    bugs due to silent primitive conversions if the order of two of the
+    parameters is swapped at the call site.
+
   - Function inputs should use `const` to indicate that the parameter is
     input-only (`&` or `*`).
 

@@ -21,7 +21,7 @@ using this repository as a submodule, that can be avoided.
 
 - A recent version of Linux.
 
-- cmake >= 3.2 (`cmake` on ubuntu)
+- cmake >= 3.6 (`cmake` on ubuntu)
 
 - make >= 3.2 (`make` on ubuntu)
 
@@ -56,33 +56,30 @@ of the tools is not in the package repositories, you can replace it with 5.0 or
 
 ## Source Requirements
 
-- All C++ source files end in `.cpp`, and all C++ header files end in
-  `.hpp`.
+- All C++ source files end in `.cpp`, and all C++ header files end in `.hpp`.
 
 - All C source files end in `.c` and all C header files end in `.h`.
 
-- All source files for a repository must live under `src/` in the
-  root.
+- All source files for a repository must live under `src/` in the root.
 
-- All include files for a repository must live under
-  `include/<repo_name>` in the root.
+- All include files for a repository must live under `include/<repo_name>` in
+  the root.
 
-- All tests (either C or C++) for a project/submodule must live under
-  the `tests/` directory in the root of the project/submodule.
+- All tests (either C or C++) for a project/submodule must live under the
+  `tests/` directory in the root of the project, and should end in `-test.cpp`
+  so it is clear they are not source files.
 
-- If a C++ file lives under `src/my_module/my_file.cpp` then its
-  corresponding include file is found under
-  `include/<repo_name>/my_module/my_file.hpp` (same idea for C, but
-  with the corresponding extensions).
+- If a C++ file lives under `src/my_module/my_file.cpp` then its corresponding
+  include file is found under `include/<repo_name>/my_module/my_file.hpp` (same
+  idea for C, but with the corresponding extensions).
 
-- All projects must include THIS repository as a submodule under
-  `cmake/` in the project root, and link a `CmakeLists.txt` in the
-  root of the repository to the `cmake/project.cmake` file in this
-  repository.
+- All projects must include THIS repository as a submodule under `libra/` in the
+  project root, and link a `CmakeLists.txt` in the root of the repository to the
+  `libra/cmake/project.cmake` file in this repository.
 
 - All projects must include a `project-local.cmake` in the root of the
-  repository containing any project specific bits (i.e. adding
-  subdirectories, what libraries to create, etc.).
+  repository containing any project specific bits (i.e. adding subdirectories,
+  what libraries to create, etc.).
 
 ## Build Modes
 
@@ -100,7 +97,6 @@ that cmake uses, because they did not do what I wanted.
           based paralellization. Defines `NDEBUG`.
 
 ## project-local.cmake
-
 
 The `project-local.cmake` file that each repository uses has all
 project-specific bits in it, so that the rest of the cmake framework can be
@@ -165,16 +161,44 @@ the following additional capabilities via makefile targets.
   `.clang-format` in the root of the repo.
 
 - `check-all` - Run ALL enabled static checkers on the repository. If the
-      repository using modules/cmake subprojects, you can also run it on a
-      per-module basis. This runs the following sub-targets, which can also be
-      run individually:
+                repository using modules/cmake subprojects, you can also run it
+                on a per-module basis. This runs the following sub-targets,
+                which can also be run individually:
 
     - `cppcheck-all` - Runs cppcheck on the repository.
 
     - `static-check-all` - Runs the clang static checker on the repository.
 
-    - `tidy-check-all` - Runs the clang-tidy checker on the
-      repository, using the `.clang-format` in the root of the repo.
+    - `tidy-check-all` - Runs the clang-tidy checker on the repository, using
+                         the `.clang-format` in the root of the repo.
+
+- `unit_tests` - Build all of the unit tests for the project. If you want to
+                 just build a single unit test, you can do `make <project
+                 name>-<class name>-test`. For example: `make rcppsw-hfsm-test`
+                 for a single unit test named `hfsm-test.cpp` that lives under
+                 `tests/` in the `rcppsw` project.
+
+- `test` - Run all of the tests for the project.
+
+## Unit Tests
+
+Unit tests can utilize whatever unit testing framework is desired, though
+`gtest` or `catch` are easy to setup/use. Unit tests should be structured as
+follows:
+
+- Each tested class should get its own `-test.cpp` file, unless there is a very
+  good reason to do otherwise.
+
+- For each public member function in the class under test that is not a trivial
+  getter/setter, at least 1 test case should be included for it, so that every
+  code path through the function is evaluated as least once. For complex
+  functions, multiple test cases may be necessary. If a function is not easy to
+  test, chances are it should be refactored.
+
+- Documentation for the class should be updated in tandem with writing the unit
+  tests, so that it is clear what the assumptions/requirements of class
+  usage/function usage are.
+
 
 # License
 This project is licensed under GPL 3.0. See [LICENSE](LICENSE.md).
