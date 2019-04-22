@@ -21,6 +21,29 @@ this project. In particular:
   the code). Types are collections of data members that generally should be
   treatable as POD, even if they are not (e.g. contain a std::vector).
 
+- All mathematical constants (e.g. ints, doubles, etc) should be
+  `kSPECIFIED_LIKE_THIS`: MACRO CASE + a preceding `k`.
+
+- All static class constants (you should not have non-static class constants)
+  that are any kind of object should be `kSpecifiedLikeThis`: Upper CamelCase +
+  a preceding `k`
+
+- All enum values should be `ekSPECIFIED_LIKE_THIS`: MACRO_CASE + a preceding
+  `ek`. The rationale for this is that it is useful to be able to tell at a
+  glance if a constant is a mathematical one or only serves as a logical
+  placeholder to make the code more understandable. The preceding `ek` does
+  hinder at-a-glance readability somewhat, but that is outweighed by the
+  increased at-a-glance code comprehension.
+
+- All enums should be postfixed with `_type`, in order to enforce semantic
+  similarity between members when possible (i.e. if it does not make sense to do
+  this, should you really be using an enum vs. a collection of `constexpr`
+  values?).
+
+- `#define` for literal constants should be avoided, as it pollutes the global
+  namespace. `constexpr` values in an appropriate namespace should be used
+  instead.
+
 - Exactly one class/struct definition per .cpp/.hpp file, unless there is a very
   good reason to do otherwise.
 
