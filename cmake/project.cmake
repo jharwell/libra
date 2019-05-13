@@ -6,7 +6,7 @@
 ################################################################################
 
 # CMake version
-cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 # I define the current target as the same as the directory that the
 # CMakeLists.txt resides in--simpler that way.

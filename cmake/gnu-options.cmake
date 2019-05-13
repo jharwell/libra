@@ -2,17 +2,23 @@
 # Optimization Options                                                         #
 ################################################################################
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
-  set(OPT_LEVEL -O0 -ggdb)
+  set(OPT_LEVEL -O0 -ggdb -fuse-ld=gold)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(OPT_LEVEL -Og -ggdb)
+  set(OPT_LEVEL -Og -ggdb -fuse-ld=gold)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(OPT_LEVEL -O2 -ggdb)
+  set(OPT_LEVEL -O2 -ggdb -fuse-ld=gold)
 endif()
 
 set(BASE_OPT_OPTIONS
   -march=native
   -mtune=native
   -flto
+  -fno-stack-protector
+  -fdevirtualize-at-ltrans
+  -fdevirtualize-speculatively
+  -ffast-math
+  -ffinite-math-only
+  -frename-registers
   )
 
 if (WITH_OPENMP)
@@ -26,7 +32,7 @@ set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -fuse-ld=gold")
 endif()
 
 ################################################################################
@@ -47,7 +53,12 @@ set(BASE_DIAG_OPTIONS
   -Wstrict-overflow=5
   -Wsuggest-attribute=pure
   -Wsuggest-attribute=const
-  -Wsuggest-attribute=noreturn
+  -Wsuggest-attribute=format
+  -Wsuggest-attribute=cold
+  -Wsuggest-attribute=malloc
+  -Wsuggest-final-types
+  -Wsuggest-final-methods
+  -Wmissing-attributes
   -Wfloat-equal
   -Wshadow
   -Wredundant-decls
@@ -59,9 +70,11 @@ set(BASE_DIAG_OPTIONS
   -Wno-unknown-pragmas
   -Wstack-protector
   -Wunreachable-code
-  -Wmissing-noreturn
   -Wmissing-format-attribute
   -Wunused-macros
+  -Wfloat-conversion
+  -Wnarrowing
+  -Wmultistatement-macros
   )
 
 set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
@@ -75,6 +88,7 @@ set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
   -Wsuggest-override
   -Wstrict-null-sentinel
+  -Wclass-memaccess
   -Wsign-promo
   -Wnoexcept
   -Wold-style-cast

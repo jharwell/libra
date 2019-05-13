@@ -35,6 +35,10 @@ this project. In particular:
   hinder at-a-glance readability somewhat, but that is outweighed by the
   increased at-a-glance code comprehension.
 
+- All template parameters should be in `CamelCase` and preceded with a `T`. This
+  is to make it very easy to tell at a glance that something is a template
+  parameter, rather than an object type.
+  
 - All enums should be postfixed with `_type`, in order to enforce semantic
   similarity between members when possible (i.e. if it does not make sense to do
   this, should you really be using an enum vs. a collection of `constexpr`

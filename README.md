@@ -1,5 +1,7 @@
 # Luigi Build Reusable Automation (LIBRA)
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 This is a repository containing 100% reusable cmake scaffolding that can be used
 for nested/flat C/C++ projects (even mixing the two), and provides resuable
 build "plumbing" that can be transferred without modification between projects.
@@ -21,7 +23,7 @@ using this repository as a submodule, that can be avoided.
 
 - A recent version of Linux.
 
-- cmake >= 3.6 (`cmake` on ubuntu)
+- cmake >= 3.9 (`cmake` on ubuntu)
 
 - make >= 3.2 (`make` on ubuntu)
 
@@ -31,7 +33,7 @@ using this repository as a submodule, that can be avoided.
 
 - doxygen (`doxygen` on ubuntu)
 
-- gcc/g++ >= 7.0 (`gcc-7` on ubuntu). Only required if you want to use the GNU
+- gcc/g++ >= 8.0 (`gcc-8` on ubuntu). Only required if you want to use the GNU
   compilers. If you want to use another compiler, this is not required.
 
 - icpc/icc >= 18.0. Only required if you want to use the Intel

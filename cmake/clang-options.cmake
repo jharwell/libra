@@ -2,20 +2,22 @@
 # Optimization Options                                                         #
 ################################################################################
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
-  set(OPT_LEVEL -O0 -ggdb)
+  set(OPT_LEVEL -O0 -ggdb -fuse-ld=gold)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(OPT_LEVEL -Og -ggdb)
+  set(OPT_LEVEL -Og -ggdb -fuse-ld=gold)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(OPT_LEVEL -O3 -ggdb)
+  set(OPT_LEVEL -O2 -ggdb -fuse-ld=gold)
 endif()
 
 set(BASE_OPT_OPTIONS
   -Ofast
-  -fno-trapping-math
-  -fno-signed-zeros
-  -funroll-loops
   -march=native
+  -mtune=native
   -fno-stack-protector
+  -flto
+  -ffast-math
+  -ffinite-math-only
+  -frename-registers
   )
 
 if (WITH_OPENMP)
@@ -28,7 +30,9 @@ set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+  set(CMAKE_AR "llvm-ar")
+  set(CMAKE_RANLIB "llvm-ranlib")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -fuse-ld=gold")
 endif()
 
 ################################################################################
