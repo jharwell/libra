@@ -2,19 +2,31 @@
 
 ## Coding Style
 
-Generally speaking, I follow the "do as the standard library does" mantra for
-this project. In particular:
+### Files
 
 - All source files have the `.cpp` extension, and all header files have the
-  `.hpp` extension.
+  `.hpp` extension (not a `.h` extension), to clearly distinguish them from C
+  code, and not to confuse the tools used.
+
+- Exactly one class/struct definition per .cpp/.hpp file, unless there
+  is a very good reason to do otherwise. class/struct definitions
+  nested within other classes/structs are exempt from this rule, but their use
+  should still be minimized and well documented if they reside in the `public`
+  part of the enclosing class.
+
+- The namespace hierarchy exactly corresponds to the directory hierarchy that
+  the source/header files for classes can be found in.
+
+### Naming
 
 - All file, class, variable, enum, namespace, etc. names are
   `specified_like_this`, NOT `specifiedLikeThis` or
   `SpecifiedLikeThis`. Rationale: Most of the time you shouldnot really need to
   know whether the thing in between `::` is a class, namespace, enum, etc. You
-  really only need to know what operations it has.
+  really only need to know what operations it has. This also makes the code play
+  nicely with the STL/boost from a readability point of view.
 
-- All structs that are "types" (i.e. convenientt wrappers around a boolean
+- All structs that are "types" (e.g. convenient wrappers around a boolean
   status + possibly valid result of an operation) should have a `_t` postfix so
   that it is clear when constructing them that they are types and it is not a
   function being called (calls with `()` can seem ambiguous if you don't know
@@ -26,7 +38,7 @@ this project. In particular:
 
 - All static class constants (you should not have non-static class constants)
   that are any kind of object should be `kSpecifiedLikeThis`: Upper CamelCase +
-  a preceding `k`
+  a preceding `k`.
 
 - All enum values should be `ekSPECIFIED_LIKE_THIS`: MACRO_CASE + a preceding
   `ek`. The rationale for this is that it is useful to be able to tell at a
@@ -37,9 +49,9 @@ this project. In particular:
 
 - All template parameters should be in `CamelCase` and preceded with a `T`. This
   is to make it very easy to tell at a glance that something is a template
-  parameter, rather than an object type.
-  
-- All enums should be postfixed with `_type`, in order to enforce semantic
+  parameter, rather than an object type, in a templated class/function.
+
+- All enum names should be postfixed with `_type`, in order to enforce semantic
   similarity between members when possible (i.e. if it does not make sense to do
   this, should you really be using an enum vs. a collection of `constexpr`
   values?).
@@ -48,74 +60,86 @@ this project. In particular:
   namespace. `constexpr` values in an appropriate namespace should be used
   instead.
 
-- Exactly one class/struct definition per .cpp/.hpp file, unless there is a very
-  good reason to do otherwise.
+### Miscellaneous
 
-- The namespace hierarchy exactly corresponds to the directory hierarchy that
-  the source/header files for classes can be found in.
+- Always use strongly typed enums (class enums), to avoid name collisions.
 
-- Code should pass the google C++ linter, ignoring the following items. For
-  everything else, the linter warnings should be addressed.
+- Non-const static variables should be avoided.
 
-  - Use of non-const references--I do this occasionally. When possibly, const
-    references should be used, but sometimes it is more convenient to use a
-    non-const reference. Case by case.
+- Do not use Hungarian notation. Linus was right--it _is_ brain damaged.
 
-  - Header ordering (whatever the auto-formatter does is fine, but should
-    generally be google style).
+### Linting
 
-  - Line length >= 80 ONLY if it is only 1-2 chars too long, and breaking the
-    line would decrease readability. The formatter generally takes care of this
-    too.
+Code should pass the google C++ linter, ignoring the following items. For
+everything else, the linter warnings should be addressed.
 
-- Function Parameters (most of these from Herb Sutter's excellent C++ guidelines
-  on smart pointers
-  [here](https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/)).
+- Use of non-const references--I do this regularly. When possible, const
+  references should be used, but sometimes it is more expressive and
+  self-documenting to use a non-const reference.
 
-  - If a constructor has more than 3-5 parameters, *especially* if many/all of
-    the parameters are primitive types the compiler will silently convert if a
-    `double` is passed where an `int` is expected (for example), then the
-    constructor should be made to take a pointer to a parameter struct
-    containing the primitive members, in order to reduce the chance of subtle
-    bugs due to silent primitive conversions if the order of two of the
-    parameters is swapped at the call site.
+- Header ordering (whatever the auto-formatter does is fine, but should
+  generally be google style).
 
-  - Function inputs should use `const` to indicate that the parameter is
-    input-only (`&` or `*`).
+- Line length >= 80 ONLY if it is only 1-2 chars too long, and breaking the
+  line would decrease readability. The formatter generally takes care of this.
 
-  - `std::shared_ptr` should be passed by VALUE to a function when the function
-    is going to take a copy and share ownership, and ONLY then.
+Code should pass the clang-tidy linter, which checks for style elements like:
 
-  - Pass `std::shared_ptr` by `&` if the function is itself not going to take
-    ownership, but a function/object that it calls will. This will avoid the
-    copy on calls that don't need it.
+- All members prefixed with `m_`
 
-  - `const std::shared_ptr<T>&` should be not be used--use `const T*` to
-      indicate non-owning access to the managed object.
+- All constant members prefixed with `mc_`.
 
-  - `std::unique_ptr` should be passed by VALUE to a "consuming" function
-    (i.e. whatever function is ultimately going to claim ownership of the
-    object).
+- All global variables prefixed with `g_`.
 
-  - `std::unique_ptr` should NOT be passed by reference, unless the function
-    needs to replace/update/etc the object contained in the unique_ptr. It
-    should never be passed by constant reference.
+- All functions less than 100 lines, with no more than 5 parameters/10
+  branches. If you have something longer than this, 9/10 times it can and
+  should be split up.
 
-  - Raw pointers should be used to express the idea that the pointed to object
-    is going to outlive the function call and the function is just going to
-    observe/modify it.
+### Function Parameters
 
-- Code should pass the clang-tidy linter, which checks for style elements like:
+Most of these from Herb Sutter's excellent C++ guidelines on smart pointers
+[here](https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/)).
 
-  - All members prefixed with `m_`
+- If a constructor has more than 3-5 parameters, *especially* if many/all of the
+  parameters are primitive types the compiler will silently convert (a `double`
+  is passed where an `int` is expected, for example), then the constructor
+  should be made to take a pointer to a parameter struct containing tnhe
+  primitive members, in order to reduce the chance of subtle bugs due to silent
+  primitive conversions if the order of two of the parameters is swapped at the
+  call site.
 
-  - All constant members prefixed with `mc_`.
+- Function inputs should use `const` to indicate that the parameter is
+  input-only (`&` or `*`), and cannot be modified in the function body.
 
-  - All global variables prefixed with `g_`.
+- Function inputs should pass by reference (not by constant reference), to
+  indicate that the parameter is an input-output parameter. The number of
+  parameters of this type should be minimized.
 
-  - All functions less than 100 lines, with no more than 5 parameters/10
-    branches. If you have something longer than this, 9/10 times it can and
-    should be split up.
+- Only primitive types should be passed by value; all other more complex types
+  should be passed by reference, constant reference, or by pointer. If for some
+  reason you *DO* pass a non-primitive type by value, the doxygen function
+  header should clearly explain why.
+
+- `std::shared_ptr` should be passed by VALUE to a function when the function is
+  going to take a copy and share ownership, and ONLY then.
+
+- Pass `std::shared_ptr` by `&` if the function is itself not going to take
+  ownership, but a function/object that it calls will. This will avoid the copy
+  on calls that don't need it.
+
+- `const std::shared_ptr<T>&` should be not be used--use `const T*` to indicate
+  non-owning access to the managed object.
+
+- `std::unique_ptr` should be passed by VALUE to a "consuming" function
+  (i.e. whatever function is ultimately going to claim ownership of the object).
+
+- `std::unique_ptr` should NOT be passed by reference, unless the function needs
+  to replace/update/etc the object contained in the unique_ptr. It should never
+  be passed by constant reference.
+
+- Raw pointers should be used to express the idea that the pointed to object is
+  going to outlive the function call and the function is just going to
+  observe/modify it (i.e. non-owning access).
 
 ## Documentation
 
@@ -129,6 +153,7 @@ To that end all contributions *must* be properly documented.
 
     - A doxygen brief
     - A group tag
+    - A detailed description for non-casual users of the class
 
 - All non-getter/non-setter member functions should be documentated with at
   least a brief, UNLESS those functions are overrides/inherited from a parent
@@ -139,7 +164,7 @@ To that end all contributions *must* be properly documented.
 Tricky/nuanced issues with member variables should be documented, though in
 general the namespace name + class name + member variable name + member variable
 type should be enough documentation. If its not, chances are you are naming
-things somewhat obfuscatingly.
+things somewhat obfuscatingly and need to refactor.
 
 ## Testing
 

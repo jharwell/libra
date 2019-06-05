@@ -1,12 +1,17 @@
 ################################################################################
+# Debugging Options                                                            #
+################################################################################
+set(LIBRA_DEBUG_OPTIONS "-ggdb3 -gdwarf -g3")
+
+################################################################################
 # Optimization Options                                                         #
 ################################################################################
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
-  set(OPT_LEVEL -O0 -ggdb -fuse-ld=gold)
+  set(LIBRA_OPT_LEVEL -O0)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(OPT_LEVEL -Og -ggdb -fuse-ld=gold)
+  set(LIBRA_OPT_LEVEL -Og)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(OPT_LEVEL -O2 -ggdb -fuse-ld=gold)
+  set(LIBRA_OPT_LEVEL -O2)
 endif()
 
 set(BASE_OPT_OPTIONS
@@ -14,25 +19,23 @@ set(BASE_OPT_OPTIONS
   -mtune=native
   -flto
   -fno-stack-protector
-  -fdevirtualize-at-ltrans
-  -fdevirtualize-speculatively
   -ffast-math
   -ffinite-math-only
   -frename-registers
   )
 
-if (WITH_OPENMP)
+if (LIBRA_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -fopenmp
     -D_GLIBCXX_PARALLEL
     )
 endif()
 
-set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -fuse-ld=gold")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
 endif()
 
 ################################################################################
@@ -77,14 +80,14 @@ set(BASE_DIAG_OPTIONS
   -Wmultistatement-macros
   )
 
-set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
+set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wstrict-prototypes
   -Wmissing-prototypes
   -Wbad-function-cast
   -Wnested-externs
   )
 
-set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
+set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
   -Wsuggest-override
   -Wstrict-null-sentinel
@@ -119,20 +122,20 @@ set(MISC_CHECK_OPTIONS
   )
 
 if ("${WITH_CHECKS}" MATCHES "MEM")
-  set(C_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
+  set(LIBRA_C_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
+  set(LIBRA_CXX_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
   endif()
 if ("${WITH_CHECKS}" MATCHES "ADDR")
-  set(C_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
+  set(LIBRA_C_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
+  set(LIBRA_CXX_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
 endif()
 if ("${WITH_CHECKS}" MATCHES "STACK")
-  set(C_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
+  set(LIBRA_C_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
+  set(LIBRA_CXX_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
 endif()
 if ("${WITH_CHECKS}" MATCHES "MISC")
-  set(C_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
+  set(LIBRA_C_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
+  set(LIBRA_CXX_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
 endif()
 
 
@@ -146,6 +149,6 @@ set(BASE_REPORT_OPTIONS
   )
 
 if (WITH_REPORTS)
-  set(C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
-  set(CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+  set(LIBRA_C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+  set(LIBRA_CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
 endif()

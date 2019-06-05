@@ -82,13 +82,13 @@ toggle_clang_tidy_fix(ON)
 
 option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
 option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
-option(WITH_TESTS     "Build tests."                                           OFF)
-option(WITH_OPENMP    "Enable OpenMP code."                                    OFF)
+option(LIBRA_TESTS     "Build tests."                                           OFF)
+option(LIBRA_OPENMP    "Enable OpenMP code."                                    OFF)
 option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and optimization, if applicable ." OFF)
-option(WITH_MPI       "Enable MPI code." OFF)
-option(WITH_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
-option(WITH_ER_NREPORT "YES to disable all ER reporting (for applications that use RCPPSW ER framework)." NO)
-set(FPC FPC_TYPE="${WITH_FPC}")
+option(LIBRA_MPI       "Enable MPI code." OFF)
+option(LIBRA_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
+option(LIBRA_ER_NREPORT "YES to disable all ER reporting (for applications that use RCPPSW ER framework)." NO)
+set(FPC FPC_TYPE="${LIBRA_FPC}")
 
 # Set output directories. If we are the root project, then this is
 # necessary. If not, we simply re-set the same values.
@@ -199,7 +199,7 @@ endif()
 ################################################################################
 # Testing Options                                                              #
 ################################################################################
-if (WITH_TESTS)
+if (LIBRA_TESTS)
   include(testing)
 endif()
 

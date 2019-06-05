@@ -143,16 +143,16 @@ checkers are compatible, so use with care.
 
 Uses the following variables for fine-tuning the build process
 
-| Variable          | Description                                                                                           | Default     |
-|-------------------|-------------------------------------------------------------------------------------------------------|-------------|
-| `WITH_TESTS`      | Enable building of unit tests via `make unit_tests`                                                   | NO          |
-| `WITH_OPENMP`     | Enable OpenMP code                                                                                    | NO          |
-| `WITH_MPI`        | Enable MPI code                                                                                       | NO          |
-| `WITH_FPC`        | Enable function precondition checking (mostly used in C) This is very helpful for debugging. Possible | `FPC_ABORT` |
-|                   | values are:                                                                                           |             |
-|                   | `FPC_RETURN` - Return without executing a function, but do not assert().                              |             |
-|                   | `FPC_ABORT` - Abort the program whenever a function precondition.                                     |             |
-| `WITH_ER_NREPORT` | Disable event reporting entirely, and do not link with log4cxx.                                       | NO          |
+| Variable          | Description                                                                                            | Default     |
+|-------------------|--------------------------------------------------------------------------------------------------------|-------------|
+| `LIBRA_TESTS`      | Enable building of unit tests via `make unit-tests`                                                   | NO          |
+| `LIBRA_OPENMP`     | Enable OpenMP code                                                                                    | NO          |
+| `LIBRA_MPI`        | Enable MPI code                                                                                       | NO          |
+| `LIBRA_FPC`        | Enable function precondition checking (mostly used in C) This is very helpful for debugging. Possible | `FPC_ABORT` |
+|                    | values are:                                                                                           |             |
+|                    | `FPC_RETURN` - Return without executing a function, but do not assert()                               |             |
+|                    | `FPC_ABORT` - Abort the program whenever a function precondition.                                     |             |
+| `LIBRA_ER_NREPORT` | Disable event reporting entirely, and do not link with log4cxx.                                       | NO          |
 
 ## Automation via Make Targets
 
@@ -174,7 +174,7 @@ the following additional capabilities via makefile targets.
     - `tidy-check-all` - Runs the clang-tidy checker on the repository, using
                          the `.clang-format` in the root of the repo.
 
-- `unit_tests` - Build all of the unit tests for the project. If you want to
+- `unit-tests` - Build all of the unit tests for the project. If you want to
                  just build a single unit test, you can do `make <project
                  name>-<class name>-test`. For example: `make rcppsw-hfsm-test`
                  for a single unit test named `hfsm-test.cpp` that lives under

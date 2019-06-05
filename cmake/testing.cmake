@@ -3,13 +3,13 @@
 ################################################################################
 enable_testing()
 
-# There is a global unit_tests target, as well as per-project/module variants
+# There is a global unit-tests target, as well as per-project/module variants
 # which only build the tests found in the subproject/module.
-if (NOT TARGET unit_tests)
-  add_custom_target(unit_tests)
+if (NOT TARGET unit-tests)
+  add_custom_target(unit-tests)
 endif()
-if (NOT TARGET ${current_proj_name}-unit_tests)
-  add_custom_target(${current_proj_name}-unit_tests)
+if (NOT TARGET ${current_proj_name}-unit-tests)
+  add_custom_target(${current_proj_name}-unit-tests)
 endif()
 
 if (NOT TARGET build_and_test)
@@ -63,14 +63,14 @@ foreach(t ${c_tests} ${cxx_tests})
   endif()
    target_include_directories(${current_proj_name}-${test_name} PUBLIC "${${target}_INCLUDE_DIRS}")
 
-  # Add dependencies on the global unit_tests target, which will build ALL
+  # Add dependencies on the global unit-tests target, which will build ALL
   # unit tests known to cmake.
-  add_dependencies(unit_tests ${current_proj_name}-${test_name})
-  add_dependencies(${current_proj_name}-unit_tests ${current_proj_name}-${test_name})
+  add_dependencies(unit-tests ${current_proj_name}-${test_name})
+  add_dependencies(${current_proj_name}-unit-tests ${current_proj_name}-${test_name})
 
   add_test(${test_name} ${CMAKE_BINARY_DIR}/bin/${current_proj_name}-${test_name})
 
-  # Add dependencies on the subproject/module unit_tests target, which will
+  # Add dependencies on the subproject/module unit-tests target, which will
   # only build the unit tests for that subproject/module.
   add_dependencies(build_and_test ${current_proj_name}-${test_name})
   add_dependencies(${current_proj_name}-build_and_test ${current_proj_name}-${test_name})

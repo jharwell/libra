@@ -16,7 +16,7 @@ include_directories(${root_include_path})
 
 file(GLOB_RECURSE all_headers "${root_include_path}/*.h")
 set(root_test_dir "${CMAKE_SOURCE_DIR}/tests")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -g")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
 link_libraries(pthread)
 
 # Configure CCache if available
@@ -36,7 +36,7 @@ set(CC_DEV_DEFS "-DFPC_TYPE=FPC_ABORT")
 set(CC_DEVOPT_DEFS "-DFPC_TYPE=FPC_RETURN")
 set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DNDEBUG")
 
-if (WITH_ER_NREPORT)
+if (LIBRA_ER_NREPORT)
   set(CC_OPT_DEFS "${CC_OPT_DEFS} -DRCPPSW_ER_NREPORT=1")
 endif()
 
@@ -45,6 +45,13 @@ endif()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" )
+
+  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0)
+    message(FATAL_ERROR "gcc version must be at least 8.0!")
+  endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message(FATAL_ERROR "g++ version must be at least 8.0!")
+  endif()
   include(gnu-options)
 endif ()
 
@@ -53,7 +60,13 @@ endif ()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
-    include(clang-options)
+  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
+    message(FATAL_ERROR "clang version must be at least 6.0!")
+  endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
+    message(FATAL_ERROR "clang++ version must be at least 6.0!")
+  endif()
+  include(clang-options)
 endif ()
 
 #################################################################################
@@ -61,11 +74,17 @@ endif ()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Intel" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel" )
+  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 18.0)
+    message(FATAL_ERROR "icc version must be at least 18.0!")
+  endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+    message(FATAL_ERROR "icpc version must be at least 18.0!")
+  endif()
   include(intel-options)
 endif ()
 
 # Setup MPI
-if (WITH_MPI)
+if (LIBRA_MPI)
   find_package(MPI REQUIRED)
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()

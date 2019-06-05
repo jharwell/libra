@@ -1,12 +1,17 @@
 ################################################################################
+# Debugging Options                                                            #
+################################################################################
+set(LIBRA_DEBUG_OPTIONS "-ggdb3 -gdwarf -g3")
+
+################################################################################
 # Optimization Options                                                         #
 ################################################################################
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
-  set(OPT_LEVEL -O0 -ggdb)
+  set(LIBRA_OPT_LEVEL -O0)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(OPT_LEVEL -Og -ggdb)
+  set(LIBRA_OPT_LEVEL -Og)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(OPT_LEVEL -O2 -ggdb)
+  set(LIBRA_OPT_LEVEL -O2)
 endif()
 
 set(BASE_OPT_OPTIONS
@@ -16,7 +21,7 @@ set(BASE_OPT_OPTIONS
   -ipo
   )
 
-if (WITH_OPENMP)
+if (LIBRA_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -qopenmp
     -parallel
@@ -33,15 +38,12 @@ if(GUIDED_OPT)
     )
 endif()
 
-set(C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
 endif()
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
 
 ###############################################################################
 # Diagnostic Options
@@ -73,8 +75,8 @@ set(BASE_DIAG_OPTIONS
   -wd10382
   )
 
-set(C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS})
-set(CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
+set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS})
+set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
   -wd2015
   -wd2012
@@ -101,16 +103,16 @@ set(STACK_CHECK_OPTIONS
   -fstack-protector-all
   -fstack-protector-strong
   )
-set(C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
-set(CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+set(LIBRA_C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
+set(LIBRA_CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS})
 
 if ("${WITH_CHECKS}" MATCHES "MEM")
-  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  set(LIBRA_C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
+  set(LIBRA_CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
 endif()
 if ("${WITH_CHECKS}" MATCHES "STACK")
-  set(C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
-  set(CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
+  set(LIBRA_C_CHECK_OPTIONS ${C_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
+  set(LIBRA_CXX_CHECK_OPTIONS ${CXX_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
 endif()
 
 ################################################################################
@@ -123,6 +125,6 @@ set(BASE_REPORT_OPTIONS
   )
 
 if (WITH_REPORTS)
-  set(C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
-  set(CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+  set(LIBRA_C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+  set(LIBRA_CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
 endif()
