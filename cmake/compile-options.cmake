@@ -37,7 +37,7 @@ set(CC_DEVOPT_DEFS "-DFPC_TYPE=FPC_RETURN")
 set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DNDEBUG")
 
 if (LIBRA_ER_NREPORT)
-  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DRCPPSW_ER_NREPORT=1")
+  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER_NREPORT=1")
 endif()
 
 #################################################################################
