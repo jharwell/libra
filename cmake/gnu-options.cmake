@@ -1,7 +1,7 @@
 ################################################################################
 # Debugging Options                                                            #
 ################################################################################
-set(LIBRA_DEBUG_OPTIONS "-g")
+set(LIBRA_DEBUG_OPTIONS "-ggdb3")
 
 ################################################################################
 # Optimization Options                                                         #
@@ -27,7 +27,6 @@ set(BASE_OPT_OPTIONS
 if (LIBRA_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -fopenmp
-    -D_GLIBCXX_PARALLEL
     )
 endif()
 
@@ -35,7 +34,14 @@ set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  # Without turning off these warnings we get a bunch of spurious warnings about
+  # the attributes, even though they are already present.
+  set(CMAKE_SHARED_LINKER_FLAGS
+    "${CMAKE_SHARED_LINKER_FLAGS}\
+    -flto\
+    -Wno-suggest-attribute=pure\
+    -Wno-suggest-attribute=const\
+    -Wno-suggest-attribute=cold")
 endif()
 
 ################################################################################
@@ -58,10 +64,8 @@ set(BASE_DIAG_OPTIONS
   -Wsuggest-attribute=const
   -Wsuggest-attribute=format
   -Wsuggest-attribute=cold
-  -Wsuggest-attribute=malloc
   -Wsuggest-final-types
   -Wsuggest-final-methods
-  -Wmissing-attributes
   -Wfloat-equal
   -Wshadow
   -Wredundant-decls
@@ -74,7 +78,6 @@ set(BASE_DIAG_OPTIONS
   -Wstack-protector
   -Wunreachable-code
   -Wmissing-format-attribute
-  -Wunused-macros
   -Wfloat-conversion
   -Wnarrowing
   -Wmultistatement-macros
@@ -89,6 +92,7 @@ set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 
 set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
+  -Wunused-macros
   -Wsuggest-override
   -Wstrict-null-sentinel
   -Wclass-memaccess
@@ -140,15 +144,21 @@ endif()
 
 
 ################################################################################
-# Reporting Options                                                            #
+# Profiling Options                                                            #
 ################################################################################
-set(BASE_REPORT_OPTIONS
-  -fopt-info-optimized-optall
-  -fprofile-arcs
-  -ftest-coverage
+set(BASE_PGO_GEN_OPTIONS
+  -fprofile-generate
+  )
+set(BASE_PGO_USE_OPTIONS
+  -fprofile-use
   )
 
-if (WITH_REPORTS)
-  set(LIBRA_C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
-  set(LIBRA_CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
+if (LIBRA_PGO_GEN)
+  set(LIBRA_C_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+  set(LIBRA_CXX_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+endif()
+
+if (LIBRA_PGO_USE)
+  set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
+  set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
 endif()

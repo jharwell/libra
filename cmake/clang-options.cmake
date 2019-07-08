@@ -1,7 +1,7 @@
 ################################################################################
 # Debugging Options                                                            #
 ################################################################################
-set(LIBRA_DEBUG_OPTIONS "-g")
+set(LIBRA_DEBUG_OPTIONS "-ggdb3")
 
 ################################################################################
 # Optimization Options                                                         #
@@ -37,7 +37,7 @@ set(LIBRA_CXX_OPT_OPTIONS)
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(CMAKE_AR "llvm-ar")
   set(CMAKE_RANLIB "llvm-ranlib")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 endif()
 
 ################################################################################
@@ -118,5 +118,21 @@ endif()
 
 
 ################################################################################
-# Reporting Options                                                            #
+# Profiling Options                                                            #
 ################################################################################
+set(BASE_PGO_GEN_OPTIONS
+  -fprofile-generate
+  )
+set(BASE_PGO_USE_OPTIONS
+  -fprofile-use
+  )
+
+if (LIBRA_PGO_GEN)
+  set(LIBRA_C_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+  set(LIBRA_CXX_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+endif()
+
+if (LIBRA_PGO_USE)
+  set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
+  set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
+endif()

@@ -1,7 +1,7 @@
 ################################################################################
 # Debugging Options                                                            #
 ################################################################################
-set(LIBRA_DEBUG_OPTIONS "-g")
+set(LIBRA_DEBUG_OPTIONS "-ggdb3")
 
 ################################################################################
 # Optimization Options                                                         #
@@ -42,7 +42,7 @@ set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -ipo")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -ipo")
 endif()
 
 ###############################################################################

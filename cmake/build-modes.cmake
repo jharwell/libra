@@ -10,6 +10,8 @@ foreach(arg
     ${LIBRA_C_CHECK_OPTIONS}
     ${LIBRA_C_REPORT_OPTIONS}
     ${LIBRA_C_CHECK_OPTIONS}
+    ${LIBRA_C_PGO_GEN_OPTIONS}
+    ${LIBRA_C_PGO_USE_OPTIONS}
     ${CC_DEV_DEFS})
   set(DEV_CFLAGS "${DEV_CFLAGS} ${arg}")
 endforeach(arg)
@@ -27,6 +29,8 @@ foreach(arg
     ${LIBRA_CXX_CHECK_OPTIONS}
     ${LIBRA_CXX_REPORT_OPTIONS}
     ${LIBRA_CXX_CHECK_OPTIONS}
+    ${LIBRA_CXX_PGO_GEN_OPTIONS}
+    ${LIBRA_CXX_PGO_USE_OPTIONS}
     ${CC_DEV_DEFS})
   set(DEV_CXXFLAGS "${DEV_CXXFLAGS} ${arg}")
 endforeach(arg)
@@ -47,6 +51,8 @@ foreach(arg
     ${LIBRA_C_CHECK_OPTIONS}
     ${LIBRA_C_REPORT_OPTIONS}
     ${LIBRA_C_CHECK_OPTIONS}
+    ${LIBRA_C_PGO_GEN_OPTIONS}
+    ${LIBRA_C_PGO_USE_OPTIONS}
     ${CC_DEVOPT_DEFS})
   set(DEVOPT_CFLAGS "${DEVOPT_CFLAGS} ${arg}")
 endforeach(arg)
@@ -64,6 +70,8 @@ foreach(arg
     ${LIBRA_CXX_CHECK_OPTIONS}
     ${LIBRA_CXX_REPORT_OPTIONS}
     ${LIBRA_CXX_CHECK_OPTIONS}
+    ${LIBRA_CXX_PGO_GEN_OPTIONS}
+    ${LIBRA_CXX_PGO_USE_OPTIONS}
     ${CC_DEVOPT_DEFS})
   set(DEVOPT_CXXFLAGS "${DEVOPT_CXXFLAGS} ${arg}")
 endforeach(arg)
@@ -85,6 +93,8 @@ foreach(arg
     ${LIBRA_C_CHECK_OPTIONS}
     ${LIBRA_C_REPORT_OPTIONS}
     ${LIBRA_C_CHECK_OPTIONS}
+    ${LIBRA_C_PGO_GEN_OPTIONS}
+    ${LIBRA_C_PGO_USE_OPTIONS}
     ${CC_OPT_DEFS})
   set(OPT_CFLAGS "${OPT_CFLAGS} ${arg}")
 endforeach(arg)
@@ -103,6 +113,8 @@ foreach(arg
     ${LIBRA_CXX_CHECK_OPTIONS}
     ${LIBRA_CXX_REPORT_OPTIONS}
     ${LIBRA_CXX_CHECK_OPTIONS}
+    ${LIBRA_CXX_PGO_GEN_OPTIONS}
+    ${LIBRA_CXX_PGO_USE_OPTIONS}
     ${CC_OPT_DEFS})
   set(OPT_CXXFLAGS "${OPT_CXXFLAGS} ${arg}")
 endforeach(arg)
