@@ -54,6 +54,20 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/libra/cmake")
 
+
+option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
+option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
+option(LIBRA_TESTS     "Build tests."                                          OFF)
+option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
+option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
+option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
+option(LIBRA_MPI       "Enable MPI code."                                      OFF)
+set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
+set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
+set(LIBRA_ER "ALL" CACHE STRING "[NONE, ASSERT, ALL] NONE to disable all event reporting. ASSERT to disable all event reporting except for failed asserts.")
+set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL)
+set(FPC FPC_TYPE="${LIBRA_FPC}")
+
 include(compile-options)
 include(reporting)
 include(build-modes)
@@ -79,17 +93,6 @@ toggle_clang_tidy_check(ON)
 toggle_clang_static_check(ON)
 toggle_clang_format(ON)
 toggle_clang_tidy_fix(ON)
-
-option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
-option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
-option(LIBRA_TESTS     "Build tests."                                          OFF)
-option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
-option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
-option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
-option(LIBRA_MPI       "Enable MPI code."                                      OFF)
-option(LIBRA_FPC       "FPC_RETURN or FPC_ABORT"                               FPC_ABORT)
-option(LIBRA_ER_NREPORT "YES to disable all event reporting."                  NO)
-set(FPC FPC_TYPE="${LIBRA_FPC}")
 
 # Set output directories. If we are the root project, then this is
 # necessary. If not, we simply re-set the same values.

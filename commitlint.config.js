@@ -13,6 +13,7 @@ module.exports = {
                 'refactor',
                 'test',
                 'chore',
+                'task',
                 'revert',
             ]
         ],

@@ -14,10 +14,13 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(LIBRA_OPT_LEVEL -O2)
 endif()
 
+include(ProcessorCount)
+ProcessorCount(N)
+
 set(BASE_OPT_OPTIONS
   -march=native
   -mtune=native
-  -flto
+  -flto=${N}
   -fno-stack-protector
   -ffast-math
   -ffinite-math-only
@@ -38,7 +41,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   # the attributes, even though they are already present.
   set(CMAKE_SHARED_LINKER_FLAGS
     "${CMAKE_SHARED_LINKER_FLAGS}\
-    -flto\
+    -flto=${N}\
     -Wno-suggest-attribute=pure\
     -Wno-suggest-attribute=const\
     -Wno-suggest-attribute=cold")

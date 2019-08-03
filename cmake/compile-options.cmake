@@ -22,22 +22,29 @@ link_libraries(pthread)
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
 if (CCACHE_FOUND)
+  message(STATUS "  Found ccache")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif()
 
-# Configure iwyu if available
-find_program(iwyu_path NAMES include-what-you-use iwyu)
-
 #################################################################################
 # Definitions                                                                   #
 #################################################################################
-set(CC_DEV_DEFS "-DFPC_TYPE=FPC_ABORT")
-set(CC_DEVOPT_DEFS "-DFPC_TYPE=FPC_RETURN")
+set(CC_DEV_DEFS "-DFPC_TYPE=FPC_ABORT -DLIBRA_ER=LIBRA_ER_ALL")
+set(CC_DEVOPT_DEFS "-DFPC_TYPE=FPC_RETURN  -DLIBRA_ER=LIBRA_ER_ALL")
 set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DNDEBUG")
 
-if (LIBRA_ER_NREPORT)
-  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER_NREPORT=1")
+if ("${LIBRA_ER}" MATCHES "NONE")
+  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER=LIBRA_ER_NONE")
+  message(STATUS "  Event reporting disabled")
+elseif ("${LIBRA_ER}" MATCHES "FATAL")
+  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER=LIBRA_ER_FATAL")
+  message(STATUS "  Event reporting enabled: FATAL only")
+elseif("${LIBRA_ER}" MATCHES "ALL")
+  message(STATUS "  Event reporting enabled: ALL")
+  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER=LIBRA_ER_ALL")
+else ()
+  message(FATAL_ERROR "Bad event reporting specification '${LIBRA_ER}'. Must be [ALL,FATAL,NONE]")
 endif()
 
 #################################################################################
