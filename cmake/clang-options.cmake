@@ -23,6 +23,7 @@ set(BASE_OPT_OPTIONS
   -ffast-math
   -ffinite-math-only
   -frename-registers
+  -Werror
   )
 
 if (LIBRA_OPENMP)

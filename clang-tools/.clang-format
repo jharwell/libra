@@ -47,13 +47,22 @@ DerivePointerAlignment: false
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
+IncludeBlocks: Regroup
 IncludeCategories:
+  - Regex:           '^<argos3.*'
+    Priority:        3
   - Regex:           '^<.*\.h>'
     Priority:        1
   - Regex:           '^<.*'
     Priority:        2
+  - Regex:           '"rcsw.*'
+    Priority:        4
+  - Regex:           '"rcppsw.*'
+    Priority:        5
+  - Regex:           '"fordyca.*'
+    Priority:        6
   - Regex:           '.*'
-    Priority:        3
+    Priority:        7
 IndentCaseLabels: true
 IndentWidth:     2
 IndentWrappedFunctionNames: false

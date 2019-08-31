@@ -19,6 +19,7 @@ set(BASE_OPT_OPTIONS
   -xHost
   -fp-model fast=2
   -ipo
+  -Werror-all
   )
 
 if (LIBRA_OPENMP)
@@ -60,15 +61,13 @@ endif()
 # 1505 - Size of class affected by tail padding
 ###############################################################################
 set(BASE_DIAG_OPTIONS
-  -w2
-  -Wall
+  -w5
   -Wabi
   -Wcheck
   -Winline
   -Wshadow
   -Wremarks
   -Wcomment
-  -w2
   -wd181
   -wd981
   -wd2282
