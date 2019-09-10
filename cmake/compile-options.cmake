@@ -3,7 +3,6 @@
 ################################################################################
 # Project options
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (BUILD_SHARED_LIBS)
@@ -52,6 +51,7 @@ endif()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" )
+  set(CMAKE_CXX_STANDARD 17)
 
   if(CMAKE_C_COMPILER_VERSION VERSION_LESS 8.0)
     message(FATAL_ERROR "gcc version must be at least 8.0!")
@@ -67,6 +67,7 @@ endif ()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
+
   if(CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
     message(FATAL_ERROR "clang version must be at least 6.0!")
   endif()

@@ -65,12 +65,3 @@ Types:
 
 - `Research` - The task is open-ended, requiring paper reading and/or lots of
   experiment running, analyzing, etc.
-
-## Branches
-
-All branches should have a corresponding issue on github, and the issue should
-be named the *same* thing as the branch. This may seem pedantic, but when you
-have hundreds or thousands of issues and branches, any little thing you can do
-to increase the self-documenting nature of the development process is worth
-doing. I don't generally delete branches, so you should be able to see how they
-should be named/link to github issues by browsing the repo.

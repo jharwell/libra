@@ -11,6 +11,7 @@ Also contains some generally useful guides:
 - [C++ Development Guide](cxx-devel-guide.md)
 - [Git Commit Guide](git-commit-guide.md)
 - [Issue Usage Guide](git-issue-guide.md)
+- [General Workflow](workflow.md)
 
 ## Motivation
 
@@ -123,42 +124,43 @@ A recent version of any supported compiler can be selected as the
 `CMAKE_CXX_COMPILER` via command line [Default=`g++`]. The correct compile
 options will be populated (as in the ones defined in the corresponding .cmake
 files in this repository). Same for `CMAKE_C_COMPILER`. Note that the C and CXX
-compiler vendors should almost always match, in order to avoid strange build
-issues.
+compiler vendors should always match, in order to avoid strange build issues.
 
-### Compiler Runtime Checking
-Build in run-time checking of code using any compiler via the cmake option
-`WITH_CHECKS` [Default=NO]. When passed, the value should be a command-separated
-list of checks to enable:
+*NOTE* If you are want to use the intel compiler suite, you will have to
+download and install it from Intel's website. It installs to a non-standard
+location, so prior to being able to use it in the terminal like clang or gcc,
+you will need to source the compiler definitions:
 
-- `MEM` - Memory checking/sanitization.
-- `ADDR` - Address sanitization.
-- `STACK` - Agressive stack checking.
-- `MISC` - Other potentially helpful checks.
+    `. /opt/intel/bin/compilervars.sh -arch intel64 -platform linux`
 
-Not all compilerconfigurations use all categories, and not all combinations of
-checkers are compatible, so use with care.
+Assuming you have installed the suite to `/opt/intel` and are running bash.
 
 ### Variables
 
 Uses the following variables for fine-tuning the build process
 
-| Variable        | Description                                                                                                                      | Default     |
-|-----------------|----------------------------------------------------------------------------------------------------------------------------------|-------------|
-| `LIBRA_TESTS`   | Enable building of unit tests via `make unit-tests`                                                                              | NO          |
-| `LIBRA_OPENMP`  | Enable OpenMP code                                                                                                               | NO          |
-| `LIBRA_MPI`     | Enable MPI code                                                                                                                  | NO          |
-| `LIBRA_FPC`     | Enable function precondition checking (mostly used in C) This is very helpful for debugging. Possible                            | `FPC_ABORT` |
-|                 | values are:                                                                                                                      |             |
-|                 | `FPC_RETURN` - Return without executing a function, but do not assert()                                                          |             |
-|                 | `FPC_ABORT` - Abort the program whenever a function precondition.                                                                |             |
-| `LIBRA_ER`      | Specify event reporting. Possible values are:                                                                                    | `ALL`       |
-|                 | `ALL` - Event reporting via log4cxx, which is compiled in fully and linked with. Both debug printing and logging macros enabled. |             |
-|                 | `FATAL` - Disable event reporting EXCEPT for fatal events, use `printf()` for those (Log4cxx compiled outfn)                     |             |
-|                 | Debug logging disabled (needs log4cxx), macros for printing of FATAL events only enabled.                                        |             |
-|                 | `NONE` - Disable event reporting entirely: log4cxx compiled out and debug printing/logging macros disabled.                      |             |
-| `LIBRA_PGO_GEN` | Generate a PGO build, input stage, for the selected compiler.                                                                    |             |
-| `LIBRA_PGO_USE` | Generate a PGO build, final stage, for the selected compiler.                                                                    |             |
+| Variable        | Description                                                                                                                        | Default     |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| `LIBRA_TESTS`   | Enable building of unit tests via `make unit-tests`                                                                                | NO          |
+| `LIBRA_OPENMP`  | Enable OpenMP code                                                                                                                 | NO          |
+| `LIBRA_MPI`     | Enable MPI code                                                                                                                    | NO          |
+| `LIBRA_FPC`     | Enable function precondition checking (mostly used in C) This is very helpful for debugging. Possible                              | `FPC_ABORT` |
+|                 | values are:                                                                                                                        |             |
+|                 | `FPC_RETURN` - Return without executing a function, but do not assert()                                                            |             |
+|                 | `FPC_ABORT` - Abort the program whenever a function precondition.                                                                  |             |
+| `LIBRA_ER`      | Specify event reporting. Possible values are:                                                                                      | `ALL`       |
+|                 | `ALL` - Event reporting via log4cxx, which is compiled in fully and linked with. Both debug printing and logging macros enabled.   |             |
+|                 | `FATAL` - Disable event reporting EXCEPT for fatal events, use `printf()` for those (Log4cxx compiled outfn)                       |             |
+|                 | Debug logging disabled (needs log4cxx), macros for printing of FATAL events only enabled.                                          |             |
+|                 | `NONE` - Disable event reporting entirely: log4cxx compiled out and debug printing/logging macros disabled.                        |             |
+| `LIBRA_PGO_GEN` | Generate a PGO build, input stage, for the selected compiler.                                                                      | NO          |
+| `LIBRA_PGO_USE` | Generate a PGO build, final stage, for the selected compiler.                                                                      | NO          |
+| `LIBRA_CHECKS`  | Build in runtime checking of code using any compiler. When passed, the value should be a comma-separated list of checks to enable: |             |
+|                 | `MEM` - Memory checking/sanitization.                                                                                              |             |
+|                 | `ADDR` - Address sanitization.                                                                                                     |             |
+|                 | `STACK` - Aggressive stack checking.                                                                                               |             |
+|                 | `MISC` - Other potentially helpful checks.                                                                                         |             |
+|                 | Not all compiler configurations use all categories, and not all combinations of checkers are compatible, so use with care.         |             |
 
 ## Automation via Make Targets
 
@@ -188,24 +190,6 @@ the following additional capabilities via makefile targets.
 
 - `test` - Run all of the tests for the project.
 
-## Unit Tests
-
-Unit tests can utilize whatever unit testing framework is desired, though
-`gtest` or `catch` are easy to setup/use. Unit tests should be structured as
-follows:
-
-- Each tested class should get its own `-test.cpp` file, unless there is a very
-  good reason to do otherwise.
-
-- For each public member function in the class under test that is not a trivial
-  getter/setter, at least 1 test case should be included for it, so that every
-  code path through the function is evaluated as least once. For complex
-  functions, multiple test cases may be necessary. If a function is not easy to
-  test, chances are it should be refactored.
-
-- Documentation for the class should be updated in tandem with writing the unit
-  tests, so that it is clear what the assumptions/requirements of class
-  usage/function usage are.
 
 
 # License

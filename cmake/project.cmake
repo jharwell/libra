@@ -62,8 +62,10 @@ option(LIBRA_OPENMP    "Enable OpenMP code."                                   O
 option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
 option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
 option(LIBRA_MPI       "Enable MPI code."                                      OFF)
+
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
+
 set(LIBRA_ER "ALL" CACHE STRING "[NONE, ASSERT, ALL] NONE to disable all event reporting. ASSERT to disable all event reporting except for failed asserts.")
 set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL)
 set(FPC FPC_TYPE="${LIBRA_FPC}")

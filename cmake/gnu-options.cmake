@@ -1,7 +1,7 @@
 ################################################################################
 # Debugging Options                                                            #
 ################################################################################
-set(LIBRA_DEBUG_OPTIONS "-ggdb3")
+set(LIBRA_DEBUG_OPTIONS "-g2")
 
 ################################################################################
 # Optimization Options                                                         #
@@ -128,19 +128,19 @@ set(MISC_CHECK_OPTIONS
   -fsanitize=undefined
   )
 
-if ("${WITH_CHECKS}" MATCHES "MEM")
+if ("${LIBRA_CHECKS}" MATCHES "MEM")
   set(LIBRA_C_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
   set(LIBRA_CXX_CHECK_OPTIONS ${MEM_CHECK_OPTIONS})
   endif()
-if ("${WITH_CHECKS}" MATCHES "ADDR")
+if ("${LIBRA_CHECKS}" MATCHES "ADDR")
   set(LIBRA_C_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
   set(LIBRA_CXX_CHECK_OPTIONS ${ADDR_CHECK_OPTIONS})
 endif()
-if ("${WITH_CHECKS}" MATCHES "STACK")
+if ("${LIBRA_CHECKS}" MATCHES "STACK")
   set(LIBRA_C_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
   set(LIBRA_CXX_CHECK_OPTIONS ${STACK_CHECK_OPTIONS})
 endif()
-if ("${WITH_CHECKS}" MATCHES "MISC")
+if ("${LIBRA_CHECKS}" MATCHES "MISC")
   set(LIBRA_C_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
   set(LIBRA_CXX_CHECK_OPTIONS ${MISC_CHECK_OPTIONS})
 endif()
