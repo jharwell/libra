@@ -59,10 +59,12 @@ IncludeCategories:
     Priority:        4
   - Regex:           '"rcppsw.*'
     Priority:        5
-  - Regex:           '"fordyca.*'
+  - Regex:           '"cosm.*'
     Priority:        6
-  - Regex:           '.*'
+  - Regex:           '"fordyca.*'
     Priority:        7
+  - Regex:           '.*'
+    Priority:        8
 IndentCaseLabels: true
 IndentWidth:     2
 IndentWrappedFunctionNames: false

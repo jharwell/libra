@@ -29,9 +29,9 @@ endif()
 #################################################################################
 # Definitions                                                                   #
 #################################################################################
-set(CC_DEV_DEFS "-DFPC_TYPE=FPC_ABORT -DLIBRA_ER=LIBRA_ER_ALL")
-set(CC_DEVOPT_DEFS "-DFPC_TYPE=FPC_RETURN  -DLIBRA_ER=LIBRA_ER_ALL")
-set(CC_OPT_DEFS "-DFPC_TYPE=FPC_RETURN -DNDEBUG")
+set(CC_DEV_DEFS "-DRCSW_FPC_TYPE=RCSW_FPC_ABORT -DLIBRA_ER=LIBRA_ER_ALL")
+set(CC_DEVOPT_DEFS "-DRCSW_FPC_TYPE=RCSW_FPC_RETURN  -DLIBRA_ER=LIBRA_ER_ALL")
+set(CC_OPT_DEFS "-DRCSW_FPC_TYPE=RCSW_FPC_RETURN -DNDEBUG")
 
 if ("${LIBRA_ER}" MATCHES "NONE")
   set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER=LIBRA_ER_NONE")
