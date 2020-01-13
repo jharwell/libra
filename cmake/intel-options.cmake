@@ -58,6 +58,7 @@ endif()
 # 383 - Value copied to temporary; reference to temporary used
 # 411 - Class/struct defines no constructor to initialize member
 # 3180 - Warnings about unknown OpenMP pragmas
+# 177,869,593 - Unused variable/parameters
 ###############################################################################
 set(BASE_DIAG_OPTIONS
   -w5
@@ -68,9 +69,12 @@ set(BASE_DIAG_OPTIONS
   -Wremarks
   -Wcomment
   -wd10382
+  -wd177
+  -wd869
+  -wd593
   )
 
-# If I have a bad OpenMP pragma when OpenMP is enable, warn about it. Otherwise
+# If I have a bad OpenMP pragma when OpenMP is enabled, warn about it. Otherwise
 # OpenMP is disabled and all OpenMP pragma warnings are spurious.
 if(NOT LIBRA_OPENMP)
   set(BASE_DIAG_OPTIONS "${BASE_DIAG_OPTIONS} -wd3180")
@@ -92,6 +96,10 @@ set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   # manually.
   -std=c++17
   )
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  set(CMAKE_C_LINK_EXECUTABLE "xild")
+  set(CMAKE_CXX_LINK_EXECUTABLE "xild")
+endif()
 
 ################################################################################
 # Checking Options                                                             #
