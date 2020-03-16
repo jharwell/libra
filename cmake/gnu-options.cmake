@@ -51,6 +51,7 @@ endif()
 # Diagnostic Options                                                           #
 ################################################################################
 set(BASE_DIAG_OPTIONS
+  -fdiagnostics-color=always
   -W
   -Wall
   -Wextra

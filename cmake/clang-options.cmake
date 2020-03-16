@@ -56,6 +56,9 @@ set(BASE_DIAG_OPTIONS
   -Wshorten-64-to-32
   -Wno-cast-align
   -Wno-weak-vtables
+  -Wno-documentation
+  -Wno-extra-semi-stmt
+  -Wno-extra-semi
   -fcomment-block-commands=internal,endinternal
   )
 

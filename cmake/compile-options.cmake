@@ -73,7 +73,7 @@ endif ()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
-
+  set(CMAKE_CXX_STANDARD 17)
   if(CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
     message(FATAL_ERROR "clang version must be at least 6.0!")
   endif()
