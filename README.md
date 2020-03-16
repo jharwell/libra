@@ -34,8 +34,10 @@ using this repository as a submodule, that can be avoided.
 
 - doxygen (`doxygen` on ubuntu)
 
-- gcc/g++ >= 8.0 (`gcc-8` on ubuntu). Only required if you want to use the GNU
-  compilers. If you want to use another compiler, this is not required.
+- gcc/g++ >= 9.0 (`gcc-9` on ubuntu). Only required if you want to use the GNU
+  compilers. If you want to use another compiler, this is not required. gcc-9
+  rather than gcc-8 is required for C++17 because of std::filesystem usage,
+  which does not work well with gcc-8 on ubuntu.
 
 - icpc/icc >= 18.0. Only required if you want to use the Intel
   compilers. If you want to use another compiler, this is not required.
@@ -190,13 +192,5 @@ the following additional capabilities via makefile targets.
 
 - `test` - Run all of the tests for the project.
 
-
-
 # License
 This project is licensed under GPL 3.0. See [LICENSE](LICENSE.md).
-
-# Donate
-If you've found this project helpful, please consider donating somewhere between
-a cup of coffe and a nice meal:
-
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.me/jharwell1406)
