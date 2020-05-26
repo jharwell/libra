@@ -48,3 +48,5 @@ compile_options.json
 # Build process
 build
 node_modules
+docs/_build
+__pycache__/

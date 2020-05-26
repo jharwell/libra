@@ -1,6 +1,10 @@
-# Git Commit Guide
+.. _ln-git-commit-guide:
 
-## Basic Stuff
+Git Commit Guide
+================
+
+Basic Stuff
+-----------
 
 - Use the present tense ("Add feature" not "Added feature")
 
@@ -8,7 +12,7 @@
 
 - Limit the first line (subject line) to 72 characters or less
 
-- Subject line should have the following form:
+- Subject line should have the following form::
 
         <TYPE>(#issue_number): Subject
 
@@ -25,19 +29,20 @@
   history into a single detailed commit when you are done BEFORE merging to
   devel.
 
-  *DO NOT REBASE/REWRITE HISTORY ON* `devel` *OR* `master` *BRANCHES.*
+  *DO NOT REBASE/REWRITE HISTORY ON* ``devel`` *OR* ``master`` *BRANCHES.*
 
-## Semantic Versioning
+Semantic Versioning
+-------------------
 
 In addition, you may need to put an appropriate tag for semantic versioning
 somewhere in your message (I usually put it at the bottom), depending on if you
 are working on one of the following categories of issues:
 
-- Feature -> `+semver: feature`
-- Bugfix -> `+semver: bugfix`
-- Docs -> `+semver: docs`
-- Enhancement -> `+semver: enh`
+- Feature -> ``+semver: feature``
+- Bugfix -> ``+semver: bugfix``
+- Docs -> ``+semver: docs``
+- Enhancement -> ``+semver: enh``
 
 There should only be ONE semantic versioning tag for each issue/task you are
 working on, so you should add it on the last commit on your branch before you
-merge to `devel`.
+merge to ``devel``.
