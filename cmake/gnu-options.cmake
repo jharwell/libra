@@ -25,6 +25,10 @@ set(BASE_OPT_OPTIONS
   -ffast-math
   -ffinite-math-only
   -frename-registers
+
+  # New experimental options
+  -fassociative-math
+  -freciprocal-math
   )
 
 if (LIBRA_OPENMP)
@@ -49,63 +53,45 @@ endif()
 
 ################################################################################
 # Diagnostic Options                                                           #
-#                                                                              #
-# Omitting the following, as they are either not useful, or give too many      #
-# positives:                                                                   #
-#                                                                              #
-# -Wconversion                                                                 #
-# -Wsign-conversion                                                            #
-# -Wswitch-enum                                                                #
 ################################################################################
 set(BASE_DIAG_OPTIONS
   -fdiagnostics-color=always
   -W
   -Wall
   -Wextra
-  -ansi
-
-  -Wmissing-include-dirs
-  -Wno-unknown-pragmas
-  -Wundef
-
-  -Wmissing-declarations
-  -Wredundant-decls
-  -Wshadow
-
-  -Wstrict-overflow=5
-  -Wfloat-conversion
-  -Wdouble-promotion
-  -Wfloat-equal
-
-  -Wdisabled-optimization
-  -Wunsafe-loop-optimizations
-
-
-  -Wswitch-default
-  -Wswitch-unreachable
-
   -Wcast-align
   -Wcast-qual
-
-  -Wpointer-arith
-  -Wstack-protector
-  -Wunreachable-code
-  -Wmissing-format-attribute
-  -Wunused-parameter
-  -Wunused-const-variable=1
-  -Wduplicated-branches
-  -Wduplicated-cond
-
+  -Wdisabled-optimization
+  -Wformat=2
+  -Winit-self
+  -Wlogical-op
+  -Wmissing-declarations
+  -Wmissing-include-dirs
+  -Wstrict-overflow=5
   -Wsuggest-attribute=pure
   -Wsuggest-attribute=const
   -Wsuggest-attribute=format
   -Wsuggest-attribute=cold
   -Wsuggest-final-types
   -Wsuggest-final-methods
-
-  -Wformat=2
-  -Winit-self
-  -Wlogical-op
+  -Wfloat-equal
+  -Wshadow
+  -Wmisleading-indentation
+  -Wduplicated-branches
+  -Wduplicated-cond
+  -Wredundant-decls
+  -Wstrict-overflow
+  -Wswitch-default
+  -Wundef
+  -ansi
+  -Wpointer-arith
+  -Wno-unknown-pragmas
+  -Wstack-protector
+  -Wunreachable-code
+  -Wmissing-format-attribute
+  -Wfloat-conversion
+  -Wnarrowing
+  -Wmultistatement-macros
   )
 
 set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
@@ -113,12 +99,11 @@ set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wmissing-prototypes
   -Wbad-function-cast
   -Wnested-externs
+  -Wnull-dereference
   )
 
 set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Weffc++
-  -Wuseless-cast
-  -Wextra-semi
   -Wunused-macros
   -Wsuggest-override
   -Wstrict-null-sentinel
@@ -127,8 +112,10 @@ set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wnoexcept
   -Wold-style-cast
   -Woverloaded-virtual
+  -Wnon-virtual-dtor
   -Wctor-dtor-privacy
   -Wdelete-non-virtual-dtor
+  -Wuseless-cast
   )
 
 ################################################################################

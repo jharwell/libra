@@ -16,7 +16,7 @@ foreach(arg
   set(DEV_CFLAGS "${DEV_CFLAGS} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_DEV ${DEV_CFLAGS} CACHE string
+set(CMAKE_C_FLAGS_DEV ${DEV_CFLAGS} CACHE STRING
   "Flags used by the C compiler during development builds."
   FORCE)
 
@@ -35,7 +35,7 @@ foreach(arg
   set(DEV_CXXFLAGS "${DEV_CXXFLAGS} ${arg}")
 endforeach(arg)
 
-set(CMAKE_CXX_FLAGS_DEV ${DEV_CXXFLAGS} CACHE string
+set(CMAKE_CXX_FLAGS_DEV ${DEV_CXXFLAGS} CACHE STRING
   "Flags used by the CXX compiler during development builds."
   FORCE)
 
@@ -57,7 +57,7 @@ foreach(arg
   set(DEVOPT_CFLAGS "${DEVOPT_CFLAGS} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_DEVOPT ${DEVOPT_CFLAGS} CACHE string
+set(CMAKE_C_FLAGS_DEVOPT ${DEVOPT_CFLAGS} CACHE STRING
   "Flags used by the C compiler during devopt builds."
   FORCE)
 
@@ -76,7 +76,7 @@ foreach(arg
   set(DEVOPT_CXXFLAGS "${DEVOPT_CXXFLAGS} ${arg}")
 endforeach(arg)
 
-set(CMAKE_CXX_FLAGS_DEVOPT ${DEVOPT_CXXFLAGS} CACHE string
+set(CMAKE_CXX_FLAGS_DEVOPT ${DEVOPT_CXXFLAGS} CACHE STRING
   "Flags used by the CXX compiler during devopt builds."
   FORCE)
 
@@ -99,7 +99,7 @@ foreach(arg
   set(OPT_CFLAGS "${OPT_CFLAGS} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_OPT ${OPT_CFLAGS} CACHE string
+set(CMAKE_C_FLAGS_OPT ${OPT_CFLAGS} CACHE STRING
   "Flags used by the C compiler during optimized builds."
   FORCE)
 
@@ -118,7 +118,7 @@ foreach(arg
     ${CC_OPT_DEFS})
   set(OPT_CXXFLAGS "${OPT_CXXFLAGS} ${arg}")
 endforeach(arg)
-set(CMAKE_CXX_FLAGS_OPT ${OPT_CXXFLAGS} CACHE string
+set(CMAKE_CXX_FLAGS_OPT ${OPT_CXXFLAGS} CACHE STRING
   "Flags used by the C++ compiler during optimized builds."
   FORCE)
 

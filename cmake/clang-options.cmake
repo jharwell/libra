@@ -22,7 +22,6 @@ set(BASE_OPT_OPTIONS
   -flto
   -ffast-math
   -ffinite-math-only
-  -frename-registers
   -Werror
   )
 
