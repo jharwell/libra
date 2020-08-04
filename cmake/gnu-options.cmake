@@ -23,12 +23,8 @@ set(BASE_OPT_OPTIONS
   -flto=${N}
   -fno-stack-protector
   -ffast-math
-  -ffinite-math-only
+  -fno-unsafe-math-optimizations
   -frename-registers
-
-  # New experimental options
-  -fassociative-math
-  -freciprocal-math
   )
 
 if (LIBRA_OPENMP)

@@ -21,7 +21,7 @@ set(BASE_OPT_OPTIONS
   -fno-stack-protector
   -flto
   -ffast-math
-  -ffinite-math-only
+  -fno-unsafe-math-optimizations
   -Werror
   )
 
