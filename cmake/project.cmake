@@ -56,12 +56,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/libra/cmake")
 
 
 option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
-option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
 option(LIBRA_TESTS     "Build tests."                                          OFF)
 option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
 option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
 option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
 option(LIBRA_MPI       "Enable MPI code."                                      OFF)
+option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
 
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)

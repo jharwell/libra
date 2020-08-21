@@ -60,18 +60,22 @@ The following variables are available for fine-tuning the build process:
 | ``LIBRA_PGO_USE`` | Generate a PGO build, final stage, for the selected               |               |
 |                   | compiler.                                                         | NO            |
 +-------------------+-------------------------------------------------------------------+---------------+
-| ``LIBRA_CHECKS``  | Build in runtime checking of code using any compiler. When        |               |
+|   ``LIBRA_SAN``   | Build in runtime checking of code using any compiler. When        |               |
 |                   | passed, the value should be a comma-separated list of             |               |
-|                   | checks to enable:                                                 |               |
+|                   | sanitizer groupsto enable:                                        |               |
 |                   |                                                                   |               |
-|                   | ``MEM`` - Memory checking/sanitization.                           |               |
-|                   | ``ADDR`` - Address sanitization.                                  |               |
-|                   | ``STACK`` - Aggressive stack checking.                            |               |
-|                   | ``MISC`` - Other potentially helpful checks.                      |               |
+|                   | ``MSAN`` - Memory checking/sanitization.                          |               |
+|                   | ``ASAN`` - Address sanitization.                                  |               |
+|                   | ``SSAN`` - Aggressive stack checking.                             |               |
+|                   | ``UBSAN`` - Undefined behavior checks.                            |               |
+|                   | ``TSAN`` - Multithreading checks.                                 |               |
 |                   |                                                                   |               |
-|                   | Not all compiler configurations use all categories, and           |               |
-|                   | not all combinations of checkers are compatible, so use           |               |
-|                   | with care.                                                        |               |
+|                   | The first 4 can generally be stacked together without             |               |
+|                   | issue. Depending on compiler, the thread sanitizer is incomptable |               |
+|                   | with some other sanitizer groups.                                 |               |
+|                   |                                                                   |               |
+|                   |                                                                   |               |
+|                   |                                                                   |               |
 +-------------------+-------------------------------------------------------------------+---------------+
 
 Automation via ``make`` Targets

@@ -6,8 +6,9 @@ include(FindPackageHandleStandardArgs)
 
 find_program(clang_format_EXECUTABLE
   NAMES
-  clang-format-6.0
-  clang-format-4.0
+  clang-format-10
+  clang-format-9
+  clang-format-8
   clang-format
   PATHS
   "${CLANG_FORMAT_DIR}"

@@ -31,11 +31,13 @@ if (LIBRA_OPENMP)
     )
 endif()
 
-set(LIBRA_C_OPT_OPTIONS)
-set(LIBRA_CXX_OPT_OPTIONS)
+set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+  # For handling lto with static libraries on MSI
   set(CMAKE_AR "llvm-ar")
+  set(CMAKE_NM "llvm-nm")
   set(CMAKE_RANLIB "llvm-ranlib")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 endif()
@@ -81,42 +83,58 @@ set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
 ################################################################################
 # Checking Options                                                             #
 ################################################################################
-set(BASE_CHECK_OPTIONS
+set(MSAN_OPTIONS
   -fno-omit-frame-pointer
-  )
-set(MEM_CHECK_OPTIONS
-  -fsanitize=memory
+  -fno-optimize-sibling-calls
+  -fsanitize=memory,leak
   -fsanitize-memory-track-origins
-  -fsanitize-memory-use-after-dtor
   )
-set(ADDR_CHECK_OPTIONS
-  -fsanitize=address,leak
+set(ASAN_OPTIONS
+  -fno-omit-frame-pointer
+  -fno-optimize-sibling-calls
+  -fsanitize=address
   )
-set(STACK_CHECK_OPTIONS
+set(SSAN_OPTIONS
+  -fno-omit-frame-pointer
   -fstack-protector-all
   -fstack-protector-strong
   )
-set(MISC_CHECK_OPTIONS
+set(UBSAN_OPTIONS
+  -fno-omit-frame-pointer
   -fsanitize=undefined
+  -fsanitize=float-divide-by-zero
+  -fsanitize=unsigned-integer-overflow
+  -fsanitize=local-bounds
+  -fsanitize=nullability
+  )
+set(TSAN_OPTIONS
+  -fno-omit-frame-pointer
+  -fsanitize=thread
   )
 
-if ("${LIBRA_CHECKS}" MATCHES "MEM")
-  set(LIBRA_C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
-  set(LIBRA_CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${MEM_CHECK_OPTIONS})
-endif()
-if ("${LIBRA_CHECKS}" MATCHES "ADDR")
-  set(LIBRA_C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${ADDR_CHECK_OPTIONS})
-  set(LIBRA_CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${ADDR_CHECK_OPTIONS})
-endif()
-if ("${LIBRA_CHECKS}" MATCHES "STACK")
-  set(LIBRA_C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
-  set(LIBRA_CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${STACK_CHECK_OPTIONS})
-endif()
-if ("${LIBRA_CHECKS}" MATCHES "MISC")
-  set(LIBRA_C_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
-  set(LIBRA_CXX_CHECK_OPTIONS ${BASE_CHECK_OPTIONS} ${MISC_CHECK_OPTIONS})
+set(BASE_SAN_OPTIONS)
+if ("${LIBRA_SAN}" MATCHES "MSAN")
+  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${MSAN_OPTIONS}")
 endif()
 
+if ("${LIBRA_SAN}" MATCHES "ASAN")
+  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${ASAN_OPTIONS}")
+endif()
+
+if ("${LIBRA_SAN}" MATCHES "SSAN")
+  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${SSAN_OPTIONS}")
+endif()
+
+if ("${LIBRA_SAN}" MATCHES "UBSAN")
+  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${UBSAN_OPTIONS}")
+endif()
+
+if ("${LIBRA_SAN}" MATCHES "TSAN")
+  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${TSAN_OPTIONS}")
+endif()
+
+set(LIBRA_C_SAN_OPTIONS ${BASE_SAN_OPTIONS})
+set(LIBRA_CXX_SAN_OPTIONS ${BASE_SAN_OPTIONS})
 
 ################################################################################
 # Profiling Options                                                            #

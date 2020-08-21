@@ -59,14 +59,16 @@ if ("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" )
   set(CMAKE_CXX_STANDARD 17)
 
-  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 9.0)
-    message(FATAL_ERROR "gcc version must be at least 9.0!")
+  if (NOT "${LIBRA_RTD_BUILD}")
+    if(CMAKE_C_COMPILER_VERSION VERSION_LESS 9.0)
+      message(FATAL_ERROR "gcc version must be at least 9.0!")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+      message(FATAL_ERROR "g++ version must be at least 9.0!")
+    endif()
+    include(gnu-options)
   endif()
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    message(FATAL_ERROR "g++ version must be at least 9.0!")
-  endif()
-  include(gnu-options)
-endif ()
+endif()
 
 #################################################################################
 # clang Compiler Options                                                        #
@@ -74,6 +76,7 @@ endif ()
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
   set(CMAKE_CXX_STANDARD 17)
+
   if(CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
     message(FATAL_ERROR "clang version must be at least 6.0!")
   endif()
@@ -88,6 +91,7 @@ endif ()
 #################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Intel" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel" )
+
   if(CMAKE_C_COMPILER_VERSION VERSION_LESS 18.0)
     message(FATAL_ERROR "icc version must be at least 18.0!")
   endif()
