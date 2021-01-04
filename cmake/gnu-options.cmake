@@ -202,3 +202,36 @@ if (LIBRA_PGO_USE)
   set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
   set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
 endif()
+################################################################################
+# Profiling Options                                                            #
+################################################################################
+set(BASE_PGO_GEN_OPTIONS
+  -fprofile-generate
+  )
+set(BASE_PGO_USE_OPTIONS
+  -fprofile-use
+  )
+
+if (LIBRA_PGO_GEN)
+  set(LIBRA_C_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+  set(LIBRA_CXX_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+endif()
+
+if (LIBRA_PGO_USE)
+  set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
+  set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
+endif()
+
+################################################################################
+# Code Coverage Options                                                        #
+################################################################################
+set(BASE_CODE_COV_OPTIONS
+  # synonym for "-fprofile-arcs -ftest-coverage" when compiling and "-lgcov"
+  # when linking
+  --coverage
+  )
+
+if (LIBRA_CODE_COV)
+  set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+  set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+endif()

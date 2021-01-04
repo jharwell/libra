@@ -5,9 +5,10 @@
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (BUILD_SHARED_LIBS)
+if (LIBRA_SHARED_LIBS)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
+
 
 # Include directories
 set(root_include_path "${CMAKE_SOURCE_DIR}/include/")
