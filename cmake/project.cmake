@@ -55,13 +55,15 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/libra/cmake")
 
 
-option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
+option(LIBRA_SHARED_LIBS "Build shared instead of static libraries."           ON)
 option(LIBRA_TESTS     "Build tests."                                          OFF)
 option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
 option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
 option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
 option(LIBRA_MPI       "Enable MPI code."                                      OFF)
 option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
+option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
+option(LIBRA_DOCS      "Enable documentation build"                            ON)
 
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
@@ -73,9 +75,16 @@ set(FPC FPC_TYPE="${LIBRA_FPC}")
 include(compile-options)
 include(reporting)
 include(build-modes)
-include(custom-cmds)
 include(analysis)
-include(doxygen)
+include(custom-cmds)
+
+if (LIBRA_DOCS)
+  include(doxygen)
+endif()
+
+if (LIBRA_CODE_COV)
+  include(coverage)
+endif()
 
 # Set policies
 set_policy(CMP0028 NEW) # ENABLE CMP0028: Double colon in target name means ALIAS or IMPORTED target.

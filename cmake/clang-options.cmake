@@ -155,3 +155,16 @@ if (LIBRA_PGO_USE)
   set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
   set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
 endif()
+
+################################################################################
+# Code Coverage Options                                                        #
+################################################################################
+set(BASE_CODE_COV_OPTIONS
+  -fprofile-instr-generate
+  -fcoverage-mapping
+  )
+
+if (LIBRA_CODE_COV)
+  set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+  set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+endif()
