@@ -131,11 +131,13 @@ file(GLOB_RECURSE ${target}_CXX_SRC ${${target}_SRC_PATH}/*.cpp)
 set(${target}_INC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 set(${target}_ROOT_INC_PATH "${CMAKE_SOURCE_DIR}/include/")
 
-set(${target}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-file(GLOB c_tests ${${target}_TEST_PATH}/*-test.c)
-file(GLOB c_test_harness ${${target}_TEST_PATH}/*_test.c ${${target}_TEST_PATH}/*.h ${${target}_TEST_PATH}/*.hpp)
-file(GLOB cxx_tests ${${target}_TEST_PATH}/*-test.cpp)
-file(GLOB cxx_test_harness ${${target}_TEST_PATH}/*_test.cpp  ${${target}_TEST_PATH}/*.hpp)
+set(${root_target}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+# Convention: Unit tests end with '-utest.c' or '-utest.cpp'
+file(GLOB c_utests ${${root_target}_TEST_PATH}/*-utest.c)
+file(GLOB c_utest_harness ${${root-target}_TEST_PATH}/*_test.c ${${root_target}_TEST_PATH}/*.h ${${root_target}_TEST_PATH}/*.hpp)
+file(GLOB cxx_utests ${${root_target}_TEST_PATH}/*-utest.cpp)
+file(GLOB cxx_utest_harness ${${root_target}_TEST_PATH}/*_test.cpp  ${${root_target}_TEST_PATH}/*.hpp)
 
 ################################################################################
 # Testing Targets                                                              #

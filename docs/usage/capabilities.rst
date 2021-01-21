@@ -161,14 +161,14 @@ the following additional capabilities via makefile targets:
    * - ``unit-tests``
 
      - Build all of the unit tests for the project. If you want to just build a
-       single unit test, you can do ``make <project name>-<class
-       name>-test``. For example::
+       single unit test, you can do ``make <project name>-<root namespace>-<class
+       name>-utest``. For example::
 
-         make rcppsw-hfsm-test
+         make rcppsw-fsm-hfsm-utest
 
-       for a single unit test named ``hfsm-test.cpp`` that lives under ``tests/`` in
-       the ``rcppsw`` project. Requires that ``LIBRA_TESTS=YES`` was passed to
-       cmake during configuration.
+       for a single unit test named ``hfsm-utest.cpp`` that lives under
+       ``tests/`` in the ``rcppsw`` project in the ``fsm`` namespace. Requires
+       that ``LIBRA_TESTS=YES`` was passed to cmake during configuration.
 
    * - ``test``
 
