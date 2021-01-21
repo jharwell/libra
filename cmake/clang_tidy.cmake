@@ -101,7 +101,6 @@ function(do_register_clang_tidy_fix check_target target)
     ${ARGN}
     -fix
     -fix-errors
-    -checks=cert*,clang-analyzer*,cppcoreguidelnes*,google*,llvm*,modernize*,readability*,-readability-else-after-return,modernize*
     "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
@@ -152,7 +151,7 @@ function(toggle_clang_tidy_fix status)
     if(NOT clang_tidy_FOUND)
       set(CLANG_TIDY_FIX_ENABLED OFF PARENT_SCOPE)
       if (IS_ROOT_PROJECT)
-        message(WARNING "  Auto-fixer clang-tidy skipped: [clang-tidy not found (>= 3.8 required)]")
+        message(WARNING "  Auto-fixer clang-tidy skipped: [clang-tidy not found (>= 8.0 required)]")
       endif()
         return()
     endif()

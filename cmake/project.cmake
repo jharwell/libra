@@ -6,7 +6,7 @@
 ################################################################################
 
 # CMake version
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 
 # I define the current target as the same as the directory that the
 # CMakeLists.txt resides in--simpler that way.
@@ -47,23 +47,48 @@ message(STATUS "Found ${module_display}")
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
 # Download repo with custom cmake config and register modules
-if (IS_ROOT_PROJECT AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-  execute_process(COMMAND git submodule update --init cmake
+if (IS_ROOT_PROJECT AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libra)
+  execute_process(COMMAND git submodule update --init libra
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/libra/cmake")
+
+
+option(LIBRA_SHARED_LIBS "Build shared instead of static libraries."           ON)
+option(LIBRA_TESTS     "Build tests."                                          OFF)
+option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
+option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
+option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
+option(LIBRA_MPI       "Enable MPI code."                                      OFF)
+option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
+option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
+option(LIBRA_DOCS      "Enable documentation build"                            ON)
+
+set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
+set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
+
+set(LIBRA_ER "ALL" CACHE STRING "[NONE, ASSERT, ALL] NONE to disable all event reporting. ASSERT to disable all event reporting except for failed asserts.")
+set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL)
+set(FPC FPC_TYPE="${LIBRA_FPC}")
 
 include(compile-options)
 include(reporting)
 include(build-modes)
-include(custom-cmds)
 include(analysis)
-include(doxygen)
+include(custom-cmds)
+
+if (LIBRA_DOCS)
+  include(doxygen)
+endif()
+
+if (LIBRA_CODE_COV)
+  include(coverage)
+endif()
 
 # Set policies
 set_policy(CMP0028 NEW) # ENABLE CMP0028: Double colon in target name means ALIAS or IMPORTED target.
-set_policy(CMP0054 NEW) # ENABLE CMP0054: Only interpret if() arguments as variables or keywords when unquote2d.
+set_policy(CMP0054 NEW) # ENABLE CMP0054: Only interpret if() arguments as variables or keywords when unquoted.
 set_policy(CMP0063 NEW) # ENABLE CMP0063: Honor visibility properties for all target types.
 
 ################################################################################
@@ -79,16 +104,6 @@ toggle_clang_tidy_check(ON)
 toggle_clang_static_check(ON)
 toggle_clang_format(ON)
 toggle_clang_tidy_fix(ON)
-
-option(BUILD_SHARED_LIBS "Build shared instead of static libraries."           ON)
-option(WITH_CHECKS    "Build in run-time checking of code."                    OFF)
-option(WITH_TESTS     "Build tests."                                           OFF)
-option(WITH_OPENMP    "Enable OpenMP code."                                    OFF)
-option(WITH_REPORTS   "Enable compiler driven reporting of code coverage and optimization, if applicable ." OFF)
-option(WITH_MPI       "Enable MPI code." OFF)
-option(WITH_FPC       "FPC_RETURN or FPC_ABORT"                                FPC_ABORT)
-option(WITH_ER_NREPORT "YES to disable all ER reporting (for applications that use RCPPSW ER framework)." YES)
-set(FPC FPC_TYPE="${WITH_FPC}")
 
 # Set output directories. If we are the root project, then this is
 # necessary. If not, we simply re-set the same values.
@@ -199,7 +214,7 @@ endif()
 ################################################################################
 # Testing Options                                                              #
 ################################################################################
-if (WITH_TESTS)
+if (LIBRA_TESTS)
   include(testing)
 endif()
 

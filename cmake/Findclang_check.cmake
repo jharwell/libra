@@ -6,9 +6,9 @@ include(FindPackageHandleStandardArgs)
 
 find_program(clang_check_EXECUTABLE
   NAMES
-  clang-check-6.0
-  clang-check-5.0
-  clang-check-4.0
+  clang-check-10
+  clang-check-9
+  clang-check-8
   clang-check
   PATHS
   "${CLANG_CHECK_DIR}"

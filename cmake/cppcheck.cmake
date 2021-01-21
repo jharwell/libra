@@ -14,6 +14,7 @@ function(do_register_cppcheck check_target target)
       --template= "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
       --quiet
       --verbose
+      --force
       --suppress=missingInclude
       --suppress=unusedFunction
       ${file}
