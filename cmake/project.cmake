@@ -54,8 +54,6 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/libra/cmake")
 
-
-option(LIBRA_SHARED_LIBS "Build shared instead of static libraries."           ON)
 option(LIBRA_TESTS     "Build tests."                                          OFF)
 option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
 option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
