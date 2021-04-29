@@ -85,7 +85,7 @@ todo_include_todos = True
 
 
 xref_links = {
-    "SILICON": ("SILICON", "https://swarm-robotics-silicon.readthedocs.io"),
+    "PRISM": ("PRISM", "https://swarm-robotics-prism.readthedocs.io"),
     "FORDYCA": ("FORDYCA", "https://swarm-robotics-fordyca.readthedocs.io"),
     "COSM": ("COSM", "https://swarm-robotics-cosm.readthedocs.io"),
     "RCPPSW": ("RCPPSW", "https://swarm-robotics-rcppsw.readthedocs.io"),

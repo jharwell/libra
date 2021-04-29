@@ -28,7 +28,7 @@ a specific project.
 Projects using LIBRA (in descending probability of interest)
 ------------------------------------------------------------
 
-- :xref:`SILICON`
+- :xref:`PRISM`
 - :xref:`FORDYCA`
 - :xref:`COSM`
 - :xref:`RCPPSW`

@@ -63,6 +63,8 @@ IncludeCategories:
     Priority:        6
   - Regex:           '"fordyca.*'
     Priority:        7
+  - Regex:           '"silicon.*'
+    Priority:        7
   - Regex:           '.*'
     Priority:        8
 IndentCaseLabels: true
