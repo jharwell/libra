@@ -93,24 +93,30 @@ set(CLANG_TIDY_FIX_ENABLED OFF)
 # Function to register a target for clang-tidy fixing
 function(do_register_clang_tidy_fix check_target target)
   set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
-  add_custom_target(
-    ${check_target}
-    COMMAND
-    ${clang_tidy_EXECUTABLE}
-    -p\t${PROJECT_BINARY_DIR}
-    ${ARGN}
-    -fix
-    -fix-errors
-    "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+  set(defs "$<TARGET_PROPERTY:${target},COMPILE_DEFINITIONS>")
 
+  add_custom_target(${check_target})
+
+  foreach(file ${ARGN})
+    add_custom_command(TARGET ${check_target}
+      COMMAND
+      ${clang_tidy_EXECUTABLE}
+      --header-filter=${CMAKE_SOURCE_DIR}/include/*
+      -p\t${PROJECT_BINARY_DIR}
+      -fix
+      -fix-errors
+      ${file}
+      "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+      "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+      -extra-arg=-Wno-unknown-warning-option
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      )
+  endforeach()
   set_target_properties(${check_target}
     PROPERTIES
     EXCLUDE_FROM_DEFAULT_BUILD 1
     )
-
-  add_dependencies(${check_target} ${target})
+    add_dependencies(${check_target} ${target})
 endfunction()
 
 function(register_clang_tidy_fix target)

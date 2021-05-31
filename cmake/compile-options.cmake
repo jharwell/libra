@@ -3,12 +3,9 @@
 ################################################################################
 # Project options
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if (LIBRA_SHARED_LIBS)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
 
 # Include directories
 set(root_include_path "${CMAKE_SOURCE_DIR}/include/")
@@ -17,7 +14,6 @@ include_directories(${root_include_path})
 file(GLOB_RECURSE all_headers "${root_include_path}/*.h")
 set(root_test_dir "${CMAKE_SOURCE_DIR}/tests")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
-link_libraries(pthread)
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
@@ -38,7 +34,7 @@ if ("${LIBRA_ER}" MATCHES "NONE")
   set(CC_DEV_DEFS "${CC_DEV_DEFS} -DLIBRA_ER=LIBRA_ER_NONE")
   set(CC_DEVOPT_DEFS "${CC_DEVOPT_DEFS} -DLIBRA_ER=LIBRA_ER_NONE")
   set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER=LIBRA_ER_NONE")
-  message(STATUS "Event reporting disabled")
+  message(STATUS "Event reporting disabled: NONE")
 elseif ("${LIBRA_ER}" MATCHES "FATAL")
   set(CC_DEV_DEFS "${CC_DEV_DEFS} -DLIBRA_ER=LIBRA_ER_FATAL")
   set(CC_DEVOPT_DEFS "${CC_DEVOPT_DEFS} -DLIBRA_ER=LIBRA_ER_FATAL")
