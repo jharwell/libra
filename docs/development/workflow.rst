@@ -1,8 +1,10 @@
+============================
 General Development Workflow
-----------------------------
+============================
 
 #. Find an issue in one of the github repos to work on that looks
-   interesting/doable, possibly discussing it with me before committing.
+   interesting/doable, possibly discussing it with the main repo maintainer
+   before starting.
 
 #. Mark said task as ``Status: In Progress`` so no one else starts working on it
    too, and assign it to yourself if it is not already assigned to you.
@@ -16,6 +18,9 @@ General Development Workflow
 
 #. Work on the issue/task, committing as needed. You should:
 
+   - Follow the appropriate style guide, as described by one of the guides in
+     this repo, commensurate with whatever language you are coding in.
+
    - Push your changes regularly, so people can see that the issue is being
      actively worked on. Commit messages should follow the
      :ref:`ln-git-commit-guide`.
@@ -25,15 +30,24 @@ General Development Workflow
      ``devel``.
 
 #. If you create any new functions/classes that can be unit tested, then define
-   appropriate unit tests for them, and prepare a report documenting code
-   coverage, as described above.
+   appropriate unit tests for
 
-   Unit tests can utilize whatever unit testing framework is desired, though
-   ``gtest`` or ``catch`` are easy to setup/use. Unit tests should be structured
-   as follows:
+    - Documentation for the class should be updated in tandem with writing the
+      unit tests, so that it is clear what the assumptions/requirements of class
+      usage/function usage are.
 
-   - Each tested class should get its own ``-test.cpp`` file, unless there is a
-     very good reason to do otherwise.
+      As I was told in my youth::
+
+        If it is hard to document, it is probably wrong
+
+   Unit tests can utilize whatever unit testing framework is desired (e.g.,
+   ``gtest`` or ``catch`` for C++ code), though preferably should be in
+   alignment with whatever the project you are contributing to already
+   uses. Unit tests should be structured as follows:
+
+   - Each tested class should get its own ``-test.XX`` file, unless there is a
+     very good reason to do otherwise, where ``XX`` is the language extension
+     for the language you are coding in.
 
    - For each public member function in the class under test that is not a
      trivial getter/setter, at least 1 test case should be included for it, so
@@ -41,9 +55,10 @@ General Development Workflow
      complex functions, multiple test cases may be necessary. If a function is
      not easy to test, chances are it should be refactored.
 
-    - Documentation for the class should be updated in tandem with writing the
-      unit tests, so that it is clear what the assumptions/requirements of class
-      usage/function usage are.
+     As I was also told in my youth::
+
+       If it is hard to test, it is almost assuredly wrong
+
 
 #. Run static analysis on the code from the root of the repo (different
    repos/projects will have different rules/ways of doing this).
@@ -58,5 +73,5 @@ General Development Workflow
    showing they all pass, and/or the code coverage report from gcov.
 
 #. Once the task has been reviewed and given the green light, it will be merged
-   into devel and marked as ``Status: Completed``, and closed (you generally
+   into ``devel`` and marked as ``Status: Completed``, and closed (you generally
    don't need to do this).

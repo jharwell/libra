@@ -1,14 +1,17 @@
+.. _ln-cxx-dev-guide:
+
+=====================
 C++ Development Guide
 =====================
 
 Coding Style
-------------
+============
 
 Follows the Google C++ style guide, except in the ways noted in the following
 subsections.
 
 Files
-#####
+-----
 
 - All source files have the ``.cpp`` extension, and all header files have the
   ``.hpp`` extension (not a ``.h`` extension), to clearly distinguish them from
@@ -24,7 +27,7 @@ Files
   the source/header files for classes can be found in.
 
 Naming
-######
+------
 
 - All file, class, variable, enum, namespace, etc. names are
   ``specified_like_this``, NOT ``specifiedLikeThis`` or
@@ -68,7 +71,7 @@ Naming
   instead.
 
 Class Layout
-############
+------------
 
 - Follow the Google C++ style ordering: ``public`` -> ``protected`` ->
   ``private`` layout, generally speaking. However, there are some cases when
@@ -90,7 +93,7 @@ Class Layout
   operators should be listed first among all the functions.
 
 Miscellaneous
-#############
+-------------
 
 - Always use strongly typed enums (class enums) whenever possible to avoid name
   collisions. Sometimes this is not possible without extensive code contortions.
@@ -99,10 +102,11 @@ Miscellaneous
 
 - Do not use Hungarian notation. Linus was right--it _is_ brain damaged.
 
-- Class nesting should be avoided.
+- Class nesting should be avoided, unless it is an internal convenience
+  ``struct`` to hold related data.
 
 Linting
--------
+=======
 
 Code should pass the google C++ linter, ignoring the following items. For
 everything else, the linter warnings should be addressed.
@@ -129,7 +133,7 @@ Code should pass the clang-tidy linter, which checks for style elements like:
   should be split up.
 
 Function Parameters
--------------------
+===================
 
 Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
 [here](https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/)).
@@ -145,9 +149,8 @@ Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
 - Function inputs should use ``const`` to indicate that the parameter is
   input-only (``&`` or ``*``), and cannot be modified in the function body.
 
-- Function inputs should use ``&&`` to indicate the the parameter will be
-  consumed by the function and further use after the function is called is
-  invalid.
+- Function inputs should use ``&&`` to indicate the parameter will be consumed
+  by the function and further use after the function is called is invalid.
 
 - Function inputs should pass by reference (not by constant reference), to
   indicate that the parameter is an input-output parameter. The number of
@@ -184,13 +187,7 @@ Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
   sense.
 
 Documentation
--------------
-
-As I was told in my youth::
-
-  If it is hard to document, it is probably wrong
-
-To that end all contributions *must* be properly documented.
+=============
 
 - All classes should have:
 
@@ -210,15 +207,11 @@ type should be enough documentation. If its not, chances are you are naming
 things somewhat obfuscatingly and need to refactor.
 
 Testing
--------
+=======
 
-As I was also told in my youth::
-
-  If it is hard to test, it is almost assuredly wrong
-
-To that end, all NEW classes should have some basic unit tests associated with
-them, when possible (one for each major public function that the class
-provides). For any *existing* classes that have *new* public functions added, a
-new unit test should also be added. It is not possible to create unit tests for
-all classes, as some can only be tested in an integrated manner, but there many
-that can and should be tested in a stand alone fashion.
+All NEW classes should have some basic unit tests associated with them, when
+possible (one for each major public function that the class provides). For any
+*existing* classes that have *new* public functions added, a new unit test
+should also be added. It is not possible to create unit tests for all classes,
+as some can only be tested in an integrated manner, but there many that can and
+should be tested in a stand alone fashion.

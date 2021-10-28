@@ -1,10 +1,11 @@
 .. _ln-git-commit-guide:
 
+================
 Git Commit Guide
 ================
 
 Basic Stuff
------------
+===========
 
 - Use the present tense ("Add feature" not "Added feature")
 
@@ -32,17 +33,7 @@ Basic Stuff
   *DO NOT REBASE/REWRITE HISTORY ON* ``devel`` *OR* ``master`` *BRANCHES.*
 
 Semantic Versioning
--------------------
+===================
 
-In addition, you may need to put an appropriate tag for semantic versioning
-somewhere in your message (I usually put it at the bottom), depending on if you
-are working on one of the following categories of issues:
-
-- Feature -> ``+semver: feature``
-- Bugfix -> ``+semver: bugfix``
-- Docs -> ``+semver: docs``
-- Enhancement -> ``+semver: enh``
-
-There should only be ONE semantic versioning tag for each issue/task you are
-working on, so you should add it on the last commit on your branch before you
-merge to ``devel``.
+I haven't been able to get this to work in an automated way that makes sense, so
+don't worry about it.

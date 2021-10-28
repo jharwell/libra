@@ -1,8 +1,9 @@
+=========================
 Requirements to use LIBRA
 =========================
 
 Platform Requirements
----------------------
+=====================
 
 - A recent version of Linux.
 
@@ -29,7 +30,7 @@ Platform Requirements
   required.
 
 Compiler Support
-----------------
+================
 
 - ``g++/gcc``
 - ``clang++/clang``
@@ -54,25 +55,26 @@ issues.
                running bash.
 
 Clang Tooling
--------------
+=============
 
 Everything should have version >= 6.0 for best results. However, if that version
 of the tools is not in the package repositories, you can replace it with 5.0 or
 4.0, and things should still work.
 
-- Base tooling and clang-check (``libclang-6.0-dev`` and ``clang-tools-6.0``).
+- Base tooling and clang-check (``libclang-10-dev`` and ``clang-tools-10``).
 
-- clang-format >= 6.0 (``clang-format-6.0``).
+- clang-format >= 10.0 (``clang-format-10``).
 
-- clang-tidy >= 4.0 (``clang-tidy-6.0``).
+- clang-tidy >= 10.0 (``clang-tidy-10``).
 
 Assumptions
------------
+===========
 
 LIBRA makes the following assumptions about all code repositories it is used as
 the build framework for:
 
-- All C++ source files end in ``.cpp``, and all C++ header files end in ``.hpp``.
+- All C++ source files end in ``.cpp``, and all C++ header files end in ``.hpp``
+  (which they should if you are following the :ref:`ln-cxx-dev-guide`).
 
 - All C source files end in ``.c`` and all C header files end in ``.h``.
 

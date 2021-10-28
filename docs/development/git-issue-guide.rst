@@ -1,3 +1,4 @@
+=========================
 Github Issues Usage Guide
 =========================
 
@@ -6,7 +7,7 @@ All issues that are entered into github should have a ``Priority``, a
 doesn't make sense to have all three).
 
 Priorities
------------
+==========
 
 - ``Critical`` - Things that are main features/super important, or are
   segmentation-fault level bugs, as in "this must be fixed/addressed now before
@@ -24,7 +25,7 @@ Priorities
   that would be nice to add, as it were.
 
 Statuses
---------
+========
 
 - ``Blocked`` - The task is blocked waiting for the completion of another task.
 
@@ -43,7 +44,7 @@ Statuses
   completed state.
 
 Types
------
+=====
 
 - ``Bugfix`` - This is a task to address a bug in the code.
 

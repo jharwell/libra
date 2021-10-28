@@ -1,8 +1,8 @@
 Welcome to LIBRA's documentation!
-===================================
+=================================
 
 Motivation
-----------
+==========
 
 I've found myself frequently copying and pasting CmakeLists.txt between
 projects, and when I find a new flag I want to add, or a new static analysis
@@ -21,12 +21,13 @@ a specific project.
    usage/capabilities.rst
 
    development/cxx-dev-guide.rst
+   development/python-dev-guide.rst
    development/git-commit-guide.rst
    development/git-issue-guide.rst
    development/workflow.rst
 
 Projects using LIBRA (in descending probability of interest)
-------------------------------------------------------------
+============================================================
 
 - :xref:`PRISM`
 - :xref:`FORDYCA`

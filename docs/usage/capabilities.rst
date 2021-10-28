@@ -1,8 +1,9 @@
+==================
 LIBRA Capabilities
 ==================
 
 Build Modes
------------
+===========
 
 There are 3 build modes that I use, which are different from the default ones
 that ``cmake`` uses, because they did not do what I wanted.
@@ -18,7 +19,7 @@ that ``cmake`` uses, because they did not do what I wanted.
   paralellization. Defines ``NDEBUG``.
 
 Build Process Options
----------------------
+=====================
 
 The following variables are available for fine-tuning the build process:
 
@@ -122,7 +123,7 @@ The following variables are available for fine-tuning the build process:
 
 
 Automation via ``make`` Targets
--------------------------------
+===============================
 
 LIBRA uses file globs and wildcards to figure out the list of files to give to
 ``cmake`` to build, which mens that you don't have to  manually specify all the

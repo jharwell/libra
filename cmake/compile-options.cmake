@@ -6,7 +6,6 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # Include directories
 set(root_include_path "${CMAKE_SOURCE_DIR}/include/")
 include_directories(${root_include_path})
@@ -74,11 +73,11 @@ if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
   set(CMAKE_CXX_STANDARD 17)
 
-  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 6.0)
-    message(FATAL_ERROR "clang version must be at least 6.0!")
+  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 10.0)
+    message(FATAL_ERROR "clang version must be at least 10.0!")
   endif()
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0)
-    message(FATAL_ERROR "clang++ version must be at least 6.0!")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
+    message(FATAL_ERROR "clang++ version must be at least 10.0!")
   endif()
   include(clang-options)
 endif ()
