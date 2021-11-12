@@ -1,0 +1,5 @@
+sphinx
+breathe
+docutils==0.016
+exhale
+cmake

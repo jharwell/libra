@@ -184,3 +184,9 @@ the following additional capabilities via makefile targets:
          make unit-tests
          make test
          make coverage-report
+
+   * - ``package``
+
+     - Build a ``.deb`` package from the project and all its sub-project (i.e.,
+       a stand-alone ``.deb``). This functionality is VERY VERY VERY alpha, but
+       has the potential to be very useful.

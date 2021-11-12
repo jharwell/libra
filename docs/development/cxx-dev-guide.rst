@@ -43,6 +43,17 @@ Naming
   the code). Types are collections of data members that generally should be
   treatable as POD, even if they are not (e.g. contain a std::vector).
 
+- Don't use smurf naming: When almost every class has the same prefix. IE, when
+  a user clicks on the button, a ``SmurfAccountView`` passes a
+  ``SmurfAccountDTO`` to the ``SmurfAccountController``. The ``SmurfID`` is used
+  to fetch a ``SmurfOrderHistory`` which is passed to the ``SmurfHistoryMatch``
+  before forwarding to either ``SmurfHistoryReviewView`` or
+  ``SmurfHistoryReportingView``. If a ``SmurfErrorEvent`` occurs it is logged by
+  ``SmurfErrorLogger to`` ``${app}/smurf/log/smurf/smurflog.log``. From
+  `<https://blog.codinghorror.com/new-programming-jargon/>`_. Note that this
+  does `not` apply to classes with common postfixes; e.g., ``battery_sensor``,
+  ``light_sensor``, etc.
+
 - All mathematical constants (e.g. ints, doubles, etc) should be
   ``kSPECIFIED_LIKE_THIS``: MACRO CASE + a preceding ``k``.
 
