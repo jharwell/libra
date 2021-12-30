@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Bootstraps the project, including:
+# Bootstraps LIBRA, including:
 #
 # - Install .deb dependencies from repositories (ubuntu assumed)
 #
@@ -54,10 +54,13 @@ function bootstrap_main() {
                     nodejs
                     npm
                     graphviz
+                    ccache
                     doxygen
                     cppcheck
                     gcc-9
                     g++-9
+                    gcc-9-arm-linux-gnueabihf
+                    g++-9-arm-linux-gnueabihf
                     libclang-10-dev
                     clang-tools-10
                     clang-format-10

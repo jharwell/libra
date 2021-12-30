@@ -1,11 +1,13 @@
 set(CLANG_STATIC_CHECK_ENABLED OFF)
 
-# Function to register a target for clang-tidy checking
-function(do_register_clang_check_checker check_target target)
-  set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
-  set(defs "$<TARGET_PROPERTY:${target},COMPILE_DEFINITIONS>")
+################################################################################
+# Register a target for clang-tidy checking
+################################################################################
+function(do_register_clang_check_checker CHECK_TARGET TARGET)
+  set(includes "$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>")
+  set(defs "$<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>")
 
-  add_custom_target(${check_target})
+  add_custom_target(${CHECK_TARGET})
   # || true is to ignore all return code errors. I added this because Qt
   # expects to be compiled with -fPIC, and because it is not, the analyzer
   # will stop on the first Qt file it gets to.
@@ -19,7 +21,7 @@ function(do_register_clang_check_checker check_target target)
       set(STD gnu${CMAKE_C_STANDARD})
     endif()
 
-    add_custom_command(TARGET ${check_target}
+    add_custom_command(TARGET ${CHECK_TARGET}
       COMMAND
       ${clang_check_EXECUTABLE}
       -p\t${CMAKE_CURRENT_SOURCE_DIR}
@@ -31,66 +33,50 @@ function(do_register_clang_check_checker check_target target)
       -std=${STD}
        || true
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  add_custom_command(TARGET ${check_target} COMMAND
+  add_custom_command(TARGET ${CHECK_TARGET} COMMAND
     rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/*.plist ${CMAKE_CURRENT_LIST_DIR}/*.plist)
   endforeach()
 
-  set_target_properties(${check_target}
+  set_target_properties(${CHECK_TARGET}
     PROPERTIES
     EXCLUDE_FROM_DEFAULT_BUILD 1
     )
 
-  add_dependencies(${check_target} ${target})
+  add_dependencies(${CHECK_TARGET} ${TARGET})
 endfunction()
 
-# Registers all sources with the clang_check checker
-function(register_clang_check_checker target)
+################################################################################
+# Register all target sources with the clang_check checker
+################################################################################
+function(register_clang_check_checker TARGET)
   if (NOT CLANG_STATIC_CHECK_ENABLED)
     return()
   endif()
 
-  if(NOT TARGET static-check-all)
-    add_custom_target(static-check-all)
+  do_register_clang_check_checker(${TARGET}-clang-check ${TARGET} ${ARGN})
 
-    set_target_properties(static-check-all
-      PROPERTIES
-      EXCLUDE_FROM_DEFAULT_BUILD 1
-      )
-  endif()
-
-  if (IS_ROOT_TARGET)
-    do_register_clang_check_checker(static-check-${target} ${target} ${ARGN})
-  else()
-    do_register_clang_check_checker(static-check-${target} ${root_target}-${target} ${ARGN})
-  endif()
-
-  add_dependencies(static-check-all static-check-${target})
-  add_dependencies(check-${target} static-check-all)
+  add_dependencies(${TARGET}-check ${TARGET}-clang-check)
 endfunction()
 
-# Enable or disable clang-check checking
+################################################################################
+# Enable or disable clang-check checking for the project
+################################################################################
 function(toggle_clang_static_check status)
+  message(CHECK_START "clang-check")
     if(NOT ${status})
       set(CLANG_STATIC_CHECK_ENABLED ${status} PARENT_SCOPE)
-      if (IS_ROOT_PROJECT)
-        message(STATUS "  Checker clang-check skipped: [disabled]")
-        endif()
-        return()
+      message(CHECK_FAIL "[disabled=by user]")
+      return()
     endif()
 
     find_package(clang_check)
 
     if(NOT clang_check_FOUND)
       set(CLANG_STATIC_CHECK_ENABLED OFF PARENT_SCOPE)
-      if (IS_ROOT_PROJECT)
-        message(WARNING "  Checker clang-check skipped: [clang-check not found (>= 8.0 required)]")
-      endif()
-        return()
+      message(CHECK_FAIL "[disabled=not found]")
+      return()
     endif()
 
     set(CLANG_STATIC_CHECK_ENABLED ${status} PARENT_SCOPE)
-    if (IS_ROOT_PROJECT)
-    message(STATUS "  Checker clang-check [enabled=${clang_check_EXECUTABLE}]")
-    endif()
-    set(CMAKE_EXPORT_COMPILE_COMMANDS On PARENT_SCOPE)
+    message(CHECK_PASS "[enabled=${clang_check_EXECUTABLE}]")
 endfunction()

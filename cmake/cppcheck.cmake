@@ -1,12 +1,13 @@
 set(CPPCHECK_ENABLED OFF)
 
-# Function to register a target for cppcheck
-function(do_register_cppcheck check_target target)
-  set(includes "$<TARGET_PROPERTY:${target},INCLUDE_DIRECTORIES>")
-  add_custom_target(${check_target})
-
+################################################################################
+# Register a target for cppcheck
+################################################################################
+function(do_register_cppcheck CHECK_TARGET TARGET)
+  set(includes "$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>")
+  add_custom_target(${CHECK_TARGET})
   foreach(file ${ARGN})
-    add_custom_command(TARGET ${check_target}
+    add_custom_command(TARGET ${CHECK_TARGET}
       COMMAND
       ${cppcheck_EXECUTABLE}
       "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
@@ -21,61 +22,46 @@ function(do_register_cppcheck check_target target)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       )
   endforeach()
-  set_target_properties(${check_target}
+  set_target_properties(${CHECK_TARGET}
     PROPERTIES
     EXCLUDE_FROM_DEFAULT_BUILD 1
     )
 
-  add_dependencies(${check_target} ${target})
+  add_dependencies(${CHECK_TARGET} ${TARGET})
 endfunction()
 
-# Registers all sources with the cppcheck checker
-function(register_cppcheck_checker target)
+################################################################################
+# Register all sources from the target with the cppcheck checker
+################################################################################
+function(register_cppcheck_checker TARGET)
   if (NOT CPPCHECK_ENABLED)
     return()
   endif()
 
-  if(NOT TARGET cppcheck-all)
-    add_custom_target(cppcheck-all)
+  do_register_cppcheck(${TARGET}-cppcheck ${TARGET} ${ARGN})
 
-    set_target_properties(cppcheck-all
-      PROPERTIES
-      EXCLUDE_FROM_DEFAULT_BUILD 1
-      )
-  endif()
-
-  if (IS_ROOT_TARGET)
-    do_register_cppcheck(cppcheck-${target} ${target} ${ARGN})
-  else()
-    do_register_cppcheck(cppcheck-${target} ${root_target}-${target} ${ARGN})
-  endif()
-
-  add_dependencies(cppcheck-all cppcheck-${target})
-  add_dependencies(check-${target} cppcheck-all)
+  add_dependencies(${TARGET}-check ${TARGET}-cppcheck)
 endfunction()
 
-# Enable or disable cppcheck for health checks
+################################################################################
+# Enable or disable cppcheck checking for a project
+################################################################################
 function(toggle_cppcheck status)
+  message(CHECK_START "cppcheck")
     if(NOT ${status})
       set(CPPCHECK_ENABLED ${status} PARENT_SCOPE)
-      if (IS_ROOT_PROJECT)
-        message(STATUS "  Checker cppcheck skipped: [disabled]")
-        endif()
-        return()
+      message(CHECK_FAIL "[disabled=by user]")
+      return()
     endif()
 
     find_package(cppcheck)
 
     if(NOT cppcheck_FOUND)
       set(CPPCHECK_ENABLED OFF PARENT_SCOPE)
-      if (IS_ROOT_PROJECT)
-        message(WARNING "  Checker cppcheck skipped: [cppcheck not found]")
-      endif()
-        return()
+      message(CHECK_FAIL "[disabled=not found]")
+      return()
     endif()
 
     set(CPPCHECK_ENABLED ${status} PARENT_SCOPE)
-    if (IS_ROOT_PROJECT)
-      message(STATUS "  Checker cppcheck [enabled=${cppcheck_EXECUTABLE}]")
-    endif()
+    message(CHECK_PASS "[enabled=${cppcheck_EXECUTABLE}]")
 endfunction()

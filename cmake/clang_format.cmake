@@ -1,15 +1,12 @@
 set(CLANG_FORMAT_ENABLED OFF)
 
-# Function to register a target for clang_format
-function(do_register_clang_format check_target target)
-  if (${${root_target}_HAS_RECURSIVE_DIRS})
-    file(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/${root_target}/${target}/*.hpp
-      ${CMAKE_SOURCE_DIR}/include/${root_target}/*/${target}/*.hpp)
-    else()
-    file(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/${root_target}/*/*.hpp)
-  endif()
+################################################################################
+# Register a target for clang_format
+################################################################################
+function(do_register_clang_format CHECK_TARGET TARGET)
+  file(GLOB INCLUDES ${CMAKE_SOURCE_DIR}/include/${TARGET}/*/*.hpp)
   add_custom_target(
-    ${check_target}
+    ${CHECK_TARGET}
     COMMAND
     ${clang_format_EXECUTABLE}
     -style=file
@@ -19,59 +16,45 @@ function(do_register_clang_format check_target target)
     )
 
 
-  set_target_properties(${check_target}
+  set_target_properties(${CHECK_TARGET}
     PROPERTIES
     EXCLUDE_FROM_DEFAULT_BUILD 1
     )
 
-  add_dependencies(${check_target} ${target})
+  add_dependencies(${CHECK_TARGET} ${TARGET})
 endfunction()
 
-function(register_clang_format target)
+################################################################################
+# Register all target sources with the clang_format formatter
+################################################################################
+function(register_clang_format TARGET)
     if (NOT CLANG_FORMAT_ENABLED)
     return()
   endif()
 
-  if (NOT TARGET format-all)
-    add_custom_target(format-all)
+  do_register_clang_format(${TARGET}-clang-format ${TARGET} ${ARGN})
+  add_dependencies(${TARGET}-format ${TARGET}-clang-format)
 
-    set_target_properties(format-all
-      PROPERTIES
-      EXCLUDE_FROM_DEFAULT_BUILD 1
-      )
-  endif()
-
-  if (IS_ROOT_TARGET)
-    do_register_clang_format(__format-${target} ${target} ${ARGN})
-  else()
-    do_register_clang_format(__format-${target} ${root_target}-${target} ${ARGN})
-  endif()
-
-  add_dependencies(format-all __format-${target})
 endfunction()
 
-# Enable or disable clang_format for auto-formatting
+################################################################################
+# Enable or disable clang_format for auto-formatting for the project
+################################################################################
 function(toggle_clang_format status)
-    if(NOT ${status})
+  message(CHECK_START "clang-format")
+  if(NOT ${status})
       set(CLANG_FORMAT_ENABLED ${status} PARENT_SCOPE)
-      if (IS_ROOT_PROJECT)
-        message(STATUS "  Formatter clang-format skipped: [disabled]")
-        endif()
-        return()
+      message(CHECK_FAIL "[disabled=by user]")
+      return()
     endif()
 
     find_package(clang_format)
 
     if(NOT clang_format_FOUND)
       set(CLANG_FORMAT_ENABLED OFF PARENT_SCOPE)
-      if (IS_ROOT_PROJECT)
-        message(WARNING "  Formatter clang-format [clang-format not found (>= 8.0 required)]")
-      endif()
-        return()
+      message(CHECK_FAIL "[disabled=not found]")
     endif()
 
     set(CLANG_FORMAT_ENABLED ${status} PARENT_SCOPE)
-    if (IS_ROOT_PROJECT)
-      message(STATUS "  Formatter clang-format [enabled=${clang_format_EXECUTABLE}]")
-    endif()
+    message(CHECK_PASS "[enabled=${clang_format_EXECUTABLE}]")
 endfunction()
