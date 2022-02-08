@@ -22,7 +22,6 @@ set(BASE_OPT_OPTIONS
   -flto
   -ffast-math
   -fno-unsafe-math-optimizations
-  -Werror
   )
 
 if (LIBRA_OPENMP)
@@ -60,6 +59,8 @@ set(BASE_DIAG_OPTIONS
   -Wno-documentation
   -Wno-extra-semi-stmt
   -Wno-extra-semi
+  -Wno-global-constructors
+  -Wno-exit-time-destructors
   -fcomment-block-commands=internal,endinternal
   )
 

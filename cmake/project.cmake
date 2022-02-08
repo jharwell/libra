@@ -6,7 +6,7 @@
 ################################################################################
 
 # CMake version
-cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 # I define the current target as the same as the directory that the
 # CMakeLists.txt resides in--simpler that way.
@@ -32,8 +32,9 @@ option(LIBRA_DOCS      "Enable documentation build"                            O
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
 
-set(LIBRA_ER "ALL" CACHE STRING "[NONE, ASSERT, ALL] NONE to disable all event reporting. ASSERT to disable all event reporting except for failed asserts.")
-set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL)
+set(LIBRA_ER "INHERIT" CACHE STRING "[NONE, ASSERT, ALL, INHERIT] Set the logging level")
+
+set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL INHERIT)
 set(FPC FPC_TYPE="${LIBRA_FPC}")
 
 include(colorize)
@@ -106,9 +107,9 @@ endif()
 if (NOT DEFINED LIBRA_DEPS_PREFIX)
   if(CMAKE_CROSSCOMPILING)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/${CMAKE_SYSTEM_PROCESSOR})
-    set(LIBRA_DEPS_PREFIX /home/$ENV{USER}/.local/${CMAKE_SYSTEM_PROCESSOR}/system)
+    set(LIBRA_DEPS_PREFIX $ENV{HOME}/.local/${CMAKE_SYSTEM_PROCESSOR}/system)
   else()
-    set(LIBRA_DEPS_PREFIX /home/$ENV{USER}/.local/system)
+    set(LIBRA_DEPS_PREFIX $ENV{HOME}/.local/system)
   endif()
 endif()
 

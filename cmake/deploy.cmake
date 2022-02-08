@@ -1,7 +1,7 @@
 ################################################################################
 # Exports Configuration                                                        #
 ################################################################################
-function(configure_exports_as TARGET)
+function(configure_exports_as TARGET PREFIX)
   include(CMakePackageConfigHelpers)
 
   # Project exports file (i.e., the file which defines everything
@@ -13,13 +13,13 @@ function(configure_exports_as TARGET)
   configure_package_config_file(
     ${PROJECT_SOURCE_DIR}/cmake/config.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-config.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/${TARGET}"
+    INSTALL_DESTINATION "${PREFIX}/lib/cmake/${TARGET}"
     )
 
   # Install the configured exports file
   install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-config.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/${TARGET}"
+    DESTINATION "${PREFIX}/lib/cmake/${TARGET}"
     )
 endfunction()
 

@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
@@ -36,8 +37,13 @@ elseif("${LIBRA_ER}" MATCHES "ALL")
   set(CC_DEV_DEFS "${CC_DEV_DEFS} -DLIBRA_ER=LIBRA_ER_ALL")
   set(CC_DEVOPT_DEFS "${CC_DEVOPT_DEFS} -DLIBRA_ER=LIBRA_ER_ALL")
   set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER=LIBRA_ER_ALL")
-else ()
-  message(FATAL_ERROR "Bad event reporting specification '${LIBRA_ER}'. Must be [ALL,FATAL,NONE]")
+elseif ("${LIBRA_ER}" MATCHES "INHERIT")
+  message(STATUS "Inherit LIBRA_ER from parent project")
+  set(CC_DEV_DEFS "${CC_DEV_DEFS} -DLIBRA_ER_INHERIT")
+  set(CC_DEVOPT_DEFS "${CC_DEVOPT_DEFS} -DLIBRA_ER_INHERIT")
+  set(CC_OPT_DEFS "${CC_OPT_DEFS} -DLIBRA_ER_INHERIT")
+else()
+  message(FATAL_ERROR "Bad event reporting specification '${LIBRA_ER}'. Must be [ALL,FATAL,NONE,INHERIT]")
 endif()
 
 #################################################################################
