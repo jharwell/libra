@@ -4,11 +4,15 @@
 C++ Development Guide
 =====================
 
+In terms of coding style, many aspects are pulled from the `CppCoreGuidelines
+<https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines>`_,
+though there are many parts which are ignored.
+
+In general, follow the Google C++ style guide (unless something below
+contradicts it, then go with what is below).
+
 Coding Style
 ============
-
-Follows the Google C++ style guide, except in the ways noted in the following
-subsections.
 
 Files
 -----
