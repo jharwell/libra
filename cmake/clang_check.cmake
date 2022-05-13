@@ -72,11 +72,10 @@ function(toggle_clang_static_check status)
     find_package(clang_check)
 
     if(NOT clang_check_FOUND)
-      set(CLANG_STATIC_CHECK_ENABLED OFF PARENT_SCOPE)
       message(CHECK_FAIL "[disabled=not found]")
-      return()
+    else()
+      message(CHECK_PASS "[enabled=${clang_check_EXECUTABLE}]")
     endif()
 
     set(CLANG_STATIC_CHECK_ENABLED ${status} PARENT_SCOPE)
-    message(CHECK_PASS "[enabled=${clang_check_EXECUTABLE}]")
 endfunction()

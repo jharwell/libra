@@ -40,6 +40,16 @@ Naming
   etc. You really only need to know what operations it has. This also makes the
   code play nicely with the STL/boost from a readability point of view.
 
+- Namespace names should NEVER contain underscores. This is because a name like
+  "nest_acq" (short for "nest_acquisition") is actually two concepts: things
+  related to nests, and things related to acquiring nests. Inevitably what will
+  happen is you will need to create another namespace for leaving nests (say
+  "nest_exit"), and put the two namespaces side by side. Clearly it should be
+  "acq" and "exit" inside of a parent "nest" namespace. So if you can't use a
+  single word/acronym for a given namespace, 99% of the time you should split it
+  up. This also makes your code more open to extension but closed to
+  modification.
+
 - All structs that are "types" (e.g. convenient wrappers around a boolean
   status + possibly valid result of an operation) should have a ``_t`` postfix
   so that it is clear when constructing them that they are types and it is not a

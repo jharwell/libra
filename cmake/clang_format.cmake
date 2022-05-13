@@ -51,10 +51,10 @@ function(toggle_clang_format status)
     find_package(clang_format)
 
     if(NOT clang_format_FOUND)
-      set(CLANG_FORMAT_ENABLED OFF PARENT_SCOPE)
       message(CHECK_FAIL "[disabled=not found]")
+    else()
+      message(CHECK_PASS "[enabled=${clang_format_EXECUTABLE}]")
     endif()
-
+    
     set(CLANG_FORMAT_ENABLED ${status} PARENT_SCOPE)
-    message(CHECK_PASS "[enabled=${clang_format_EXECUTABLE}]")
 endfunction()

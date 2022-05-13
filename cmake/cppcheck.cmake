@@ -57,11 +57,10 @@ function(toggle_cppcheck status)
     find_package(cppcheck)
 
     if(NOT cppcheck_FOUND)
-      set(CPPCHECK_ENABLED OFF PARENT_SCOPE)
       message(CHECK_FAIL "[disabled=not found]")
-      return()
+    else()
+      message(CHECK_PASS "[enabled=${cppcheck_EXECUTABLE}]")
     endif()
 
     set(CPPCHECK_ENABLED ${status} PARENT_SCOPE)
-    message(CHECK_PASS "[enabled=${cppcheck_EXECUTABLE}]")
 endfunction()

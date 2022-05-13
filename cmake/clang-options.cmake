@@ -113,29 +113,54 @@ set(TSAN_OPTIONS
   -fsanitize=thread
   )
 
-set(BASE_SAN_OPTIONS)
+set(LIBRA_SAN_DEV_DEFAULT "UBSAN,SSAN")
+set(LIBRA_SAN_OPT_DEFAULT "NONE")
+
+
+# Only enable sanitizers by default for DEV builds and if they are not
+# specified on the cmdline
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV" AND (NOT DEFINED LIBRA_SAN))
+  set(LIBRA_SAN ${LIBRA_SAN_DEV_DEFAULT})
+elseif ("${CMAKE_BUILD_TYPE}" MATCHES "OPT" AND (NOT DEFINED LIBRA_SAN))
+  set(LIBRA_SAN ${LIBRA_SAN_OPT_DEFAULT})
+endif()
+
+
+set(LIBRA_SAN_OPTIONS)
+set(LIBRA_SAN_MATCH NO)
+
 if ("${LIBRA_SAN}" MATCHES "MSAN")
-  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${MSAN_OPTIONS}")
+  set(LIBRA_SAN_MATCH YES)
+  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${MSAN_OPTIONS}")
 endif()
 
 if ("${LIBRA_SAN}" MATCHES "ASAN")
-  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${ASAN_OPTIONS}")
+  set(LIBRA_SAN_MATCH YES)
+  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${ASAN_OPTIONS}")
 endif()
 
 if ("${LIBRA_SAN}" MATCHES "SSAN")
-  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${SSAN_OPTIONS}")
+  set(LIBRA_SAN_MATCH YES)
+  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${SSAN_OPTIONS}")
 endif()
 
 if ("${LIBRA_SAN}" MATCHES "UBSAN")
-  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${UBSAN_OPTIONS}")
+  set(LIBRA_SAN_MATCH YES)
+  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${UBSAN_OPTIONS}")
 endif()
 
 if ("${LIBRA_SAN}" MATCHES "TSAN")
-  set(BASE_SAN_OPTIONS "${BASE_SAN_OPTIONS} ${TSAN_OPTIONS}")
+  set(LIBRA_SAN_MATCH YES)
+  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${TSAN_OPTIONS}")
 endif()
 
-set(LIBRA_C_SAN_OPTIONS ${BASE_SAN_OPTIONS})
-set(LIBRA_CXX_SAN_OPTIONS ${BASE_SAN_OPTIONS})
+if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
+  message(WARNING "Bad LIBRA_SAN setting ${LIBRA_SAN}: Must be either
+ one or more from {MSAN,ASAN,SSAN,UBSAN,TSAN} or set to NONE")
+endif()
+
+set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
+set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 
 ################################################################################
 # Profiling Options                                                            #
