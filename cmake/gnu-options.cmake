@@ -167,7 +167,7 @@ set(TSAN_OPTIONS
   )
 
 
-set(LIBRA_SAN_DEV_DEFAULT "UBSAN,SSAN")
+set(LIBRA_SAN_DEV_DEFAULT "NONE")
 set(LIBRA_SAN_OPT_DEFAULT "NONE")
 
 # Only enable sanitizers by default for DEV builds and if they are not
@@ -234,6 +234,7 @@ if (LIBRA_PGO_USE)
   set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
   set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
 endif()
+
 ################################################################################
 # Profiling Options                                                            #
 ################################################################################
@@ -266,4 +267,11 @@ set(BASE_CODE_COV_OPTIONS
 if (LIBRA_CODE_COV)
   set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
   set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+endif()
+
+################################################################################
+# Valgrind Compatibility Options                                               #
+################################################################################
+if(LIBRA_VALGRIND_COMPAT)
+  set(LIBRA_VALGRIND_COMPAT_OPTIONS "-mno-sse3")
 endif()

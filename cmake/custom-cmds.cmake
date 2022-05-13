@@ -88,5 +88,6 @@ message(STATUS "Enable documentation..................: LIBRA_DOCS=${LIBRA_DOCS}
 message(STATUS "Function precondition checking........: LIBRA_FPC=${LIBRA_FPC}")
 message(STATUS "Event reporting.......................: LIBRA_ER=${LIBRA_ER}")
 message(STATUS "Sanitizers {MSAN,ASAN,SSAN,TSAN}......: LIBRA_SAN=${LIBRA_SAN}")
+message(STATUS "Valgrind compatibility................: LIBRA_VALGRIND_COMPAT=${LIBRA_VALGRIND_COMPAT}")
 
 endfunction()

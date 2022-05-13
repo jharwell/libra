@@ -29,6 +29,7 @@ option(LIBRA_MPI       "Enable MPI code."                                      O
 option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
 option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
 option(LIBRA_DOCS      "Enable documentation build"                            ON)
+option(LIBRA_VALGRIND_COMPAT "Disable compiler instructions to 64-bit code can robustly be run under valgrind" OFF)
 
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
