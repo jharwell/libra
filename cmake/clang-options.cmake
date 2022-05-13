@@ -113,7 +113,7 @@ set(TSAN_OPTIONS
   -fsanitize=thread
   )
 
-set(LIBRA_SAN_DEV_DEFAULT "UBSAN,SSAN")
+set(LIBRA_SAN_DEV_DEFAULT "NONE")
 set(LIBRA_SAN_OPT_DEFAULT "NONE")
 
 
@@ -193,4 +193,11 @@ set(BASE_CODE_COV_OPTIONS
 if (LIBRA_CODE_COV)
   set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
   set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+endif()
+
+################################################################################
+# Valgrind Compatibility Options                                               #
+################################################################################
+if(LIBRA_VALGRIND_BUILD)
+  set(LIBRA_VALGRIND_BUILD_OPTIONS "-mno-sse3")
 endif()
