@@ -7,7 +7,7 @@ Platform Requirements
 
 - A recent version of Linux.
 
-- cmake >= 3.9 (``cmake`` on ubuntu)
+- cmake >= 3.21 (``cmake`` on ubuntu)
 
 - make >= 3.2 (``make`` on ubuntu)
 
@@ -25,7 +25,7 @@ Platform Requirements
 - icpc/icc >= 18.0. Only required if you want to use the Intel
   compilers. If you want to use another compiler, this is not required.
 
-- clang/clang++ >= 6.0. Only required if you want to use the LLVM compilers or
+- clang/clang++ >= 8.0. Only required if you want to use the LLVM compilers or
   any of the static checkers. If you want to use another compiler, this is not
   required.
 
@@ -47,25 +47,19 @@ issues.
                download and install it from Intel's website. It installs to a
                non-standard location, so prior to being able to use it in the
                terminal like clang or gcc, you will need to source the compiler
-               definitions::
+               definitions (actual command varies by version).
 
-                 . /opt/intel/bin/compilervars.sh -arch intel64 -platform linux
-
-               Assuming you have installed the suite to ``/opt/intel`` and are
-               running bash.
 
 Clang Tooling
 =============
 
-Everything should have version >= 6.0 for best results. However, if that version
-of the tools is not in the package repositories, you can replace it with 5.0 or
-4.0, and things should still work.
+All tools must have  <= version <= 14.0.
 
-- Base tooling and clang-check (``libclang-10-dev`` and ``clang-tools-10``).
+- Base tooling and clang-check (``libclang-14-dev`` and ``clang-tools-14``).
 
-- clang-format >= 10.0 (``clang-format-10``).
+- clang-format (``clang-format-14``).
 
-- clang-tidy >= 10.0 (``clang-tidy-10``).
+- clang-tidy (``clang-tidy-14``).
 
 Assumptions
 ===========
