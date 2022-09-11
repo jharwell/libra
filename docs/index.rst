@@ -1,24 +1,37 @@
-Welcome to LIBRA's documentation!
-=================================
+=======================================
+LIBRA (Luigi buIld Reusable Automation)
+=======================================
 
 Motivation
 ==========
 
-I've found myself frequently copying and pasting CmakeLists.txt between
-projects, and when I find a new flag I want to add, or a new static analysis
-checker, etc., I would have to go and add it to EVERY project individually. By
-using this repository as a submodule, that can be avoided.
+- No existing C/C++ build system supported automatic file discovery like
+  ``make`` via globs.
 
-This documentation has two parts: How to use LIBRA/what it can do and various
-other development guides that needed a central place to live that was outside of
-a specific project.
+- No existing C/C++ build system provided 100% reusability across projects
+  (assuming some conventions for file naming, directory layout, etc.). I found
+  myself frequently copying and pasting ``CmakeLists.txt`` (or whatever the tol's
+  configuration was )between projects, as I added and when I find a new flag I
+  want to add, or a new static analysis checker, etc., I would have to go and
+  add it to EVERY project.
+
+- No existing C/C++ build systems supported doing things like running one or
+  more static analyzers on a repository, formatting the repository, building and
+  running tests, etc. Using ``make check``, ``make format``, or ``make tests``,
+  or other simple cmdline syntax.
+
+This documentation has two parts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: How To Use LIBRA:
 
    usage/requirements.rst
    usage/capabilities.rst
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development Guides
 
    development/cxx-dev-guide.rst
    development/python-dev-guide.rst
@@ -29,8 +42,8 @@ a specific project.
 Projects using LIBRA (in descending probability of interest)
 ============================================================
 
-- :xref:`PRISM`
 - :xref:`FORDYCA`
 - :xref:`COSM`
 - :xref:`RCPPSW`
 - :xref:`RCSW`
+- :xref:`PRISM`

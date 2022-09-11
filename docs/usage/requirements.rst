@@ -7,7 +7,7 @@ Platform Requirements
 
 - A recent version of Linux.
 
-- cmake >= 3.9 (``cmake`` on ubuntu)
+- cmake >= 3.21 (``cmake`` on ubuntu)
 
 - make >= 3.2 (``make`` on ubuntu)
 
@@ -25,7 +25,7 @@ Platform Requirements
 - icpc/icc >= 18.0. Only required if you want to use the Intel
   compilers. If you want to use another compiler, this is not required.
 
-- clang/clang++ >= 6.0. Only required if you want to use the LLVM compilers or
+- clang/clang++ >= 8.0. Only required if you want to use the LLVM compilers or
   any of the static checkers. If you want to use another compiler, this is not
   required.
 
@@ -47,12 +47,8 @@ issues.
                download and install it from Intel's website. It installs to a
                non-standard location, so prior to being able to use it in the
                terminal like clang or gcc, you will need to source the compiler
-               definitions::
+               definitions (actual command varies by version).
 
-                 . /opt/intel/bin/compilervars.sh -arch intel64 -platform linux
-
-               Assuming you have installed the suite to ``/opt/intel`` and are
-               running bash.
 
 Clang Tooling
 =============

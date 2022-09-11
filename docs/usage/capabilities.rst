@@ -8,7 +8,8 @@ Build Modes
 There are 3 build modes that I use, which are different from the default ones
 that ``cmake`` uses, because they did not do what I wanted.
 
-- ``DEV`` - Development mode. Turns on all compiler warnings and NO optimizations.
+- ``DEV`` - Development mode. Turns on all compiler warnings and NO
+  optimizations.
 
 - ``DEVOPT`` - Development mode + light optimizations. Turns on all compiler
   warnings + ``-Og`` + parallelization (if configured). Does not define
@@ -162,8 +163,8 @@ the following additional capabilities via makefile targets:
    * - ``unit-tests``
 
      - Build all of the unit tests for the project. If you want to just build a
-       single unit test, you can do ``make <project name>-<root namespace>-<class
-       name>-utest``. For example::
+       single unit test, you can do ``make <project name>-<root
+       namespace>-<class name>-utest``. For example::
 
          make rcppsw-fsm-hfsm-utest
 
@@ -190,3 +191,12 @@ the following additional capabilities via makefile targets:
      - Build a ``.deb`` package from the project and all its sub-project (i.e.,
        a stand-alone ``.deb``). This functionality is VERY VERY VERY alpha, but
        has the potential to be very useful.
+
+Git Commit Checking
+===================
+
+LIBRA can lint commit messages, checking they all have a consistent format. The
+format is controlled by the file ``commitlint.config.js``. See the ``husky
+<https://www.npmjs.com/package/husky>``_ for details. The default format LIBRA
+enforces is described in :ref:`ln-git-commit-guide`. To use it run ``npm
+install`` in the repo where you have setup LIBRA.
