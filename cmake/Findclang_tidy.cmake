@@ -6,9 +6,11 @@ include(FindPackageHandleStandardArgs)
 
 find_program(clang_tidy_EXECUTABLE
   NAMES
+  clang-tidy-14
+  clang-tidy-13
+  clang-tidy-12
+  clang-tidy-11
   clang-tidy-10
-  clang-tidy-9
-  clang-tidy-8
   clang-tidy
   PATHS
   "${CLANG_TIDY_DIR}"
