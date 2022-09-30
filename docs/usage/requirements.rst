@@ -29,6 +29,8 @@ Platform Requirements
   any of the static checkers. If you want to use another compiler, this is not
   required.
 
+- lcov if you want to do code coverage.
+
 Compiler Support
 ================
 

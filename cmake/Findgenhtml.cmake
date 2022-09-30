@@ -1,10 +1,10 @@
 # Findgenhtml results:
-# GENHTML_FOUND
-# GENHTML_EXECUTABLE
+# genhtml_FOUND
+# genhtml_EXECUTABLE
 
 include(FindPackageHandleStandardArgs)
 
-find_program(GENHTML_EXECUTABLE
+find_program(genhtml_EXECUTABLE
     NAMES
         genhtml
     PATHS
@@ -12,11 +12,11 @@ find_program(GENHTML_EXECUTABLE
         "$ENV{GENHTML_DIR}"
 )
 
-find_package_handle_standard_args(GENHTML
+find_package_handle_standard_args(genhtml
 	FOUND_VAR
-        GENHTML_FOUND
+        genhtml_FOUND
     REQUIRED_VARS
-        GENHTML_EXECUTABLE
+        genhtml_EXECUTABLE
 )
 
-mark_as_advanced(GENHTML_EXECUTABLE)
+mark_as_advanced(genhtml_EXECUTABLE)
