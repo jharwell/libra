@@ -1,11 +1,11 @@
 ################################################################################
-# Configure CFLAGS and whatnot for different C/C++ compilers.                  #
+# Configure CFLAGS and whatnot for different C/C++ compilers.
 ################################################################################
 # Project options
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
@@ -18,9 +18,9 @@ if (CCACHE_FOUND)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif()
 
-#################################################################################
-# Definitions                                                                   #
-#################################################################################
+################################################################################
+# Definitions
+################################################################################
 set(CC_DEV_DEFS "-DRCSW_FPC_TYPE=RCSW_FPC_RETURN")
 set(CC_DEVOPT_DEFS "-DRCSW_FPC_TYPE=RCSW_FPC_RETURN")
 set(CC_OPT_DEFS "-DRCSW_FPC_TYPE=RCSW_FPC_RETURN -DNDEBUG")
@@ -46,9 +46,9 @@ else()
   message(FATAL_ERROR "Bad event reporting specification '${LIBRA_ER}'. Must be [ALL,FATAL,NONE,INHERIT]")
 endif()
 
-#################################################################################
-# GNU Compiler Options                                                          #
-#################################################################################
+################################################################################
+# GNU Compiler Options
+################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" )
   set(CMAKE_CXX_STANDARD 17)
@@ -64,35 +64,53 @@ if ("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR
   endif()
 endif()
 
-#################################################################################
-# clang Compiler Options                                                        #
-#################################################################################
+################################################################################
+# clang Compiler Options
+################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
   set(CMAKE_CXX_STANDARD 17)
 
-  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 10.0)
-    message(FATAL_ERROR "clang version must be at least 10.0!")
+  if (NOT "${LIBRA_RTD_BUILD}")
+    if(CMAKE_C_COMPILER_VERSION VERSION_LESS 10.0)
+      message(FATAL_ERROR "clang version must be at least 10.0!")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
+      message(FATAL_ERROR "clang++ version must be at least 10.0!")
+    endif()
+    include(clang-options)
   endif()
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
-    message(FATAL_ERROR "clang++ version must be at least 10.0!")
-  endif()
-  include(clang-options)
 endif ()
 
-#################################################################################
-# Intel Compiler Options                                                        #
-#################################################################################
+################################################################################
+# NVIDIA Compiler Options
+################################################################################
+if ("${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA")
+  set(CMAKE_CUDA_STANDARD 17)
+
+  if (NOT "${LIBRA_RTD_BUILD}")
+    if(CMAKE_CUDA_COMPILER_VERSION VERSION_LESS 11.5)
+      message(FATAL_ERROR "nvcc version must be at least 11.5!")
+    endif()
+    include(nvidia-options)
+  endif()
+endif ()
+
+################################################################################
+# Intel Compiler Options
+################################################################################
 if ("${CMAKE_C_COMPILER_ID}" MATCHES "Intel" OR
     "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel" )
 
-  if(CMAKE_C_COMPILER_VERSION VERSION_LESS 18.0)
-    message(FATAL_ERROR "icc version must be at least 18.0!")
+  if (NOT "${LIBRA_RTD_BUILD}")
+    if(CMAKE_C_COMPILER_VERSION VERSION_LESS 18.0)
+      message(FATAL_ERROR "icc version must be at least 18.0!")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+      message(FATAL_ERROR "icpc version must be at least 18.0!")
+    endif()
+    include(intel-options)
   endif()
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
-    message(FATAL_ERROR "icpc version must be at least 18.0!")
-  endif()
-  include(intel-options)
 endif ()
 
 # Setup MPI

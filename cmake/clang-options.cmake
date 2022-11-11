@@ -113,9 +113,11 @@ set(TSAN_OPTIONS
   -fsanitize=thread
   )
 
-set(LIBRA_SAN_DEV_DEFAULT "NONE")
-set(LIBRA_SAN_OPT_DEFAULT "NONE")
+set(LIBRA_SAN_DEFAULT "NONE")
 
+if (NOT LIBRA_SAN)
+  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
+endif()
 
 # Only enable sanitizers by default for DEV builds and if they are not
 # specified on the cmdline
@@ -124,7 +126,6 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV" AND (NOT DEFINED LIBRA_SAN))
 elseif ("${CMAKE_BUILD_TYPE}" MATCHES "OPT" AND (NOT DEFINED LIBRA_SAN))
   set(LIBRA_SAN ${LIBRA_SAN_OPT_DEFAULT})
 endif()
-
 
 set(LIBRA_SAN_OPTIONS)
 set(LIBRA_SAN_MATCH NO)

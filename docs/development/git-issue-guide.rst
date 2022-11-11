@@ -1,3 +1,5 @@
+.. _ln-libra-git-issue-guide:
+
 =========================
 Github Issues Usage Guide
 =========================

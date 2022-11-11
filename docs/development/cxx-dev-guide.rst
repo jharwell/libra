@@ -1,4 +1,4 @@
-.. _ln-cxx-dev-guide:
+.. _ln-libra-cxx-dev-guide:
 
 =====================
 C++ Development Guide
@@ -27,15 +27,18 @@ Files
   minimized and well documented if they reside in the ``public`` part of the
   enclosing class.
 
-- The namespace hierarchy exactly corresponds to the directory hierarchy that
-  the source/header files for classes can be found in.
+- If a C++ file lives under ``src/my_module/my_file.cpp`` then its corresponding
+  include file is found under ``include/<repo_name>/my_module/my_file.hpp``
+  (same idea for C, but with the corresponding extensions). This is the
+  Principle of Least Surprise, and makes it as easy as possible for people
+  unfamiliar with the code to find stuff in it.
 
 Naming
 ------
 
 - All file, class, variable, enum, namespace, etc. names are
   ``specified_like_this``, NOT ``specifiedLikeThis`` or
-  ``SpecifiedLikeThis``. Rationale: Most of the time you shouldnot really need
+  ``SpecifiedLikeThis``. Rationale: Most of the time you should not really need
   to know whether the thing in between ``::`` is a class, namespace, enum,
   etc. You really only need to know what operations it has. This also makes the
   code play nicely with the STL/boost from a readability point of view.
@@ -167,7 +170,7 @@ Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
   parameters are primitive types the compiler will silently convert (a
   ``double`` is passed where an ``int`` is expected, for example), then the
   constructor should be made to take a pointer/lvalue reference/rvalue reference
-  to a parameter struct containing tnhe primitive members, in order to reduce
+  to a parameter struct containing the primitive members, in order to reduce
   the chance of subtle bugs due to silent primitive conversions if the order of
   two of the parameters is swapped at the call site.
 
@@ -224,7 +227,7 @@ Documentation
   least a brief, UNLESS those functions are overrides/inherited from a parent
   class, in which case they should be left blank (usually) and their
   documentation be in the class in which they are initially declared. All
-  parameters should be documented.
+  non-obvious parameters should be documented.
 
 Tricky/nuanced issues with member variables should be documented, though in
 general the namespace name + class name + member variable name + member variable

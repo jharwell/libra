@@ -1,9 +1,25 @@
+.. _ln-libra-capabilities:
+
 ==================
 LIBRA Capabilities
 ==================
 
+Configure Time
+==============
+
+These are things LIBRA can do when running cmake.
+
+File Discovery
+--------------
+
+LIBRA globs all files under ``src/`` (see :ref:`ln-libra-req` for repository
+layout requirements) so that if you add a new source file, rename a source file,
+etc., you just need to re-run cmake. This means you don't have to MANUALLY
+specify all the files in the cmake project. Woo-hoo!
+
+
 Build Modes
-===========
+-----------
 
 There are 3 build modes that I use, which are different from the default ones
 that ``cmake`` uses, because they did not do what I wanted.
@@ -19,10 +35,12 @@ that ``cmake`` uses, because they did not do what I wanted.
   optimizations (``O2``), which is separate from enabled automatic/OpenMP based
   paralellization. Defines ``NDEBUG``.
 
-Build Process Options
-=====================
+Configuring The Build Process
+-----------------------------
 
-The following variables are available for fine-tuning the build process:
+The following variables are available for fine-tuning the build process. All of
+these variables can be specified on the command line, or put in your
+``project-local.cmake``--see :ref:`ln-libra-project-local` for details.
 
 .. list-table::
    :widths: 25,50,50
@@ -34,6 +52,15 @@ The following variables are available for fine-tuning the build process:
 
      - Default
 
+   * - ``LIBRA_DEPS_PREFIX``
+
+     - The location where cmake should search for other locally installed
+       libraries (e.g., ``$HOME/.local``). VERY useful to separate out 3rd party
+       headers which you want to suppress all warnings for by treating them as
+       system headers when you can't/don't want to install things as root.
+
+     - ``$HOME/.local/system``
+
    * -  ``LIBRA_TESTS``
 
      - Enable building of unit tests via ``make unit-tests``.
@@ -42,13 +69,13 @@ The following variables are available for fine-tuning the build process:
 
    * - ``LIBRA_OPENMP``
 
-     - Enable OpenMP code
+     - Enable OpenMP code for the selected compiler, if supported.
 
      - NO
 
    * - ``LIBRA_MPI``
 
-     - Enable MPI code
+     - Enable MPI code for the selected compiler, if supported
 
      - NO
 
@@ -73,24 +100,42 @@ The following variables are available for fine-tuning the build process:
          linked with. Both debug printing and logging macros enabled.
 
        * ``FATAL`` - Disable event reporting EXCEPT for fatal events, use
-         ``printf()`` for those (Log4cxx compiled out).  Debug logging disabled
-         (needs log4cxx), macros for printing of FATAL events only enabled.
+         ``printf()`` for those (i.e., Log4cxx compiled out).  Debug logging
+         disabled (might need, e.g., log4cxx), macros for printing of FATAL
+         events only enabled.
 
-       * ``NONE`` - Disable event reporting entirely: log4cxx compiled out and
-         debug printing/logging macros disabled.
+       * ``NONE`` - Disable event reporting entirely: all logging compiled out
+         and debug printing/logging macros disabled.
 
      - ``ALL``
 
 
    * - ``LIBRA_PGO_GEN``
 
-     - Generate a PGO build, input stage, for the selected compiler.
+     - Generate a PGO build, input stage, for the selected compiler, if
+       supported.
 
      - NO
 
    * - ``LIBRA_PGO_USE``
 
-     - Generate a PGO build, final stage, for the selected compiler.
+     - Generate a PGO build, final stage, for the selected compiler, if
+       supported.
+
+     - NO
+
+   * - ``LIBRA_DOCS``
+
+     - Enable documentation build.
+
+     - YES
+
+   * - ``LIBRA_RTD_BUILD``
+
+     - Specify that the build is for ReadTheDocs. This suppresses the usual
+       compiler version checks since we won't actually be compiling anything,
+       and the version of compilers available on ReadTheDocs is probably much
+       older than what LIBRA requires.
 
      - NO
 
@@ -117,24 +162,29 @@ The following variables are available for fine-tuning the build process:
        * ``TSAN`` - Multithreading checks.
 
        The first 4 can generally be stacked together without issue. Depending on
-       compiler; the thread sanitizer is incomptable with some other sanitizer
+       compiler; the thread sanitizer is incompatible with some other sanitizer
        groups.
 
      - ""
 
+   * - ``LIBRA_VALGRIND_COMPAT``
 
-Automation via ``make`` Targets
-===============================
+     - Disable compiler instructions in 64-bit code so that programs will run
+       under valgrind reliably.
 
-LIBRA uses file globs and wildcards to figure out the list of files to give to
-``cmake`` to build, which mens that you don't have to  manually specify all the
-files in the ``cmake`` project!
+     - NO
+
+Build Time
+==========
+
+These are the things that LIBRA can do when running ``make`` (or whatever the
+build engine is).
 
 In addition to being able to actually build the software, this project enables
-the following additional capabilities via makefile targets:
+the following additional capabilities via targets:
 
 .. list-table::
-   :widths: 25,50
+   :widths: 30,70
    :header-rows: 1
 
    * - ``make`` target
@@ -196,7 +246,7 @@ Git Commit Checking
 ===================
 
 LIBRA can lint commit messages, checking they all have a consistent format. The
-format is controlled by the file ``commitlint.config.js``. See the ``husky
-<https://www.npmjs.com/package/husky>``_ for details. The default format LIBRA
+format is controlled by the file ``commitlint.config.js``. See the `husky
+<https://www.npmjs.com/package/husky>`_ for details. The default format LIBRA
 enforces is described in :ref:`ln-git-commit-guide`. To use it run ``npm
 install`` in the repo where you have setup LIBRA.

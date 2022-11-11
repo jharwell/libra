@@ -12,10 +12,10 @@ cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 # CMakeLists.txt resides in--simpler that way.
 get_filename_component(target ${CMAKE_CURRENT_LIST_DIR} NAME)
 
-project(${target} C CXX)
+project(${target} C CXX CUDA)
 
 ################################################################################
-# Cmake Environment                                                            #
+# Cmake Environment
 ################################################################################
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
@@ -28,8 +28,9 @@ option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        O
 option(LIBRA_MPI       "Enable MPI code."                                      OFF)
 option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
 option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
-option(LIBRA_DOCS      "Enable documentation build"                            ON)
+option(LIBRA_DOCS      "Enable documentation build"                             ON)
 option(LIBRA_VALGRIND_COMPAT "Disable compiler instructions to 64-bit code can robustly be run under valgrind" OFF)
+option(LIBRA_ANALYSIS "Enable static analysis checkers"                         ON)
 
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
@@ -43,15 +44,10 @@ include(colorize)
 include(compile-options)
 include(reporting)
 include(build-modes)
-include(analysis)
 include(custom-cmds)
 include(components)
 include(install)
 include(uninstall)
-
-if (LIBRA_DOCS)
-  include(doxygen)
-endif()
 
 if (LIBRA_CODE_COV)
   include(coverage)
@@ -65,45 +61,10 @@ set_policy(CMP0074 NEW) # ENABLE CMP0074: find_package uses <PackageName>_ROOT v
 set_policy(CMP0072 NEW) # Prefer modern OpenGL
 
 ################################################################################
-# Project Configuration                                                        #
+# Project Configuration
 ################################################################################
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "DEV")
-endif()
-
-# Handy checking tools
-message(CHECK_START "Finding checkers")
-list(APPEND CMAKE_MESSAGE_INDENT "  ")
-toggle_cppcheck(ON)
-toggle_clang_tidy_check(ON)
-toggle_clang_static_check(ON)
-list(POP_BACK CMAKE_MESSAGE_INDENT)
-if (CPPCHECK_ENABLED AND
-    CLANG_TIDY_CHECK_ENABLED AND
-    CLANG_STATIC_CHECK_ENABLED)
-  message(CHECK_PASS "All checkers enabled")
-else()
-  message(CHECK_FAIL "One or more checkers disabled")
-endif()
-
-message(CHECK_START "Finding formatters")
-list(APPEND CMAKE_MESSAGE_INDENT "  ")
-toggle_clang_format(ON)
-list(POP_BACK CMAKE_MESSAGE_INDENT)
-if (CLANG_FORMAT_ENABLED)
-  message(CHECK_PASS "All formatters enabled")
-else()
-  message(CHECK_FAIL "One or more formatters disabled")
-endif()
-
-message(CHECK_START "Finding fixers")
-list(APPEND CMAKE_MESSAGE_INDENT "  ")
-toggle_clang_tidy_fix(ON)
-list(POP_BACK CMAKE_MESSAGE_INDENT)
-if (CLANG_TIDY_FIX_ENABLED)
-  message(CHECK_PASS "All fixers enabled")
-else()
-  message(CHECK_FAIL "One or more fixers disabled")
 endif()
 
 
@@ -122,7 +83,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ################################################################################
-# Source Definitions                                                           #
+# Source Definitions
 ################################################################################
 # If this is not defined, we are the root project
 if(NOT "${${PROJECT_NAME}_DIR}")
@@ -130,37 +91,106 @@ if(NOT "${${PROJECT_NAME}_DIR}")
 endif()
 
 set(${PROJECT_NAME}_SRC_PATH ${${PROJECT_NAME}_DIR}/src)
+set(${PROJECT_NAME}_INC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 
-file(GLOB_RECURSE ${PROJECT_NAME}_SRC ${${PROJECT_NAME}_SRC_PATH}/*.c ${${PROJECT_NAME}_SRC_PATH}/*.cpp)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_SRC ${${PROJECT_NAME}_SRC_PATH}/*.c )
 file(GLOB_RECURSE ${PROJECT_NAME}_CXX_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_CUDA_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cu)
+file(GLOB_RECURSE ${PROJECT_NAME}_C_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.h)
+file(GLOB_RECURSE ${PROJECT_NAME}_CXX_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.hpp)
 
-set(${PROJECT_NAME}_INC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-set(${PROJECT_NAME}_ROOT_INC_PATH "${CMAKE_SOURCE_DIR}/include/")
-set(${PROJECT_NAME}_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+file(GLOB_RECURSE ${PROJECT_NAME}_SRC
+  ${${PROJECT_NAME}_C_SRC}
+  ${${PROJECT_NAME}_CXX_SRC}
+  ${${PROJECT_NAME}_CUDA_SRC})
+
 
 ################################################################################
-# Target Definitions                                                           #
+# Target Definitions
 ################################################################################
 # Add project-local config
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/project-local.cmake)
 
 ################################################################################
-# Code Checking/Analysis Options                                               #
+# Code Checking/Analysis Options
 ################################################################################
-if("${${PROJECT_NAME}_CHECK_LANGUAGE}" STREQUAL "C")
-  set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_C_SRC})
+if (${LIBRA_ANALYSIS})
+  include(analysis)
+
+  if (NOT ${PROJECT_NAME}_CHECK_LANGUAGE)
+    message(WARNING "Static analysis enabled but ${PROJECT_NAME}_CHECK_LANGUAGE not set")
+  else()
+
+    if("${${PROJECT_NAME}_CHECK_LANGUAGE}" STREQUAL "C")
+      set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_C_SRC})
+    elseif ("${${PROJECT_NAME}_CHECK_LANGUAGE}" STREQUAL "CXX")
+      set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CXX_SRC})
+    else()
+      message(FATAL_ERROR "Bad static analysis language for project: must be [C,CXX]")
+    endif()
+
+    register_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+    register_auto_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+    register_auto_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+
+    # Handy checking tools
+    message(CHECK_START "Finding checkers")
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    toggle_cppcheck(ON)
+    toggle_clang_tidy_check(ON)
+    toggle_clang_static_check(ON)
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
+    if (CPPCHECK_ENABLED AND
+        CLANG_TIDY_CHECK_ENABLED AND
+        CLANG_STATIC_CHECK_ENABLED)
+      message(CHECK_PASS "All checkers enabled")
+    else()
+      message(CHECK_FAIL "One or more checkers disabled")
+    endif()
+
+    message(CHECK_START "Finding formatters")
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    toggle_clang_format(ON)
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
+    if (CLANG_FORMAT_ENABLED)
+      message(CHECK_PASS "All formatters enabled")
+    else()
+      message(CHECK_FAIL "One or more formatters disabled")
+    endif()
+
+    message(CHECK_START "Finding fixers")
+    list(APPEND CMAKE_MESSAGE_INDENT "  ")
+    toggle_clang_tidy_fix(ON)
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
+    if (CLANG_TIDY_FIX_ENABLED)
+      message(CHECK_PASS "All fixers enabled")
+    else()
+      message(CHECK_FAIL "One or more fixers disabled")
+    endif()
+  endif()
 else()
-  set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CXX_SRC})
+  message(STATUS "Skipping static analysis init")
 endif()
 
-register_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
-register_auto_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
-register_auto_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+################################################################################
+# Documentation Options
+################################################################################
+# Put this AFTER sourcing the project-local.cmake to enable disabling
+# documentation builds for projects that don't have docs.
+if (LIBRA_DOCS)
+  include(doxygen)
+endif()
 
 ################################################################################
-# Testing Options                                                              #
+# Testing Options
 ################################################################################
 if (LIBRA_TESTS)
   include(testing)
+endif()
+
+################################################################################
+# Config Summary
+################################################################################
+if (NOT ${LIBRA_SHOWED_CONFIG})
+  libra_config_summary()
 endif()

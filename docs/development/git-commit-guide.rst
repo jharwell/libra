@@ -1,4 +1,4 @@
-.. _ln-git-commit-guide:
+.. _ln-libra-git-commit-guide:
 
 ================
 Git Commit Guide

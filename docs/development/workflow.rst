@@ -23,7 +23,7 @@ General Development Workflow
 
    - Push your changes regularly, so people can see that the issue is being
      actively worked on. Commit messages should follow the
-     :ref:`ln-git-commit-guide`.
+     :ref:`ln-libra-git-commit-guide`.
 
    - Rebase your branch onto the ``devel`` periodicaly so that merge
      conflicts/headaches are minimized when you do eventually merge it into
