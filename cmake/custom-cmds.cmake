@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  LGPL-2.0-or-later
+#
 # Set policy if policy is available
 function(set_policy POL VAL)
 

@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  LGPL-2.0-or-later
+#
 set(CLANG_TIDY_CHECK_ENABLED OFF)
 set(CLANG_TIDY_FIX_ENABLED OFF)
 

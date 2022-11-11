@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  LGPL-2.0-or-later
+#
 # Findclang_tidy results:
 # clang_tidy_FOUND
 # clang_tidy_EXECUTABLE

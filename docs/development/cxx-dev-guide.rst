@@ -1,3 +1,5 @@
+.. SPDX-License-Identifier:  LGPL-2.0-or-later
+
 .. _ln-libra-cxx-dev-guide:
 
 =====================
@@ -20,6 +22,10 @@ Files
 - All source files have the ``.cpp`` extension, and all header files have the
   ``.hpp`` extension (not a ``.h`` extension), to clearly distinguish them from
   C code, and not to confuse the tools used.
+
+- Don't use ``#ifndef FOO_HPP`` followed by ``#define FOO_HPP``--use ``#pragma
+  once`` instead. It is supported by all major compilers, and makes header files
+  way easier to move around without mind-numbing refactoring.
 
 - Exactly one class/struct definition per ``.cpp``\/``.hpp`` file, unless there
   is a very good reason to do otherwise. class/struct definitions nested within

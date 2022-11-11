@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  LGPL-2.0-or-later
+#
 find_package(lcov)
 find_package(genhtml)
 

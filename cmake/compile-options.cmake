@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  LGPL-2.0-or-later
+#
 ################################################################################
 # Configure CFLAGS and whatnot for different C/C++ compilers.
 ################################################################################

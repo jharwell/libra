@@ -1,3 +1,9 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  LGPL-2.0-or-later
+#
+
 # Findclang_format results:
 # clang_format_FOUND
 # clang_format_EXECUTABLE

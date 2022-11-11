@@ -1,3 +1,5 @@
+.. SPDX-License-Identifier:  LGPL-2.0-or-later
+
 .. _ln-libra-capabilities:
 
 ==================
@@ -248,5 +250,5 @@ Git Commit Checking
 LIBRA can lint commit messages, checking they all have a consistent format. The
 format is controlled by the file ``commitlint.config.js``. See the `husky
 <https://www.npmjs.com/package/husky>`_ for details. The default format LIBRA
-enforces is described in :ref:`ln-git-commit-guide`. To use it run ``npm
+enforces is described in :ref:`ln-libra-git-commit-guide`. To use it run ``npm
 install`` in the repo where you have setup LIBRA.

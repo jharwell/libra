@@ -1,3 +1,5 @@
+.. SPDX-License-Identifier:  LGPL-2.0-or-later
+
 .. _ln-libra-c-dev-guide:
 
 ===================
@@ -17,10 +19,13 @@ Coding Style
 Files
 -----
 
-- All source files should have the exact license text (e.g., GNU GPLv3), or an
-  abbreviated version and a pointer to full license text (e.g., ``Copyright Foo
-  Corp blah blah blah. See LICENSE.md for details``).
+- All source files should have either:
 
+  - An abbreviated version of the license text and a pointer to full license
+    text (e.g., ``Copyright Foo Corp blah blah blah. See LICENSE.md for
+    details``).
+
+  - An SPDX identifier; e.g., ``SPDX-License-Identifier: LGPL-2.0-or-later``.
 
 - All source files have the ``.c`` extension, and all header files have the
   ``.h``, to clearly distinguish them from C++ code, and not to confuse the
@@ -39,6 +44,10 @@ Files
 
 - The curly brace must always be the last code thing on the line; don't put it
   on its own line.
+
+- Don't use ``#ifndef FOO_H`` followed by ``#define FOO_H``--use ``#pragma
+  once`` instead. It is supported by all major compilers, and makes header files
+  way easier to move around without mind-numbing refactoring.
 
 Naming
 ------
