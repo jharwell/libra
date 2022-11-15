@@ -1,4 +1,4 @@
-.. SPDX-License-Identifier:  LGPL-2.0-or-later
+.. SPDX-License-Identifier:  MIT
 
 .. _ln-libra-python-dev-guide:
 
@@ -61,6 +61,7 @@ Naming
 - Don't put the type of the variable in the variable name (e.g., ``sender_list``
   for a list). Linus was right--it _is_ brain damaged.
 
+- All private methods for a class start with ``_``.
 
 Classes
 -------
@@ -69,6 +70,9 @@ Classes
   is a way to avoid doing a bunch of extra coding to create a set of
   classes/functions with proper encapsulation which is going to be easier to
   maintain anyway.
+
+- When laying out classes, put special methods first (e.g., ``__repr__``), then
+  public methods, and then private methods.
 
 Miscellaneous
 -------------

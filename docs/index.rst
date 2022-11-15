@@ -1,4 +1,4 @@
-.. SPDX-License-Identifier:  LGPL-2.0-or-later
+.. SPDX-License-Identifier:  MIT
 
 =======================================
 LIBRA (Luigi buIld Reusable Automation)

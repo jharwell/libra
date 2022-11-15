@@ -1,7 +1,7 @@
 #
 # Copyright 2022 John Harwell, All rights reserved.
 #
-# SPDX-License Identifier:  LGPL-2.0-or-later
+# SPDX-License Identifier:  MIT
 #
 # Findlcov results:
 # lcov_FOUND
@@ -13,7 +13,7 @@ find_program(lcov_EXECUTABLE
     NAMES
         lcov
     PATHS
-        "${LCOV_DIR}"
+        "${lcov_DIR}"
         "$ENV{LCOV_DIR}"
 )
 

@@ -1,7 +1,7 @@
 #
 # Copyright 2022 John Harwell, All rights reserved.
 #
-# SPDX-License Identifier:  LGPL-2.0-or-later
+# SPDX-License Identifier:  MIT
 #
 # Findclang_format results:
 # clang_check_FOUND
@@ -18,7 +18,7 @@ find_program(clang_check_EXECUTABLE
   clang-check-10
   clang-check
   PATHS
-  "${CLANG_CHECK_DIR}"
+  "${clang_check_DIR}"
 )
 
 find_package_handle_standard_args(clang_check

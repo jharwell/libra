@@ -1,7 +1,7 @@
 #
 # Copyright 2022 John Harwell, All rights reserved.
 #
-# SPDX-License Identifier:  LGPL-2.0-or-later
+# SPDX-License Identifier:  MIT
 #
 # Findclang_tidy results:
 # clang_tidy_FOUND
@@ -18,7 +18,7 @@ find_program(clang_tidy_EXECUTABLE
   clang-tidy-10
   clang-tidy
   PATHS
-  "${CLANG_TIDY_DIR}"
+  "${clang_tidy_DIR}"
 )
 
 find_package_handle_standard_args(clang_tidy

@@ -1,7 +1,7 @@
 #
 # Copyright 2022 John Harwell, All rights reserved.
 #
-# SPDX-License Identifier:  LGPL-2.0-or-later
+# SPDX-License Identifier:  MIT
 #
 # Findcppcheck results:
 # cppcheck_FOUND
@@ -13,7 +13,7 @@ find_program(cppcheck_EXECUTABLE
     NAMES
         cppcheck
     PATHS
-        "${CPPCHECK_DIR}"
+        "${cppcheck_DIR}"
         "$ENV{CPPCHECK_DIR}"
 )
 

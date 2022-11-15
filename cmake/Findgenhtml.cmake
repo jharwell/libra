@@ -1,7 +1,7 @@
 #
 # Copyright 2022 John Harwell, All rights reserved.
 #
-# SPDX-License Identifier:  LGPL-2.0-or-later
+# SPDX-License Identifier:  MIT
 #
 # Findgenhtml results:
 # genhtml_FOUND
@@ -13,7 +13,7 @@ find_program(genhtml_EXECUTABLE
     NAMES
         genhtml
     PATHS
-        "${GENHTML_DIR}"
+        "${genhtml_DIR}"
         "$ENV{GENHTML_DIR}"
 )
 

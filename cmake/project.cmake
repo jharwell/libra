@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 # CMakeLists.txt resides in--simpler that way.
 get_filename_component(target ${CMAKE_CURRENT_LIST_DIR} NAME)
 
-project(${target} C CXX CUDA)
+project(${target} C CXX)
 
 ################################################################################
 # Cmake Environment
