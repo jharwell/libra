@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 ---
 Checks:
 '*,-modernize-redundant-void-arg,-llvm-header-guard,-cppcoreguidelines-special-member-functions,-cppcoreguidelines-pro-type-reinterpret-cast,-cppcoreguidelines-pro-type-vararg,-google-runtime-references,-llvm-include-order,-llvm-namespace-comment,-cppcoreguidelines-pro-bounds-constant-array-index,-cert-err34-c,-cppcoreguidelines-pro-type-static-cast-downcast,-clang-diagnostic-*,-readability-else-after-return,-clang-diagnostic-documentation,-fuchsia-default-arguments,-hicpp-vararg,-fuchsia-overloaded-operator,-hicpp-no-array-decay,-hicpp-special-member-functions,-fuchsia-virtual-inheritance,-cert-err58-cpp,-cert-dcl03-c,-modernize-pass-by-value,-hicpp-static-assert,-misc-static-assert,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-readability-named-parameter,-modernize-use-override,-hicpp-use-override,-hicpp-signed-bitwise,-fuchsia-default-arguments-calls,-modernize-use-trailing-return-type,-modernize-use-nodiscard,-fuchsia-statically-constructed-objects,-cppcoreguidelines-explicit-virtual-functions,-fuchsia-default-arguments-declarations,-fuchsia-multiple-inheritance

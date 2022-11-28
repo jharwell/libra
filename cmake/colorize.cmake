@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 string(ASCII 27 Esc)
 set(ColorReset "${Esc}[m")
 set(ColorBold  "${Esc}[1m")

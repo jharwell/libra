@@ -1,4 +1,6 @@
-.. _ln-git-commit-guide:
+.. SPDX-License-Identifier:  MIT
+
+.. _ln-libra-git-commit-guide:
 
 ================
 Git Commit Guide

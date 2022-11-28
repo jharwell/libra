@@ -1,22 +1,27 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 # Findlcov results:
-# LCOV_FOUND
-# LCOV_EXECUTABLE
+# lcov_FOUND
+# lcov_EXECUTABLE
 
 include(FindPackageHandleStandardArgs)
 
-find_program(LCOV_EXECUTABLE
+find_program(lcov_EXECUTABLE
     NAMES
         lcov
     PATHS
-        "${LCOV_DIR}"
+        "${lcov_DIR}"
         "$ENV{LCOV_DIR}"
 )
 
-find_package_handle_standard_args(LCOV
+find_package_handle_standard_args(lcov
 	FOUND_VAR
-        LCOV_FOUND
+        lcov_FOUND
     REQUIRED_VARS
-        LCOV_EXECUTABLE
+        lcov_EXECUTABLE
 )
 
-mark_as_advanced(LCOV_EXECUTABLE)
+mark_as_advanced(lcov_EXECUTABLE)

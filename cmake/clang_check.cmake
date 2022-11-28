@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 set(CLANG_STATIC_CHECK_ENABLED OFF)
 
 ################################################################################

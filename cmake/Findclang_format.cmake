@@ -1,3 +1,9 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
+
 # Findclang_format results:
 # clang_format_FOUND
 # clang_format_EXECUTABLE
@@ -13,7 +19,7 @@ find_program(clang_format_EXECUTABLE
   clang-format-10
   clang-format
   PATHS
-  "${CLANG_FORMAT_DIR}"
+  "${clang_format_DIR}"
 )
 
 find_package_handle_standard_args(clang_format

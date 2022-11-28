@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 # make uninstall
 add_custom_target("uninstall" COMMENT "Uninstall installed files")
 add_custom_command(

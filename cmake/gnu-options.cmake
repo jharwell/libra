@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 ################################################################################
 # Debugging Options                                                            #
 ################################################################################
@@ -167,8 +172,11 @@ set(TSAN_OPTIONS
   )
 
 
-set(LIBRA_SAN_DEV_DEFAULT "NONE")
-set(LIBRA_SAN_OPT_DEFAULT "NONE")
+set(LIBRA_SAN_DEFAULT "NONE")
+
+if (NOT LIBRA_SAN)
+  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
+endif()
 
 # Only enable sanitizers by default for DEV builds and if they are not
 # specified on the cmdline

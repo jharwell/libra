@@ -1,4 +1,6 @@
-.. _ln-cxx-dev-guide:
+.. SPDX-License-Identifier:  MIT
+
+.. _ln-libra-cxx-dev-guide:
 
 =====================
 C++ Development Guide
@@ -11,6 +13,53 @@ though there are many parts which are ignored.
 In general, follow the Google C++ style guide (unless something below
 contradicts it, then go with what is below).
 
+THE GOLDEN RULE
+===============
+
+From the GNOME developer site::
+
+  The single most important rule when writing code is this: check the
+  surrounding code and try to imitate it.
+
+  As a maintainer it is dismaying to receive a patch that is obviously in a
+  different coding style to the surrounding code. This is disrespectful, like
+  someone tromping into a spotlessly-clean house with muddy shoes.
+
+  So, whatever this document recommends, if there is already written code and
+  you are patching it, keep its current style consistent even if it is not your
+  favorite style.
+
+This style guide is always a work in progress, so you may encounter code written
+against older versions of it: update it incrementally/locally if possible to the
+latest version. If you can't do so easily (i.e., it would be a extra refactoring
+task), then stick with the original style unless you _know_ are going to be
+changing more than 50% of a file, then go ahead and update.
+
+Commandments
+============
+
+These are higher-level stylistic advice which has been hard-fought and
+hard-won. Ignore them at your peril; read: FOLLOW THEM.
+
+#. Thou shalt include configurable debugging/logging statements in thy
+   code. Thy statements shall be subject to conditional compilation to turn
+   off/on in release/debug builds, as well as configurable the verbosity of the
+   logger for each class/module/whatever can be turned changed independently.
+
+#. Thy debugging/logging statements shall be of sufficient quality that **NO
+   ADDITIONAL** ``printf()/std::cout/std::cerr`` statements are required to
+   debug ANY problem in the code. This makes in MUCH easier to triage and fix
+   errors that other people find with your code.
+
+#. Thou shalt strive to make thy code "correct by construction". This includes:
+
+   - Use of ``static_assert()`` to check template requirements at compile time.
+
+   - Putting ``assert()`` statements throughout thy code (probably in a macro
+     with a logging statement which is triggered on failure). These statements
+     can be easily compiled away in release builds, AND give thou confidence
+     that when thy code is running without crashing, it is running correctly.
+
 Coding Style
 ============
 
@@ -21,21 +70,28 @@ Files
   ``.hpp`` extension (not a ``.h`` extension), to clearly distinguish them from
   C code, and not to confuse the tools used.
 
+- Don't use ``#ifndef FOO_HPP`` followed by ``#define FOO_HPP``--use ``#pragma
+  once`` instead. It is supported by all major compilers, and makes header files
+  way easier to move around without mind-numbing refactoring.
+
 - Exactly one class/struct definition per ``.cpp``\/``.hpp`` file, unless there
   is a very good reason to do otherwise. class/struct definitions nested within
   other classes/structs are exempt from this rule, but their use should still be
   minimized and well documented if they reside in the ``public`` part of the
   enclosing class.
 
-- The namespace hierarchy exactly corresponds to the directory hierarchy that
-  the source/header files for classes can be found in.
+- If a C++ file lives under ``src/my_module/my_file.cpp`` then its corresponding
+  include file is found under ``include/<repo_name>/my_module/my_file.hpp``
+  (same idea for C, but with the corresponding extensions). This is the
+  Principle of Least Surprise, and makes it as easy as possible for people
+  unfamiliar with the code to find stuff in it.
 
 Naming
 ------
 
 - All file, class, variable, enum, namespace, etc. names are
   ``specified_like_this``, NOT ``specifiedLikeThis`` or
-  ``SpecifiedLikeThis``. Rationale: Most of the time you shouldnot really need
+  ``SpecifiedLikeThis``. Rationale: Most of the time you should not really need
   to know whether the thing in between ``::`` is a class, namespace, enum,
   etc. You really only need to know what operations it has. This also makes the
   code play nicely with the STL/boost from a readability point of view.
@@ -120,8 +176,14 @@ Class Layout
 Miscellaneous
 -------------
 
+- Use spaces NOT tabs.
+
 - Always use strongly typed enums (class enums) whenever possible to avoid name
   collisions. Sometimes this is not possible without extensive code contortions.
+
+- When testing ``==/!=`` with a CONSTANT, the constant goes on the lhs, because
+  that way if you mistype and only put a single ``=`` you'll get a compiler
+  error rather than it (maybe) silently compiling into a bug.
 
 - Non-const static variables should be avoided.
 
@@ -129,6 +191,23 @@ Miscellaneous
 
 - Class nesting should be avoided, unless it is an internal convenience
   ``struct`` to hold related data.
+
+- Don't use ``//`` style comments--use ``/* */`` style comments. This is
+  because (1) the generally force you NOT to put stuff at the end of a line
+  where it is more likely to hamper readability/be missed by the reader, and (2)
+  they are easier to reader because they are symmetric.
+
+- When a ``/* */`` style comment is over one line, format it symmetrically, like
+  so, to improve readability::
+
+    /* A one-line comment */
+    int a = 4;
+
+    /*
+     * A much longer comment that is easier to read because it is symmetrically
+     * written.
+     */
+    int b = 7;
 
 Linting
 =======
@@ -167,7 +246,7 @@ Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
   parameters are primitive types the compiler will silently convert (a
   ``double`` is passed where an ``int`` is expected, for example), then the
   constructor should be made to take a pointer/lvalue reference/rvalue reference
-  to a parameter struct containing tnhe primitive members, in order to reduce
+  to a parameter struct containing the primitive members, in order to reduce
   the chance of subtle bugs due to silent primitive conversions if the order of
   two of the parameters is swapped at the call site.
 
@@ -221,10 +300,11 @@ Documentation
     - A detailed description for non-casual users of the class
 
 - All non-getter/non-setter member functions should be documentated with at
-  least a brief, UNLESS those functions are overrides/inherited from a parent
-  class, in which case they should be left blank (usually) and their
+  least a ``\brief``, UNLESS those functions are overrides/inherited from a
+  parent class, in which case they should be left blank (usually) and their
   documentation be in the class in which they are initially declared. All
-  parameters should be documented.
+  non-obvious parameters should be documented, including if they are ``[in]`` or
+  ``[out]``.
 
 Tricky/nuanced issues with member variables should be documented, though in
 general the namespace name + class name + member variable name + member variable

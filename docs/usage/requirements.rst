@@ -1,3 +1,7 @@
+.. SPDX-License-Identifier:  MIT
+
+.. _ln-libra-req:
+
 =========================
 Requirements to use LIBRA
 =========================
@@ -25,9 +29,14 @@ Platform Requirements
 - icpc/icc >= 18.0. Only required if you want to use the Intel
   compilers. If you want to use another compiler, this is not required.
 
-- clang/clang++ >= 8.0. Only required if you want to use the LLVM compilers or
+- clang/clang++ >= 10.0. Only required if you want to use the LLVM compilers or
   any of the static checkers. If you want to use another compiler, this is not
   required.
+
+- nvcc >= 11.5. Only required if you want to use the NVIDIA CUDA compilers. If
+  you want to use another compiler, this is not required.
+
+- lcov if you want to do code coverage.
 
 Compiler Support
 ================
@@ -35,15 +44,15 @@ Compiler Support
 - ``g++/gcc``
 - ``clang++/clang``
 - ``icpc/icc``
+- ``nvcc``
 
 A recent version of any supported compiler can be selected as the
-``CMAKE_CXX_COMPILER`` via command line [Default=``g++``]. The correct compile
-options will be populated (as in the ones defined in the corresponding .cmake
-files in this repository). Same for ``CMAKE_C_COMPILER``. Note that the C and
-CXX compiler vendors should always match, in order to avoid strange build
-issues.
+``CMAKE_<LANG>_COMPILER`` via command line. The correct compile options will be
+populated (as in the ones defined in the corresponding .cmake files in this
+repository). Note that the C and CXX compiler vendors should always match, in
+order to avoid strange build issues.
 
-.. IMPORTANT:: If you are want to use the intel compiler suite, you will have to
+.. IMPORTANT:: If you are want to use the Intel compiler suite, you will have to
                download and install it from Intel's website. It installs to a
                non-standard location, so prior to being able to use it in the
                terminal like clang or gcc, you will need to source the compiler
@@ -61,42 +70,42 @@ All tools must have  <= version <= 14.0.
 
 - clang-tidy (``clang-tidy-14``).
 
-Assumptions
-===========
 
-LIBRA makes the following assumptions about all code repositories it is used as
-the build framework for:
+.. _ln-libra-req-assumptions:
+
+Repository/Code Structure
+=========================
+
+Requirements
+------------
 
 - All C++ source files end in ``.cpp``, and all C++ header files end in ``.hpp``
-  (which they should if you are following the :ref:`ln-cxx-dev-guide`).
+  (which they should if you are following the :ref:`ln-libra-cxx-dev-guide`).
 
-- All C source files end in ``.c`` and all C header files end in ``.h``.
+- All C source files end in ``.c`` and all C header files end in ``.h`` (which
+  they should if you are following the :ref:`ln-libra-c-dev-guide`).
+
+- All CUDA source files end in ``.cu`` and all CUDA header files end in
+  ``.cuh`` (which they should if you are following the
+  :ref:`ln-libra-cuda-dev-guide`).
 
 - All source files for a repository must live under ``src/`` in the root.
 
-- All include files for a repository must live under ``include/<repo_name>`` in
-  the root.
-
 - All tests (either C or C++) for a project/submodule must live under the
   ``tests/`` directory in the root of the project, and should end in
-  ``-test.cpp`` so it is clear they are not source files.
-
-- If a C++ file lives under ``src/my_module/my_file.cpp`` then its corresponding
-  include file is found under ``include/<repo_name>/my_module/my_file.hpp``
-  (same idea for C, but with the corresponding extensions).
+  ``-test.cpp`` or ``-test.c`` so it is clear they are not source files.
 
 - All projects must include THIS repository as a submodule under ``libra/`` in
   the project root, and link a ``CmakeLists.txt`` in the root of the repository
   to the ``libra/cmake/project.cmake`` file in this repository.
 
-- All projects must include a ``project-local.cmake`` in the root of the
-  repository containing any project specific bits (i.e. adding subdirectories,
-  what libraries to create, etc.).Within it, the following variables can be set
-  to affect configuration:
+- If ``LIBRA_DOCS=ON``, project documentation lives under ``<repo_name>/docs``,
+  with a ``docs/Doxyfile.in`` defined to generate doxygen documentation.
 
-  - ``set(${target}_CHECK_LANGUAGE "value")``. This should be specified BEFORE
-    any subdirectories, external projects, etc. are specified. ``${target}`` is
-    a variable handed to the project local file specifying the name of the
-    executable/library to create. The ``"value"`` can be either "C" or "C++",
-    and defines the language that the different checkers will use for checking
-    the project.
+- All projects must include a ``cmake/project-local.cmake`` in the root of the
+  repository containing any project specific bits (i.e. adding subdirectories,
+  what libraries to create, etc.). See :ref:`ln-libra-project-local` for how to
+  structure this file.
+
+- ``LIBRA_DOCS`` - Override the default value of ``YES`` if your project does
+  not have docs.

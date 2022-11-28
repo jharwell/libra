@@ -1,3 +1,8 @@
+#
+# Copyright 2022 John Harwell, All rights reserved.
+#
+# SPDX-License Identifier:  MIT
+#
 include(${CMAKE_CURRENT_LIST_DIR}/cppcheck.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/clang_tidy.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/clang_format.cmake)

@@ -1,9 +1,11 @@
+.. SPDX-License-Identifier:  MIT
+
 =======================================
 Luigi Build Reusable Automation (LIBRA)
 =======================================
 
-.. |license| image:: https://img.shields.io/badge/License-GPLv3-blue.svg
-             :target: https://www.gnu.org/licenses/gpl-3.0
+.. |license| image:: https://img.shields.io/github/license/jharwell/libra
+                     :target: https://img.shields.io/github/license/jharwell/libra
 
 .. |docs| image:: https://readthedocs.org/projects/libra2/badge/?version=master
                   :target: https://libra2.readthedocs.io/en/master/?badge=master
@@ -15,4 +17,4 @@ for nested/flat C/C++ projects (even mixing the two), and provides resuable
 build "plumbing" that can be transferred without modification between projects.
 
 
-Project documentation is `here <https://libra2.readthedocs.io/en/master>`_.
+Project documentation is `here <https://libra2.readthedocs.io/en/master)>`_.
