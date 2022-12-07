@@ -48,6 +48,7 @@ include(custom-cmds)
 include(components)
 include(install)
 include(uninstall)
+include(version)
 
 if (LIBRA_CODE_COV)
   include(coverage)
@@ -194,3 +195,4 @@ endif()
 if (NOT ${LIBRA_SHOWED_CONFIG})
   libra_config_summary()
 endif()
+
