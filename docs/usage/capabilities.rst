@@ -228,6 +228,10 @@ the following additional capabilities via targets:
 
      - Run all of the tests for the project via ``ctest``.
 
+   * - ``apidoc``
+
+     - Generate the API documentation.
+
    * - ``coverage-report``
 
      - Run ``lcov`` to generate a code coverage report (presumably from the

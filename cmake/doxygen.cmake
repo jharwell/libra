@@ -15,19 +15,20 @@ if (DOXYGEN_FOUND)
       # request to configure the file
       configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
 
-      add_custom_target(${PROJECT_NAME}-documentation
+      add_custom_target(${PROJECT_NAME}-apidoc
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Generating ${PROJECT_NAME} API documentation with Doxygen" VERBATIM)
 
-      add_custom_target(documentation
+      add_custom_target(apidoc
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-      # To build ALL documentation recursively.
-      add_dependencies(documentation ${PROJECT_NAME}-documentation)
+
+      # To build ALL API documentation recursively.
+      add_dependencies(apidoc ${PROJECT_NAME}-apidoc)
   else()
     message(WARNING "Doxygen found but ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in does not exist")
   endif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in")
 else()
-  message(WARNING "Doxygen needs to be installed to generate the documentation!")
+  message(WARNING "Doxygen needs to be installed to generate the API documentation!")
 endif(DOXYGEN_FOUND)
