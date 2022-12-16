@@ -12,7 +12,7 @@ include(custom-cmds)
 # sources to include for a particular project/library).
 #
 ################################################################################
-function(component_register_as_src
+function(libra_component_register_as_src
     enabled_component_SRC
     TARGET
     TARGET_SRC
@@ -28,7 +28,7 @@ endfunction()
 #
 # Adds sources matching the regex into a library representing the component.
 ################################################################################
-function(component_register_as_lib
+function(libra_component_register_as_lib
     TARGET
     TARGET_SRC
     component_name
@@ -53,7 +53,7 @@ endfunction()
 ################################################################################
 # Check all requested components from the TARGET
 ################################################################################
-function(requested_components_check
+function(libra_requested_components_check
     TARGET)
   message(CHECK_START "Finding ${TARGET} components")
   unset(${TARGET}_MISSING_COMPONENTS)

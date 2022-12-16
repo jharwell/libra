@@ -232,6 +232,12 @@ the following additional capabilities via targets:
 
      - Generate the API documentation.
 
+   * - ``package``
+
+     - Build one or more deployable packages using CPACK. Requires
+       ``libra_configure_cpack()`` to have been called in
+       ``project-local.cmake``.
+
    * - ``coverage-report``
 
      - Run ``lcov`` to generate a code coverage report (presumably from the

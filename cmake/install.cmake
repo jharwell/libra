@@ -4,9 +4,16 @@
 # SPDX-License Identifier:  MIT
 #
 ################################################################################
-# Exports Configuration                                                        #
+# Exports Configuration
 ################################################################################
-function(configure_exports_as TARGET PREFIX)
+
+################################################################################
+# Configure the exports for a TARGET to be installed at PREFIX
+#
+# Enables the installed project to then be used with find_package()
+#
+################################################################################
+function(libra_configure_exports_as TARGET PREFIX)
   include(CMakePackageConfigHelpers)
 
   # Project exports file (i.e., the file which defines everything
@@ -28,9 +35,14 @@ function(configure_exports_as TARGET PREFIX)
     )
 endfunction()
 
-function(register_extra_configs_for_install TARGET FILE PREFIX)
+################################################################################
+# Register extra files for a TARGET to be installed at PREFIX
+#
+# Can be any file, but SHOULD be .cmake files if your project has
+# reusable functionality you want to expose to child projects.
+function(libra_register_extra_configs_for_install TARGET FILES PREFIX)
 install(
-  FILES ${FILE}
+  FILES ${FILES}
   DESTINATION "${PREFIX}/lib/cmake/${TARGET}"
   )
 endfunction()
@@ -38,7 +50,7 @@ endfunction()
 ################################################################################
 # Installation Options                                                         #
 ################################################################################
-function(register_headers_for_install DIRECTORY PREFIX)
+function(libra_register_headers_for_install DIRECTORY PREFIX)
   install(
     DIRECTORY ${DIRECTORY}
     DESTINATION ${PREFIX}/include
@@ -48,7 +60,7 @@ function(register_headers_for_install DIRECTORY PREFIX)
     )
 endfunction()
 
-function(register_target_for_install TARGET PREFIX)
+function(libra_register_target_for_install TARGET PREFIX)
 # Install .so and .a libraries
 install(
   # Install the target
@@ -65,24 +77,4 @@ install(
   DESTINATION ${PREFIX}/lib/cmake/${TARGET}
   NAMESPACE ${TARGET}::
   )
-endfunction()
-
-################################################################################
-# CPack Options                                                                #
-################################################################################
-function (configure_cpack)
-  # Bare-bones project metadata
-  set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
-  set(CPACK_RESOURCE_FILE_README "${CMAKE_SOURCE_DIR}/README.md")
-  set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-  set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-  set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-
-  set(CPACK_GENERATOR "DEB")
-
-  # Compute the .deb packages that this target needs
-  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-
-  include(CPack)
-
 endfunction()

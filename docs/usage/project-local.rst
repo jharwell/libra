@@ -11,6 +11,10 @@ can put WHATEVER you want in this file--all the usual cmake stuff--drawing on
 predefined things in LIBRA to make your life easier. For what things LIBRA
 defines for you to use in this file, see below.
 
+.. NOTE:: All cmake functions which LIBRA exposes are prefixed with ``libra_``;
+          all other functions should be considered not part of the API can can
+          change at any time.
+
 Variables
 =========
 
@@ -58,4 +62,34 @@ cmake. Some useful functions available in ``project-local.cmake`` are:
 Installation
 ============
 
-TODO!
+- ``libra_configure_exports_as(TARGET PREFIX)`` - Configure the exports for a
+  ``TARGET`` to be installed at ``PREFIX`` such that it can be used by *other*
+  projects via ``find_package()``.
+
+- ``libra_register_extra_configs_for_install(TARGET FILE PREFIX)`` - Configure
+  additional ``.cmake`` files for export. Useful if your project provides some
+  reusable cmake functionality that you want child projects to also be able to
+  access.
+
+- ``libra_register_headers_for_install(DIRECTORY PREFIX)`` - Register all
+  headers (``.h`` or ``.hpp``) under ``DIRECTORY`` to be installed at ``PREFIX``
+  and associated with the necessary exports file so child projects can find it.
+
+- ``libra_register_target_for_install(TARGET PREFIX)`` - Register ``TARGET`` to
+  be installed at ``PREFIX``, and associated with the necessary exports file so
+  child projects can find it.
+
+Deployment
+==========
+
+- ``libra_configure_cpack(GENERATORS DESCRIPTION VENDOR HOMEPAGE CONTACT)`` -
+  Configure CPack to run the list of ``GENERATORS`` (if more than 1, must be
+  separated by ``;``) via ``make package``. Can be:
+
+  - ``TGZ`` - A tarball.
+
+  - ``DEB`` - A Debian archive.
+
+
+  If ``DEB`` is in the list of generators, then ``DESCRIPTION, VENDOR, HOMEPAGE,
+  CONTACT`` fields are required. Otherwise, they are ignored.

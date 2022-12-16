@@ -47,6 +47,7 @@ include(build-modes)
 include(custom-cmds)
 include(components)
 include(install)
+include(deploy)
 include(uninstall)
 include(version)
 
