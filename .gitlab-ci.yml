@@ -1,0 +1,33 @@
+default:
+  image: ubuntu:22.04
+
+# Run these commands before all jobs
+before_script:
+  - DEBIAN_FRONTEND=noninteractive apt-get update -y
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y git curl ssh catch make python3-pip
+
+# If all tests pass, deploy.
+stages:
+  - package-and-deploy
+
+################################################################################
+# Job to build documentation
+################################################################################
+pages:
+  stage: package-and-deploy
+  tags:
+    - docker
+
+  only:
+    - master
+    - devel
+
+  script:
+    - pip3 install sphinx docutils==0.16 sphinx-rtd-theme sphinx-last-updated-by-git
+    - export PATH=$PATH:$HOME/.local/bin
+    - cd docs && make html && cd ..
+    - cp -r docs/_build/html/ ./public/
+
+  artifacts:
+    paths:
+      - public
