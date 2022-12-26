@@ -37,6 +37,9 @@ that ``cmake`` uses, because they did not do what I wanted.
   optimizations (``O2``), which is separate from enabled automatic/OpenMP based
   paralellization. Defines ``NDEBUG``.
 
+If you don't select one via ``-DCMAKE_BUILD_TYPE=XXX`` at configure time, you
+get ``DEV``.
+
 Configuring The Build Process
 -----------------------------
 

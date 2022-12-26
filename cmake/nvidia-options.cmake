@@ -17,6 +17,8 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
   set(LIBRA_OPT_LEVEL -Og)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(LIBRA_OPT_LEVEL -O2)
+else()
+  message(FATAL_ERROR "Bad build type: Must be [DEV, DEVOPT, OPT].")
 endif()
 
 set(BASE_OPT_OPTIONS

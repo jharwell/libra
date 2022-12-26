@@ -41,9 +41,14 @@ set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL INHERIT)
 set(FPC FPC_TYPE="${LIBRA_FPC}")
 
 include(colorize)
-include(compile-options)
 include(reporting)
+
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "DEV")
+endif()
+include(compile-options) # Must be before build modes to populate options
 include(build-modes)
+
 include(custom-cmds)
 include(components)
 include(install)
@@ -65,11 +70,6 @@ set_policy(CMP0072 NEW) # Prefer modern OpenGL
 ################################################################################
 # Project Configuration
 ################################################################################
-if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "DEV")
-endif()
-
-
 if (NOT DEFINED LIBRA_DEPS_PREFIX)
   if(CMAKE_CROSSCOMPILING)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/${CMAKE_SYSTEM_PROCESSOR})

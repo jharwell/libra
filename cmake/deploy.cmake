@@ -41,6 +41,10 @@ function (libra_configure_cpack
     message(WARNING "No README file found: tried README*")
   endif()
 
+  if(NOT CPACK_PACKAGE_INSTALL_DIRECTORY)
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/local")
+  endif()
+  
   set(CPACK_RESOURCE_FILE_LICENSE "${LICENSE}")
   set(CPACK_RESOURCE_FILE_README "${README}")
   set(CPACK_PACKAGE_VENDOR "${VENDOR}")
@@ -60,7 +64,7 @@ function (libra_configure_cpack
   EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
   set(CPACK_PACKAGE_FILE_NAME
     ${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${ARCHITECTURE})
-  
+
   if("${GENERATORS}" MATCHES "DEB")
     # Compute the .deb packages that this target needs
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)

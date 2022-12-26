@@ -17,6 +17,8 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
   set(LIBRA_OPT_LEVEL -Og)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(LIBRA_OPT_LEVEL -O2)
+else()
+  message(FATAL_ERROR "Bad build type: Must be [DEV, DEVOPT, OPT].")
 endif()
 
 set(BASE_OPT_OPTIONS
@@ -207,3 +209,15 @@ endif()
 if(LIBRA_VALGRIND_BUILD)
   set(LIBRA_VALGRIND_BUILD_OPTIONS "-mno-sse3")
 endif()
+
+################################################################################
+# Filtering build flags for versioning
+#
+# - No warnings, since they have no effect on the build
+# - Include -D, -O -g flags
+# - Include -m[arch|tune], -flto, anything with 'math' in in it
+# - Include -fopenmp, anything with 'sanitize' in it.
+# - Include anything with 'profile' or 'coverage' in it.
+# - Include anything with 'stack', 'frame', or 'optimize' in it.
+################################################################################
+set(LIBRA_BUILD_FLAGS_FILTER_REGEX "-[D]|[O]|[g][0-9+]|march|mtune|flto|math|rename|openmp|sanitize|profile|coverage|stack|frame|optimize.*")

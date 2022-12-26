@@ -4,12 +4,12 @@
 # SPDX-License Identifier:  MIT
 #
 ################################################################################
-# Debugging Options                                                            #
+# Debugging Options
 ################################################################################
 set(LIBRA_DEBUG_OPTIONS "-g2")
 
 ################################################################################
-# Optimization Options                                                         #
+# Optimization Options
 ################################################################################
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
   set(LIBRA_OPT_LEVEL -O0)
@@ -17,6 +17,8 @@ elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
   set(LIBRA_OPT_LEVEL -Og)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(LIBRA_OPT_LEVEL -O2)
+else()
+  message(FATAL_ERROR "Bad build type: Must be [DEV, DEVOPT, OPT].")
 endif()
 
 include(ProcessorCount)
@@ -60,7 +62,7 @@ endif()
 
 
 ################################################################################
-# Diagnostic Options                                                           #
+# Diagnostic Options
 ################################################################################
 set(BASE_DIAG_OPTIONS
   -fdiagnostics-color=always
@@ -127,7 +129,7 @@ set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   )
 
 ################################################################################
-# Checking Options                                                             #
+# Checking Options
 ################################################################################
 set(MSAN_OPTIONS
   -fno-omit-frame-pointer
@@ -224,7 +226,7 @@ set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 
 ################################################################################
-# Profiling Options                                                            #
+# Profiling Options
 ################################################################################
 set(BASE_PGO_GEN_OPTIONS
   -fprofile-generate
@@ -244,7 +246,7 @@ if (LIBRA_PGO_USE)
 endif()
 
 ################################################################################
-# Profiling Options                                                            #
+# Profiling Options
 ################################################################################
 set(BASE_PGO_GEN_OPTIONS
   -fprofile-generate
@@ -264,10 +266,10 @@ if (LIBRA_PGO_USE)
 endif()
 
 ################################################################################
-# Code Coverage Options                                                        #
+# Code Coverage Options
 ################################################################################
 set(BASE_CODE_COV_OPTIONS
-  # synonym for "-fprofile-arcs -ftest-coverage" when compiling and "-lgcov"
+  # Alias for "-fprofile-arcs -ftest-coverage" when compiling and "-lgcov"
   # when linking
   --coverage
   )
@@ -278,8 +280,20 @@ if (LIBRA_CODE_COV)
 endif()
 
 ################################################################################
-# Valgrind Compatibility Options                                               #
+# Valgrind Compatibility Options
 ################################################################################
 if(LIBRA_VALGRIND_COMPAT)
   set(LIBRA_VALGRIND_COMPAT_OPTIONS "-mno-sse3")
 endif()
+
+################################################################################
+# Filtering build flags for versioning
+#
+# - No warnings, since they have no effect on the build
+# - Include -D, -O -g flags
+# - Include -m[arch|tune], -flto, anything with 'math' in in it
+# - Include -fopenmp, anything with 'sanitize' in it.
+# - Include anything with 'profile' or 'coverage' in it.
+# - Include anything with 'stack', 'frame', or 'optimize' in it.
+################################################################################
+set(LIBRA_BUILD_FLAGS_FILTER_REGEX "-[D]|[O]|[g][0-9+]|march|mtune|flto|math|rename|openmp|sanitize|profile|coverage|stack|frame|optimize.*")

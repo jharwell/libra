@@ -6,7 +6,7 @@
 ################################################################################
 # Development Mode                                                             #
 ################################################################################
-set(DEV_CFLAGS "")
+set(LIBRA_C_FLAGS_DEV "")
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -19,15 +19,15 @@ foreach(arg
     ${LIBRA_C_PGO_GEN_OPTIONS}
     ${LIBRA_C_PGO_USE_OPTIONS}
     ${LIBRA_C_CODE_COV_OPTIONS}
-    ${CC_DEV_DEFS})
-  set(DEV_CFLAGS "${DEV_CFLAGS} ${arg}")
+    ${LIBRA_COMMON_DEV_DEFS})
+  set(LIBRA_C_FLAGS_DEV "${LIBRA_C_FLAGS_DEV} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_DEV ${DEV_CFLAGS} CACHE STRING
+set(CMAKE_C_FLAGS_DEV ${LIBRA_C_FLAGS_DEV} CACHE STRING
   "Flags used by the C compiler during development builds."
   FORCE)
 
-set(DEV_CXXFLAGS "")
+set(LIBRA_CXX_FLAGS_DEV "")
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -40,18 +40,18 @@ foreach(arg
     ${LIBRA_CXX_PGO_GEN_OPTIONS}
     ${LIBRA_CXX_PGO_USE_OPTIONS}
     ${LIBRA_CXX_CODE_COV_OPTIONS}
-    ${CC_DEV_DEFS})
-  set(DEV_CXXFLAGS "${DEV_CXXFLAGS} ${arg}")
+    ${LIBRA_COMMON_DEV_DEFS})
+  set(LIBRA_CXX_FLAGS_DEV "${LIBRA_CXX_FLAGS_DEV} ${arg}")
 endforeach(arg)
 
-set(CMAKE_CXX_FLAGS_DEV ${DEV_CXXFLAGS} CACHE STRING
+set(CMAKE_CXX_FLAGS_DEV ${LIBRA_CXX_FLAGS_DEV} CACHE STRING
   "Flags used by the CXX compiler during development builds."
   FORCE)
 
 ################################################################################
 # Development Optimized Mode                                                   #
 ################################################################################
-set(DEVOPT_CFLAGS "")
+set(LIBRA_C_FLAGS_DEVOPT "")
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -64,15 +64,15 @@ foreach(arg
     ${LIBRA_C_PGO_GEN_OPTIONS}
     ${LIBRA_C_PGO_USE_OPTIONS}
     ${LIBRA_C_CODE_COV_OPTIONS}
-    ${CC_DEVOPT_DEFS})
-  set(DEVOPT_CFLAGS "${DEVOPT_CFLAGS} ${arg}")
+    ${LIBRA_COMMON_DEVOPT_DEFS})
+  set(LIBRA_C_FLAGS_DEVOPT "${LIBRA_C_FLAGS_DEVOPT} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_DEVOPT ${DEVOPT_CFLAGS} CACHE STRING
+set(CMAKE_C_FLAGS_DEVOPT ${LIBRA_C_FLAGS_DEVOPT} CACHE STRING
   "Flags used by the C compiler during devopt builds."
   FORCE)
 
-set(DEVOPT_CXXFLAGS "")
+set(LIBRA_CXX_FLAGS_DEVOPT "")
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -85,18 +85,18 @@ foreach(arg
     ${LIBRA_CXX_PGO_GEN_OPTIONS}
     ${LIBRA_CXX_PGO_USE_OPTIONS}
     ${LIBRA_CXX_CODE_COV_OPTIONS}
-    ${CC_DEVOPT_DEFS})
-  set(DEVOPT_CXXFLAGS "${DEVOPT_CXXFLAGS} ${arg}")
+    ${LIBRA_COMMON_DEVOPT_DEFS})
+  set(LIBRA_CXX_FLAGS_DEVOPT "${LIBRA_CXX_FLAGS_DEVOPT} ${arg}")
 endforeach(arg)
 
-set(CMAKE_CXX_FLAGS_DEVOPT ${DEVOPT_CXXFLAGS} CACHE STRING
+set(CMAKE_CXX_FLAGS_DEVOPT ${LIBRA_CXX_FLAGS_DEVOPT} CACHE STRING
   "Flags used by the CXX compiler during devopt builds."
   FORCE)
 
 ################################################################################
 # Optimized Mode                                                               #
 ################################################################################
-set(OPT_CFLAGS "")
+set(LIBRA_C_FLAGS_OPT "")
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -110,15 +110,15 @@ foreach(arg
     ${LIBRA_C_PGO_GEN_OPTIONS}
     ${LIBRA_C_PGO_USE_OPTIONS}
     ${LIBRA_C_CODE_COV_OPTIONS}
-    ${CC_OPT_DEFS})
-  set(OPT_CFLAGS "${OPT_CFLAGS} ${arg}")
+    ${LIBRA_COMMON_OPT_DEFS})
+  set(LIBRA_C_FLAGS_OPT "${LIBRA_C_FLAGS_OPT} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_OPT ${OPT_CFLAGS} CACHE STRING
+set(CMAKE_C_FLAGS_OPT ${LIBRA_C_FLAGS_OPT} CACHE STRING
   "Flags used by the C compiler during optimized builds."
   FORCE)
 
-set(OPT_CXXFLAGS "")
+set(LIBRA_CXX_FLAGS_OPT "")
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -132,10 +132,10 @@ foreach(arg
     ${LIBRA_CXX_PGO_GEN_OPTIONS}
     ${LIBRA_CXX_PGO_USE_OPTIONS}
     ${LIBRA_CXX_CODE_COV_OPTIONS}
-    ${CC_OPT_DEFS})
-  set(OPT_CXXFLAGS "${OPT_CXXFLAGS} ${arg}")
+    ${LIBRA_COMMON_OPT_DEFS})
+  set(LIBRA_CXX_FLAGS_OPT "${LIBRA_CXX_FLAGS_OPT} ${arg}")
 endforeach(arg)
-set(CMAKE_CXX_FLAGS_OPT ${OPT_CXXFLAGS} CACHE STRING
+set(CMAKE_CXX_FLAGS_OPT ${LIBRA_CXX_FLAGS_OPT} CACHE STRING
   "Flags used by the C++ compiler during optimized builds."
   FORCE)
 

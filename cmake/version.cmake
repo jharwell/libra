@@ -21,37 +21,46 @@
 #
 function(libra_configure_version INFILE OUTFILE)
   execute_process(COMMAND git log --pretty=format:%H -n 1
-    OUTPUT_VARIABLE GIT_REV
+    OUTPUT_VARIABLE LIBRA_GIT_REV
     ERROR_QUIET)
 
   # Check whether we got any revision (which isn't
   # always the case, e.g. when someone downloaded a zip
   # file from Github instead of a checkout)
-  if ("${GIT_REV}" STREQUAL "")
+  if ("${LIBRA_GIT_REV}" STREQUAL "")
     message(WARNING "Stubbing version information--no git revision")
-    set(GIT_REV "N/A")
-    set(GIT_DIFF "")
-    set(GIT_TAG "N/A")
-    set(GIT_BRANCH "N/A")
+    set(LIBRA_GIT_REV "N/A")
+    set(LIBRA_GIT_DIFF "")
+    set(LIBRA_GIT_TAG "N/A")
+    set(LIBRA_GIT_BRANCH "N/A")
   else()
     execute_process(
       COMMAND bash -c "git diff --quiet --exit-code || echo +"
-      OUTPUT_VARIABLE GIT_DIFF)
+      OUTPUT_VARIABLE LIBRA_GIT_DIFF)
     execute_process(
       COMMAND git describe --exact-match --tags
-      OUTPUT_VARIABLE GIT_TAG ERROR_QUIET)
+      OUTPUT_VARIABLE LIBRA_GIT_TAG ERROR_QUIET)
     execute_process(
       COMMAND git rev-parse --abbrev-ref HEAD
-      OUTPUT_VARIABLE GIT_BRANCH)
+      OUTPUT_VARIABLE LIBRA_GIT_BRANCH)
 
-    string(STRIP "${GIT_REV}" GIT_REV)
-    # string(SUBSTRING "${GIT_REV}" 1 7 GIT_REV)
-    string(STRIP "${GIT_DIFF}" GIT_DIFF)
-    string(STRIP "${GIT_TAG}" GIT_TAG)
-    string(STRIP "${GIT_BRANCH}" GIT_BRANCH)
+    string(STRIP "${LIBRA_GIT_REV}" LIBRA_GIT_REV)
+    string(STRIP "${LIBRA_GIT_DIFF}" LIBRA_GIT_DIFF)
+    string(STRIP "${LIBRA_GIT_TAG}" LIBRA_GIT_TAG)
+    string(STRIP "${LIBRA_GIT_BRANCH}" LIBRA_GIT_BRANCH)
   endif()
+  # Filter out flags which don't affect the build at all
+  set(LIBRA_C_FLAGS_BUILD ${LIBRA_C_FLAGS_${CMAKE_BUILD_TYPE}})
+  separate_arguments(LIBRA_C_FLAGS_BUILD NATIVE_COMMAND "${LIBRA_C_FLAGS_BUILD}")
+  list(FILTER LIBRA_C_FLAGS_BUILD INCLUDE REGEX "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
 
+  set(LIBRA_CXX_FLAGS_BUILD ${LIBRA_CXX_FLAGS_${CMAKE_BUILD_TYPE}})
+  separate_arguments(LIBRA_CXX_FLAGS_BUILD NATIVE_COMMAND "${LIBRA_CXX_FLAGS_BUILD}")
+  list(FILTER LIBRA_CXX_FLAGS_BUILD INCLUDE REGEX "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
+
+  # Write the file
   configure_file(${INFILE} ${OUTFILE})
 
+  # Make sure we compile the file
   list(APPEND ${PROJECT_NAME}_SRC ${OUTFILE})
 endfunction()

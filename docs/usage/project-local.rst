@@ -46,11 +46,12 @@ LIBRA also provides the following additional variables which can be used:
 
   - ``${PROJECT_NAME}_CXX_HEADERS`` - Glob containing all C++ header files.
 
-Diagnostics
-===========
+Build and Run-time Diagnostics
+==============================
 
-LIBRA provides a number of functions/macros to simplify the complexity of
-cmake. Some useful functions available in ``project-local.cmake`` are:
+LIBRA provides a number of functions/macros to simplify the complexity of cmake,
+and answer questions such as "am I really building/running what I think I
+am?". Some useful functions available in ``project-local.cmake`` are:
 
 - ``libra_config_summary()`` - Will print a nice summary of its variables to the
   terminal. Helps debug the inevitable "Did I actually set the variable I
@@ -58,6 +59,39 @@ cmake. Some useful functions available in ``project-local.cmake`` are:
   when you invoke your chosen build engine. You can put it at the end of
   ``project-local.cmake`` if you want; otherwise LIBRA will run it at the end of
   the configure step.
+
+- ``libra_configure_version(INFILE OUTFILE)`` - Use build information from LIBRA
+  to population a source file of your choosing which you can then print out when
+  your library loads/application starts as a sanity check during debugging that
+  you are running what you think you are. LIBRA automatically adds this file to
+  the list of files to compile for the project.
+
+  Available LIBRA variables for population by cmake in your source file are:
+
+  - ``LIBRA_GIT_REV`` - git SHA of the current tip; result of ``git log
+    --pretty-format:%H -n 1``.
+
+  - ``LIBRA_GIT_DIFF`` - Indicate if the build is "dirty"; i.e., if it contains
+    local changes not in git. Result of ``git diff --quiet --exit-code || echo
+    +``.
+
+  - ``LIBRA_GIT_TAG`` - The current git tag for the git rev, if any; result of
+    ``git describe --exact-match --tags``.
+
+  - ``LIBRA_GIT_BRANCH`` - The current git branch, if any; result of ``git
+    rev-parse --abbrev-ref HEAD``.
+
+  - ``LIBRA_C_FLAGS_BUILD`` - The configured C compiler flags relevant for
+    building (e.g., no ``-W`` flags) .
+
+  - ``LIBRA_CXX_FLAGS_BUILD`` - The configured C compiler flags relevant for
+    building (e.g., no ``-W`` flags) .
+
+.. NOTE:: If your code is not in a git repository, then all of the above fields
+          will be stubbed out and not very useful.
+
+You can also put whatever cmake variables you want to in there as well (e.g.,
+``CMAKE_C_FLAGS_RELEASE``).
 
 Installation
 ============
@@ -91,5 +125,14 @@ Deployment
   - ``DEB`` - A Debian archive.
 
 
-  If ``DEB`` is in the list of generators, then ``DESCRIPTION, VENDOR, HOMEPAGE,
-  CONTACT`` fields are required. Otherwise, they are ignored.
+``TGZ`` Generator Notes
+-----------------------
+
+- The ``DESCRIPTION, VENDOR, HOMEPAGE, CONTACT`` fields are ignored.
+
+``DEB`` Generator Notes
+-----------------------
+
+- .deb packages are set to always install into ``/usr/local``, unless
+  ``CPACK_PACKAGE_INSTALL_DIRECTORY`` is set prior to calling
+  ``libra_configure_cpack()``.
