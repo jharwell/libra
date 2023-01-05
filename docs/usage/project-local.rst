@@ -125,6 +125,10 @@ Deployment
   - ``DEB`` - A Debian archive.
 
 
+  This function respects ``CPACK_PACKAGE_FILE_NAME`` if it is set prior to
+  calling. Otherwise ``CPACK_PACKAGE_FILE_NAME`` is set to
+  ``${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_PROCESSOR}``.
+
 ``TGZ`` Generator Notes
 -----------------------
 

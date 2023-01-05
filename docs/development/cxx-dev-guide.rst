@@ -106,6 +106,18 @@ Naming
   up. This also makes your code more open to extension but closed to
   modification.
 
+- The namespace name for a class is the same as where it can be found in the
+  directory hierarchy under ``include/`` or ``src/``. For example, if ``class
+  foobar{}`` is in ``ns1::ns2``, then ``foobar.hpp`` will be in
+  ``include/<project_name>/ns1/ns2`` and ``foobar.cpp`` will be in
+  ``src/ns1/ns2``. This again makes it MUCH easier for people to find where
+  stuff is in the code.
+
+  The one exception to this rule is if something is in ``include/x/y/common/z``
+  or ``src/x/y/common/z``; ``common`` may be omitted from the namespace. This is
+  a necessary concession to make building mutually exclusive components in a
+  library which share some common code easier.
+
 - All structs that are "types" (e.g. convenient wrappers around a boolean
   status + possibly valid result of an operation) should have a ``_t`` postfix
   so that it is clear when constructing them that they are types and it is not a

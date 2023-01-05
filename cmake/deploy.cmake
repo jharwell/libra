@@ -44,7 +44,7 @@ function (libra_configure_cpack
   if(NOT CPACK_PACKAGE_INSTALL_DIRECTORY)
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/local")
   endif()
-  
+
   set(CPACK_RESOURCE_FILE_LICENSE "${LICENSE}")
   set(CPACK_RESOURCE_FILE_README "${README}")
   set(CPACK_PACKAGE_VENDOR "${VENDOR}")
@@ -60,23 +60,27 @@ function (libra_configure_cpack
   set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
   # Because the built things are architecture dependent, and that
-  # should be reflected in the file name.
-  EXECUTE_PROCESS( COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE )
-  set(CPACK_PACKAGE_FILE_NAME
-    ${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${ARCHITECTURE})
+  # should be reflected in the file name (unless overridden by the user).
+  if(NOT CPACK_PACKAGE_FILE_NAME)
+    set(CPACK_PACKAGE_FILE_NAME
+      ${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_PROCESSOR})
+
+    # Add architecture to generated .deb name.
+    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+  endif()
+
 
   if("${GENERATORS}" MATCHES "DEB")
     # Compute the .deb packages that this target needs
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
-    # Add architecture to generated .deb name.
-    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 
     # More helpful logging
     set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
   elseif ("${GENERATORS}" MATCHES "TGZ")
-    else()
-      message(FATAL_ERROR "Bad GENERATOR ${GENERATORS}. Must be [DEB, TGZ]")
+    # Nothing to do for now
+  else()
+    message(FATAL_ERROR "Bad GENERATOR ${GENERATORS}. Must be [DEB, TGZ]")
   endif()
 
   include(CPack)
