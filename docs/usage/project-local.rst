@@ -60,13 +60,15 @@ am?". Some useful functions available in ``project-local.cmake`` are:
   ``project-local.cmake`` if you want; otherwise LIBRA will run it at the end of
   the configure step.
 
-- ``libra_configure_version(INFILE OUTFILE)`` - Use build information from LIBRA
-  to population a source file of your choosing which you can then print out when
-  your library loads/application starts as a sanity check during debugging that
-  you are running what you think you are. LIBRA automatically adds this file to
-  the list of files to compile for the project.
+- ``libra_configure_version(INFILE OUTFILE SRC)`` - Use build information from
+  LIBRA to populate a source file of your choosing which you can then print out
+  when your library loads/application starts as a sanity check during debugging
+  that you are running what you think you are. LIBRA automatically adds this
+  file to the provided list of files (``SRC``) which will ultimately be compiled
+  for the project.
 
-  Available LIBRA variables for population by cmake in your source file are:
+  Available LIBRA Cmake variables for population by cmake in your source file
+  are:
 
   - ``LIBRA_GIT_REV`` - git SHA of the current tip; result of ``git log
     --pretty-format:%H -n 1``.

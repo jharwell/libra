@@ -19,7 +19,7 @@
 # has been provided access to such software must promptly notify the above
 # named Contractor.
 #
-function(libra_configure_version INFILE OUTFILE)
+function(libra_configure_version INFILE OUTFILE SRC)
   execute_process(COMMAND git log --pretty=format:%H -n 1
     OUTPUT_VARIABLE LIBRA_GIT_REV
     ERROR_QUIET)
@@ -61,6 +61,8 @@ function(libra_configure_version INFILE OUTFILE)
   # Write the file
   configure_file(${INFILE} ${OUTFILE})
 
-  # Make sure we compile the file
-  list(APPEND ${PROJECT_NAME}_SRC ${OUTFILE})
+  # Make sure we compile the file by adding to whatever list of source
+  # files was provided.
+  list(APPEND ${SRC} ${OUTFILE})
+  set(${SRC} ${${SRC}} PARENT_SCOPE)
 endfunction()

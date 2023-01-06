@@ -22,11 +22,12 @@ Motivation
   and running tests, etc. Using ``make check``, ``make format``, or ``make
   tests``, or other simple cmdline syntax.
 
-This documentation has two parts:
+This documentation has two parts: How to use LIBRA and software development
+guides, each detailed below.
 
 .. toctree::
    :maxdepth: 2
-   :caption: How To Use LIBRA:
+   :caption: How To Use LIBRA
 
    usage/quickstart.rst
    usage/requirements.rst
@@ -35,7 +36,7 @@ This documentation has two parts:
 
 .. toctree::
    :maxdepth: 1
-   :caption: Development Guides
+   :caption: Software Development Guides
 
    development/c-dev-guide.rst
    development/cxx-dev-guide.rst
@@ -44,12 +45,3 @@ This documentation has two parts:
    development/git-commit-guide.rst
    development/git-issue-guide.rst
    development/workflow.rst
-
-Projects using LIBRA (in descending probability of interest)
-============================================================
-
-- :xref:`FORDYCA`
-- :xref:`COSM`
-- :xref:`RCPPSW`
-- :xref:`RCSW`
-- :xref:`PRISM`

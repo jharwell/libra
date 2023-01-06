@@ -1,14 +1,58 @@
 default:
-  image: ubuntu:22.04
-
-# Run these commands before all jobs
-before_script:
-  - DEBIAN_FRONTEND=noninteractive apt-get update -y
-  - DEBIAN_FRONTEND=noninteractive apt-get install -y git curl ssh catch make python3-pip
+  image: docker.sift.net/jharwell/rcsw/ubuntu-22.04:latest
 
 # If all tests pass, deploy.
 stages:
   - package-and-deploy
+
+################################################################################
+# Jobs to build and upload packages
+################################################################################
+package-and-deploy-beta:
+  stage:
+    package-and-deploy
+
+  tags:
+    - docker
+
+  only:
+    - devel
+
+  script:
+    # Metadata for packaging
+    - VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/project.cmake)
+    - BETA_TAG_VERSION=${VERSION}.beta
+    - BETA_TAG_MESSAGE="Development release ${BETA_TAG_VERSION}"
+
+    # Push tag
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git remote set-url origin https://oauth2:${JHARWELL_CI_TOKEN}@git.sift.net/${CI_PROJECT_PATH}
+    - git tag ${BETA_TAG_VERSION} -m "${BETA_TAG_MESSAGE}"
+    - git push -o ci.skip origin ${BETA_TAG_VERSION} # don't trigger another run
+
+package-and-deploy:
+  stage:
+    package-and-deploy
+
+  tags:
+    - docker
+
+  only:
+    - master
+
+  script:
+    # Metadata for packaging
+    - VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/project.cmake)
+    - RELEASE_TAG_VERSION=${VERSION}
+    - RELEASE_TAG_MESSAGE="Release ${RELEASE_TAG_VERSION}"
+
+    # Push tag
+    - git config --global user.email "${GITLAB_USER_EMAIL}"
+    - git config --global user.name "${GITLAB_USER_NAME}"
+    - git remote set-url origin https://oauth2:${JHARWELL_CI_TOKEN}@git.sift.net/${CI_PROJECT_PATH}
+    - git tag ${RELEASE_TAG_VERSION} -m "${RELEASE_TAG_MESSAGE}"
+    - git push -o ci.skip origin ${RELEASE_TAG_VERSION} # don't trigger another run
 
 ################################################################################
 # Job to build documentation

@@ -73,7 +73,7 @@ endmacro()
 # Summary                                                                      #
 ################################################################################
 # Only want to show the summary once
-set(LIBRA_SHOWED_CONFIG NO)
+set(LIBRA_SHOWED_SUMMARY NO)
 
 function(libra_config_summary)
   message("")
@@ -82,6 +82,7 @@ function(libra_config_summary)
   message("--------------------------------------------------------------------------------")
   message("")
 
+  message(STATUS "Build framework version...............: LIBRA_VERSION=${LIBRA_VERSION}")
   message(STATUS "Build type............................: CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
   message(STATUS "Install prefix........................: CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
   message(STATUS "Build target architecture.............: CMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}")
@@ -102,5 +103,5 @@ function(libra_config_summary)
   message("")
   message("--------------------------------------------------------------------------------")
 
-  set(LIBRA_SHOWED_CONFIG YES PARENT_SCOPE )
+  set(LIBRA_SHOWED_SUMMARY YES PARENT_SCOPE)
 endfunction()

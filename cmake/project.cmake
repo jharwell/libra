@@ -14,6 +14,10 @@ get_filename_component(target ${CMAKE_CURRENT_LIST_DIR} NAME)
 
 project(${target} C CXX)
 
+# The current version of LIBRA, to make debugging strange build
+# problems easier
+set(LIBRA_VERSION 0.6.7)
+
 ################################################################################
 # Cmake Environment
 ################################################################################
@@ -193,7 +197,7 @@ endif()
 ################################################################################
 # Config Summary
 ################################################################################
-if (NOT ${LIBRA_SHOWED_CONFIG})
+if (NOT ${LIBRA_SHOWED_SUMMARY})
   libra_config_summary()
 endif()
 
