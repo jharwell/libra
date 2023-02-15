@@ -13,27 +13,6 @@ though there are many parts which are ignored.
 In general, follow the Google C++ style guide (unless something below
 contradicts it, then go with what is below).
 
-THE GOLDEN RULE
-===============
-
-From the GNOME developer site::
-
-  The single most important rule when writing code is this: check the
-  surrounding code and try to imitate it.
-
-  As a maintainer it is dismaying to receive a patch that is obviously in a
-  different coding style to the surrounding code. This is disrespectful, like
-  someone tromping into a spotlessly-clean house with muddy shoes.
-
-  So, whatever this document recommends, if there is already written code and
-  you are patching it, keep its current style consistent even if it is not your
-  favorite style.
-
-This style guide is always a work in progress, so you may encounter code written
-against older versions of it: update it incrementally/locally if possible to the
-latest version. If you can't do so easily (i.e., it would be a extra refactoring
-task), then stick with the original style unless you _know_ are going to be
-changing more than 50% of a file, then go ahead and update.
 
 Commandments
 ============

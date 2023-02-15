@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-_ln-libra-dev-workflow:
+.. _ln-libra-dev-workflow:
 
 ============================
 General Development Workflow

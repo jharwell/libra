@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.abspath('_ext'))
 # -- Project information -----------------------------------------------------
 
 project = 'LIBRA'
-copyright = '2022, John Harwell'
+copyright = '2023, John Harwell'
 author = 'John Harwell'
 
 version = subprocess.run(("grep LIBRA_VERSION ../cmake/project.cmake |"

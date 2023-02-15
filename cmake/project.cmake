@@ -16,7 +16,7 @@ project(${target} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.7)
+set(LIBRA_VERSION 0.6.8)
 
 ################################################################################
 # Cmake Environment
