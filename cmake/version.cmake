@@ -1,5 +1,5 @@
 #
-# Copyright 2022 SIFT LLC, All rights reserved.
+# Copyright 2022 John Harwell, All rights reserved.
 #
 # SPDX-License-Identifier:  MIT
 #

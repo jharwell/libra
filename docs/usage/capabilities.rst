@@ -254,8 +254,7 @@ the following additional capabilities via targets:
    * - ``package``
 
      - Build a ``.deb`` package from the project and all its sub-project (i.e.,
-       a stand-alone ``.deb``). This functionality is VERY VERY VERY alpha, but
-       has the potential to be very useful.
+       a stand-alone ``.deb``). This is alpha-level functionality.
 
 Git Commit Checking
 ===================

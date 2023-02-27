@@ -6,8 +6,8 @@
 # check if Doxygen is installed
 find_package(Doxygen)
 
-if (DOXYGEN_FOUND)
-  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in")
+  if (DOXYGEN_FOUND)
       # set input and output files
       set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
       set(DOXYGEN_OUT ${CMAKE_BINARY_DIR}/docs/${PROJECT_NAME}/Doxyfile)
@@ -26,9 +26,11 @@ if (DOXYGEN_FOUND)
 
       # To build ALL API documentation recursively.
       add_dependencies(apidoc ${PROJECT_NAME}-apidoc)
-  else()
-    message(WARNING "Doxygen found but ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in does not exist")
-  endif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in")
+
+      message(STATUS "Created 'apidoc' target")
+    else()
+      message(WARNING "Doxygen not found but ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in exists!")
+    endif(DOXYGEN_FOUND)
 else()
-  message(WARNING "Doxygen needs to be installed to generate the API documentation!")
-endif(DOXYGEN_FOUND)
+  message(STATUS "Not creating 'apidoc' target: ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in missing")
+endif()

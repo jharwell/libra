@@ -16,7 +16,7 @@ project(${target} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.8)
+set(LIBRA_VERSION 0.6.10)
 
 ################################################################################
 # Cmake Environment
@@ -140,39 +140,23 @@ if (${LIBRA_ANALYSIS})
     register_auto_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
 
     # Handy checking tools
-    message(CHECK_START "Finding checkers")
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     toggle_cppcheck(ON)
     toggle_clang_tidy_check(ON)
     toggle_clang_static_check(ON)
     list(POP_BACK CMAKE_MESSAGE_INDENT)
-    if (CPPCHECK_ENABLED AND
-        CLANG_TIDY_CHECK_ENABLED AND
-        CLANG_STATIC_CHECK_ENABLED)
-      message(CHECK_PASS "All checkers enabled")
-    else()
-      message(CHECK_FAIL "One or more checkers disabled")
-    endif()
 
-    message(CHECK_START "Finding formatters")
+    # Handy formatting tools
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     toggle_clang_format(ON)
     list(POP_BACK CMAKE_MESSAGE_INDENT)
-    if (CLANG_FORMAT_ENABLED)
-      message(CHECK_PASS "All formatters enabled")
-    else()
-      message(CHECK_FAIL "One or more formatters disabled")
-    endif()
 
+    # Handy fixing tools
     message(CHECK_START "Finding fixers")
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     toggle_clang_tidy_fix(ON)
     list(POP_BACK CMAKE_MESSAGE_INDENT)
-    if (CLANG_TIDY_FIX_ENABLED)
-      message(CHECK_PASS "All fixers enabled")
-    else()
-      message(CHECK_FAIL "One or more fixers disabled")
-    endif()
+
   endif()
 else()
   message(STATUS "Skipping static analysis init")
