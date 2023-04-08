@@ -16,6 +16,7 @@ function (libra_configure_cpack
 
   file(GLOB LICENSE "${CMAKE_SOURCE_DIR}/LICENSE*")
   file(GLOB README "${CMAKE_SOURCE_DIR}/README*")
+  file(GLOB CHANGELOG "${CMAKE_SOURCE_DIR}/changelog.gz")
 
   if(NOT LICENSE)
     message(WARNING "No LICENSE file found: tried LICENSE*")
@@ -24,8 +25,14 @@ function (libra_configure_cpack
     message(WARNING "No README file found: tried README*")
   endif()
 
+  if(NOT CHANGELOG)
+    message(WARNING "No changelog file found: tried changelog.gz")
+  endif()
+
+
   if(NOT CPACK_PACKAGE_INSTALL_DIRECTORY)
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/local")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CMAKE_INSTALL_PREFIX})
+    message(STATUS "CPACK_PACKAGE_INSTALL_DIRECTORY not set--set install path to CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}")
   endif()
 
   set(CPACK_RESOURCE_FILE_LICENSE "${LICENSE}")
@@ -35,12 +42,23 @@ function (libra_configure_cpack
   set(CPACK_PACKAGE_DESCRIPTION "${DESCRIPTION}")
   set(CPACK_PACKAGE_CONTACT "${CONTACT}")
 
+
   set(CPACK_GENERATOR "${GENERATORS}")
 
   set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
   set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
   set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
   set(CPACK_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+
+  # Quiet lintian errors about bad permissions
+  set(CPACK_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+    OWNER_READ
+    OWNER_WRITE
+    OWNER_EXECUTE
+    GROUP_READ
+    GROUP_EXECUTE
+    WORLD_READ
+    WORLD_EXECUTE)
 
   # Because the built things are architecture dependent, and that
   # should be reflected in the file name (unless overridden by the user).
@@ -57,9 +75,9 @@ function (libra_configure_cpack
     # Compute the .deb packages that this target needs
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
-
     # More helpful logging
     set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
+
   elseif ("${GENERATORS}" MATCHES "TGZ")
     # Nothing to do for now
   else()

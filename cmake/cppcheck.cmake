@@ -11,6 +11,7 @@ set(CPPCHECK_ENABLED OFF)
 function(do_register_cppcheck CHECK_TARGET TARGET)
   set(includes "$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>")
   add_custom_target(${CHECK_TARGET})
+
   foreach(file ${ARGN})
     add_custom_command(TARGET ${CHECK_TARGET}
       COMMAND
@@ -25,6 +26,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
       --suppress=unusedFunction
       ${file}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Running ${cppcheck_EXECUTABLE} on ${file}"
       )
   endforeach()
   set_target_properties(${CHECK_TARGET}

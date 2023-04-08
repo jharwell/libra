@@ -3,9 +3,11 @@
 #
 # SPDX-License Identifier:  MIT
 #
+
 ################################################################################
 # Exports Configuration
 ################################################################################
+include(GNUInstallDirs)
 
 ################################################################################
 # Configure the exports for a TARGET to be installed at PREFIX
@@ -36,15 +38,62 @@ function(libra_configure_exports_as TARGET PREFIX)
 endfunction()
 
 ################################################################################
-# Register extra files for a TARGET to be installed at PREFIX
+# Register extra .cmake files for a TARGET to be installed at PREFIX
 #
-# Can be any file, but SHOULD be .cmake files if your project has
-# reusable functionality you want to expose to child projects.
+# Useful if your project has reusable functionality you want to expose
+# to child projects.
 function(libra_register_extra_configs_for_install TARGET FILES PREFIX)
 install(
   FILES ${FILES}
   DESTINATION "${PREFIX}/lib/cmake/${TARGET}"
   )
+endfunction()
+
+################################################################################
+# Register the changelog to be installed at CMAKE_INSTALL_DOCDIR. If
+# the name of the file is not 'changelog.gz' it is renamed to
+# that.
+#
+# For use in configuring cpack to generate packages intended to be
+# distributed as .deb packages.
+#
+function(libra_register_changelog_for_install FILE)
+
+  set(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz")
+  add_custom_command(
+    OUTPUT "${OUTPUT}"
+    COMMAND gzip -cn9 "${CMAKE_CURRENT_SOURCE_DIR}/changelog" > "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/changelog"
+    COMMENT "Compressing ${FILE} -> ${OUTPUT} for debian packaging"
+    )
+
+  add_custom_target(
+    ${PROJECT}-changelog
+    ALL
+    DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz"
+    )
+
+  install(
+    FILES ${OUTPUT}
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    )
+endfunction()
+
+################################################################################
+# Register the copyright notice to be installed at CMAKE_INSTALL_DOCDIR. If
+# the name of the file is not 'copyright' it is renamed to
+# that.
+#
+# For use in configuring cpack to generate packages intended to be
+# distributed as .deb packages.
+#
+function(libra_register_copyright_for_install FILE)
+  install(
+    FILES ${FILE}
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    RENAME copyright
+    )
 endfunction()
 
 ################################################################################

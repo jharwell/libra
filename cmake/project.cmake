@@ -16,7 +16,7 @@ project(${target} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.10)
+set(LIBRA_VERSION 0.6.11)
 
 ################################################################################
 # Cmake Environment
@@ -135,10 +135,6 @@ if (${LIBRA_ANALYSIS})
       message(FATAL_ERROR "Bad static analysis language for project: must be [C,CXX]")
     endif()
 
-    register_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
-    register_auto_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
-    register_auto_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
-
     # Handy checking tools
     list(APPEND CMAKE_MESSAGE_INDENT "  ")
     toggle_cppcheck(ON)
@@ -157,6 +153,9 @@ if (${LIBRA_ANALYSIS})
     toggle_clang_tidy_fix(ON)
     list(POP_BACK CMAKE_MESSAGE_INDENT)
 
+    register_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+    register_auto_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+    register_auto_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
   endif()
 else()
   message(STATUS "Skipping static analysis init")

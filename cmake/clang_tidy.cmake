@@ -26,6 +26,7 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
       "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
       -extra-arg=-Wno-unknown-warning-option
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Running ${clang_tidy_EXECUTABLE} on ${file}"
       )
 endforeach()
   set_target_properties(${CHECK_TARGET}

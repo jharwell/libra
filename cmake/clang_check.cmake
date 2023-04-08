@@ -37,9 +37,14 @@ function(do_register_clang_check_checker CHECK_TARGET TARGET)
       "$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>"
       -std=${STD}
        || true
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-  add_custom_command(TARGET ${CHECK_TARGET} COMMAND
-    rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/*.plist ${CMAKE_CURRENT_LIST_DIR}/*.plist)
+       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+       COMMENT "Running ${clang_check_EXECUTABLE} on ${file}")
+
+     add_custom_command(
+       TARGET ${CHECK_TARGET}
+       COMMAND
+       rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/*.plist ${CMAKE_CURRENT_LIST_DIR}/*.plist
+       )
   endforeach()
 
   set_target_properties(${CHECK_TARGET}

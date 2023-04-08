@@ -18,6 +18,7 @@ function(do_register_clang_format CHECK_TARGET TARGET)
     -i
     ${ARGN} ${INCLUDES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running ${clang_format_EXECUTABLE} on ${file}"
     )
 
 
