@@ -69,7 +69,7 @@ function(libra_register_changelog_for_install FILE)
     )
 
   add_custom_target(
-    ${PROJECT}-changelog
+    ${PROJECT_NAME}-changelog
     ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz"
     )

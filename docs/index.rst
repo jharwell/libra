@@ -19,7 +19,7 @@ Motivation
 
 - No existing C/C++/CUDA build systems supported doing things like running one
   or more static analyzers on a repository, formatting the repository, building
-  and running tests, etc. Using ``make check``, ``make format``, or ``make
+  and running tests, etc., using ``make check``, ``make format``, or ``make
   tests``, or other simple cmdline syntax.
 
 This documentation has two parts: How to use LIBRA and software development

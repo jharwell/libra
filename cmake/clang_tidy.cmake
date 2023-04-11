@@ -56,21 +56,21 @@ endfunction()
 ################################################################################
 function(toggle_clang_tidy_check status)
   message(CHECK_START "clang-tidy")
-    if(NOT ${status})
-      set(CLANG_TIDY_CHECK_ENABLED ${status} PARENT_SCOPE)
-      message(CHECK_FAIL "[disabled=by user]")
-      return()
-    endif()
-
-    find_package(clang_tidy)
-
-    if(NOT clang_tidy_FOUND)
-      set(CLANG_TIDY_CHECK_ENABLED OFF PARENT_SCOPE)
-      message(CHECK_FAIL "[disabled=not found]")
-    endif()
-
+  if(NOT ${status})
     set(CLANG_TIDY_CHECK_ENABLED ${status} PARENT_SCOPE)
-    message(CHECK_PASS "[enabled=${clang_tidy_EXECUTABLE}]")
+    message(CHECK_FAIL "[disabled=by user]")
+    return()
+  endif()
+
+  find_package(clang_tidy)
+
+  if(NOT clang_tidy_FOUND)
+    set(CLANG_TIDY_CHECK_ENABLED OFF PARENT_SCOPE)
+    message(CHECK_FAIL "[disabled=not found]")
+  endif()
+
+  set(CLANG_TIDY_CHECK_ENABLED ${status} PARENT_SCOPE)
+  message(CHECK_PASS "[enabled=${clang_tidy_EXECUTABLE}]")
 endfunction()
 
 ################################################################################
