@@ -139,6 +139,6 @@ Deployment
 ``DEB`` Generator Notes
 -----------------------
 
-- .deb packages are set to always install into ``/usr/local``, unless
+- .deb packages are set to always install into ``/usr``, unless
   ``CPACK_PACKAGE_INSTALL_DIRECTORY`` is set prior to calling
   ``libra_configure_cpack()``.

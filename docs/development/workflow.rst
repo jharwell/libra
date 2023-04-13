@@ -77,5 +77,4 @@ General Development Workflow
    showing they all pass, and/or the code coverage report from gcov.
 
 #. Once the task has been reviewed and given the green light, it will be merged
-   into ``devel`` and marked as ``Status: Completed``, and closed (you generally
-   don't need to do this).
+   into ``devel`` and closed (you generally don't need to do this).
