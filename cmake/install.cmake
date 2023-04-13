@@ -57,7 +57,7 @@ endfunction()
 # For use in configuring cpack to generate packages intended to be
 # distributed as .deb packages.
 #
-function(libra_register_changelog_for_install FILE)
+function(libra_register_changelog_for_install TARGET FILE)
 
   set(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz")
   add_custom_command(
@@ -69,7 +69,7 @@ function(libra_register_changelog_for_install FILE)
     )
 
   add_custom_target(
-    ${PROJECT_NAME}-changelog
+    ${TARGET}-changelog
     ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/changelog.gz"
     )
@@ -88,10 +88,10 @@ endfunction()
 # For use in configuring cpack to generate packages intended to be
 # distributed as .deb packages.
 #
-function(libra_register_copyright_for_install FILE)
+function(libra_register_copyright_for_install TARGET FILE)
   install(
     FILES ${FILE}
-    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${TARGET}
     RENAME copyright
     )
 endfunction()

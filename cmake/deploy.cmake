@@ -66,6 +66,7 @@ function (libra_configure_cpack
 
     # Compute the .deb packages that this target needs
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
 
     # More helpful logging
     set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
