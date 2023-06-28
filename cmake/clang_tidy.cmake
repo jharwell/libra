@@ -10,8 +10,10 @@ set(CLANG_TIDY_FIX_ENABLED OFF)
 # Register a target for clang-tidy checking
 ################################################################################
 function(do_register_clang_tidy_check CHECK_TARGET TARGET)
-  set(includes "$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>")
-  set(defs "$<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>")
+  set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
+  set(interface_includes ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
+  set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
+  set(interface_defs ${defs} $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
 
   add_custom_target(${CHECK_TARGET})
 
@@ -23,8 +25,11 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
       -p\t${PROJECT_BINARY_DIR}
       ${file}
       "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+      "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
       "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+      "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
       -extra-arg=-Wno-unknown-warning-option
+      || true
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Running ${clang_tidy_EXECUTABLE} on ${file}"
       )

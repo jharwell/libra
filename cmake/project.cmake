@@ -16,7 +16,7 @@ project(${LIBRA_TARGET} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.15)
+set(LIBRA_VERSION 0.6.17)
 
 ################################################################################
 # Cmake Environment
@@ -32,17 +32,16 @@ option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        O
 option(LIBRA_MPI       "Enable MPI code."                                      OFF)
 option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
 option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
-option(LIBRA_DOCS      "Enable documentation build"                             ON)
-option(LIBRA_VALGRIND_COMPAT "Disable compiler instructions to 64-bit code can robustly be run under valgrind" OFF)
-option(LIBRA_ANALYSIS "Enable static analysis checkers"                         ON)
+option(LIBRA_DOCS      "Enable documentation build"                            OFF)
+option(LIBRA_VALGRIND_COMPAT "Disable some compiler instructions so 64-bit code can robustly be run under valgrind" OFF)
+option(LIBRA_ANALYSIS "Enable static analysis checkers"                        OFF)
+option(LIBRA_SUMMARY "Show a configuration summary"                            ON)
 
-set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT] for function predcondition checking")
-set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT)
+set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT,NONE] Function Predcondition Checking (FPC)")
+set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT NONE INHERIT)
 
-set(LIBRA_ER "INHERIT" CACHE STRING "[NONE, ASSERT, ALL, INHERIT] Set the logging level")
-
-set_property(CACHE LIBRA_ER PROPERTY STRINGS NONE ASSERT ALL INHERIT)
-set(FPC FPC_TYPE="${LIBRA_FPC}")
+set(LIBRA_ERL "ALL" CACHE STRING "[NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL, INHERIT] Set the logging level")
+set_property(CACHE LIBRA_ERL PROPERTY STRINGS NONE ERROR WARN INFO DEBUG TRACE ALL INHERIT)
 
 include(colorize)
 include(reporting)
@@ -180,7 +179,8 @@ endif()
 ################################################################################
 # Config Summary
 ################################################################################
-if (NOT ${LIBRA_SHOWED_SUMMARY})
-  libra_config_summary()
+if (${LIBRA_SUMMARY})
+  if(NOT ${LIBRA_SHOWED_SUMMARY})
+    libra_config_summary()  
+  endif()
 endif()
-

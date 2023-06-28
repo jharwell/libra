@@ -9,7 +9,10 @@ set(CPPCHECK_ENABLED OFF)
 # Register a target for cppcheck
 ################################################################################
 function(do_register_cppcheck CHECK_TARGET TARGET)
-  set(includes "$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>")
+  set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
+  set(interface_includes ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
+  set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
+  set(interface_defs ${defs} $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
   add_custom_target(${CHECK_TARGET})
 
   foreach(file ${ARGN})
@@ -17,6 +20,9 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
       COMMAND
       ${cppcheck_EXECUTABLE}
       "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
+      "$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>"
+      "$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>"
+      "$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>"
       --enable=warning,style,performance,portability
       --template= "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
       --quiet
