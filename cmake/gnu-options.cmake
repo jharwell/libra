@@ -29,8 +29,11 @@ set(BASE_OPT_OPTIONS
   -mtune=native
   -flto=${N}
   -fno-stack-protector
-  -ffast-math
-  -fno-unsafe-math-optimizations
+  # 2023/6/29: Disable because it causes issues in RCSW unit tests. If
+  # in the future I want/need to enable these again to get even more
+  # speed, I could add another opt level/flag controlling it.
+  # -ffast-math
+  # -fno-unsafe-math-optimizations
   -frename-registers
   )
 
@@ -93,7 +96,6 @@ set(BASE_DIAG_OPTIONS
   -Wstrict-overflow
   -Wswitch-default
   -Wundef
-  -ansi
   -Wpointer-arith
   -Wno-unknown-pragmas
   -Wstack-protector

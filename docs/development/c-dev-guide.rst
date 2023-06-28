@@ -76,21 +76,16 @@ Files
   ``.h``, to clearly distinguish them from C++ code, and not to confuse the
   tools used.
 
-- Exactly one class/struct definition per ``.c``\/``.h`` file, unless there is a
-  very good reason to do otherwise. struct definitions nested within other
-  structs are exempt from this rule, but their use should still be minimized and
-  well documented.
-
 - The "namespace" hierarchy exactly corresponds to the directory hierarchy that
   the source/header files for classes can be found in. Since C doesn't really
   have namespaces, something that is logically named as
   ``module_component_XX`` should be found in ``src/module/component``. Principle
-  of least surprise.
+  Of Least Surprise.
 
 - The curly brace must always be the last code thing on the line; don't put it
   on its own line.
 
-- Don't use ``#ifndef FOO_H`` followed by ``#define FOO_H``--use ``#pragma
+- Don't use ``#ifndef FOO_H`` followed by ``#define FOO_H``\--use ``#pragma
   once`` instead. It is supported by all major compilers, and makes header files
   way easier to move around without mind-numbing refactoring.
 
@@ -110,12 +105,11 @@ Naming
 
 - All types should end in ``_t``; e.g., ``int64_t``.
 
-- All mathematical constants (e.g. ints, doubles, etc) should be
-  ``kSPECIFIED_LIKE_THIS``: MACRO CASE + a preceding ``k``.
+- All mathematical constants (``#define`` or otherwise) (e.g. ints, doubles,
+  etc) should be ``kSPECIFIED_LIKE_THIS``: MACRO CASE + a preceding ``k``.
 
-- All static class constants (you should not have non-static class constants)
-  that are any kind of object should be ``kSpecifiedLikeThis``: Upper
-  CamelCase + a preceding ``k``.
+- All constants which are not mathematical constants ``kSpecifiedLikeThis``:
+  Upper CamelCase + a preceding ``k``.
 
 - All enum values should be ``ekSPECIFIED_LIKE_THIS``: MACRO_CASE + a preceding
   ``ek``. The rationale for this is that it is useful to be able to tell at a
@@ -128,9 +122,6 @@ Naming
   semantic similarity between members when possible (i.e. if it does not make
   sense to do this, should you really be using an enum vs. a collection of
   ``constexpr`` values?).
-
-Class Layout
-------------
 
 Miscellaneous
 -------------

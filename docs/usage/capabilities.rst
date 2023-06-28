@@ -86,33 +86,65 @@ these variables can be specified on the command line, or put in your
 
    * - ``LIBRA_FPC``
 
-     - Enable function precondition checking (mostly used in C).  This is very
-       helpful for debugging. Possible values are:
+     - Enable Function Precondition Checking (FPC): checking function
+       parameters/global state before executing a function, for functions which
+       a library/application has defined conditions for. LIBRA does not define
+       *how* precondition checking is implemented for a given
+       library/application using it, only a simple declarative interface for
+       specifying *what* type of checking is desired at build time; a library
+       application can choose how to interpret the specification. This
+       flexibility and simplicity is part of what makes LIBRA a very useful
+       build process front-end across different projects.
 
-       * ``FPC_RETURN`` - Return without executing a function, but do not
-         assert().
+       FPC is, generally speaking, mostly used in C, and is very helpful for
+       debugging, but can slow things down in production builds. Possible values
+       for this option are:
 
-       * ``FPC_ABORT`` - Abort the program whenever a function precondition
-         fails.
+       * ``NONE`` - Checking compiled out.
 
-     - ``FPC_ABORT``
+       * ``RETURN`` - If at least one precondition is not met, return without
+         executing the function. Do not abort() the program.
 
-   * - ``LIBRA_ER``
+       * ``ABORT`` - If at least one precondition is not met, abort() the
+         program.
 
-     - Specify event reporting. Possible values are:
+       * ``INHERIT`` - FPC configuration should be inherited from a parent
+         project which exposes it.
 
-       * ``ALL`` - Event reporting via log4cxx, which is compiled in fully and
-         linked with. Both debug printing and logging macros enabled.
+   * - ``LIBRA_ERL``
 
-       * ``FATAL`` - Disable event reporting EXCEPT for fatal events, use
-         ``printf()`` for those (i.e., Log4cxx compiled out).  Debug logging
-         disabled (might need, e.g., log4cxx), macros for printing of FATAL
-         events only enabled.
+     - Specify Event Reporting Level (ERL). LIBRA does not prescribe a given
+       event reporting framework (e.g., log4ccx, log4c) which must be
+       used. Instead, it provides a simple declarative interface for specifying
+       the desired *result* of framework configuration at the highest
+       level. Possible values of this option are:
 
-       * ``NONE`` - Disable event reporting entirely: all logging compiled out
-         and debug printing/logging macros disabled.
+       * ``ALL`` - Event reporting is compiled in fully and linked with; that
+         is, all possible events of all levels are present in the compiled
+         binary, and whether an encountered event is emitted is dependent on the
+         level and scope of the event (which may be configured at runtime).
 
-     - ``ALL``
+       * ``FATAL`` - Disable and compile out event reporting EXCEPT for FATAL
+         events.
+
+       * ``ERROR`` - Disable and compile out event reporting EXCEPT for [FATAL,
+         ERROR] events.
+
+       * ``WARN`` - Disable and compile out event reporting EXCEPT for [FATAL,
+         ERROR, WARN] events.
+
+       * ``INFO`` - Disable and compile out event reporting EXCEPT for [FATAL,
+         ERROR, WARN, INFO] events.
+
+       * ``DEBUG`` - Disable and compile out event reporting EXCEPT for [FATAL,
+         ERROR, WARN, INFO, DEBUG] events.
+
+       * ``TRACE`` - Same as ``ALL``.
+
+       * ``NONE`` - Disable event reporting entirely: all logging compiled out.
+
+       * ``INHERIT`` - Event reporting configuration should be inherited from a
+         parent project which exposes it.
 
 
    * - ``LIBRA_PGO_GEN``

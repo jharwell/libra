@@ -60,6 +60,13 @@ am?". Some useful functions available in ``project-local.cmake`` are:
   ``project-local.cmake`` if you want; otherwise LIBRA will run it at the end of
   the configure step.
 
+- ``libra_config_summary_prepare_fields()`` - Given a list of the configurable
+  fields in a project as strings, define a set of new variables, one per field,
+  with the prefix ``EMIT_``. The value of each new variable will be right padded
+  with spaces so that any extra stuff on each line when the variables are shown
+  to the user is aligned. See ``libra_config_summary()`` for an example of what
+  this looks like.
+
 - ``libra_configure_version(INFILE OUTFILE SRC)`` - Use build information from
   LIBRA to populate a source file of your choosing which you can then print out
   when your library loads/application starts as a sanity check during debugging
