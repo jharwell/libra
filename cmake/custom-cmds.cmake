@@ -188,7 +188,7 @@ function(libra_config_summary)
   message(STATUS "Event reporting level (ERL)...........: ${ColorBold}${EMIT_LIBRA_ERL}${ColorReset} [LIBRA_ERL={FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL,NONE,INHERIT}]")
   message(STATUS "Sanitizers............................: ${ColorBold}${EMIT_LIBRA_SAN}${ColorReset} [LIBRA_SAN={MSAN,ASAN,SSAN,TSAN}]")
   message(STATUS "Valgrind compatibility................: ${ColorBold}${EMIT_LIBRA_VALGRIND_COMPAT}${ColorReset} [LIBRA_VALGRIND_COMPAT]")
-  message(STATUS "Static analysis.......................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (make {${PROJECT_NAME}-check,${PROJECT_NAME}-clang-check,${PROJECT_NAME}-cppcheck,${PROJECT_NAME}-clang-format,${PROJECT_NAME}-tidy-check},${PROJECT_NAME}-tidy-fix})")
+  message(STATUS "Static analysis.......................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (make ${PROJECT_NAME}-{check,clang-check,cppcheck,tidy-check,tidy-fix,clang-format,})")
   message("")
   message("${BoldBlue}--------------------------------------------------------------------------------${ColorReset}")
 

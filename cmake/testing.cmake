@@ -6,7 +6,9 @@
 ################################################################################
 # Testing Options                                                              #
 ################################################################################
-enable_testing()
+# This also does enable_testing(), but also configures the
+# DartConfiguration.tcl file needed to run tests under valgrind
+include(CTest)
 
 set(${PROJECT_NAME}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
@@ -64,10 +66,10 @@ function(enable_single_test t)
     add_custom_target(build-and-test COMMAND ${CMAKE_CTEST_COMMAND})
   endif()
 
-  # Add to global unit tests target
+  # Add to global "unit-tests" target
   add_dependencies(unit-tests ${PROJECT_NAME}-${test_name})
 
-  # Add to global target to build library+run unit tests
+  # Add to global "build-and-test" target to build library+run unit tests
   add_dependencies(build-and-test ${PROJECT_NAME}-${test_name})
 endfunction()
 
