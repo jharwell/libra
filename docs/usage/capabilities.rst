@@ -237,6 +237,20 @@ these variables can be specified on the command line, or put in your
 
      - YES
 
+   * - ``LIBRA_LTO``
+
+     - Enable Link-Time Optimization.
+
+     - NO
+
+   * - ``LIBRA_OPT_REPORT``
+
+     - Enable compiler-generated reports for optimizations performed, as well as
+       suggestions for further optimizations.
+
+     - NO
+
+
 Build Time
 ==========
 

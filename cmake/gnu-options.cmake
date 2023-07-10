@@ -4,6 +4,11 @@
 # SPDX-License Identifier:  MIT
 #
 ################################################################################
+# Language Standard
+################################################################################
+include(compiler-standard)
+
+################################################################################
 # Debugging Options
 ################################################################################
 set(LIBRA_DEBUG_OPTIONS "-g2")
@@ -27,7 +32,6 @@ ProcessorCount(N)
 set(BASE_OPT_OPTIONS
   -march=native
   -mtune=native
-  -flto=${N}
   -fno-stack-protector
   # 2023/6/29: Disable because it causes issues in RCSW unit tests. If
   # in the future I want/need to enable these again to get even more
@@ -37,10 +41,18 @@ set(BASE_OPT_OPTIONS
   -frename-registers
   )
 
+if(LIBRA_LTO)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -flto=${N})
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_SHARED_FLAGS} -flto=${N}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -flto=${N}")
+endif()
+
 if (LIBRA_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -fopenmp
-    )
+  )
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -fopenmp")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
 endif()
 
 set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
@@ -58,16 +70,16 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
     "${CMAKE_SHARED_LINKER_FLAGS}\
     -Wno-suggest-attribute=pure\
     -Wno-suggest-attribute=const\
-    -Wno-suggest-attribute=cold\
-    -flto=${N}")
+    -Wno-suggest-attribute=cold")
 endif()
 
-
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
 
 ################################################################################
 # Diagnostic Options
 ################################################################################
-set(BASE_DIAG_OPTIONS
+set(LIBRA_BASE_DIAG_CANDIDATES
   -fdiagnostics-color=always
   -W
   -Wall
@@ -106,7 +118,7 @@ set(BASE_DIAG_OPTIONS
   -Wmultistatement-macros
   )
 
-set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
+set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES}
   -Wstrict-prototypes
   -Wmissing-prototypes
   -Wbad-function-cast
@@ -114,7 +126,7 @@ set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wnull-dereference
   )
 
-set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
+set(LIBRA_CXX_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES}
   -Weffc++
   -Wunused-macros
   -Wsuggest-override
@@ -129,6 +141,23 @@ set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wdelete-non-virtual-dtor
   -Wuseless-cast
   )
+
+set(LIBRA_C_DIAG_OPTIONS)
+foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
+  check_c_compiler_flag(${flag} LIBRA_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_COMPILER_SUPPORTS_${flag})
+    set(LIBRA_C_DIAG_OPTIONS ${LIBRA_C_DIAG_OPTIONS} ${flag})
+  endif()
+endforeach()
+
+set(LIBRA_CXX_DIAG_OPTIONS)
+foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
+  check_cxx_compiler_flag(${flag} LIBRA_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_COMPILER_SUPPORTS_${flag})
+    set(LIBRA_CXX_DIAG_OPTIONS ${LIBRA_CXX_DIAG_OPTIONS} ${flag})
+  endif()
+endforeach()
+
 
 ################################################################################
 # Checking Options
@@ -174,7 +203,6 @@ set(TSAN_OPTIONS
   -fsanitize=thread
   -fsanitize-recover=all
   )
-
 
 set(LIBRA_SAN_DEFAULT "NONE")
 
@@ -248,26 +276,6 @@ if (LIBRA_PGO_USE)
 endif()
 
 ################################################################################
-# Profiling Options
-################################################################################
-set(BASE_PGO_GEN_OPTIONS
-  -fprofile-generate
-  )
-set(BASE_PGO_USE_OPTIONS
-  -fprofile-use
-  )
-
-if (LIBRA_PGO_GEN)
-  set(LIBRA_C_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
-  set(LIBRA_CXX_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
-endif()
-
-if (LIBRA_PGO_USE)
-  set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
-  set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
-endif()
-
-################################################################################
 # Code Coverage Options
 ################################################################################
 set(BASE_CODE_COV_OPTIONS
@@ -279,6 +287,8 @@ set(BASE_CODE_COV_OPTIONS
 if (LIBRA_CODE_COV)
   set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
   set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_C_CODE_COV_OPTIONS}")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LIBRA_CXX_CODE_COV_OPTIONS}")
 endif()
 
 ################################################################################

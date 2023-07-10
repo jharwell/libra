@@ -7,6 +7,7 @@
 # Development Mode                                                             #
 ################################################################################
 set(LIBRA_C_FLAGS_DEV "")
+
 foreach(arg
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_OPTIONS}
@@ -23,7 +24,9 @@ foreach(arg
   set(LIBRA_C_FLAGS_DEV "${LIBRA_C_FLAGS_DEV} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_DEV ${LIBRA_C_FLAGS_DEV} CACHE STRING
+set(CMAKE_C_FLAGS_DEV
+  ${LIBRA_C_FLAGS_DEV}
+  CACHE STRING
   "Flags used by the C compiler during development builds."
   FORCE)
 
@@ -44,7 +47,9 @@ foreach(arg
   set(LIBRA_CXX_FLAGS_DEV "${LIBRA_CXX_FLAGS_DEV} ${arg}")
 endforeach(arg)
 
-set(CMAKE_CXX_FLAGS_DEV ${LIBRA_CXX_FLAGS_DEV} CACHE STRING
+set(CMAKE_CXX_FLAGS_DEV
+  ${CMAKE_CXX_FLAGS_DEV}
+  CACHE STRING
   "Flags used by the CXX compiler during development builds."
   FORCE)
 
@@ -68,7 +73,9 @@ foreach(arg
   set(LIBRA_C_FLAGS_DEVOPT "${LIBRA_C_FLAGS_DEVOPT} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_DEVOPT ${LIBRA_C_FLAGS_DEVOPT} CACHE STRING
+set(CMAKE_C_FLAGS_DEVOPT
+  ${LIBRA_C_FLAGS_DEVOPT}
+  CACHE STRING
   "Flags used by the C compiler during devopt builds."
   FORCE)
 
@@ -89,7 +96,9 @@ foreach(arg
   set(LIBRA_CXX_FLAGS_DEVOPT "${LIBRA_CXX_FLAGS_DEVOPT} ${arg}")
 endforeach(arg)
 
-set(CMAKE_CXX_FLAGS_DEVOPT ${LIBRA_CXX_FLAGS_DEVOPT} CACHE STRING
+set(CMAKE_CXX_FLAGS_DEVOPT
+  ${LIBRA_CXX_FLAGS_DEVOPT}
+  CACHE STRING
   "Flags used by the CXX compiler during devopt builds."
   FORCE)
 
@@ -114,7 +123,9 @@ foreach(arg
   set(LIBRA_C_FLAGS_OPT "${LIBRA_C_FLAGS_OPT} ${arg}")
 endforeach(arg)
 
-set(CMAKE_C_FLAGS_OPT ${LIBRA_C_FLAGS_OPT} CACHE STRING
+set(CMAKE_C_FLAGS_OPT
+  ${LIBRA_C_FLAGS_OPT}
+  CACHE STRING
   "Flags used by the C compiler during optimized builds."
   FORCE)
 
@@ -135,11 +146,13 @@ foreach(arg
     ${LIBRA_COMMON_OPT_DEFS})
   set(LIBRA_CXX_FLAGS_OPT "${LIBRA_CXX_FLAGS_OPT} ${arg}")
 endforeach(arg)
-set(CMAKE_CXX_FLAGS_OPT ${LIBRA_CXX_FLAGS_OPT} CACHE STRING
+set(CMAKE_CXX_FLAGS_OPT
+  "${LIBRA_CXX_FLAGS_OPT} ${CMAKE_CXX_FLAGS_OPT}"
+  CACHE STRING
   "Flags used by the C++ compiler during optimized builds."
   FORCE)
 
 # Update the documentation string of CMAKE_BUILD_TYPE for GUIs
 set( CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
-  "Choose the type of build, options are: DEV DEVOPT OPT."
+  "Choose the type of build, options are: [DEV, DEVOPT, OPT]."
       FORCE )

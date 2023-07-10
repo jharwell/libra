@@ -16,7 +16,7 @@ project(${LIBRA_TARGET} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.18)
+set(LIBRA_VERSION 0.6.19)
 
 ################################################################################
 # Cmake Environment
@@ -34,8 +34,10 @@ option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            O
 option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
 option(LIBRA_DOCS      "Enable documentation build"                            OFF)
 option(LIBRA_VALGRIND_COMPAT "Disable some compiler instructions so 64-bit code can robustly be run under valgrind" OFF)
-option(LIBRA_ANALYSIS "Enable static analysis checkers"                        OFF)
-option(LIBRA_SUMMARY "Show a configuration summary"                            ON)
+option(LIBRA_ANALYSIS  "Enable static analysis checkers"                       OFF)
+option(LIBRA_SUMMARY   "Show a configuration summary"                          ON)
+option(LIBRA_LTO       "Enable Link-Time Optimization"                         OFF)
+option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations"      OFF)
 
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT,NONE] Function Predcondition Checking (FPC)")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT NONE INHERIT)
@@ -44,11 +46,15 @@ set(LIBRA_ERL "ALL" CACHE STRING "[NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL, I
 set_property(CACHE LIBRA_ERL PROPERTY STRINGS NONE ERROR WARN INFO DEBUG TRACE ALL INHERIT)
 
 include(colorize)
-include(reporting)
+
+if(LIBRA_OPT_REPORT)
+  include(reporting)
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "DEV")
 endif()
+
 include(compile-options) # Must be before build modes to populate options
 include(build-modes)
 
@@ -156,8 +162,6 @@ if (${LIBRA_ANALYSIS})
     register_auto_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
     register_auto_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
   endif()
-else()
-  message(STATUS "Skipping static analysis init")
 endif()
 
 ################################################################################
@@ -181,6 +185,6 @@ endif()
 ################################################################################
 if (${LIBRA_SUMMARY})
   if(NOT ${LIBRA_SHOWED_SUMMARY})
-    libra_config_summary()  
+    libra_config_summary()
   endif()
 endif()

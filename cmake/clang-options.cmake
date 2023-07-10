@@ -4,12 +4,17 @@
 # SPDX-License Identifier:  MIT
 #
 ################################################################################
-# Debugging Options                                                            #
+# Language Standard
+################################################################################
+include(compiler-standard)
+
+################################################################################
+# Debugging Options
 ################################################################################
 set(LIBRA_DEBUG_OPTIONS "-g2")
 
 ################################################################################
-# Optimization Options                                                         #
+# Optimization Options
 ################################################################################
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
   set(LIBRA_OPT_LEVEL -O0)
@@ -22,11 +27,9 @@ else()
 endif()
 
 set(BASE_OPT_OPTIONS
-  -Ofast
   -march=native
   -mtune=native
   -fno-stack-protector
-  -flto
   # 2023/6/29: Disable because it causes issues in RCSW unit tests. If
   # in the future I want/need to enable these again to get even more
   # speed, I could add another opt level/flag controlling it.
@@ -34,10 +37,18 @@ set(BASE_OPT_OPTIONS
   # -fno-unsafe-math-optimizations
   )
 
+if(LIBRA_LTO)
+  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -flto)
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_SHARED_FLAGS} -flto")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -flto")
+endif()
+
 if (LIBRA_OPENMP)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -fopenmp
     )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -fopenmp")
 endif()
 
 set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
@@ -48,13 +59,15 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
   set(CMAKE_AR "llvm-ar")
   set(CMAKE_NM "llvm-nm")
   set(CMAKE_RANLIB "llvm-ranlib")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -flto")
 endif()
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
+
 ################################################################################
-# Diagnostic Options                                                           #
+# Diagnostic Options
 ################################################################################
-set(BASE_DIAG_OPTIONS
+set(LIBRA_BASE_DIAG_CANDIDATES
   -Weverything
   -fdiagnostics-color=always
   -Wno-reserved-id-macro
@@ -74,15 +87,10 @@ set(BASE_DIAG_OPTIONS
   -fcomment-block-commands=internal,endinternal
   )
 
-if (LIBRA_OPENMP)
-  set(BASE_DIAG_OPTIONS "${BASE_DIAG_OPTIONS}"
-    -fopenmp
-    )
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
-endif()
 
-set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS})
-set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
+set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
+
+set(LIBRA_CXX_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES}
   -fdiagnostics-show-template-tree
   -Wno-c++98-compat
   -Wno-c++98-compat-pedantic
@@ -90,9 +98,25 @@ set(LIBRA_CXX_DIAG_OPTIONS ${BASE_DIAG_OPTIONS}
   -Wno-c99-extensions
   )
 
+set(LIBRA_C_DIAG_OPTIONS)
+foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
+  check_c_compiler_flag(${flag} LIBRA_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_COMPILER_SUPPORTS_${flag})
+    set(LIBRA_C_DIAG_OPTIONS ${LIBRA_C_DIAG_OPTIONS} ${flag})
+  endif()
+endforeach()
+
+set(LIBRA_CXX_DIAG_OPTIONS)
+foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
+  check_cxx_compiler_flag(${flag} LIBRA_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_COMPILER_SUPPORTS_${flag})
+    set(LIBRA_CXX_DIAG_OPTIONS ${LIBRA_CXX_DIAG_OPTIONS} ${flag})
+  endif()
+endforeach()
+
 
 ################################################################################
-# Checking Options                                                             #
+# Checking Options
 ################################################################################
 set(MSAN_OPTIONS
   -fno-omit-frame-pointer
@@ -174,7 +198,7 @@ set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 
 ################################################################################
-# Profiling Options                                                            #
+# Profiling Options
 ################################################################################
 set(BASE_PGO_GEN_OPTIONS
   -fprofile-generate
@@ -194,7 +218,7 @@ if (LIBRA_PGO_USE)
 endif()
 
 ################################################################################
-# Code Coverage Options                                                        #
+# Code Coverage Options
 ################################################################################
 set(BASE_CODE_COV_OPTIONS
   -fprofile-instr-generate
@@ -207,7 +231,7 @@ if (LIBRA_CODE_COV)
 endif()
 
 ################################################################################
-# Valgrind Compatibility Options                                               #
+# Valgrind Compatibility Options
 ################################################################################
 if(LIBRA_VALGRIND_BUILD)
   set(LIBRA_VALGRIND_BUILD_OPTIONS "-mno-sse3")

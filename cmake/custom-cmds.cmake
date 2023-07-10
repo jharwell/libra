@@ -125,14 +125,14 @@ function(libra_config_summary_prepare_fields FIELDS_LIST)
 
     string(REGEX
       REPLACE
-      "((ON)|(on)|(YES)|(yes)|(1))"
+      "((ON)|(on)|(YES)|(yes))"
       "${Green}\\1${ColorReset}"
       EMIT_${field}
       "${EMIT_${field}}")
 
     string(REGEX
       REPLACE
-      "((OFF)|(off)|(0)|(NO)|no)"
+      "((OFF)|(off)|(NO)|no)"
       "${Red}\\1${ColorReset}"
       EMIT_${field}
       "${EMIT_${field}}")
@@ -150,10 +150,18 @@ function(libra_config_summary)
 
   set(fields
     LIBRA_VERSION
-    CMAKE_BUILD_TYPE
     CMAKE_INSTALL_PREFIX
-    CMAKE_SYSTEM_PROCESSOR
     LIBRA_DEPS_PREFIX
+
+    CMAKE_BUILD_TYPE
+    CMAKE_SYSTEM_PROCESSOR
+    CMAKE_HOST_SYSTEM_PROCESSOR
+
+    CMAKE_C_COMPILER
+    CMAKE_CXX_COMPILER
+    LIBRA_C_STANDARD
+    LIBRA_CXX_STANDARD
+
     LIBRA_TESTS
     LIBRA_OPENMP
     LIBRA_MPI
@@ -167,28 +175,46 @@ function(libra_config_summary)
     LIBRA_SAN
     LIBRA_VALGRIND_COMPAT
     LIBRA_ANALYSIS
+    LIBRA_LTO
+    LIBRA_OPT_REPORT
   )
 
   libra_config_summary_prepare_fields("${fields}")
 
-  message(STATUS "Build framework version...............: ${ColorBold}${EMIT_LIBRA_VERSION}${ColorReset} [LIBRA_VERSION]")
-  message(STATUS "Build type............................: ${ColorBold}${EMIT_CMAKE_BUILD_TYPE}${ColorReset} [CMAKE_BUILD_TYPE]")
+  message(STATUS "LIBRA version.........................: ${ColorBold}${EMIT_LIBRA_VERSION}${ColorReset} [LIBRA_VERSION]")
+
+  # paths
   message(STATUS "Install prefix........................: ${ColorBold}${EMIT_CMAKE_INSTALL_PREFIX}${ColorReset} [CMAKE_INSTALL_PREFIX]")
-  message(STATUS "Build target architecture.............: ${ColorBold}${EMIT_CMAKE_SYSTEM_PROCESSOR}${ColorReset} [CMAKE_SYSTEM_PROCESSOR]")
   message(STATUS "Project dependencies prefix...........: ${ColorBold}${EMIT_LIBRA_DEPS_PREFIX}${ColorReset} [LIBRA_DEPS_PREFIX]")
+
+  # build info
+  message(STATUS "Build type............................: ${ColorBold}${EMIT_CMAKE_BUILD_TYPE}${ColorReset} [CMAKE_BUILD_TYPE]")
+  message(STATUS "Host architecture.....................: ${ColorBold}${EMIT_CMAKE_HOST_SYSTEM_PROCESSOR}${ColorReset} [CMAKE_HOST_SYSTEM_PROCESSOR]")
+  message(STATUS "Build target architecture.............: ${ColorBold}${EMIT_CMAKE_SYSTEM_PROCESSOR}${ColorReset} [CMAKE_SYSTEM_PROCESSOR]")
+
+  # compiler info
+  message(STATUS "C Compiler............................: ${ColorBold}${EMIT_CMAKE_C_COMPILER}${ColorReset} [CMAKE_C_COMPILER]")
+  message(STATUS "C++ Compiler..........................: ${ColorBold}${EMIT_CMAKE_CXX_COMPILER}${ColorReset} [CMAKE_CXX_COMPILER]")
+  message(STATUS "C std.................................: ${ColorBold}${EMIT_LIBRA_C_STANDARD}${ColorReset} [CMAKE_C_STANDARD]")
+  message(STATUS "C++ std...............................: ${ColorBold}${EMIT_LIBRA_CXX_STANDARD}${ColorReset} [CMAKE_CXX_STANDARD]")
+
+  # LIBRA options
   message(STATUS "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (make unit-tests) ")
   message(STATUS "Enable OpenMP.........................: ${ColorBold}${EMIT_LIBRA_OPENMP}${ColorReset} [LIBRA_OPENMP]")
   message(STATUS "Enable MPI............................: ${ColorBold}${EMIT_LIBRA_MPI}${ColorReset} [LIBRA_MPI]")
   message(STATUS "Enable PGO generation.................: ${ColorBold}${EMIT_LIBRA_PGO_GEN}${ColorReset} [LIBRA_PGO_GEN]")
   message(STATUS "Enable PGO use........................: ${ColorBold}${EMIT_LIBRA_PGO_USE}${ColorReset} [LIBRA_PGO_USE]")
   message(STATUS "ReadTheDocs build.....................: ${ColorBold}${EMIT_LIBRA_RTD_BUILD}${ColorReset} [LIBRA_RTD_BUILD]")
-  message(STATUS "Enable code coverage inst.............: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV]")
+  message(STATUS "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV]")
   message(STATUS "Enable API doc building...............: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (make apidoc) ")
   message(STATUS "Function Precondition Checking (FPC)..: ${ColorBold}${EMIT_LIBRA_FPC}${ColorReset} [LIBRA_FPC={RETURN,ABORT,NONE,INHERIT}]")
   message(STATUS "Event reporting level (ERL)...........: ${ColorBold}${EMIT_LIBRA_ERL}${ColorReset} [LIBRA_ERL={FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL,NONE,INHERIT}]")
   message(STATUS "Sanitizers............................: ${ColorBold}${EMIT_LIBRA_SAN}${ColorReset} [LIBRA_SAN={MSAN,ASAN,SSAN,TSAN}]")
-  message(STATUS "Valgrind compatibility................: ${ColorBold}${EMIT_LIBRA_VALGRIND_COMPAT}${ColorReset} [LIBRA_VALGRIND_COMPAT]")
-  message(STATUS "Static analysis.......................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (make ${PROJECT_NAME}-{check,clang-check,cppcheck,tidy-check,tidy-fix,clang-format,})")
+  message(STATUS "Enable Valgrind compatibility.........: ${ColorBold}${EMIT_LIBRA_VALGRIND_COMPAT}${ColorReset} [LIBRA_VALGRIND_COMPAT]")
+  message(STATUS "Enable static analysis................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (make ${PROJECT_NAME}-{check,clang-check,cppcheck,tidy-check,tidy-fix,clang-format})")
+  message(STATUS "Enable Link-Time Optimization (LTO)...: ${ColorBold}${EMIT_LIBRA_LTO}${ColorReset} [LIBRA_LTO]")
+  message(STATUS "Enable optimization reports...........: ${ColorBold}${EMIT_LIBRA_OPT_REPORT}${ColorReset} [LIBRA_OPT_REPORT]")  
+
   message("")
   message("${BoldBlue}--------------------------------------------------------------------------------${ColorReset}")
 
