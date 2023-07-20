@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _ln-libra-c-dev-guide:
+.. _dev-c-guide:
 
 ===================
 C Development Guide

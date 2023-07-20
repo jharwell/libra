@@ -1,5 +1,7 @@
 .. SPDX-License-Identifier:  MIT
 
+.. _main:
+
 =======================================
 LIBRA (Luigi buIld Reusable Automation)
 =======================================
@@ -38,6 +40,7 @@ guides, each detailed below.
    :maxdepth: 1
    :caption: Software Development Guides
 
+   development/core-dev-guide.rst
    development/c-dev-guide.rst
    development/cxx-dev-guide.rst
    development/python-dev-guide.rst

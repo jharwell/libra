@@ -16,7 +16,7 @@ project(${LIBRA_TARGET} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.19)
+set(LIBRA_VERSION 0.6.20)
 
 ################################################################################
 # Cmake Environment
@@ -26,10 +26,8 @@ include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/libra/cmake")
 
 option(LIBRA_TESTS     "Build tests."                                          OFF)
-option(LIBRA_OPENMP    "Enable OpenMP code."                                   OFF)
-option(LIBRA_PGO_GEN   "Enable compiler PGO generation phase."                 OFF)
-option(LIBRA_PGO_USE   "Enable compiler PGO use phase."                        OFF)
-option(LIBRA_MPI       "Enable MPI code."                                      OFF)
+option(LIBRA_MT        "Enable multithreaded+openmp code."                     OFF)
+option(LIBRA_MP         "Enable multiprocess+MPI code."                        OFF)
 option(LIBRA_RTD_BUILD "Indicate that the build is for ReadTheDocs"            OFF)
 option(LIBRA_CODE_COV  "Compile with code coverage instrumentation"            OFF)
 option(LIBRA_DOCS      "Enable documentation build"                            OFF)
@@ -38,6 +36,9 @@ option(LIBRA_ANALYSIS  "Enable static analysis checkers"                       O
 option(LIBRA_SUMMARY   "Show a configuration summary"                          ON)
 option(LIBRA_LTO       "Enable Link-Time Optimization"                         OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations"      OFF)
+
+set(LIBRA_PGO "NONE" CACHE STRING "[NONE,GEN,USE] Compiler PGO generation/use ")
+set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 
 set(LIBRA_FPC "RETURN" CACHE STRING "[RETURN,ABORT,NONE] Function Predcondition Checking (FPC)")
 set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT NONE INHERIT)

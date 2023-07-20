@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _ln-libra-core-dev-guide:
+.. _dev-core-guide:
 
 ======================
 Core Development Guide

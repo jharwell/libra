@@ -48,7 +48,7 @@ foreach(arg
 endforeach(arg)
 
 set(CMAKE_CXX_FLAGS_DEV
-  ${CMAKE_CXX_FLAGS_DEV}
+  ${LIBRA_CXX_FLAGS_DEV}
   CACHE STRING
   "Flags used by the CXX compiler during development builds."
   FORCE)
@@ -147,7 +147,7 @@ foreach(arg
   set(LIBRA_CXX_FLAGS_OPT "${LIBRA_CXX_FLAGS_OPT} ${arg}")
 endforeach(arg)
 set(CMAKE_CXX_FLAGS_OPT
-  "${LIBRA_CXX_FLAGS_OPT} ${CMAKE_CXX_FLAGS_OPT}"
+  ${LIBRA_CXX_FLAGS_OPT}
   CACHE STRING
   "Flags used by the C++ compiler during optimized builds."
   FORCE)

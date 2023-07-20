@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _ln-libra-python-dev-guide:
+.. _dev-python-guide:
 
 ========================
 Python Development Guide

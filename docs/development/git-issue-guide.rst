@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _ln-libra-git-issue-guide:
+.. _dev-git-issue-guide:
 
 =========================
 Github Issues Usage Guide

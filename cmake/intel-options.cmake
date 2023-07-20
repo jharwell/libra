@@ -33,7 +33,7 @@ set(BASE_OPT_OPTIONS
   -fp-model fast=2
 )
 
-if (LIBRA_OPENMP)
+if (LIBRA_MT)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS}
     -qopenmp
     -parallel
@@ -84,7 +84,7 @@ set(BASE_DIAG_OPTIONS
 
 # If I have a bad OpenMP pragma when OpenMP is enabled, warn about it. Otherwise
 # OpenMP is disabled and all OpenMP pragma warnings are spurious.
-if(NOT LIBRA_OPENMP)
+if(NOT LIBRA_MT)
   set(BASE_DIAG_OPTIONS "${BASE_DIAG_OPTIONS} -wd3180")
 endif()
 
@@ -187,7 +187,7 @@ set(BASE_PGO_USE_OPTIONS
   -prof-use-sampling
 )
 
-if (LIBRA_OPENMP)
+if (LIBRA_MT)
   set(BASE_PGO_GEN_OPTIONS
     "${BASE_PGO_GEN_OPTIONS}"
     -prof-gen=threadsafe)
@@ -199,12 +199,12 @@ else()
     -profile-loops-report=2)
 endif()
 
-if (LIBRA_PGO_GEN)
+if ("${LIBRA_PGO}" MATCHES "GEN")
   set(LIBRA_C_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
   set(LIBRA_CXX_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
 endif()
 
-if (LIBRA_PGO_USE)
+if ("${LIBRA_PGO}" MATCHES "USE")
   set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
   set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
 endif()

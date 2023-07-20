@@ -19,6 +19,15 @@ if (CCACHE_FOUND)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif()
 
+
+################################################################################
+# Profile-Guided Optimization (PGO)
+################################################################################
+set(LIBRA_PGO_MODES NONE GEN USE)
+if (NOT "${LIBRA_PGO}" IN_LIST LIBRA_PGO_MODES)
+  message(FATAL_ERROR "Bad PGO specification '${LIBRA_PGO}. Must be [NONE,GEN,USE].")
+endif()
+
 ################################################################################
 # Definitions
 ################################################################################
@@ -121,7 +130,7 @@ if ("${CMAKE_C_COMPILER_ID}" MATCHES "Intel" OR
 endif ()
 
 # Setup MPI
-if (LIBRA_MPI)
+if (LIBRA_MP)
   find_package(MPI REQUIRED)
   include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()

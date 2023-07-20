@@ -163,10 +163,9 @@ function(libra_config_summary)
     LIBRA_CXX_STANDARD
 
     LIBRA_TESTS
-    LIBRA_OPENMP
-    LIBRA_MPI
-    LIBRA_PGO_GEN
-    LIBRA_PGO_USE
+    LIBRA_MT
+    LIBRA_MP
+    LIBRA_PGO
     LIBRA_RTD_BUILD
     LIBRA_CODE_COV
     LIBRA_DOCS
@@ -200,12 +199,11 @@ function(libra_config_summary)
 
   # LIBRA options
   message(STATUS "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (make unit-tests) ")
-  message(STATUS "Enable OpenMP.........................: ${ColorBold}${EMIT_LIBRA_OPENMP}${ColorReset} [LIBRA_OPENMP]")
-  message(STATUS "Enable MPI............................: ${ColorBold}${EMIT_LIBRA_MPI}${ColorReset} [LIBRA_MPI]")
-  message(STATUS "Enable PGO generation.................: ${ColorBold}${EMIT_LIBRA_PGO_GEN}${ColorReset} [LIBRA_PGO_GEN]")
-  message(STATUS "Enable PGO use........................: ${ColorBold}${EMIT_LIBRA_PGO_USE}${ColorReset} [LIBRA_PGO_USE]")
+  message(STATUS "Enable multithread+openmp.............: ${ColorBold}${EMIT_LIBRA_MT}${ColorReset} [LIBRA_MT]")
+  message(STATUS "Enable multiprocess+MPI...............: ${ColorBold}${EMIT_LIBRA_MP}${ColorReset} [LIBRA_MP]")
+  message(STATUS "PGO...................................: ${ColorBold}${EMIT_LIBRA_PGO}${ColorReset} [LIBRA_PGO={NONE,GEN,USE}]")
   message(STATUS "ReadTheDocs build.....................: ${ColorBold}${EMIT_LIBRA_RTD_BUILD}${ColorReset} [LIBRA_RTD_BUILD]")
-  message(STATUS "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV]")
+  message(STATUS "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (make precoverage-report,coverage-report)")
   message(STATUS "Enable API doc building...............: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (make apidoc) ")
   message(STATUS "Function Precondition Checking (FPC)..: ${ColorBold}${EMIT_LIBRA_FPC}${ColorReset} [LIBRA_FPC={RETURN,ABORT,NONE,INHERIT}]")
   message(STATUS "Event reporting level (ERL)...........: ${ColorBold}${EMIT_LIBRA_ERL}${ColorReset} [LIBRA_ERL={FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL,NONE,INHERIT}]")
