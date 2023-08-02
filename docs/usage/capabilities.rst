@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _usage-capabilities:
+.. _usage/capabilities:
 
 ==================
 LIBRA Capabilities
@@ -14,7 +14,7 @@ These are things LIBRA can do when running cmake.
 File Discovery
 --------------
 
-LIBRA globs all files under ``src/`` (see :ref:`usage-req` for repository
+LIBRA globs all files under ``src/`` (see :ref:`usage/req` for repository
 layout requirements) so that if you add a new source file, rename a source file,
 etc., you just need to re-run cmake. This means you don't have to MANUALLY
 specify all the files in the cmake project. Woo-hoo!
@@ -45,10 +45,10 @@ Configuring The Build Process
 
 The following variables are available for fine-tuning the build process. All of
 these variables can be specified on the command line, or put in your
-``project-local.cmake``--see :ref:`usage-project-local` for details.
+``project-local.cmake``--see :ref:`usage/project-local` for details.
 
 .. list-table::
-   :widths: 25,50,50
+   :widths: 5,90,5
    :header-rows: 1
 
    * - Variable
@@ -266,7 +266,7 @@ In addition to being able to actually build the software, this project enables
 the following additional capabilities via targets:
 
 .. list-table::
-   :widths: 30,70
+   :widths: 5,95
    :header-rows: 1
 
    * - ``make`` target
@@ -366,5 +366,5 @@ Git Commit Checking
 LIBRA can lint commit messages, checking they all have a consistent format. The
 format is controlled by the file ``commitlint.config.js``. See the `husky
 <https://www.npmjs.com/package/husky>`_ for details. The default format LIBRA
-enforces is described in :ref:`dev-git-commit-guide`. To use it run ``npm
+enforces is described in :ref:`dev/git-commit-guide`. To use it run ``npm
 install`` in the repo where you have setup LIBRA.

@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _dev-core-guide:
+.. _dev/core-guide:
 
 ======================
 Core Development Guide

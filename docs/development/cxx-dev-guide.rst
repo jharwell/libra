@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _dev-cxx-guide:
+.. _dev/cxx-guide:
 
 =====================
 C++ Development Guide

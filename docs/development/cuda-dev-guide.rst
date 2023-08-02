@@ -1,13 +1,13 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _dev-cuda-guide:
+.. _dev/cuda-guide:
 
 ======================
 CUDA Development Guide
 ======================
 
 Generally, since CUDA can be C or C++ flavored, follow either
-:ref:`dev-c-guide` or :ref:`dev-cxx-guide`, as appropriate,
+:ref:`dev/c-guide` or :ref:`dev/cxx-guide`, as appropriate,
 with the additions below. If something below contradicts the C/C++ style guides,
 go with the below for a CUDA project.
 

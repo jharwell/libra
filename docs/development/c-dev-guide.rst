@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _dev-c-guide:
+.. _dev/c-guide:
 
 ===================
 C Development Guide
@@ -48,14 +48,14 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 
 #. Thy debugging/logging statements shall be of sufficient quality that **NO
    ADDITIONAL** ``printf()`` statements are required to debug ANY problem in the
-   code. This makes in MUCH easier to triage and fix errors that other people
+   code. This makes it MUCH easier to triage and fix errors that other people
    find with your code.
 
 #. Thou shalt strive to make thy code "correct by construction". This includes:
 
    - Putting ``assert()`` statements throughout thy code (probably in a macro
      with a logging statement which is triggered on failure). These statements
-     can be easily compiled away in release builds, AND give thou confidence
+     can be easily compiled away in thy release builds, AND give thou confidence
      that when thy code is running without crashing, it is running correctly.
 
 Coding Style
@@ -89,15 +89,19 @@ Files
   once`` instead. It is supported by all major compilers, and makes header files
   way easier to move around without mind-numbing refactoring.
 
+- Don't forward declare static functions in the ``.c`` file, only to define
+  them later. This adds lines and noise and cognitive processing for readers
+  which isn't necessary. Attach docs (if any) to the definition the function,
+  which should probably be before all the non-static functions so they are
+  available.
+
 Naming
 ------
 
-- All file, class, variable, enum, namespace, etc. names are
-  ``specified_like_this``, NOT ``specifiedLikeThis`` or
-  ``SpecifiedLikeThis``. Rationale: Most of the time you should not really need
-  to know whether the thing in between ``::`` is a class, namespace, enum,
-  etc. You really only need to know what operations it has. This also makes the
-  code play nicely with the STL/boost from a readability point of view.
+- All file, variable, enum, etc. names are ``specified_like_this``, NOT
+  ``specifiedLikeThis`` or ``SpecifiedLikeThis``. Rationale: this is how it was
+  originally done in C, and the way it should remain. This also makes the code
+  play nicely with the standard library from a readability point of view.
 
 - Never typedef structs. You can typedef types though (i.e., ``int64_t``). That
   way, you KNOW if you see something with a ``_t`` it is a type, NOT a
@@ -121,7 +125,7 @@ Naming
 - All enum names should be postfixed with ``_type``, in order to enforce
   semantic similarity between members when possible (i.e. if it does not make
   sense to do this, should you really be using an enum vs. a collection of
-  ``constexpr`` values?).
+  ``#define`` values?).
 
 Miscellaneous
 -------------
@@ -137,12 +141,14 @@ Miscellaneous
 
 - When testing ``==/!=`` with a CONSTANT, the constant goes on the lhs, because
   that way if you mistype and only put a single ``=`` you'll get a compiler
-  error rather than it (maybe) silently compiling into a bug.
+  error rather than it (maybe) silently compiling into a bug. Most compilers
+  will warn about this, but what if you have that warning disabled, or are using
+  an older compiler which doesn't emit it?
 
 - Don't use ``//`` style comments--use ``/* */`` style comments. This is
   because (1) the generally force you NOT to put stuff at the end of a line
   where it is more likely to hamper readability/be missed by the reader, and (2)
-  they are easier to reader because they are symmetric.
+  they are easier to read because they are symmetric.
 
 - When a ``/* */`` style comment is over one line, format it symmetrically, like
   so, to improve readability::
@@ -187,29 +193,20 @@ Function Parameters
 Documentation
 =============
 
-- All classes should have:
+- All structs should have:
 
     - A doxygen brief
     - A group tag
     - A detailed description for non-casual users of the class
 
-- All non-getter/non-setter member functions should be documentated with at
-  least a brief, UNLESS those functions are overrides/inherited from a parent
-  class, in which case they should be left blank (usually) and their
-  documentation be in the class in which they are initially declared. All
-  non-obvious parameters should be documented.
-
-Tricky/nuanced issues with member variables should be documented, though in
-general the namespace name + class name + member variable name + member variable
-type should be enough documentation. If its not, chances are you are naming
-things somewhat obfuscatingly and need to refactor.
+- All functions should be documented with at least a brief. All non-obvious
+  parameters should be documented.
 
 Testing
 =======
 
-All NEW classes should have some basic unit tests associated with them, when
-possible (one for each major public function that the class provides). For any
-*existing* classes that have *new* public functions added, a new unit test
-should also be added. It is not possible to create unit tests for all classes,
-as some can only be tested in an integrated manner, but there many that can and
-should be tested in a stand alone fashion.
+All NEW functionality should have some basic unit tests associated with them,
+when possible (one for each major function that the module provides). It often
+is not possible to create unit tests for all new functionality, as some can only
+be tested in an integrated manner, but everything else can and should be tested
+in a stand alone fashion.

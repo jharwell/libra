@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _usage-req:
+.. _usage/req:
 
 =========================
 Requirements to use LIBRA
@@ -80,14 +80,14 @@ Requirements
 ------------
 
 - All C++ source files end in ``.cpp``, and all C++ header files end in ``.hpp``
-  (which they should if you are following the :ref:`cxx-dev-guide`).
+  (which they should if you are following the :ref:`dev/cxx-guide`).
 
 - All C source files end in ``.c`` and all C header files end in ``.h`` (which
-  they should if you are following the :ref:`c-dev-guide`).
+  they should if you are following the :ref:`dev/c-guide`).
 
 - All CUDA source files end in ``.cu`` and all CUDA header files end in
   ``.cuh`` (which they should if you are following the
-  :ref:`cuda-dev-guide`).
+  :ref:`dev/cuda-guide`).
 
 - All source files for a repository must live under ``src/`` in the root.
 
@@ -104,7 +104,7 @@ Requirements
 
 - All projects must include a ``cmake/project-local.cmake`` in the root of the
   repository containing any project specific bits (i.e. adding subdirectories,
-  what libraries to create, etc.). See :ref:`project-local` for how to
+  what libraries to create, etc.). See :ref:`usage/project-local` for how to
   structure this file.
 
 - ``LIBRA_DOCS`` - Override the default value of ``YES`` if your project does

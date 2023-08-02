@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _usage-quickstart:
+.. _usage/quickstart:
 
 ==========
 Quickstart
@@ -16,7 +16,7 @@ To hook into LIBRA you need to:
      ln -s libra/cmake/project.cmake CmakeLists.txt
 
 #. Create ``cmake/project-local.cmake`` in the root of your project repo. See
-   :ref:`usage-project-local` for more details.
+   :ref:`usage/project-local` for more details.
 
 After you hook in, you can do::
 

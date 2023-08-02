@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _usage-project-local:
+.. _usage/project-local:
 
 ======================
 How To Hook Into LIBRA
@@ -18,7 +18,7 @@ defines for you to use in this file, see below.
 Variables
 =========
 
-Most variables of the form ``LIBRA_XX`` detailed in :ref:`capabilities`
+Most variables of the form ``LIBRA_XX`` detailed in :ref:`usage/capabilities`
 can be permanently set in your ``project-local.cmake``, but not all. Exceptions
 are:
 
