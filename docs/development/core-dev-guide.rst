@@ -70,7 +70,7 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 
 #. Thou shalt not call idempotent functions multiple times.
 
-   E.g., "just to be sure". If it says idempotent, treat it as such.
+   E.g., "just to be sure". If it says idempotent, thou shalt treat it as such.
 
 #. Thou shalt not create multiple versions of an algorithm to handle different
    types or operators, rather than using generics or passing callbacks to a
@@ -78,7 +78,5 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 
 
 #. Thou shalt understand pointers and thy language's memory model.
-
-   If you don't, bugs will ensue.
 
 #. Thou shalt write thy classes, and functions with high cohesion, low coupling.

@@ -18,6 +18,7 @@ set(LIBRA_C_STD_CANDIDATES
 )
 
 set(LIBRA_CXX_STD_CANDIDATES
+  20
   17
   14
   11
@@ -25,8 +26,8 @@ set(LIBRA_CXX_STD_CANDIDATES
 
 if(NOT CMAKE_C_STANDARD)
   foreach(std ${LIBRA_C_STD_CANDIDATES})
-    check_c_compiler_flag(-std=c${std} LIBRA_COMPILER_SUPPORTS_c${std})
-    if(LIBRA_COMPILER_SUPPORTS_c${std})
+    check_c_compiler_flag(-std=c${std} LIBRA_C_COMPILER_SUPPORTS_c${std})
+    if(LIBRA_C_COMPILER_SUPPORTS_c${std})
       set(CMAKE_C_STANDARD ${std})
       set(LIBRA_C_STANDARD c${std})
       break()
@@ -41,8 +42,8 @@ endif()
 
 if(NOT CMAKE_CXX_STANDARD)
   foreach(std ${LIBRA_CXX_STD_CANDIDATES})
-    check_cxx_compiler_flag(-std=c++${std} LIBRA_COMPILER_SUPPORTS_cxx${std})
-    if(LIBRA_COMPILER_SUPPORTS_cxx${std})
+    check_cxx_compiler_flag(-std=c++${std} LIBRA_CXX_COMPILER_SUPPORTS_cxx${std})
+    if(LIBRA_CXX_COMPILER_SUPPORTS_cxx${std})
       set(CMAKE_CXX_STANDARD ${std})
       set(LIBRA_CXX_STANDARD c++${std})
       break()

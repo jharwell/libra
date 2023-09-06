@@ -10,30 +10,10 @@ Unsurprisingly, some of the items in this development guide are dictated by
 LIBRA, and are intended for use with it; these are clearly stated below. If you
 are not using LIBRA, then you can ignore them if you want to--but you shouldn't!
 
-In general, follow the Linux kernel C style guide (unless something below
-contradicts it, then go with what is below).
+In general, follow the `Linux kernel C style guide
+<https://www.kernel.org/doc/html/latest/process/coding-style.html>`_ (unless
+something below contradicts it, then go with what is below).
 
-THE GOLDEN RULE
-===============
-
-From the GNOME developer site::
-
-  The single most important rule when writing code is this: check the
-  surrounding code and try to imitate it.
-
-  As a maintainer it is dismaying to receive a patch that is obviously in a
-  different coding style to the surrounding code. This is disrespectful, like
-  someone tromping into a spotlessly-clean house with muddy shoes.
-
-  So, whatever this document recommends, if there is already written code and
-  you are patching it, keep its current style consistent even if it is not your
-  favorite style.
-
-This style guide is always a work in progress, so you may encounter code written
-against older versions of it: update it incrementally/locally if possible to the
-latest version. If you can't do so easily (i.e., it would be a extra refactoring
-task), then stick with the original style unless you _know_ are going to be
-changing more than 50% of a file, then go ahead and update.
 
 Commandments
 ============
@@ -94,6 +74,16 @@ Files
   which isn't necessary. Attach docs (if any) to the definition the function,
   which should probably be before all the non-static functions so they are
   available.
+
+- Files in ``#include`` should use ``""`` by default, and **ONLY** use ``<>``
+  when you are referencing a *system* project. At a minimum, a *system* project
+  should be outside the current module project, if not a system header per-se
+  (i.e., something under ``/usr/include``). This has two benefits:
+
+  - Avoiding subtle/hard to find bugs if you happen to name a file the same as
+    a system header
+
+  - Makes the intent of the code clearer.
 
 Naming
 ------

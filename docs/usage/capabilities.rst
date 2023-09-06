@@ -14,11 +14,45 @@ These are things LIBRA can do when running cmake.
 File Discovery
 --------------
 
-LIBRA globs all files under ``src/`` (see :ref:`usage/req` for repository
-layout requirements) so that if you add a new source file, rename a source file,
-etc., you just need to re-run cmake. This means you don't have to MANUALLY
-specify all the files in the cmake project. Woo-hoo!
+- All files under ``src/`` ending in:
 
+  - ``.c``
+  - ``.cpp``
+  - ``.cu``
+
+  are globbed as source files (see :ref:`usage/req` for repository layout
+  requirements) so that if you add a new source file, rename a source file,
+  etc., you just need to re-run cmake. This means you don't have to MANUALLY
+  specify all the files in the cmake project. Woo-hoo!
+
+- All files under ``tests/`` ending in:
+
+  - ``-utest.c``
+  - ``-utest.cpp``
+
+  are globbed as unit test files which will be compiled into executable unit
+  tests at build time if ``LIBRA_TESTS=YES``.
+
+- All files under ``tests/`` ending in:
+
+  - ``-itest.c``
+  - ``-itest.cpp``
+
+  are globbed as integration test files which will be compiled into executable
+  unit tests at build time if ``LIBRA_TESTS=YES``.
+
+- All files under ``tests/`` ending in:
+
+  - ``_test.c``
+  - ``_test.cpp``
+
+  are globbed as the test harness for unit/integration tests. All test harness
+  files will be compiled into static libraries at build time and all test
+  targets link against them if ``LIBRA_TESTS=YES``.
+
+.. NOTE:: The difference between unit tests and integration tests is purely
+          semantic, and exists solely to help organize your tests. LIBRA treats
+          both types of tests equivalently.
 
 Build Modes
 -----------
@@ -68,7 +102,13 @@ these variables can be specified on the command line, or put in your
 
    * -  ``LIBRA_TESTS``
 
-     - Enable building of unit tests via ``make unit-tests``.
+     - Enable building of tests via:
+
+       - ``make unit-tests`` (unit tests only)
+
+       - ``make integration-tests`` (integration tests only)
+
+       - ``make tests`` (all tests)
 
      - NO
 
@@ -128,24 +168,22 @@ these variables can be specified on the command line, or put in your
          binary, and whether an encountered event is emitted is dependent on the
          level and scope of the event (which may be configured at runtime).
 
-       * ``FATAL`` - Disable and compile out event reporting EXCEPT for FATAL
+       * ``FATAL`` - Compile out event reporting EXCEPT FATAL events.
+
+       * ``ERROR`` - Compile out event reporting EXCEPT [FATAL, ERROR] events.
+
+       * ``WARN`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN]
          events.
 
-       * ``ERROR`` - Disable and compile out event reporting EXCEPT for [FATAL,
-         ERROR] events.
+       * ``INFO`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN,
+         INFO] events.
 
-       * ``WARN`` - Disable and compile out event reporting EXCEPT for [FATAL,
-         ERROR, WARN] events.
-
-       * ``INFO`` - Disable and compile out event reporting EXCEPT for [FATAL,
-         ERROR, WARN, INFO] events.
-
-       * ``DEBUG`` - Disable and compile out event reporting EXCEPT for [FATAL,
-         ERROR, WARN, INFO, DEBUG] events.
+       * ``DEBUG`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN,
+         INFO, DEBUG] events.
 
        * ``TRACE`` - Same as ``ALL``.
 
-       * ``NONE`` - Disable event reporting entirely: all logging compiled out.
+       * ``NONE`` - All event reporting compiled out.
 
        * ``INHERIT`` - Event reporting configuration should be inherited from a
          parent project which exposes it.
@@ -168,7 +206,7 @@ these variables can be specified on the command line, or put in your
 
    * - ``LIBRA_DOCS``
 
-     - Enable documentation build.
+     - Enable documentation build via ``make apidoc``.
 
      - NO
 
@@ -227,7 +265,7 @@ these variables can be specified on the command line, or put in your
        - ``${PROJECT_NAME}-tidy-check}`` - Static analysis via ``clang-tidy``
 
        - ``${PROJECT_NAME}-tidy-fix}`` - Static analysis AND automatic fixing of
-         issues via ``clang-tidy``. Use with care!
+         issues via ``clang-tidy``.
 
        - ``${PROJECT_NAME}-clang-format}`` - Code formatting via
          ``clang-format``.
@@ -238,7 +276,7 @@ these variables can be specified on the command line, or put in your
 
    * - ``LIBRA_SUMMARY``
 
-     - Show a configuration summary in the terminal after finishing.
+     - Show a configuration summary after finishing.
 
      - YES
 
@@ -254,6 +292,7 @@ these variables can be specified on the command line, or put in your
        suggestions for further optimizations.
 
      - NO
+
 
 
 Build Time
@@ -295,14 +334,36 @@ the following additional capabilities via targets:
    * - ``unit-tests``
 
      - Build all of the unit tests for the project. If you want to just build a
-       single unit test, you can do ``make <project name>-<root
-       namespace>-<class name>-utest``. For example::
+       single unit test, you can do ``make <name of test>``. For example::
 
          make rcppsw-fsm-hfsm-utest
 
        for a single unit test named ``hfsm-utest.cpp`` that lives under
-       ``tests/`` in the ``rcppsw`` project in the ``fsm`` namespace. Requires
-       that ``LIBRA_TESTS=YES`` was passed to cmake during configuration.
+       ``tests/`` in the ``rcppsw`` project.
+
+       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       configuration.
+
+   * - ``integration-tests``
+
+     - Build all of the integration tests for the project. If you want to just
+       build a single test, you can do ``make <name of test>``. For example::
+
+         make rcppsw-fsm-itest
+
+       for a single unit test named ``hfsm-itest.cpp`` that lives under
+       ``tests/`` in the ``rcppsw`` project.
+
+       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       configuration.
+
+   * - ``tests``
+
+     - Build all of the integration and unit tests for the project; same as
+       ``make unit-tests && make integration-tests``.
+
+       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       configuration.
 
    * - ``test``
 

@@ -65,6 +65,16 @@ Files
   Principle of Least Surprise, and makes it as easy as possible for people
   unfamiliar with the code to find stuff in it.
 
+- Files in ``#include`` should use ``""`` by default, and **ONLY** use ``<>``
+  when you are referencing a *system* project. At a minimum, a *system* project
+  should be outside the current module project, if not a system header per-se
+  (i.e., something under ``/usr/include``). This has two benefits:
+
+  - Avoiding subtle/hard to find bugs if you happen to name a file the same as
+    a system header
+
+  - Makes the intent of the code clearer.
+
 Naming
 ------
 

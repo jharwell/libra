@@ -91,9 +91,25 @@ Requirements
 
 - All source files for a repository must live under ``src/`` in the root.
 
-- All tests (either C or C++) for a project/submodule must live under the
-  ``tests/`` directory in the root of the project, and should end in
-  ``-test.cpp`` or ``-test.c`` so it is clear they are not source files.
+- All tests for a project must live under the ``tests/`` directory in the root
+  of the project and must end in:
+
+  - ``-utest.cpp``
+  - ``-utest.c``
+  - ``-itest.cpp``
+  - ``-itest.c``
+
+  for unit and integration tests respectively, so that they can automatically be
+  picked up by LIBRA if ``LIBRA_TESTS=YES``.
+
+- All test harness source files for a project must live under the ``tests/``
+  directory in the root of the project and must end in:
+
+  - ``_test.cpp``
+  - ``_utest.c``
+
+  for, so that they can automatically be picked up by LIBRA if
+  ``LIBRA_TESTS=YES`` and compiled into libraries which all tests link against.
 
 - All projects must include THIS repository as a submodule under ``libra/`` in
   the project root, and link a ``CmakeLists.txt`` in the root of the repository
