@@ -29,12 +29,12 @@ set(LIBRA_test_harness)
 
 if(LIBRA_cxx_test_harness)
   set(LIBRA_HAVE_cxx_test_harness YES)
-  set(LIBRA_test_harness "${LIBRA_test_harness} ${PROJECT_NAME}-cxx-utest-harness")
+  set(LIBRA_test_harness "${LIBRA_test_harness};${PROJECT_NAME}-cxx-utest-harness")
 endif()
 
 if(LIBRA_c_test_harness)
   set(LIBRA_HAVE_c_test_harness YES)
-  set(LIBRA_test_harness ${PROJECT_NAME}-c-utest-harness)
+  set(LIBRA_test_harness "${LIBRA_test_harness};${PROJECT_NAME}-c-utest-harness")
 endif()
 
 ################################################################################
@@ -202,9 +202,6 @@ endfunction()
 ################################################################################
 configure_test_harness()
 
-# Target for building all tests
-add_custom_target(tests)
-
 # Target for building and running all tests
 add_custom_target(build-and-test COMMAND ${CMAKE_CTEST_COMMAND})
 
@@ -213,6 +210,14 @@ add_custom_target(unit-tests)
 
 # Target for building all integration tests
 add_custom_target(integration-tests)
+
+# Target for building all tests
+add_custom_target(all-tests)
+
+add_dependencies(all-tests
+  unit-tests
+  integration-tests
+)
 
 # Add each test in tests/ under the current project one at a time.
 foreach(t ${LIBRA_c_utests} ${LIBRA_cxx_utests})

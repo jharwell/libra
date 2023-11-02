@@ -46,6 +46,7 @@ guides, each detailed below.
    development/python-dev-guide.rst
    development/cuda-dev-guide.rst
    development/bazel-dev-guide.rst
+   development/ld-dev-guide.rst
    development/git-commit-guide.rst
    development/git-issue-guide.rst
    development/workflow.rst

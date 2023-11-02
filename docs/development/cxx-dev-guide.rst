@@ -57,7 +57,9 @@ Files
   is a very good reason to do otherwise. class/struct definitions nested within
   other classes/structs are exempt from this rule, but their use should still be
   minimized and well documented if they reside in the ``public`` part of the
-  enclosing class.
+  enclosing class. Rationale: Can massively reduce compilation time by
+  eliminating redundant compilation, and makes dependencies between
+  files/classes/etc MUCH clearer.
 
 - If a C++ file lives under ``src/my_module/my_file.cpp`` then its corresponding
   include file is found under ``include/<repo_name>/my_module/my_file.hpp``
@@ -83,7 +85,16 @@ Naming
   ``SpecifiedLikeThis``. Rationale: Most of the time you should not really need
   to know whether the thing in between ``::`` is a class, namespace, enum,
   etc. You really only need to know what operations it has. This also makes the
-  code play nicely with the STL/boost from a readability point of view.
+  code play nicely with the STL/boost from a readability point of
+  view.
+
+- **Never** include the datatype or units in the name of *anything*. Linus was
+  right--it _is_ brain damaged. Rationale: (a) it makes refactoring more work,
+  and (b) you don't actually prevent yourself from passing e.g., a ``float``
+  containing a value in cm to a function which contains a value in meters--just
+  make it less likely. If you find yourself wanting to use Hungarian-esque
+  notation use strongly named types instead--the compile with enforce type/unit
+  correctness for you.
 
 - Namespace names should NEVER contain underscores. This is because a name like
   "nest_acq" (short for "nest_acquisition") is actually two concepts: things
@@ -187,8 +198,6 @@ Miscellaneous
   error rather than it (maybe) silently compiling into a bug.
 
 - Non-const static variables should be avoided.
-
-- Do not use Hungarian notation. Linus was right--it _is_ brain damaged.
 
 - Class nesting should be avoided, unless it is an internal convenience
   ``struct`` to hold related data.

@@ -85,8 +85,8 @@ Files
 
   - Makes the intent of the code clearer.
 
-Naming
-------
+General Naming
+--------------
 
 - All file, variable, enum, etc. names are ``specified_like_this``, NOT
   ``specifiedLikeThis`` or ``SpecifiedLikeThis``. Rationale: this is how it was
@@ -112,10 +112,54 @@ Naming
   hinder at-a-glance readability somewhat, but that is outweighed by the
   increased at-a-glance code comprehension.
 
-- All enum names should be postfixed with ``_type``, in order to enforce
-  semantic similarity between members when possible (i.e. if it does not make
-  sense to do this, should you really be using an enum vs. a collection of
-  ``#define`` values?).
+
+
+Naming In Embedded Code
+-----------------------
+
+"Embedded code" in this case refers to things like:
+
+- Code which runs on an embedded chip
+
+- Bare-metal device drivers
+
+- BSP code
+
+- Other "low-level" code
+
+Normally, when you name functions, macros, etc., you want to do::
+
+  <project>_<module>_<thing>_
+
+However, for embedded code don't do this. Rationale: embedded code is often
+consumed in situ, meaning that it is written for a specific project/application,
+and not reused beyond that context. As such the usual practice of naming to
+prevent name collisions/linking errors/etc is not necessary. So why add
+additional burden to future readers of your code? For example, consider writing
+a BSP:
+
+- ``#define``\s don't need to be universally unique (only reasonably
+  unique), because you never need to combine two BSPs together where you might
+  have duplicate definitions of e.g., ``UART0_BASE``.
+
+
+Thus, in the context of embedded code:
+
+- All macro names are ``MODULEY_SOME_MACRO`` not ``PROJECTX_MODULEY_SOME_MACRO``.
+
+- Global variables do not need to be prefixed with ``g_``.
+
+Naming In Non-Embedded Code
+---------------------------
+
+Unless your application meets the criteria specified in `Naming In Embedded
+Code`_, you are in a general context. So:
+
+
+- All macro names are ``PROJECTX_MODULEY_SOME_MACRO`` not
+  ``MODULEY_SOME_MACRO``.
+
+- All global variables prefixed with ``g_``.
 
 Miscellaneous
 -------------
@@ -161,8 +205,6 @@ Linting
   line would decrease readability. The formatter generally takes care of this.
 
 Code should pass the clang-tidy linter, which checks for style elements like:
-
-- All global variables prefixed with ``g_``.
 
 - All functions less than 100 lines, with no more than 5 parameters/10
   branches. If you have something longer than this, 9/10 times it can and
