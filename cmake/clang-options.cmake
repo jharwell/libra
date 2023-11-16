@@ -238,6 +238,13 @@ if(LIBRA_VALGRIND_BUILD)
 endif()
 
 ################################################################################
+# Stdlib options
+################################################################################
+if(NOT LIBRA_STDLIB)
+  set(LIBRA_STDLIB_OPTIONS "-nostdlib")
+endif()
+
+################################################################################
 # Filtering build flags for versioning
 #
 # - No warnings, since they have no effect on the build

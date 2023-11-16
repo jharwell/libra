@@ -176,6 +176,7 @@ function(libra_config_summary)
     LIBRA_ANALYSIS
     LIBRA_LTO
     LIBRA_OPT_REPORT
+    LIBRA_STDLIB
   )
 
   libra_config_summary_prepare_fields("${fields}")
@@ -212,6 +213,7 @@ function(libra_config_summary)
   message(STATUS "Enable static analysis................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (make ${PROJECT_NAME}-{check,clang-check,cppcheck,tidy-check,tidy-fix,clang-format})")
   message(STATUS "Enable Link-Time Optimization (LTO)...: ${ColorBold}${EMIT_LIBRA_LTO}${ColorReset} [LIBRA_LTO]")
   message(STATUS "Enable optimization reports...........: ${ColorBold}${EMIT_LIBRA_OPT_REPORT}${ColorReset} [LIBRA_OPT_REPORT]")  
+  message(STATUS "Enable stdlib.........................: ${ColorBold}${EMIT_LIBRA_STDLIB}${ColorReset} [LIBRA_STDLIB]")  
 
   message("")
   message("${BoldBlue}--------------------------------------------------------------------------------${ColorReset}")

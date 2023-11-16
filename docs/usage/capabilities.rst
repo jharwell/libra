@@ -278,7 +278,7 @@ these variables can be specified on the command line, or put in your
 
      - Show a configuration summary after finishing.
 
-     - YES
+     - NO
 
    * - ``LIBRA_LTO``
 
@@ -293,6 +293,12 @@ these variables can be specified on the command line, or put in your
 
      - NO
 
+
+   * - ``LIBRA_STDLIB``
+
+     - Enable using the standard library.
+
+     - YES
 
 
 Build Time

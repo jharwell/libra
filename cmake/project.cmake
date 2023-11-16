@@ -16,7 +16,7 @@ project(${LIBRA_TARGET} C CXX)
 
 # The current version of LIBRA, to make debugging strange build
 # problems easier
-set(LIBRA_VERSION 0.6.23)
+set(LIBRA_VERSION 0.6.24)
 
 ################################################################################
 # Cmake Environment
@@ -36,6 +36,7 @@ option(LIBRA_ANALYSIS  "Enable static analysis checkers"                       O
 option(LIBRA_SUMMARY   "Show a configuration summary"                          ON)
 option(LIBRA_LTO       "Enable Link-Time Optimization"                         OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations"      OFF)
+option(LIBRA_STDLIB "Enable usage of the standard library"                     ON)
 
 set(LIBRA_PGO "NONE" CACHE STRING "[NONE,GEN,USE] Compiler PGO generation/use ")
 set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)

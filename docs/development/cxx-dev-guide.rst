@@ -185,6 +185,82 @@ Class Layout
 - Within the ``public`` section, the constructor, destructor, and any copy/move
   operators should be listed first among all the functions.
 
+Data Visibility
+---------------
+
+- Per Google C++ guidelines, all data members should be ``private`` unless there
+  is a VERY good reason to do otherwise; for non-``private`` data, inline
+  documentation must be provided.
+
+- Don't use ``this->`` to access members of the current object within its own
+  class functions, except in ``operatorXX()``. Rationale: Per the convention
+  above, seeing ``m_mymember`` in a function should always refer to a member
+  variable in the current class, not one in a parent class. So ``this->``
+  only adds to the cognitive load for readers, without providing any readability
+  benefit. In operators, because there is *another* object/RHS present in the
+  scope of the function, doing e.g.::
+
+    this->m_mymember = rhs->m_mymember;
+
+  makes the programmer intent explicit, and forces you to chain ``operatorXX()``
+  calls through parent classes if for some reason you have a non-``private``
+  member in a parent class which you want to use in an operator function.
+
+Function Parameters
+-------------------
+
+Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
+[here](https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/)).
+
+- If a constructor has more than 3-5 parameters, *especially* if many/all of the
+  parameters are primitive types the compiler will silently convert (e.g.,
+  ``double`` is passed where an ``int`` is expected), then the constructor
+  should be made to take a pointer/lvalue reference/rvalue reference to a
+  parameter struct containing the primitive members, in order to reduce the
+  chance of subtle bugs due to silent primitive conversions if the order of two
+  of the parameters is swapped at the call site.
+
+- Function inputs should use ``const`` to indicate that the parameter is
+  input-only (``&`` or ``*``), and cannot be modified in the function body.
+
+- Function inputs should use ``&&`` to indicate the parameter will be consumed
+  by the function and further use after the function is called is invalid.
+
+- Function inputs should pass by reference (not by constant reference), to
+  indicate that the parameter is an input-output parameter. The number of
+  parameters of this type should be minimized.
+
+- Only primitive types should be passed by value; all other more complex types
+  should be passed by reference, constant reference, or by pointer. If for some
+  reason you *DO* pass a non-primitive type by value, the doxygen function
+  header should clearly explain why.
+
+- ``std::shared_ptr`` should be passed by VALUE to a function when the function
+  is going to take a copy and share ownership, and ONLY then.
+
+- Pass ``std::shared_ptr`` by ``&`` if the function is itself not going to take
+  ownership, but a function/object that it calls will. This will avoid the copy
+  on calls that don't need it.
+
+- ``const std::shared_ptr<T>&`` should be not be used--use ``const T*`` to indicate
+  non-owning access to the managed object.
+
+- ``std::unique_ptr`` should be passed by VALUE to a "consuming" function
+  (i.e. whatever function is ultimately going to claim ownership of the object).
+
+- ``std::unique_ptr`` should NOT be passed by reference, unless the function
+  needs to replace/update/etc the object contained in the unique_ptr. It should
+  never be passed by constant reference.
+
+- Raw pointers should be used to express the idea that the pointed to object is
+  going to outlive the function call and the function is just going to
+  observe/modify it (i.e. non-owning access).
+
+- ``const`` parameters should be declared before non-``const`` parameters when
+  possible, unless doing so would make the semantics of the function not make
+  sense.
+
+
 Miscellaneous
 -------------
 
@@ -245,60 +321,6 @@ Code should pass the clang-tidy linter, which checks for style elements like:
 - All functions less than 100 lines, with no more than 5 parameters/10
   branches. If you have something longer than this, 9/10 times it can and
   should be split up.
-
-Function Parameters
-===================
-
-Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
-[here](https://herbsutter.com/2013/05/29/gotw-89-solution-smart-pointers/)).
-
-- If a constructor has more than 3-5 parameters, *especially* if many/all of the
-  parameters are primitive types the compiler will silently convert (a
-  ``double`` is passed where an ``int`` is expected, for example), then the
-  constructor should be made to take a pointer/lvalue reference/rvalue reference
-  to a parameter struct containing the primitive members, in order to reduce
-  the chance of subtle bugs due to silent primitive conversions if the order of
-  two of the parameters is swapped at the call site.
-
-- Function inputs should use ``const`` to indicate that the parameter is
-  input-only (``&`` or ``*``), and cannot be modified in the function body.
-
-- Function inputs should use ``&&`` to indicate the parameter will be consumed
-  by the function and further use after the function is called is invalid.
-
-- Function inputs should pass by reference (not by constant reference), to
-  indicate that the parameter is an input-output parameter. The number of
-  parameters of this type should be minimized.
-
-- Only primitive types should be passed by value; all other more complex types
-  should be passed by reference, constant reference, or by pointer. If for some
-  reason you *DO* pass a non-primitive type by value, the doxygen function
-  header should clearly explain why.
-
-- ``std::shared_ptr`` should be passed by VALUE to a function when the function
-  is going to take a copy and share ownership, and ONLY then.
-
-- Pass ``std::shared_ptr`` by ``&`` if the function is itself not going to take
-  ownership, but a function/object that it calls will. This will avoid the copy
-  on calls that don't need it.
-
-- ``const std::shared_ptr<T>&`` should be not be used--use ``const T*`` to indicate
-  non-owning access to the managed object.
-
-- ``std::unique_ptr`` should be passed by VALUE to a "consuming" function
-  (i.e. whatever function is ultimately going to claim ownership of the object).
-
-- ``std::unique_ptr`` should NOT be passed by reference, unless the function
-  needs to replace/update/etc the object contained in the unique_ptr. It should
-  never be passed by constant reference.
-
-- Raw pointers should be used to express the idea that the pointed to object is
-  going to outlive the function call and the function is just going to
-  observe/modify it (i.e. non-owning access).
-
-- ``const`` parameters should be declared before non-``const`` parameters when
-  possible, unless doing so would make the semantics of the function not make
-  sense.
 
 Documentation
 =============
