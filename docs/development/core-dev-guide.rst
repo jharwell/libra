@@ -37,7 +37,7 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
    written against older versions of it: update it incrementally/locally if
    possible to the latest version. If you can't do so easily (i.e., it would be
    a extra refactoring task), then stick with the original style unless you
-   _know_ are going to be changing more than 50% of a file, then go ahead and
+   *know* are going to be changing more than 50% of a file, then go ahead and
    update.
 
 #. Thou shalt not bring thy favorite language's style into another language.
@@ -49,9 +49,9 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 
    Before implementing something from scratch, check if it (or something close
    to it) is in the standard library. If it is--USE IT. If it's not, check if
-   there is a _prominent_ open-source library which has what you need. Prominent
+   there is a *prominent* open-source library which has what you need. Prominent
    is key--don't immediately jump onboard to a github project that someone did
-   for a class that _looks_ like it might work, because chances are it actually
+   for a class that *looks* like it might work, because chances are it actually
    won't.
 
 #. Thou shalt not write code that is more complex than the problem being solved.
@@ -70,12 +70,11 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 
 #. Thou shalt not call idempotent functions multiple times.
 
-   E.g., "just to be sure". If it says idempotent, thou shalt treat it as such.
+   E.g., "just to be sure". If it says idempotent, treat it as such.
 
 #. Thou shalt not create multiple versions of an algorithm to handle different
    types or operators, rather than using generics or passing callbacks to a
    generic implementation.
-
 
 #. Thou shalt understand pointers and thy language's memory model.
 
