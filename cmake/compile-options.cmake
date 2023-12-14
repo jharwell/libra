@@ -95,6 +95,12 @@ else()
   message(FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'. Must be [ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE,INHERIT]")
 endif()
 
+if (${LIBRA_NOSTDLIB})
+  set(LIBRA_COMMON_DEV_DEFS "${LIBRA_COMMON_DEV_DEFS} -D__nostdlib__")
+  set(LIBRA_COMMON_DEVOPT_DEFS "${LIBRA_COMMON_DEVOPT_DEFS} -D__nostdlib__")
+  set(LIBRA_COMMON_OPT_DEFS "${LIBRA_COMMON_OPT_DEFS} -D__nostdlib__")
+endif()
+
 message(STATUS "Detecting features and configuring compiler")
 set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
