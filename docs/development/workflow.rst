@@ -69,7 +69,7 @@ General Development Workflow
 
    Fix ANY and ALL errors that arise in code that *YOU* have written. Depending
    on the repo, their may be reported errors/warnings that are harmless and
-   ignored. Generally speaking though, ech project repo should get a clean bill
+   ignored. Generally speaking though, each project repo should get a clean bill
    of health from the static checker(s).
 
 #. Change status to ``Status: Needs Review`` and open a pull request, and

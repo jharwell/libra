@@ -65,7 +65,6 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
    - Force link-time errors of undefined variables/functions in dynamic
      libraries, rather than waiting until run-time.
 
-
 Coding Style
 ============
 
@@ -134,18 +133,64 @@ Naming
   STL/boost from a readability point of view. Plus, snake case is easier to
   parse visually because of the underscores.
 
+- All member variables are prefixed with ``m_``.
+
+  Rationale: Easier to parse visually than say ``m``.
+
+- All constant members prefixed with ``mc_``.
+
+  Rationale: Makes the programmer's intent clear in the code.
+
+- All global variables prefixed with ``g_``.
+
+  Rationale: Makes the programmer's intent clear in the code.
+
+- All mathematical constants (``#define`` or otherwise) (e.g. ints, doubles,
+  etc) should be ``kSPECIFIED_LIKE_THIS``: MACRO CASE + a preceding ``k``.
+
+  Rationale: This makes them easier to identify at a glance from global
+  variables and macros, improving readability.
+
+- All static class constants (you should not have non-static class constants)
+  that are anything other than a mathematical constant should be
+  ``kSpecifiedLikeThis``: Upper CamelCase + a preceding ``k``.
+
+  Rationale: Improves code comprehension when read, because it makes it clear
+  that a given constant is NOT a number, but something else.
+
+- All enum values should be ``ekSPECIFIED_LIKE_THIS``: MACRO_CASE + a preceding
+  ``ek``.
+
+  Rationale: Improves code comprehension because you can tell at a glance if a
+  constant is a mathematical one or only serves as a logical placeholder to make
+  the code more understandable. The preceding ``ek`` does hinder at-a-glance
+  readability somewhat, but that is outweighed by the increased at-a-glance code
+  comprehension.
+
+- All template parameters should be in ``CamelCase`` and preceded with a
+  ``T``.
+
+  Rationale: Makes it easy to tell at a glance that something is a template
+  parameter, rather than an object type, in a templated class/function.
+
+- All enum names should be postfixed with ``_type``.
+
+  Rationale: Enforces semantic similarity between members when possible (i.e. if
+  it does not make sense to do this, should you really be using an enum vs. a
+  collection of ``constexpr`` values?).
+
 - **Never** include the datatype or units in the name of *anything*.
 
   Rationale:
 
   - Linus was right--it *is* brain damaged.
 
-  -  It makes refactoring more work
+  - It makes refactoring more work.
 
   - You don't actually prevent yourself from passing e.g., a ``float``
     containing a value in cm to a function which contains a value in
     meters--just make it less likely. If you find yourself wanting to use
-    Hungarian-esque notation use strongly named types instead--the compiler will
+    Hungarian-esque notation use `Strongly Named Types`_ instead--the compiler will
     enforce type/unit correctness for you.
 
 - Namespace names should NEVER contain underscores.
@@ -184,45 +229,6 @@ Naming
   ``light_sensor``, etc.
 
   Rationale: Hampers visibility.
-
-- All mathematical constants (``#define`` or otherwise) (e.g. ints, doubles,
-  etc) should be ``kSPECIFIED_LIKE_THIS``: MACRO CASE + a preceding ``k``.
-
-  Rationale: This makes them easier to identify at a glance from global
-  variables and macros, improving readability.
-
-- All static class constants (you should not have non-static class constants)
-  that are anything other than a mathematical constant should be
-  ``kSpecifiedLikeThis``: Upper CamelCase + a preceding ``k``.
-
-  Rationale: Improves code comprehension when read, because it makes it clear
-  that a given constant is NOT a number, but something else.
-
-- All enum values should be ``ekSPECIFIED_LIKE_THIS``: MACRO_CASE + a preceding
-  ``ek``.
-
-  Rationale: Improves code comprehension because you can tell at a glance if a
-  constant is a mathematical one or only serves as a logical placeholder to make
-  the code more understandable. The preceding ``ek`` does hinder at-a-glance
-  readability somewhat, but that is outweighed by the increased at-a-glance code
-  comprehension.
-
-- All template parameters should be in ``CamelCase`` and preceded with a
-  ``T``.
-
-  Rationale: Makes it easy to tell at a glance that something is a template
-  parameter, rather than an object type, in a templated class/function.
-
-- All enum names should be postfixed with ``_type``.
-
-  Rationale: Enforces semantic similarity between members when possible (i.e. if
-  it does not make sense to do this, should you really be using an enum vs. a
-  collection of ``constexpr`` values?).
-
-- ``#define`` for literal constants should be avoided. ``constexpr`` values in
-  an appropriate namespace should be used instead.
-
-  Rationale: Pollutes the global namespace.
 
 Class Layout
 ------------
@@ -263,9 +269,10 @@ Data Visibility
 
     this->m_mymember = rhs->m_mymember;
 
-  makes the programmer intent explicit, and forces you to chain ``operatorXX()``
-  calls through parent classes if for some reason you have a non-``private``
-  member in a parent class which you want to use in an operator function.
+  makes the programmer's intent explicit, and forces you to chain
+  ``operatorXX()`` calls through parent classes if for some reason you have a
+  non-``private`` member in a parent class which you want to use in an operator
+  function.
 
 Function Parameters
 -------------------
@@ -325,6 +332,22 @@ Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
 Miscellaneous
 -------------
 
+- ``#define`` for literal constants should be avoided. ``constexpr`` values in
+  an appropriate namespace should be used instead.
+
+  Rationale: Pollutes the global namespace.
+
+- Prefer forward declarations to ``#include`` class definitions in ``.hpp``
+  files.
+
+  Rationale: Improves compilation times, sometimes by a LOT.
+
+  Important caveats:
+
+  - Never forward declare symbols from ``std::``--it is undefined.
+  - Never forward declare symbols in a source file--just ``#include`` the needed
+    header.
+
 - Use spaces NOT tabs.
 
 - Always use strongly typed enums (class enums) whenever possible; sometimes
@@ -377,6 +400,58 @@ Miscellaneous
 
   Rationale: Improves readability.
 
+Coding Constructs
+=================
+
+Design Patterns
+---------------
+
+Incorporate design patterns into your code *explicitly* whenever possible. That
+is, if you're going to use the decorator pattern, instead of just having a
+member variable and wrapping/extending functionality as needed, inherit from a
+``decorator<T>`` class. Important design patterns you should be aware of (google
+for examples/explanations):
+
+- Decorator
+- FSM
+- Factory
+- PIMPL
+- Prototype
+- Singleton
+- Visitor
+- Observer
+
+Rationale: Improves readability and makes the intent of the code/programmer
+much clearer, and having reuseable template classes for common design patterns
+greatly reduces the risk of bugs in your usage of them.
+
+Strongly Named Types
+--------------------
+
+Basically, instead of passing literals around, you create a super simple class
+wrapper around say an ``int32_t`` which:
+
+- Must be explicitly constructed--the implicit single-parameter constructor is
+  disabled.
+
+- Only supports the operators that you define (i.e., no +,-,/,copy, etc).
+
+From
+`<https://www.fluentcpp.com/2016/12/08/strong-types-for-strong-interfaces/>`_.
+
+Rationale:
+
+- It makes it *much* harder to pass a semantically mismatched value to a
+  function (e.g., the function takes a ``double`` which represents m/s, but you
+  pass a ``double`` in cm/s).
+
+- It forces you to design semantically consistent interfaces.
+
+The compiler should be able to optimize away the wrapper you provide in many
+cases anyway, so it costs very little to no performance to use strongly named
+types (see `<https://www.fluentcpp.com/2017/05/05/news-strong-types-are-free/>`_
+for details).
+
 Linting
 =======
 
@@ -392,13 +467,8 @@ everything else, the linter warnings should be addressed.
 - Line length >= 80 ONLY if it is only 1-2 chars too long, and breaking the
   line would decrease readability. The formatter generally takes care of this.
 
-Code should pass the clang-tidy linter, which checks for style elements like:
-
-- All members prefixed with ``m_``
-
-- All constant members prefixed with ``mc_``.
-
-- All global variables prefixed with ``g_``.
+Code should pass the clang-tidy linter, when configured to check for
+readability as described in `Naming`_.
 
 - All functions less than 100 lines, with no more than 5 parameters/10
   branches. If you have something longer than this, 9/10 times it can and

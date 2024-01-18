@@ -215,6 +215,16 @@ Code`_, you are in a general context. So:
 Miscellaneous
 -------------
 
+- Prefer forward declarations to ``#include`` class definitions in ``.h``
+  files.
+
+  Rationale: Improves compilation times, sometimes by a LOT.
+
+  Important caveats:
+
+  - Never forward declare symbols in a source file--just ``#include`` the needed
+    header.
+
 - Use spaces NOT tabs.
 
   Rationale: Only heathens use tabs.

@@ -4,8 +4,8 @@
 Luigi Build Reusable Automation (LIBRA)
 =======================================
 
-.. |docs| image:: https://readthedocs.org/projects/libra2/badge/?version=master
-                  :target: https://libra2.readthedocs.io/en/master/?badge=master
+.. |docs| image:: https://jharwell.github.com/libra/actions/workflows/pages.yml/badge.svg?branch=master
+                  :target: https://jharwell.github.io/libra
 
 |docs|
 
@@ -14,4 +14,4 @@ used for nested/flat C/C++/CUDA projects (mix and match), and provides reusable
 build "plumbing" that can be transferred without modification between projects.
 
 
-Project documentation is `here <https://libra2.readthedocs.io>`_.
+Project documentation is here: `<https://jharwell.github.io/libra/>`_.
