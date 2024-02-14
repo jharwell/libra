@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _dev/git-usage-guide:
+.. _dev/git/usage-guide:
 
 ===============
 Git Usage Guide

@@ -38,7 +38,7 @@ set(lcov_PRECMD
   --initial
   --directory .
   --output-file ${COVERAGE_DIR}/pre.info
-  > /dev/null
+  --quiet
 )
 
 # Capture coverage info after running the project
@@ -47,62 +47,75 @@ set(lcov_POSTCMD1
   --include \*/${PROJECT_NAME}/\*
   --exclude \*/ext/\*
   --capture
+  --rc lcov_branch_coverage=1
   --directory .
   --output-file ${COVERAGE_DIR}/post.info
-  > /dev/null
+  --quiet
 )
 
 # Combine pre- and post-info if pre.info exists (may not if
 # precoverage target was not run)
 set(lcov_POSTCMD2
-  test -e pre.info &&
+  test -e ${COVERAGE_DIR}/pre.info &&
   ${lcov_EXECUTABLE}
   -a ${COVERAGE_DIR}/pre.info
   -a ${COVERAGE_DIR}/post.info
+  --rc lcov_branch_coverage=1
   --directory .
   --output-file ${COVERAGE_DIR}/coverage.info
-  > /dev/null ||
-  ${lcov_EXECUTABLE}
-  -a ${COVERAGE_DIR}/post.info
-  --directory .
-  --output-file ${COVERAGE_DIR}/coverage.info
-  > /dev/null
+  --quiet ||
+  cp
+  ${COVERAGE_DIR}/post.info
+  ${COVERAGE_DIR}/coverage.info
 )
 
 # Strip out coverage info for everything in /usr, which is system libraries.
 set(lcov_POSTCMD3
   ${lcov_EXECUTABLE}
   -r
+  --rc lcov_branch_coverage=1
   ${COVERAGE_DIR}/coverage.info
   "/usr/*"
-  -o ${COVERAGE_DIR}/coverage.info
-  > /dev/null
+  -o ${COVERAGE_DIR}/coverage-stripped.info
+  --quiet
 )
 
 # Generate the html coverage report.
 set(genhtml_CMD
   ${genhtml_EXECUTABLE}
-  ${COVERAGE_DIR}/coverage.info
+  ${COVERAGE_DIR}/coverage-stripped.info
   --output-directory coverage
-  > /dev/null
+  --branch-coverage
+  --legend
+  --quiet
 )
 
-# Coverage for the project
+# Generate coverage BEFORE any execution to enable post-run coverage
+# which will encompass the WHOLE library--not just files which had at
+# least 1 line execution.
 add_custom_target(precoverage-info
   COMMAND ${lcov_PRECMD}
   COMMENT "Generating ${PROJECT_NAME} pre-coverage info" VERBATIM)
 
+# Generate coverage from execution
 add_custom_target(postcoverage-info
   COMMAND ${lcov_POSTCMD1}
   COMMENT "Generating ${PROJECT_NAME} post-coverage info" VERBATIM)
+
+# If precoverage was run, combine the pre- and post- coverage
+# files. Otherwise, copy post -> combined.
 add_custom_target(postcoverage-combine
   DEPENDS postcoverage-info
   COMMAND ${lcov_POSTCMD2}
   COMMENT "Combining pre- and -post coverage info for ${PROJECT_NAME}" VERBATIM)
+
+# Strip out system files from coverage info
 add_custom_target(postcoverage-strip
   COMMAND ${lcov_POSTCMD3}
   DEPENDS postcoverage-combine
   COMMENT "Stripping /usr/* files from ${PROJECT_NAME} coverage info" VERBATIM)
+
+# Generate HTML
 add_custom_target(coverage-html
   COMMAND ${genhtml_CMD}
   DEPENDS postcoverage-strip

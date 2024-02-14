@@ -7,7 +7,8 @@ Core Development Guide
 ======================
 
 Language agnostic bits collected here in the interest of Don't Repeat Yourself
-(DRY).
+(DRY). If you are a member of the We Enjoy Typing (WET) camp, then feel free to
+ignore them.
 
 Commandments
 ============
@@ -43,9 +44,13 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 #. Thou shalt not bring thy favorite language's style into another language.
 
    E.g., don't write C++ code in the same style you would write python
-   code. Also called "Man With His Favorite Hammer" mentality.
+   code. That means don't bring python's conventions for naming, memory model
+   etc., into C/C++--at best you will annoy other developers, and at worst
+   introduce bugs.
 
-#. Thou shalt not reinvent the wheel.
+   Also called "Man With His Favorite Hammer" mentality.
+
+#. Thou shalt not reinvent the wheel when it is *possible* to avoid doing so.
 
    Before implementing something from scratch, check if it (or something close
    to it) is in the standard library. If it is--USE IT. If it's not, check if
@@ -56,7 +61,15 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 
 #. Thou shalt not write code that is more complex than the problem being solved.
 
-   If you find yourself doing this, chances are you are doing something wrong.
+   E.g., writing a huge string parser class using a factory, abstraction interfaces,
+   and the strategy pattern instead using ``stoi()``.
+
+   If you find yourself doing this, chances are you are doing something very
+   wrong and you need to rethink your design.
+
+   One exception to this rule: improving the code design or structure that would
+   accelerate future work, but extreme caution must be taken to avoid
+   over-engineering.
 
 #. Thou shalt not commit code that is commented out.
 
@@ -68,14 +81,24 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 #. Thou shalt not create "yo-yo" code that converts a value into a different
    representation, does something, and then converts it back.
 
+   E.g., ``std::string`` -> ``int`` in one function, but then in an inner
+   function ``int`` -> ``std::string`` again before processing.
+
 #. Thou shalt not call idempotent functions multiple times.
 
    E.g., "just to be sure". If it says idempotent, treat it as such.
+
+   If you write an idempotent function, mark it as such in the documentation.
 
 #. Thou shalt not create multiple versions of an algorithm to handle different
    types or operators, rather than using generics or passing callbacks to a
    generic implementation.
 
-#. Thou shalt understand pointers and thy language's memory model.
-
 #. Thou shalt write thy classes, and functions with high cohesion, low coupling.
+
+   If you don't know what these terms mean, go look them up! They are crucial to
+   good software engineering.
+
+#. When faced with a choice of how to make thy code behave, thou shalt choose
+   the behavior aligning with the :ref:`Principle of Least Surprise
+   <dev/links/cxx/least-surprise>`.
