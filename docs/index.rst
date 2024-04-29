@@ -35,6 +35,7 @@ guides, each detailed below.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Software Development Guides
+   :caption: Software Development Resources
 
    dev/index.rst
+   bazel/index.rst

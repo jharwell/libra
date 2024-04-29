@@ -3,6 +3,9 @@
 .. toctree::
    :maxdepth: 1
 
+   arch-guide.rst
+   design/index.rst
+
    core-dev-guide.rst
    c-dev-guide.rst
    cxx-dev-guide.rst
@@ -11,7 +14,6 @@
 
    git/index.rst
 
-   bazel-dev-guide.rst
    ld-dev-guide.rst
    workflow.rst
    links.rst

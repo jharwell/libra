@@ -102,3 +102,7 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
 #. When faced with a choice of how to make thy code behave, thou shalt choose
    the behavior aligning with the :ref:`Principle of Least Surprise
    <dev/links/cxx/least-surprise>`.
+
+#. Thou shalt use ``\todo`` and ``\bug`` liberally in thy code to document
+   shortcomings and issues so that they are not lost after implementation is
+   complete.

@@ -1,14 +1,14 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _dev/cxx-guide:
+.. _dev/cxx-dev-guide:
 
 =====================
 C++ Development Guide
 =====================
 
-In terms of coding style, many aspects are pulled from the `CppCoreGuidelines
-<https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines>`_,
-though there are many parts which are ignored.
+In terms of coding style, many aspects are pulled from the
+:ref:`CppCoreGuidelines <dev/links/cxx/core-guidelines>`, though there are many
+parts which are ignored.
 
 In general, follow the Google C++ style guide (unless something below
 contradicts it, then go with what is below).
@@ -45,7 +45,7 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
    - Restrict the use of thy templated classes to types for which the operations
      of the class are well defined, by doing one or more of:
 
-     - Using :ref:`SFINAE <dev/links/cxx/SFINAE>` on functions/classes
+     - Using :ref:`SFINAE <dev/links/cxx/SFINAE>` on functions/classes.
 
      - Separating thy templated classes into header and source files so that the
        instantiations of thy classes are restricted to those thou defines in thy
@@ -76,6 +76,163 @@ hard-won. Ignore them at your peril; read: FOLLOW THEM.
      libraries, rather than waiting until run-time. E.g., passing
      ``-Wl,--no-undefined`` consistently to the linker.
 
+#. Thou shalt write thy code using only pure conditions--those without side
+   effects such as assigning values, throwing exceptions, interacting with I/O,
+   etc., so that thy program's logic is clear and its behavior unobscured by
+   secondary actions.
+
+Principles For Clean Code
+=========================
+
+These are *principles*, not commandments, because you probably won't be able to
+follow them everywhere, but you should try to follow them in as many places as
+you can.
+
+#. **Embrace The Power Of Brevity**
+
+   Limit your functions to no more than 10 lines of code. This encourages you to
+   extract methods, promoting more readable and maintainable code.
+
+#. **Mutually Exclusive Call Or Pass**
+
+   Your functions should either call methods on an object or pass it on as an
+   argument, but not both. This encourages you to write methods which maintain a
+   single level of abstraction within each method, promoting more readable and
+   maintainable code. That is:
+
+   .. tabs::
+
+      .. tab:: Not Using The Principle
+
+         ::
+
+            bool check_for_bar(MyObject& obj1) {
+               if (obj1.bar()) {
+                obj1.reset();
+                return true;
+                }
+               return false;
+              }
+
+            void bad_func1(MyObject& obj1) {
+              obj1.foo();
+              if (check_for_bar(obj1) ) {
+                return;
+              }
+
+              for (auto& s: obj1.subobjects()) {
+                if (s.fizz()) {
+                  obj1.remove(s);
+                }
+              }
+            }
+
+         Notice:
+
+            - Visually there are two functions to parse, and you have look at
+              multiple abstraction contexts to figure out the execution flow.
+
+            - This example relies on member functions with side effects which
+              are hidden at the level of ``bad_func1()``. You could argue that
+              that could be fixed with a better name for ``check_for_bar()``
+              such as ``reset_on_bar()``, and that helps, but the side-effect
+              problem is still present. Generally speaking, the more "pure"
+              functions you write, the better off you are.
+
+      .. tab:: Using The Principle
+
+         ::
+
+            void good_func(MyObject& obj1) {
+              obj1.foo();
+              if (obj1.bar()) {
+                obj1.reset();
+                return;
+              }
+
+              for (auto& s: obj1.subobjects()) {
+                if (s.fizz()) {
+                  obj1.remove(s);
+                }
+              }
+            }
+
+         Notice:
+
+         - There is only a single function to parse.
+
+         - There are no functions with side effects (well, assuming none of the
+           member functions have side effects).
+
+         - The single function is more complex than the two simpler functions,
+           BUT is easier to grasp at a glance. This is a great example for why
+           breaking everything out into lots of little functions can be
+           counterproductive, unless the functions at all scales adhere to this
+           principle.
+
+
+#. **If Only At The Start of Functions**
+
+   Position all ``if`` statements at the start of functions to determine state,
+   check data integrity, etc. This minimizes nested logic and clarifies the
+   decision making process within functions, making code more intuitive and
+   straightforward by streamlining the logic within functions: once all
+   decisions have been made about what to do, the actual code to *do* the thing
+   is just a series of procedural statements.
+
+#. **Never Use if With else**
+
+   Don't use ``if`` with ``else`` in order to avoid the complexity of
+   ``if-else`` labyrinths which we have all seen. ``clang-tidy`` can check for
+   this. To illustrate this, look at the "Not Using The Principle" tab of the
+   previous item, which contains a LOT of if/else blocks and complex logic. The
+   ``Evaluate()`` function in the "Using The Principle" rewrite is much simpler,
+   because it returns after each if() condition.
+
+#. **Minimize Use of switch()**
+
+   All ``switch()`` statements:
+
+   - Should contain no default case.
+
+   - Should contain no fall-through cases
+
+   - The contain a return/function call in every case.
+
+   This helps to avoid subtle bugs and maintenance headaches.
+
+#. **Only Inherit From Interfaces**
+
+   Inheriting from classes containing only pure virtual functions (not base
+   classes!) strongly encourages composition over inheritance, which is a major
+   factor in code scalability and coupling, or lack thereof.
+
+#. **No Interfaces With A Single Implementation**
+
+   That is, if you are creating a new abstraction in the codebase, and it will
+   only have a single implementation, does the abstraction provide more clarity
+   or mental clutter?  This principle helps to ensure appropriate design
+   choices, and to seek simplicity and necessity in your architectural
+   decisions.
+
+#. **Embrace the Law of Demeter**
+
+   The :ref:`The Law Of Demeter <dev/links/arch-and-design/demeter>` states
+   that:
+
+   - You should not use getters or setters
+
+   - Objects should avoid accessing internal data of other objects, and only
+     communicate with similar objects. As an example, consider
+     ``std::vector``. Instead of directly exposing the raw storage it manages,
+     ``std::vector`` generally only exposes *behavioral* functions, rather than
+     accesors/mutators.
+
+   This emphasizes a *behavioral* approach to class design, reducing
+   dependencies and increasing encapsulation. Supports the :ref:`Transparency
+   Principle <dev/design/transparency>`.
+
+
 Basic Coding Style
 ==================
 
@@ -105,7 +262,8 @@ Files
 
 - All header files must be checkable standalone; that is, ``foo.hpp`` can't
   depend on ``bar.hpp`` being included before it in a compilation unit for the
-  code it contains to be syntactically correct.
+  code it contains to be syntactically correct. This supports the
+  :ref:`Transparency Principle <dev/design/transparency>`.
 
   Rationale: If this isn't the case, you have coupling, circular dependencies,
   etc., that shouldn't be there.
@@ -114,8 +272,24 @@ Files
   once`` instead. It is supported by all major compilers.
 
   Rationale: Makes header files way easier to move around without mind-numbing
-  refactoring. Headers often need to be moved around as a library/application
-  evolves and functionality is expanded, etc.,
+  refactoring.  Headers often need to be moved around as a library/application
+  evolves and functionality is expanded, etc. It is also more readable::
+
+    #pragma once
+
+    // header file contents
+
+  vs::
+
+    #ifndef DIR1_DIR2_DIR3_FOO_BAR_H_
+    #define DIR1_DIR2_DIR3_FOO_BAR_H_
+
+    // header file contents
+
+    #endif
+
+  The second variant has much more visual clutter, and must be updated *anytime*
+  the file is moved, even if nothing else in the header file changes.
 
 - Exactly one class/struct definition per ``.cpp``\/``.hpp`` file, unless there
   is a very good reason to do otherwise. class/struct definitions nested within
@@ -125,7 +299,9 @@ Files
 
   Rationale: Can massively reduce compilation time by eliminating redundant
   compilation, and makes dependencies between files/classes/etc MUCH clearer: if
-  a file includes the header for another class, that class is a dependency.
+  a file includes the header for another class, that class is a
+  dependency. Supports the :ref:`Transparency Principle
+  <dev/design/transparency>`.
 
 - If a C++ file lives under ``src/my_module/my_file.cpp`` then its corresponding
   include file is found under ``include/<repo_name>/my_module/my_file.hpp``
@@ -137,7 +313,7 @@ Files
 - Files in ``#include`` should use ``""`` when referencing includes within the
   same project/module/etc,, and **ONLY** use ``<>`` when you are referencing a
   *system* project; that is, a project outside of a given
-  project/module/etc. This has two benefits:
+  project/module/etc.
 
   Rationale:
 
@@ -145,6 +321,65 @@ Files
     "system" header, and have both parent directories on the include path.
 
   - Makes the intent of the code clearer.
+
+  Consider the following example:
+
+  .. tabs::
+
+     .. tab:: Ignoring This Rule
+
+        ::
+
+           #include <module_config.hpp>
+
+           #include <common/include/lockless_ring.hpp>
+           #include <common/include/observer.hpp>
+           #include <common/include/pnt_burst_data.hpp>
+           #include <common/include/first_class.hpp>
+           #include <common/include/tlv_shared.hpp>
+
+           #include <hal/include/tlv_hal.hpp>
+
+           #include <pal/include/os/abstract/log.hpp>
+
+           #include <spri/include/spri_observer.hpp>
+           #include <hal/include/pnt_window_data.hpp>
+           #include <spri/include/burst_detection_fifo.hpp>
+           #include <spri/include/tlv_spri.hpp>
+
+           #include <sdpm3/include/api/common/sdpm.hpp>
+
+
+        Without any additional context (e.g., the moment you first open a header
+        file), you have no idea what is local to the module the file you are
+        looking at belongs to, and what is "external".
+
+     .. tab:: Following This Rule
+
+        ::
+
+           #include <module_config.hpp>
+
+           #include <common/include/lockless_ring.hpp>
+           #include <common/include/observer.hpp>
+           #include <common/include/pnt_burst_data.hpp>
+           #include <common/include/first_class.hpp>
+           #include <common/include/tlv_shared.hpp>
+
+           #include <hal/include/tlv_hal.hpp>
+
+           #include <pal/include/os/abstract/log.hpp>
+           #include <hal/include/pnt_window_data.hpp>
+
+           #include <sdpm3/include/api/common/sdpm.hpp>
+
+           #include "spri/include/spri_observer.hpp"
+           #include "spri/include/burst_detection_fifo.hpp"
+           #include "spri/include/tlv_spri.hpp"
+
+        Here, it is clear--*without any additional context*--that the code
+        snippet you are looking at is part of the SPRI module.
+
 
 
 Class Layout
@@ -185,7 +420,8 @@ Data Visibility
 
 - Per Google C++ guidelines, all data members should be ``private`` unless there
   is a VERY good reason to do otherwise; for non-``private`` data, inline
-  documentation must be provided.
+  documentation must be provided. Supports the :ref:`Transparency Principle
+  <dev/design/transparency>`.
 
 - Don't use ``this->`` to access members of the current object within its own
   class functions, except in ``operatorXX()``.
@@ -234,7 +470,8 @@ Most of these are from Herb Sutter's excellent C++ guidelines on smart pointers
   should be made to take a pointer/lvalue reference/rvalue reference to a
   parameter struct containing the primitive members, in order to reduce the
   chance of subtle bugs due to silent primitive conversions if the order of two
-  of the parameters is swapped at the call site.
+  of the parameters is swapped at the call site. Supports the :ref:`Transparency
+  Principle <dev/design/transparency>`.
 
 - Function inputs should use ``const`` to indicate that the parameter is
   input-only (``&`` or ``*``), and cannot be modified in the function body.
@@ -463,14 +700,20 @@ constants, etc. which all represent numbers.
 In this style guide, we use a blend of these two axes/paradigms, and choose
 whichever improves readability the most, tending towards functional.
 
-Classes, structs
-^^^^^^^^^^^^^^^^
+Categorically Differentiated Coding Constructs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Classes
+"""""""
 
 .. tabs::
 
    .. group-tab:: Key Points
 
-   .. group-tab:: Naming Convention Decision
+      Classes are arguably the most important coding construct in C++, so we
+      define their naming scheme *first*, and use a categorical naming scheme.
+
+   .. group-tab:: Naming convention Decision
 
       Snake case, ``specified_like_this``.
 
@@ -497,6 +740,121 @@ Classes, structs
         ``int my_special_int = 4`` is preferred and more readable than ``int
         mySpecialInt = 4``.
 
+Namespaces
+""""""""""
+
+.. tabs::
+
+
+   .. group-tab:: Key Points
+
+      - Namespaces are often used far from the site of their declaration via
+        ``namespace foo {...}``; their usage is disambiguated from variables,
+        enums, macros, etc. by the scoping operator ``::``.
+
+      - Classes and structs can also use the scoping operator, so if namespaces
+        have a different naming convention they will be at-a-glance
+        differentiable from classes and structs.
+
+      - It is reasonable to argue that when you see ``Foo::Bar`` in code, you
+        shouldn't actually *need* to know if the scoping operator is being
+        applied to a class, struct, or namespace, and that what is important is
+        the operations that the scoped thing (``Foo`` in the above example)
+        has--it doesn't matter what it's type is; this is a functional
+        view. This is the style preferred/used by major open source libraries
+        such as Boost.
+
+      - Namespace names should NEVER contain multiple concepts; therefore, namespace
+        names should never contain underscores, under the naming convention above.
+
+
+   .. group-tab:: Naming Convention Decision
+
+      Lower case, NOT snake case ``specified_like_this``; that is, a namespace
+      should only ever consist of a single lower case word.
+
+   .. group-tab:: Rationale
+
+      - The STL uses snake case for everything, so this convention helps reduce
+        cognitive load otherwise required when switching between snake case for
+        STL things and something else for other constructs.
+
+      - At-a-glance disambiguation from classes, structs, variables, etc. is
+        accomplished by the combination of snake case and the scoping operator,
+        and outweighs the benefit of the functional view. The functional view
+        can be useful when writing code to someone already familiar with the
+        codebase, but code is read much more often than it is written, so
+        readability wins here.
+
+      - If you allow names like "nest_acq" (short for "nest_acquisition") as a
+        namespace name, your namespace actually encapsulates two concepts:
+        things related to nests, and things related to acquiring
+        nests. Inevitably what will happen is you will need to create another
+        namespace for leaving nests (say "nest_exit"), and put the two
+        namespaces side by side. Clearly it should be "acq" and "exit" inside of
+        a parent "nest" namespace. So if you can't use a single word/acronym for
+        a given namespace, 99% of the time you should split it up. This also
+        makes your code more open to extension but closed to modification.
+
+
+Template Types
+""""""""""""""
+
+.. tabs::
+
+   .. group-tab:: Key Points
+
+      Are only ever encountered in header files, and therefore near the point of
+      their declaration.
+
+   .. group-tab:: Naming Convention Decision
+
+      ``CamelCase`` and preceded with a ``T``.
+
+   .. group-tab:: Rationale
+
+      Makes it easy to tell at a glance that something is a template parameter,
+      rather than an object type, in a templated class/function.
+
+
+Local variables
+"""""""""""""""
+
+.. tabs::
+
+   .. group-tab:: Key Points
+
+      Local variables are the most common coding construct encountered when
+      reading C++ code, so readability is paramount.
+
+   .. group-tab:: Naming Convention Decision
+
+      Snake case, ``specified_like_this`` for non-const variables.
+
+   .. group-tab:: Rationale
+
+      We chose snake case, rather than upper camel case (i.e.,
+      ``specified_like_this`` rather than ``specifiedLikeThis``) because:
+
+      - The STL uses snake case for everything, so this convention helps reduce
+        cognitive load otherwise required when switching between snake case for
+        STL things and something else for other constructs.
+
+      - The latter is very close to the naming convention for classes, and after
+        a long day of programming things can blur together more easier with
+        upper camel case.
+
+      - Abbreviations can still be easily kept without hampering
+        readability. E.g., ``TCP_IP_connection`` vs. ``tcpIpConnection``--the
+        former is much more readable.
+
+      - Local variables are much more common than classes in code, so their
+        usage should resemble natural writing as much as possible. That is,
+        ``int my_special_int = 4`` is preferred and more readable than
+        ``int mySpecialInt = 4``.
+
+      Both namespaces and local variables have the same identifier naming
+      convention, and are differentiated by the use of ``::``.
 
 Member Variables
 ^^^^^^^^^^^^^^^^
@@ -528,6 +886,10 @@ Member Variables
       - The ``m`` differentiates these constructs at a glance from local
         variables.
 
+      - The latter is very close to the naming convention for classes, and after
+        a long day of programming things can blur together more easier with
+        upper camel case.
+
       - Abbreviations can still be easily kept without hampering
         readability. E.g., ``m_TCP_IP_connection`` vs. ``m_tcpIpConnection``.
 
@@ -542,7 +904,7 @@ Member Variables
 
 
 Global Variables
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 .. tabs::
 
@@ -569,7 +931,7 @@ Global Variables
         to improve readability and code comprehension.
 
 Enum Names
-^^^^^^^^^^
+""""""""""
 
 .. tabs::
 
@@ -597,7 +959,7 @@ Enum Names
       concept. If we do not prefix all enum values with ``ek``, and use
       MACRO_CASE for both enums and macros, we would define a enum like this::
 
-        enum class identifier {
+        enum class Identifier {
         ONE,
         TWO,
         THREE
@@ -605,14 +967,14 @@ Enum Names
 
       If it is used in a different module::
 
-        identifier::TWO
+        Identifier::TWO
 
       At a glance, a casual read or new developer would have no idea whether
       the referred to thing was (a) the mathematical constant 2, or (b) an
-      enum value. If instead the values in the ``identifier`` enum were
+      enum value. If instead the values in the ``Identifier`` enum were
       prefixed with ``ek``::
 
-        enum class identifier {
+        enum class Identifier {
         ekONE,
         ekTWO,
         ekTHREE
@@ -620,7 +982,7 @@ Enum Names
 
       Then if it is used in a different module::
 
-        identifier::ekTWO
+        Identifier::ekTWO
 
       Then the *intent* of the programmer is clear at the site of the
       usage. Since code is read much more often than it is written, this
@@ -628,7 +990,7 @@ Enum Names
 
 
 Macros
-^^^^^^
+""""""
 
 .. tabs::
 
@@ -654,7 +1016,7 @@ Macros
         instead of a constant or enum.
 
 #defines
-^^^^^^^^
+""""""""
 
 .. tabs::
 
@@ -765,7 +1127,8 @@ Interlocking Interfaces
 
 One of the most powerful ways to ensure that a code implementation of a design
 is logically and semantically consistent is to liberally use pure
-interfaces. That is:
+interfaces. Everything in this section supports the :ref:`Abstraction Principle
+<dev/design/abstraction>`.That is:
 
 - Writing pure abstract classes (i.e. those which only contain pure virtual
   functions) which embody concepts which you want your classes to adhere to. For
@@ -870,6 +1233,12 @@ All classes should have:
 Functions
 ---------
 
+- For important/tricky/nuanced logic, document the *why* of it, not the
+  *how*--developers can figure out the how if they really want/need to. The
+  *why* is much more important so (a) they can understand your code and (b) they
+  are not tempted to change it to something else because they like it
+  better--there was a good reason you did the tricky bit in this way, after all.
+
 - All non-getter/non-setter member functions should be documentated with at
   least a ``\brief``, UNLESS those functions are overrides/inherited from a
   parent class, in which case they should be left blank (usually) and their
@@ -914,6 +1283,17 @@ Functions
 
 Testing
 =======
+
+We break testing down into the following categories, each detailed in
+subsections below.
+
+- Unit testing
+
+- Integration testing
+
+- System testing
+
+- Acceptance testing
 
 Unit Tests
 ----------

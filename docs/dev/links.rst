@@ -34,8 +34,8 @@ Git commit message advice: `<https://wiki.openstack.org/wiki/GitCommitMessages#I
 Git flow branching model: `<https://nvie.com/posts/a-successful-git-branching-model/>`_
 
 
-C++
-===
+C++ Coding
+==========
 
 .. _dev/links/cxx/core-guidelines:
 
@@ -60,6 +60,94 @@ Principle of Least Surprise: `<https://youtu.be/zL-vn_pGGgY?&t=227>`_
 .. _dev/links/cxx/SFINAE:
 
 SFINAE: `<https://en.cppreference.com/w/cpp/language/sfinae>`_
+
+Python Coding
+=============
+
+.. _dev/links/python/PEP8:
+
+PEP8 - Python Style Guide: `<https://peps.python.org/pep-0008/>`_
+
+.. _dev/links/python/PEP484:
+
+PEP484 - Type Hints Guidelines: `<https://peps.python.org/pep-0484/>`_
+
+.. _dev/links/python/google-style:
+
+Google Python Style Guide: `<https://google.github.io/styleguide/pyguide.html>`_
+
+.. _dev/links/python/project-template:
+
+Static Analysis Tools
+---------------------
+
+.. _dev/links/python/analysis/ruff:
+
+Ruff Linter: `<https://github.com/astral-sh/ruff>`_
+
+.. _dev/links/python/analysis/pytype:
+
+Pytype Type Hint Checking: `<https://github.com/google/pytype>`_
+
+Project Structure & Testing Tools
+---------------------------------
+
+.. _dev/links/python/tools/pyproject-toml:
+
+Configuring Projects with ``pyproject.toml``: `<https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>`_
+
+.. _dev/links/python/tools/hatch:
+
+``hatch`` Build System: `<https://github.com/pypa/hatch>`_
+
+.. _dev/links/python/tools/unittest:
+
+Python ``unittest``: `<https://docs.python.org/3/library/unittest.html>`_
+
+.. _dev/links/python/tools/coverage:
+
+``coverage`` Test Coverage Reporting: `<https://coverage.readthedocs.io/en/7.4.3/>`_
+
+VSCode Extensions
+-----------------
+
+.. _dev/links/python/vscode-extensions:
+
+Python Language Support: `<https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_
+
+Python Debugger: `<https://marketplace.visualstudio.com/items?itemName=ms-python.debugpy>`_
+
+Ruff Linter Support: `<https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff>`_
+
+Remote Development with SSH: `<https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh>`_
+
+Development with WSL: `<https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl>`_
+
+Software Architecture And Design
+================================
+
+.. _dev/links/arch-and-design/demeter:
+
+Law of Demeter: `<https://en.wikipedia.org/wiki/Law_of_Demeter>`_
+
+.. _dev/links/arch-and-design/observer-pattern:
+
+Observer design pattern: `<https://en.wikipedia.org/wiki/Observer_pattern>`_
+
+.. _dev/links/arch-and-design/event-driven-app:
+
+Event driven application: `<https://en.wikipedia.org/wiki/Event-driven_architecture>`_
+
+RAF Idioms
+==========
+
+.. _dev/links/raf-idioms/tlv:
+
+Type Length Value: `<https://en.wikipedia.org/wiki/Type%E2%80%93length%E2%80%93value>`_
+
+.. _dev/links/raf-idioms/first-class:
+
+First Class Object: `<https://en.wikipedia.org/wiki/First-class_citizen>`_
 
 Tools
 =====
