@@ -3,7 +3,6 @@
 #
 # SPDX-License Identifier:  MIT
 #
-set(CPPCHECK_ENABLED OFF)
 
 # ##############################################################################
 # Register a target for cppcheck
@@ -12,13 +11,14 @@ set(CPPCHECK_ENABLED OFF)
 # the includes, #defines, etc. for the target and add them to the cppcheck
 # command.
 # ##############################################################################
+set(cppcheck_EXECUTABLE)
+
 function(do_register_cppcheck CHECK_TARGET TARGET)
   set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
   set(interface_includes
       ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
   set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(interface_defs ${defs}
-                     $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+  set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
   add_custom_target(${CHECK_TARGET})
 
   foreach(file ${ARGN})
@@ -45,8 +45,8 @@ endfunction()
 # ##############################################################################
 # Register all sources from the target with the cppcheck checker
 # ##############################################################################
-function(register_cppcheck_checker TARGET)
-  if(NOT CPPCHECK_ENABLED)
+function(libra_register_checker_cppcheck TARGET)
+  if(NOT cppcheck_EXECUTABLE)
     return()
   endif()
 
@@ -58,18 +58,20 @@ endfunction()
 # ##############################################################################
 # Enable or disable cppcheck checking for a project
 # ##############################################################################
-function(toggle_cppcheck status)
-  message(CHECK_START "Checking for cppcheck")
-
-  find_package(cppcheck)
-
-  if(NOT cppcheck_FOUND)
-    message(CHECK_FAIL "[disabled=not found]")
-  else()
-    message(CHECK_PASS "[enabled=${cppcheck_EXECUTABLE}]")
+function(libra_toggle_checker_cppcheck request)
+  if(NOT request)
+    libra_message(STATUS "Disabling cppcheck checker by request")
+    set(cppcheck_EXECUTABLE)
+    return()
   endif()
 
-  set(CPPCHECK_ENABLED
-      ${status}
-      PARENT_SCOPE)
+  find_program(
+    cppcheck_EXECUTABLE
+    NAMES cppcheck
+    PATHS "${cppcheck_DIR}" "$ENV{CPPCHECK_DIR}")
+
+  if(NOT cppcheck_EXECUTABLE)
+    message(STATUS "cppcheck [disabled=not found]")
+    return()
+  endif()
 endfunction()

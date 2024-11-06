@@ -7,3 +7,4 @@
    requirements.rst
    capabilities.rst
    project-local.rst
+   conan.rst

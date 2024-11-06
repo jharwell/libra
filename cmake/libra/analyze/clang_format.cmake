@@ -3,17 +3,18 @@
 #
 # SPDX-License Identifier:  MIT
 #
-set(CLANG_FORMAT_ENABLED OFF)
 
 # ##############################################################################
 # Register a target for clang_format
 # ##############################################################################
+set(clang_format_EXECUTABLE)
+
 function(do_register_clang_format FMT_TARGET TARGET)
   add_custom_target(
     ${FMT_TARGET}
     COMMAND ${clang_format_EXECUTABLE} -style=file -i ${ARGN}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Running ${clang_format_EXECUTABLE} on ${file}")
+    COMMENT "Running ${clang_format_EXECUTABLE}")
 
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
@@ -23,38 +24,42 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_format formatter
 # ##############################################################################
-function(register_clang_format TARGET)
-  if(NOT CLANG_FORMAT_ENABLED)
+function(libra_register_formatter_clang_format TARGET)
+  if(NOT clang_format_EXECUTABLE)
     return()
   endif()
 
   do_register_clang_format(fmt-clang-format ${TARGET} ${ARGN})
   add_dependencies(format fmt-clang-format)
-
 endfunction()
 
 # ##############################################################################
 # Enable or disable clang_format for auto-formatting for the project
 # ##############################################################################
-function(toggle_clang_format status)
-  message(CHECK_START "Checking for clang-format")
-  if(NOT ${status})
-    set(CLANG_FORMAT_ENABLED
-        ${status}
-        PARENT_SCOPE)
-    message(CHECK_FAIL "[disabled=by user]")
+function(libra_toggle_formatter_clang_format request)
+  if(NOT request)
+    libra_message(STATUS "Disabling clang-format formatter by request")
+    set(clang_format_EXECUTABLE)
     return()
   endif()
 
-  find_package(clang_format)
+  find_program(
+    clang_format_EXECUTABLE
+    NAMES clang-format-19
+          clang-format-18
+          clang-format-17
+          clang-format-16
+          clang-format-15
+          clang-format-14
+          clang-format-13
+          clang-format-12
+          clang-format-11
+          clang-format-10
+          clang-format
+    PATHS "${clang_format_DIR}")
 
-  if(NOT clang_format_FOUND)
-    message(CHECK_FAIL "[disabled=not found]")
-  else()
-    message(CHECK_PASS "[enabled=${clang_format_EXECUTABLE}]")
+  if(NOT clang_format_EXECUTABLE)
+    message(STATUS "clang-format [disabled=not found]")
+    return()
   endif()
-
-  set(CLANG_FORMAT_ENABLED
-      ${status}
-      PARENT_SCOPE)
 endfunction()

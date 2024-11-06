@@ -6,10 +6,14 @@
 LIBRA Capabilities
 ==================
 
+This page details the different things LIBRA can do. If some capabilities are
+only available/make sense for a particular :ref:`flavor <main/flavors>`, that is
+called out explicitly; otherwise, everything applies to all flavors.
+
 Configure Time
 ==============
 
-These are things LIBRA can do when running cmake.
+These are things LIBRA can do when cmake is run.
 
 File Discovery
 --------------
@@ -25,40 +29,30 @@ File Discovery
   etc., you just need to re-run cmake. This means you don't have to MANUALLY
   specify all the files in the cmake project. Woo-hoo!
 
-- All files under ``tests/`` ending in:
+- All files under ``tests/`` ending in ``${LIBRA_UNIT_TEST_MATCHER}.{c,cpp}``
+  are recursively globbed as unit test files which will be compiled into
+  executable unit tests at build time if ``LIBRA_TESTS=YES``. See
+  :ref:`usage/project-local/variables` more details on this configuration item.
 
-  - ``-utest.c``
-  - ``-utest.cpp``
+  Same for integration tests, but using
+  ``${LIBRA_INTEGRATION_TEST_MATCHER.{c,cpp}}``.
 
-  are globbed as unit test files which will be compiled into executable unit
-  tests at build time if ``LIBRA_TESTS=YES``.
+- All files under ``tests/`` ending in ``${LIBRA_TEST_HARNESS_MATCHER}.{c,cpp}``
 
-- All files under ``tests/`` ending in:
-
-  - ``-itest.c``
-  - ``-itest.cpp``
-
-  are globbed as integration test files which will be compiled into executable
-  unit tests at build time if ``LIBRA_TESTS=YES``.
-
-- All files under ``tests/`` ending in:
-
-  - ``_test.c``
-  - ``_test.cpp``
-
-  are globbed as the test harness for unit/integration tests. All test harness
-  files will be compiled into static libraries at build time and all test
-  targets link against them if ``LIBRA_TESTS=YES``.
+  are recursively globbed as the test harness for unit/integration tests. All
+  test harness files will be compiled into static libraries at build time and
+  all test targets link against them if ``LIBRA_TESTS=YES``.
 
 .. NOTE:: The difference between unit tests and integration tests is purely
           semantic, and exists solely to help organize your tests. LIBRA treats
           both types of tests equivalently.
 
-Build Modes
------------
+Build Modes (Stand-Alone Framework Only)
+----------------------------------------
 
-There are 3 build modes that I use, which are different from the default ones
-that ``cmake`` uses, because they did not do what I wanted.
+There are 3 available build modes, which are different from the default ones
+that ``cmake`` uses, because said defaults were not fine-grained enough for my
+needs.
 
 - ``DEV`` - Development mode. Turns on all compiler warnings and NO
   optimizations.
@@ -73,6 +67,8 @@ that ``cmake`` uses, because they did not do what I wanted.
 
 If you don't select one via ``-DCMAKE_BUILD_TYPE=XXX`` at configure time, you
 get ``DEV``.
+
+.. _usage/capabilities/build-process:
 
 Configuring The Build Process
 -----------------------------
@@ -97,6 +93,8 @@ these variables can be specified on the command line, or put in your
        libraries (e.g., ``$HOME/.local``). VERY useful to separate out 3rd party
        headers which you want to suppress all warnings for by treating them as
        system headers when you can't/don't want to install things as root.
+
+       Only available if ``LIBRA_CONAN_BACKEND=NO``.
 
      - ``$HOME/.local/system``
 
@@ -210,15 +208,6 @@ these variables can be specified on the command line, or put in your
 
      - NO
 
-   * - ``LIBRA_RTD_BUILD``
-
-     - Specify that the build is for ReadTheDocs. This suppresses the usual
-       compiler version checks since we won't actually be compiling anything,
-       and the version of compilers available on ReadTheDocs is probably much
-       older than what LIBRA requires.
-
-     - NO
-
    * - ``LIBRA_CODE_COV``
 
      - Build in runtime code-coverage instrumentation for use with ``make
@@ -256,21 +245,9 @@ these variables can be specified on the command line, or put in your
 
    * - ``LIBRA_ANALYSIS``
 
-     - Enable static analysis targets for checkers, formatters, etc. Enables the
-       following ``make`` targets (assuming the necessary executables are
-       found):
-
-       - ``${PROJECT_NAME}-clang-check}`` - Static analysis via ``clang-check``
-
-       - ``${PROJECT_NAME}-tidy-check}`` - Static analysis via ``clang-tidy``
-
-       - ``${PROJECT_NAME}-tidy-fix}`` - Static analysis AND automatic fixing of
-         issues via ``clang-tidy``.
-
-       - ``${PROJECT_NAME}-clang-format}`` - Code formatting via
-         ``clang-format``.
-
-       - ``${PROJECT_NAME}-cppcheck}`` - Static analysis via ``cppcheck``.
+     - Enable static analysis targets for checkers, formatters, etc. See below
+       for the ``make`` targets enabled (assuming the necessary executables are
+       found)
 
      - NO
 
@@ -300,6 +277,20 @@ these variables can be specified on the command line, or put in your
 
      - YES
 
+   * - ``LIBRA_DRIVER``
+
+     - The *primary* user-visible driver to LIBRA, if any. Possible values are:
+
+       - ``SELF`` - LIBRA itself is the driver/main way users interact with the
+         build system; for all intents and purposes, LIBRA *IS* the build
+         system.
+
+       - ``CONAN`` - CONAN is the primary driver of the build system. It sets up
+         the environment and handles all packaging tasks. LIBRA only has to run
+         the actual builds.
+
+     - ``SELF``
+
 
 Build Time
 ==========
@@ -314,21 +305,18 @@ the following additional capabilities via targets:
    :widths: 5,95
    :header-rows: 1
 
-   * - ``make`` target
+   * - make target
 
      - Description
 
    * - ``format``
 
-     - Run the clang formatter on the repository, using the ``.clang-format`` in
-       the root of the repo.
+     - Run the clang formatter on the repository.
 
    * - ``check``
 
-     - Run ALL enabled static checkers on the repository. If the repository
-       using modules/cmake subprojects, you can also run it on a per-module
-       basis. This runs the following sub-targets, which can also be run
-       individually:
+     - Run ALL enabled static checkers on the repository. This runs the
+       following sub-targets, which can also be run individually:
 
        - ``check-cppcheck`` - Runs ``cppcheck`` on the repository.
 
@@ -341,15 +329,24 @@ the following additional capabilities via targets:
          clang-tidy can check, see ``cmake --build . --target help`` for the
          defined set (run from build directory).
 
+
+   * - ``fix``
+
+     - Run ALL enabled auto fixers on the repository. This runs the following
+       sub-targets, which can also be run individually:
+
+       - ``fix-clang-tidy`` - Runs ``clang-tidy`` as a checker, but also passing
+         the ``--fix`` argument.
+
    * - ``unit-tests``
 
      - Build all of the unit tests for the project. If you want to just build a
        single unit test, you can do ``make <name of test>``. For example::
 
-         make rcppsw-fsm-hfsm-utest
+         make hfsm-utest
 
-       for a single unit test named ``hfsm-utest.cpp`` that lives under
-       ``tests/`` in the ``rcppsw`` project.
+       for a single unit test named ``hfsm-utest.cpp`` that lives somewhere
+       under ``tests/``.
 
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
        configuration.
@@ -359,10 +356,10 @@ the following additional capabilities via targets:
      - Build all of the integration tests for the project. If you want to just
        build a single test, you can do ``make <name of test>``. For example::
 
-         make rcppsw-fsm-itest
+         make hfsm-itest
 
-       for a single unit test named ``hfsm-itest.cpp`` that lives under
-       ``tests/`` in the ``rcppsw`` project.
+       for a single unit test named ``hfsm-itest.cpp`` that lives somewhere
+       under ``tests/``.
 
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
        configuration.
@@ -388,6 +385,8 @@ the following additional capabilities via targets:
      - Build one or more deployable packages using CPACK. Requires
        ``libra_configure_cpack()`` to have been called in
        ``project-local.cmake``.
+
+       Not available if ``LIBRA_DRIVER=CONAN``.
 
    * - ``precoverage-report``
 
@@ -432,5 +431,5 @@ Git Commit Checking
 LIBRA can lint commit messages, checking they all have a consistent format. The
 format is controlled by the file ``commitlint.config.js``. See the `husky
 <https://www.npmjs.com/package/husky>`_ for details. The default format LIBRA
-enforces is described in :ref:`dev/git-commit-guide`. To use it run ``npm
+enforces is described in :ref:`dev/git/commit-guide`. To use it run ``npm
 install`` in the repo where you have setup LIBRA.

@@ -3,18 +3,18 @@
 #
 # SPDX-License Identifier:  MIT
 #
-set(CLANG_STATIC_CHECK_ENABLED OFF)
 
 # ##############################################################################
 # Register a target for clang-tidy checking
 # ##############################################################################
+set(clang_check_EXECUTABLE)
+
 function(do_register_clang_check_checker CHECK_TARGET TARGET)
   set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
   set(interface_includes
       ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
   set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(interface_defs ${defs}
-                     $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+  set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
 
   add_custom_target(${CHECK_TARGET})
   # || true is to ignore all return code errors. I added this because Qt expects
@@ -55,8 +55,8 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_check checker
 # ##############################################################################
-function(register_clang_check_checker TARGET)
-  if(NOT CLANG_STATIC_CHECK_ENABLED)
+function(libra_register_checker_clang_check TARGET)
+  if(NOT clang_check_EXECUTABLE)
     return()
   endif()
 
@@ -68,18 +68,31 @@ endfunction()
 # ##############################################################################
 # Enable or disable clang-check checking for the project
 # ##############################################################################
-function(toggle_clang_static_check status)
-  message(CHECK_START "Checking for clang-check")
-
-  find_package(clang_check)
-
-  if(NOT clang_check_FOUND)
-    message(CHECK_FAIL "[disabled=not found]")
-  else()
-    message(CHECK_PASS "[enabled=${clang_check_EXECUTABLE}]")
+function(libra_toggle_checker_clang_check request)
+  if(NOT request)
+    libra_message(STATUS "Disabling clang-check checker by request")
+    set(clang_check_EXECUTABLE)
+    return()
   endif()
 
-  set(CLANG_STATIC_CHECK_ENABLED
-      ${status}
-      PARENT_SCOPE)
+  find_program(
+    clang_check_EXECUTABLE
+    NAMES clang-check-19
+          clang-check-18
+          clang-check-17
+          clang-check-16
+          clang-check-15
+          clang-check-14
+          clang-check-13
+          clang-check-12
+          clang-check-11
+          clang-check-10
+          clang-check
+    PATHS "${clang_check_DIR}")
+
+  if(NOT clang_check_EXECUTABLE)
+    message(STATUS "clang-check [disabled=not found]")
+    return()
+  endif()
+
 endfunction()

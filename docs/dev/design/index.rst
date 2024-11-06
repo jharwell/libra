@@ -51,7 +51,7 @@ OOP Design Patterns
 Incorporate design patterns into your code *explicitly* whenever possible. That
 is, if you're going to use the decorator pattern, instead of just having a
 member variable and wrapping/extending functionality as needed, inherit from a
-``decorator<T>`` class in C++ for example. See :ref:`here <dev/design/patterns`
+``decorator<T>`` class in C++ for example. See :ref:`here <dev/design/patterns>`
 for a comprehensive list of patterns to be aware of. Not all patterns are
 relevant in all cases/languages.
 

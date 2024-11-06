@@ -6,7 +6,20 @@
 Quickstart
 ==========
 
-To hook into LIBRA you need to:
+After picking your LIBRA flavor as described :ref:`<main/flavors> here`,
+proceed onward to the appropriate section below.
+
+Build System Middleware
+=======================
+
+In this flavor, LIBRA is a "backend" for a supported build system/package
+manager. Supported drivers currently are:
+
+- conan - :ref:`usage/conan/setup`
+
+
+Stand-Alone Framework
+=====================
 
 #. Add the libra repository as a sub-module ``libra/`` in your repo.
 
@@ -24,4 +37,4 @@ After you hook in, you can do::
   cmake ..
   make
 
-As you would expect.
+as you would expect.

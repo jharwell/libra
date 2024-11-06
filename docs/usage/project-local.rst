@@ -2,9 +2,9 @@
 
 .. _usage/project-local:
 
-======================
-How To Hook Into LIBRA
-======================
+===========================================
+project-local.cmake: How To Hook Into LIBRA
+===========================================
 
 To hook into LIBRA, you define a ``cmake/project-local.cmake``. Basically, you
 can put WHATEVER you want in this file--all the usual cmake stuff--drawing on
@@ -14,6 +14,8 @@ defines for you to use in this file, see below.
 .. NOTE:: All cmake functions which LIBRA exposes are prefixed with ``libra_``;
           all other functions should be considered not part of the API can can
           change at any time.
+
+.. _usage/project-local/variables:
 
 Variables
 =========
@@ -26,15 +28,33 @@ are:
 
 LIBRA also provides the following additional variables which can be used:
 
-  - ``${PROJECT_NAME}_CHECK_LANGUAGE`` - Defines the language that the different
-    static analysis checkers will use for checking the project. This should be
-    specified BEFORE any subdirectories, external projects, etc. are
+  - ``LIBRA_CHECK_LANGUAGE`` - Defines the language that the different static
+    analysis checkers/formatters/fixers will use for checking the project. This
+    should be specified BEFORE any subdirectories, external projects, etc. are
     specified. Only used if ``LIBRA_ANALYSIS`` is enabled. If used, value must
     be one of:
 
     - C
     - CXX
     - CUDA
+
+  - ``LIBRA_TEST_HARNESS_LIBS`` - Defines the link libraries that all
+    tests/test harnesses need to link with, if any.
+
+  - ``LIBRA_UNIT_TEST_MATCHER`` - The common suffix before the ``.cpp`` that all
+    unit tests under ``tests/`` will have so LIBRA can glob them. If not
+    specified, defaults to ``-utest``; a valid unit test would then be, e.g.,
+    ``tests/myclass-utest.cpp``.
+
+  - ``LIBRA_INTEGRATION_TEST_MATCHER`` - The common suffix before the ``.cpp``
+    that all integration tests under ``tests/`` will have so LIBRA can glob
+    them. If not specified, defaults to ``-itest``; a valid integration test
+    would then be, e.g.,  ``tests/thing-itest.cpp``.
+
+  - ``LIBRA_TEST_HARNESS_MATCHER`` - The common suffix before the
+    ``{.cpp,.hpp}`` that all test harness files tests under ``tests/`` will have
+    so LIBRA can glob them. If not specified, defaults to ``_test``; valid
+    test harness would then be, e.g., ``tests/thing_test{.cpp,.hpp}``.
 
   - ``${PROJECT_NAME}_C_SRC`` - Glob containing all C source files.
 
@@ -45,6 +65,9 @@ LIBRA also provides the following additional variables which can be used:
   - ``${PROJECT_NAME}_C_HEADERS`` - Glob containing all C header files.
 
   - ``${PROJECT_NAME}_CXX_HEADERS`` - Glob containing all C++ header files.
+
+.. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
+          contrary to common cmake guidance.
 
 Build and Run-time Diagnostics
 ==============================

@@ -9,6 +9,7 @@ LIBRA (Luigi buIld Reusable Automation)
 Motivation
 ==========
 
+
 - No existing C/C++/CUDA build system supported automatic file discovery like
   ``make`` via globs.
 
@@ -24,14 +25,36 @@ Motivation
   and running tests, etc., using ``make check``, ``make format``, or ``make
   tests``, or other simple cmdline syntax.
 
-This documentation has two parts: How to use LIBRA and software development
-guides, each detailed below.
+.. _main/flavors:
+
+Flavors
+=======
+
+LIBRA can be used in any of the following mutually exclusive ways:
+
+- Build system middleware, providing nice syntactic sugar for automating various
+  things, but not: packaging, versioning, installation, and
+  deployment. The use case here is to support using a package manager such as
+  conan to manage package-y things, and let LIBRA handle all the build system-y
+  things (separation of responsibilities), rather than having a package manager
+  or LIBRA do everything.
+
+- As a stand-alone cmake framework, including packaging, versioning,
+  installation, and deployment.
+
+This documentation has 3 parts, listed in probable descending order of interest:
 
 .. toctree::
    :maxdepth: 1
    :caption: How To Use LIBRA
 
    usage/index.rst
+
+.. toctree::
+   :maxdepth: 1
+   :caption: LIBRA Design
+
+   design/index.rst
 
 .. toctree::
    :maxdepth: 1

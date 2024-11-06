@@ -38,7 +38,7 @@ copyright = f"{today.year}, John Harwell"
 author = "John Harwell"
 
 version = subprocess.run(
-    ("grep LIBRA_VERSION ../cmake/project.cmake |" "grep -Eo [0-9]+.[0-9]+.[0-9]+"),
+    ("grep LIBRA_VERSION ../cmake/libra/project.cmake |" "grep -Eo [0-9]+.[0-9]+.[0-9]+"),
     shell=True,
     check=True,
     stdout=subprocess.PIPE,

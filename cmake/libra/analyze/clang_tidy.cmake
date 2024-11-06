@@ -3,8 +3,7 @@
 #
 # SPDX-License Identifier:  MIT
 #
-set(CLANG_TIDY_CHECK_ENABLED OFF)
-set(CLANG_TIDY_FIX_ENABLED OFF)
+set(clang_tidy_EXECUTABLE)
 
 # We want to be able to enable only SOME checks in clang-tidy in a single run,
 # both to speed up pipelines, but also to fixing errors simpler when there are
@@ -31,8 +30,7 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
   set(interface_includes
       ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
   set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(interface_defs ${defs}
-                     $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+  set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
 
   add_custom_target(${CHECK_TARGET})
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
@@ -48,6 +46,7 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
     # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
     # finishes running against ALL files to get feedback for a given file.
     foreach(file ${ARGN})
+
       add_custom_command(
         TARGET ${CHECK_TARGET}-${CATEGORY}
         COMMAND
@@ -60,7 +59,8 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
           --checks=-*,${CATEGORY}* -extra-arg=-Wno-unknown-warning-option ||
           true
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${clang_tidy_EXECUTABLE} on ${file}")
+        COMMENT
+          "Running ${clang_tidy_EXECUTABLE} on ${file}, category=${CATEGORY}")
     endforeach()
   endforeach()
 
@@ -71,35 +71,44 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_tidy checker
 # ##############################################################################
-function(register_clang_tidy_checker TARGET)
-  if(NOT CLANG_TIDY_CHECK_ENABLED)
+function(libra_register_checker_clang_tidy TARGET)
+  if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
 
   do_register_clang_tidy_check(check-clang-tidy ${TARGET} ${ARGN})
   add_dependencies(check check-clang-tidy)
-
 endfunction()
 
 # ##############################################################################
 # Enable or disable clang-tidy checking for the project
 # ##############################################################################
-function(toggle_clang_tidy_check status)
-  message(CHECK_START "Checking for clang-tidy")
-
-  find_package(clang_tidy)
-
-  if(NOT clang_tidy_FOUND)
-    set(CLANG_TIDY_CHECK_ENABLED
-        OFF
-        PARENT_SCOPE)
-    message(CHECK_FAIL "[disabled=not found]")
+function(libra_toggle_checker_clang_tidy request)
+  if(NOT request)
+    libra_message(STATUS "Disabling clang-tidy checker by request")
+    set(clang_tidy_EXECUTABLE)
+    return()
   endif()
 
-  set(CLANG_TIDY_CHECK_ENABLED
-      ${status}
-      PARENT_SCOPE)
-  message(CHECK_PASS "[enabled=${clang_tidy_EXECUTABLE}]")
+  find_program(
+    clang_tidy_EXECUTABLE
+    NAMES clang-tidy-19
+          clang-tidy-18
+          clang-tidy-17
+          clang-tidy-16
+          clang-tidy-15
+          clang-tidy-14
+          clang-tidy-13
+          clang-tidy-12
+          clang-tidy-11
+          clang-tidy-10
+          clang-tidy
+    PATHS "${clang_tidy_DIR}")
+
+  if(NOT clang_tidy_EXECUTABLE)
+    message(STATUS "clang-tidy [disabled=not found]")
+    return()
+  endif()
 endfunction()
 
 # ##############################################################################
@@ -132,7 +141,8 @@ function(do_register_clang_tidy_fix FIX_TARGET TARGET)
           --checks=-*,${CATEGORY}* -extra-arg=-Wno-unknown-warning-option --fix
           --fix-errors
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${clang_tidy_EXECUTABLE} on ${file}")
+        COMMENT
+          "Running ${clang_tidy_EXECUTABLE} on ${file}, category=${CATEGORY}")
     endforeach()
     set_target_properties(${FIX_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
     add_dependencies(${FIX_TARGET} ${TARGET})
@@ -143,8 +153,8 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_tidy fixer
 # ##############################################################################
-function(register_clang_tidy_fix TARGET)
-  if(NOT CLANG_TIDY_FIX_ENABLED)
+function(libra_register_fixer_clang_tidy TARGET)
+  if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
 
@@ -155,21 +165,30 @@ endfunction()
 # ##############################################################################
 # Enable or disable clang-tidy fixing for the project
 # ##############################################################################
-function(toggle_clang_tidy_fix status)
-  message(CHECK_START "Checking for clang-tidy")
-
-  find_package(clang_tidy)
-
-  if(NOT clang_tidy_FOUND)
-    set(CLANG_TIDY_FIX_ENABLED
-        OFF
-        PARENT_SCOPE)
-    message(CHECK_FAIL "[disabled=not found]")
+function(libra_toggle_fixer_clang_tidy request)
+  if(NOT request)
+    libra_message(STATUS "Disabling clang-tidy fixer by request")
+    set(clang_tidy_EXECUTABLE)
     return()
   endif()
 
-  set(CLANG_TIDY_FIX_ENABLED
-      ${status}
-      PARENT_SCOPE)
-  message(CHECK_PASS "[enabled=${clang_tidy_EXECUTABLE}]")
+  find_program(
+    clang_tidy_EXECUTABLE
+    NAMES clang-tidy-19
+          clang-tidy-18
+          clang-tidy-17
+          clang-tidy-16
+          clang-tidy-15
+          clang-tidy-14
+          clang-tidy-13
+          clang-tidy-12
+          clang-tidy-11
+          clang-tidy-10
+          clang-tidy
+    PATHS "${clang_tidy_DIR}")
+
+  if(NOT clang_tidy_EXECUTABLE)
+    message(STATUS "clang-tidy [disabled=not found]")
+    return()
+  endif()
 endfunction()

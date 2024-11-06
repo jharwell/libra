@@ -1,4 +1,4 @@
-.. SPDX-License-Identifier:  MIT
+n.. SPDX-License-Identifier:  MIT
 
 .. _usage/req:
 
@@ -50,7 +50,7 @@ A recent version of any supported compiler can be selected as the
 ``CMAKE_<LANG>_COMPILER`` via command line. The correct compile options will be
 populated (as in the ones defined in the corresponding .cmake files in this
 repository). Note that the C and CXX compiler vendors should always match, in
-order to avoid strange build issues.
+order to avoid strange build issues (LIBRA warns if they don't).
 
 .. IMPORTANT:: If you are want to use the Intel compiler suite, you will have to
                download and install it from Intel's website. It installs to a
@@ -62,13 +62,13 @@ order to avoid strange build issues.
 Clang Tooling
 =============
 
-All tools must have  <= version <= 14.0.
+All tools must have  14 <= version <= 19.0.
 
-- Base tooling and clang-check (``libclang-14-dev`` and ``clang-tools-14``).
+- Base tooling and clang-check (``libclang-19-dev`` and ``clang-tools-19``).
 
-- clang-format (``clang-format-14``).
+- clang-format (``clang-format-19``).
 
-- clang-tidy (``clang-tidy-14``).
+- clang-tidy (``clang-tidy-19``).
 
 
 .. _req-assumptions:
@@ -92,28 +92,26 @@ Requirements
 - All source files for a repository must live under ``src/`` in the root.
 
 - All tests for a project must live under the ``tests/`` directory in the root
-  of the project and must end in:
+  of the project and must end in a configured prefix (see
+  :ref:`usage/capabilities/build-process`) for details. Out of the box,
+  unit tests are expected to end in ``-utest.{cpp, c}``, integration tests are
+  expected to end in ``-itest.{cpp, c}``, and test harness files are expected
+  to end in ``_test.{c, cpp, h, hpp}``.
 
-  - ``-utest.cpp``
-  - ``-utest.c``
-  - ``-itest.cpp``
-  - ``-itest.c``
+  This is only required if you want to take advantage of automated test
+  globbing; if you don't then you can ignore this requirement.
 
-  for unit and integration tests respectively, so that they can automatically be
-  picked up by LIBRA if ``LIBRA_TESTS=YES``.
+  Obviously, this is ignored unless ``LIBRA_TESTS=YES``.
 
-- All test harness source files for a project must live under the ``tests/``
-  directory in the root of the project and must end in:
+- All test harness files for a project must live under the ``tests/`` directory
+  in the root of the project and must end in a configured prefix (see
+  :ref:`usage/capabilities/build-process`) for details. Out of the box, unit
+  they are expected to end in ``_test.{c, cpp, h, hpp}``.
 
-  - ``_test.cpp``
-  - ``_utest.c``
+  This is only required if you want to take advantage of automated test
+  globbing; if you don't then you can ignore this requirement.
 
-  for, so that they can automatically be picked up by LIBRA if
-  ``LIBRA_TESTS=YES`` and compiled into libraries which all tests link against.
-
-- All projects must include THIS repository as a submodule under ``libra/`` in
-  the project root, and link a ``CmakeLists.txt`` in the root of the repository
-  to the ``libra/cmake/project.cmake`` file in this repository.
+  Obviously, this is ignored unless ``LIBRA_TESTS=YES``.
 
 - If ``LIBRA_DOCS=ON``, project documentation lives under ``<repo_name>/docs``,
   with a ``docs/Doxyfile.in`` defined to generate doxygen documentation.
@@ -122,6 +120,3 @@ Requirements
   repository containing any project specific bits (i.e. adding subdirectories,
   what libraries to create, etc.). See :ref:`usage/project-local` for how to
   structure this file.
-
-- ``LIBRA_DOCS`` - Override the default value of ``YES`` if your project does
-  not have docs.
