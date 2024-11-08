@@ -318,24 +318,28 @@ the following additional capabilities via targets:
 
      - Description
 
-   * - ``format-all``
+   * - ``format``
 
      - Run the clang formatter on the repository, using the ``.clang-format`` in
        the root of the repo.
 
-   * - ``check-all``
+   * - ``check``
 
      - Run ALL enabled static checkers on the repository. If the repository
        using modules/cmake subprojects, you can also run it on a per-module
        basis. This runs the following sub-targets, which can also be run
        individually:
 
-       - ``cppcheck-all`` - Runs ``cppcheck`` on the repository.
+       - ``check-cppcheck`` - Runs ``cppcheck`` on the repository.
 
-       - ``static-check-all`` - Runs the clang static checker on the repository.
+       - ``check-clang-check`` - Runs the clang static checker on the
+         repository.
 
-       - ``tidy-check-all`` - Runs the clang-tidy checker on the repository,
-         using the ``.clang-format`` in the root of the repo.
+       - ``check-clang-tidy`` - Runs the clang-tidy checker on the repository,
+         using the ``.clang-tidy`` in the root of the repo. There are individual
+         ``check-clang-tidy-XX`` checks for each category of things that
+         clang-tidy can check, see ``cmake --build . --target help`` for the
+         defined set (run from build directory).
 
    * - ``unit-tests``
 
@@ -421,11 +425,6 @@ the following additional capabilities via targets:
        no functions executed, then they will not be included in the results,
        skewing reporting coverage. This may or may not be desirable. See
        ``precoverage-report`` if it is undesirable.
-
-   * - ``package``
-
-     - Build a ``.deb`` package from the project and all its sub-project (i.e.,
-       a stand-alone ``.deb``). This is alpha-level functionality.
 
 Git Commit Checking
 ===================

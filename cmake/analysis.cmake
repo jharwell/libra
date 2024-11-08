@@ -10,12 +10,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/clang_check.cmake)
 
 # Function to register a target for enabled code checkers
 function(register_checkers TARGET)
-  add_custom_target(${TARGET}-check)
+  add_custom_target(check)
 
-  set_target_properties(${TARGET}-check
-    PROPERTIES
-    EXCLUDE_FROM_DEFAULT_BUILD 1
-    )
+  set_target_properties(check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
   register_cppcheck_checker(${TARGET} ${ARGN})
   register_clang_tidy_checker(${TARGET} ${ARGN})
   register_clang_check_checker(${TARGET} ${ARGN})
@@ -23,32 +20,26 @@ endfunction()
 
 # Function to register a target for enabled automated formatters
 function(register_auto_formatters TARGET)
-  if (NOT CLANG_FORMAT_ENABLED)
+  if(NOT CLANG_FORMAT_ENABLED)
     return()
   endif()
 
-  add_custom_target(${TARGET}-format)
+  add_custom_target(format)
 
-  set_target_properties(${TARGET}-format
-    PROPERTIES
-    EXCLUDE_FROM_DEFAULT_BUILD 1
-    )
+  set_target_properties(format PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
   register_clang_format(${TARGET} ${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated fixers
 function(register_auto_fixers TARGET)
-  if (NOT CLANG_TIDY_FIX_ENABLED)
+  if(NOT CLANG_TIDY_FIX_ENABLED)
     return()
   endif()
 
-  add_custom_target(${TARGET}-fix)
+  add_custom_target(fix)
 
-  set_target_properties(${TARGET}-fix
-    PROPERTIES
-    EXCLUDE_FROM_DEFAULT_BUILD 1
-    )
+  set_target_properties(fix PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
   register_clang_tidy_fix(${TARGET} ${ARGN})
 endfunction()
