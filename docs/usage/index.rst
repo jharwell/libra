@@ -5,6 +5,6 @@
 
    quickstart.rst
    requirements.rst
-   capabilities.rst
+   capabilities/index.rst
    project-local.rst
    conan.rst

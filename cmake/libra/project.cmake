@@ -16,7 +16,7 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.2)
+set(LIBRA_VERSION 0.8.3)
 
 # ##############################################################################
 # Cmake Environment

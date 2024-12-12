@@ -187,7 +187,8 @@ function(libra_config_summary)
       LIBRA_ANALYSIS
       LIBRA_LTO
       LIBRA_OPT_REPORT
-      LIBRA_STDLIB)
+      LIBRA_STDLIB
+      LIBRA_FORTIFY)
 
   libra_config_summary_prepare_fields("${fields}")
 
@@ -300,6 +301,10 @@ function(libra_config_summary)
   message(
     STATUS
       "Enable stdlib.........................: ${ColorBold}${EMIT_LIBRA_STDLIB}${ColorReset} [LIBRA_STDLIB]"
+  )
+  message(
+    STATUS
+      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,CFI,GOT,FORMAT,ALL}]"
   )
 
   message("")

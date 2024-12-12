@@ -26,7 +26,8 @@ are:
 
 - ``LIBRA_DEPS_PREFIX``
 
-LIBRA also provides the following additional variables which can be used:
+LIBRA also provides the following additional variables which can be used. You
+*might* be able to set them on the cmdline, but doing so is not recommended.
 
   - ``LIBRA_CHECK_LANGUAGE`` - Defines the language that the different static
     analysis checkers/formatters/fixers will use for checking the project. This
@@ -150,15 +151,15 @@ Deployment
 
 - ``libra_configure_cpack(GENERATORS DESCRIPTION VENDOR HOMEPAGE CONTACT)`` -
   Configure CPack to run the list of ``GENERATORS`` (if more than 1, must be
-  separated by ``;``) via ``make package``. Can be:
+  separated by ``;``) via ``make package``. ``GENERATORS`` can be a subset of:
 
   - ``TGZ`` - A tarball.
 
   - ``DEB`` - A Debian archive.
 
 
-  This function respects ``CPACK_PACKAGE_FILE_NAME`` if it is set prior to
-  calling. Otherwise ``CPACK_PACKAGE_FILE_NAME`` is set to
+  Respects ``CPACK_PACKAGE_FILE_NAME`` if it is set prior to calling. Otherwise
+  ``CPACK_PACKAGE_FILE_NAME`` is set to
   ``${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_PROCESSOR}``.
 
 ``TGZ`` Generator Notes

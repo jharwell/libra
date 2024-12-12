@@ -20,6 +20,99 @@ include(libra/compile/standard)
 set(LIBRA_DEBUG_OPTIONS "-g2")
 
 # ##############################################################################
+# Fortifying Options
+# ##############################################################################
+set(LIBRA_FORTIFY_OPTIONS)
+set(LIBRA_FORTIFY_MATCH NO)
+
+if(NOT LIBRA_FORTIFY)
+  set(LIBRA_FORTIFY "NONE")
+endif()
+
+if(NOT LIBRA_FORTIFY MATCHES "NONE")
+  set(LIBRA_LTO ON)
+endif()
+
+# -fstack-protector-{strong,all} are also options which could be swapped
+# in/added eventually.
+set(LIBRA_FORTIFY_STACK -fsanitize=safe-stack -fstack-protector)
+set(LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+set(LIBRA_FORTIFY_CFI -fsanitize=cfi -fvisibility=hidden)
+set(LIBRA_FORTIFY_GOT -Wl,-z,relro -Wl,-z,now)
+set(LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format-security)
+set(LIBRA_FORTIFY_LIBCXX_FAST
+    -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST)
+set(LIBRA_FORTIFY_LIBCXX_EXTENSIVE
+    -D_LIBCPP_HARDENING_MODE_EXTENSIVE=_LIBCPP_HARDENING_MODE_EXTENSIVE)
+set(LIBRA_FORTIFY_LIBCXX_DEBUG
+    -D_LIBCPP_HARDENING_DEBUG=_LIBCPP_HARDENING_MODE_DEBUG)
+
+if("${LIBRA_FORTIFY}" MATCHES "STACK")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_STACK}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "SOURCE")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_SOURCE}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "CFI")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_CFI}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "GOT")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_GOT}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "FORMAT")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_FORMAT}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "LIBCXX_FAST")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_LIBCXX_FAST}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "LIBCXX_EXTENSIVE")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_LIBCXX_EXTENSIVE}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "LIBCXX_DEBUG")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_LIBCXX_DEBUG}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "ALL")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS
+      "${LIBRA_FORTIFY_STACK} ${LIBRA_FORTIFY_SOURCE} ${LIBRA_FORTIFY_CFI}
+  ${LIBRA_FORTIFY_GOT} ${LIBRA_FORTIFY_FORMAT} ${LIBRA_FORTIFY_LIBCXX_FAST}
+  ${LIBRA_FORTIFY_LIBCXX_EXTENSIVE} ${LIBRA_FORTIFY_LIBCXX_DEBUG}")
+endif()
+
+if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
+  libra_message(
+    WARNING "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset \
+of {STACK,SOURCE,CFI,GOT,FORMAT,LIBCXX_FAST,LIBCXX_EXTENSIVE,LIBCXX_DEBUG,ALL} \
+or set to NONE for clang")
+endif()
+
+set(LIBRA_C_FORTIFY_OPTIONS ${LIBRA_FORTIFY_OPTIONS})
+set(LIBRA_CXX_FORTIFY_OPTIONS ${LIBRA_FORTIFY_OPTIONS})
+
+# ##############################################################################
+# LTO Options
+# ##############################################################################
+if(LIBRA_LTO)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
+
+# ##############################################################################
 # Optimization Options
 # ##############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
@@ -35,18 +128,11 @@ endif()
 set(BASE_OPT_OPTIONS
     -march=native
     -mtune=native
-    -fno-stack-protector
     # 2023/6/29: Disable because it causes issues in RCSW unit tests. If in the
     # future I want/need to enable these again to get even more speed, I could
     # add another opt level/flag controlling it. -ffast-math
     # -fno-unsafe-math-optimizations
 )
-
-if(LIBRA_LTO)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -flto)
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_SHARED_FLAGS} -flto")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -flto")
-endif()
 
 if(LIBRA_MT)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -fopenmp)

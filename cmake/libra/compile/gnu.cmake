@@ -14,6 +14,70 @@ include(libra/compile/standard)
 set(LIBRA_DEBUG_OPTIONS "-g2")
 
 # ##############################################################################
+# Fortifying Options
+# ##############################################################################
+set(LIBRA_FORTIFY_OPTIONS)
+set(LIBRA_FORTIFY_MATCH NO)
+
+if(NOT LIBRA_FORTIFY)
+  set(LIBRA_FORTIFY "NONE")
+endif()
+
+if(NOT LIBRA_FORTIFY MATCHES "NONE")
+  set(LIBRA_LTO ON)
+endif()
+
+# -fstack-protector-{strong,all} are also options which could be swapped
+# in/added eventually.
+set(LIBRA_FORTIFY_STACK -fstack-protector)
+set(LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+set(LIBRA_FORTIFY_GOT -Wl,-z,relro -Wl,-z,now)
+set(LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format=2)
+
+if("${LIBRA_FORTIFY}" MATCHES "STACK")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_STACK}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "SOURCE")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_SOURCE}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "GOT")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_GOT}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "FORMAT")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_FORMAT}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "ALL")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS
+      "${LIBRA_FORTIFY_STACK} ${LIBRA_FORTIFY_SOURCE}  ${LIBRA_FORTIFY_GOT} ${LIBRA_FORTIFY_FORMAT}"
+  )
+endif()
+
+if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
+  libra_message(
+    WARNING "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset \
+of {STACK,SOURCE,GOT,FORMAT,ALL} or set to NONE for gcc")
+endif()
+
+set(LIBRA_C_FORTIFY_OPTIONS ${LIBRA_FORTIFY_OPTIONS})
+set(LIBRA_CXX_FORTIFY_OPTIONS ${LIBRA_FORTIFY_OPTIONS})
+
+# ##############################################################################
+# LTO Options
+# ##############################################################################
+if(LIBRA_LTO)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
+
+# ##############################################################################
 # Optimization Options
 # ##############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
@@ -32,18 +96,12 @@ ProcessorCount(N)
 set(BASE_OPT_OPTIONS
     -march=native
     -mtune=native
-    -fno-stack-protector
     # 2023/6/29: Disable because it causes issues in RCSW unit tests. If in the
     # future I want/need to enable these again to get even more speed, I could
-    # add another opt level/flag controlling it. -ffast-math
-    # -fno-unsafe-math-optimizations
+    # add another opt level/flag controlling it.
+    #
+    # -ffast-math -fno-unsafe-math-optimizations
     -frename-registers)
-
-if(LIBRA_LTO)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -flto=${N})
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_SHARED_FLAGS} -flto=${N}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -flto=${N}")
-endif()
 
 if(LIBRA_MT)
   set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -fopenmp)
@@ -160,7 +218,6 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   string(REGEX REPLACE "[-=]" "_" flag ${flag})
 
   # A project can be C/C++ only
-
   if(CMAKE_CXX_COMPILER_LOADED)
     check_cxx_compiler_flag(${flag} LIBRA_CXX_COMPILER_SUPPORTS_${flag})
   endif()
@@ -206,14 +263,6 @@ set(LIBRA_SAN_DEFAULT "NONE")
 
 if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
-
-# Only enable sanitizers by default for DEV builds and if they are not specified
-# on the cmdline
-if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV" AND NOT DEFINED LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_DEV_DEFAULT})
-elseif("${CMAKE_BUILD_TYPE}" MATCHES "OPT" AND NOT DEFINED LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_OPT_DEFAULT})
 endif()
 
 set(LIBRA_SAN_OPTIONS)
