@@ -17,7 +17,11 @@ include(libra/compile/standard)
 # ##############################################################################
 # Debugging Options
 # ##############################################################################
-set(LIBRA_DEBUG_OPTIONS "-g2")
+if(LIBRA_NO_DEBUG_INFO)
+  set(LIBRA_DEBUG_OPTIONS "-g0")
+else()
+  set(LIBRA_DEBUG_OPTIONS "-g2")
+endif()
 
 # ##############################################################################
 # Fortifying Options
@@ -115,14 +119,14 @@ endif()
 # ##############################################################################
 # Optimization Options
 # ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(LIBRA_OPT_LEVEL -O0)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(LIBRA_OPT_LEVEL -Og)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(LIBRA_OPT_LEVEL -O2)
 else()
-  # Standard Cmake build types
+  message(
+    FATAL_ERROR
+      "clang compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
 set(BASE_OPT_OPTIONS
@@ -143,7 +147,7 @@ endif()
 set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   # For handling lto with static libraries on MSI
   set(CMAKE_AR "llvm-ar")
   set(CMAKE_NM "llvm-nm")
@@ -235,14 +239,6 @@ set(LIBRA_SAN_DEFAULT "NONE")
 
 if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
-
-# Only enable sanitizers by default for DEV builds and if they are not specified
-# on the cmdline
-if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV" AND (NOT DEFINED LIBRA_SAN))
-  set(LIBRA_SAN ${LIBRA_SAN_DEV_DEFAULT})
-elseif("${CMAKE_BUILD_TYPE}" MATCHES "OPT" AND (NOT DEFINED LIBRA_SAN))
-  set(LIBRA_SAN ${LIBRA_SAN_OPT_DEFAULT})
 endif()
 
 set(LIBRA_SAN_OPTIONS)

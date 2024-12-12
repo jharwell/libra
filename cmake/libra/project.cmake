@@ -16,7 +16,7 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.3)
+set(LIBRA_VERSION 0.8.4)
 
 # ##############################################################################
 # Cmake Environment
@@ -55,7 +55,8 @@ option(LIBRA_SUMMARY "Show a configuration summary" ON)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
 option(LIBRA_STDLIB "Enable usage of the standard library" ON)
-
+option(LIBRA_NO_DEBUG_INFO
+       "Disable inclusion of debug info, independent of build type" OFF)
 set(LIBRA_DRIVER
     "SELF"
     CACHE STRING "{SELF,CONAN} Set the user front end for the build process")
@@ -76,6 +77,24 @@ set(LIBRA_ERL
       STRING
       "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL, INHERIT} Set the logging level"
 )
+
+set(LIBRA_FORTIFY
+    "NONE"
+    CACHE
+      STRING
+      "{NONE, STACK, SOURCE, CFI, GOT, FORMAT, LIBCXX_FAST, LIBCXX_EXTENSIVE,LIBCXX_DEBUG,ALL"
+)
+set_property(
+  CACHE LIBRA_FORTIFY
+  PROPERTY STRINGS NONE STACK
+  SOURCE CFI
+         GOT
+         FORMAT
+         LIBCXX_FAST
+         LIBCXX_EXTENSIVE
+         LIBCXX_DEBUG
+         ALL)
+
 set_property(
   CACHE LIBRA_ERL
   PROPERTY STRINGS
@@ -129,12 +148,12 @@ endif()
 # Build/Compiler Configuration
 # ##############################################################################
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "DEV")
+  set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-# Must be before build modes to populate options
+# Must be before build types to populate options
 include(libra/compile/compiler)
-include(libra/compile/build-modes)
+include(libra/compile/build-types)
 
 if(LIBRA_OPT_REPORT)
   include(libra/compile/reporting)

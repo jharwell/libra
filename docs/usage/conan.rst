@@ -94,11 +94,18 @@ Advanced Details
 If you're following the quickstart, you can skip this section unless you're
 curious.
 
-Build Modes
+Build Types
 -----------
 
-Because conan assumes vanilla cmake as a backend, it is generally unwise to try
-to pair it with any of the LIBRA build modes.
+LIBRA only current supports compiler-based features (e.g., ``LIBRA_LTO``) for
+the following cmake build types:
+
+- Debug
+
+- Release
+
+Not because it *can't* support other build types, but because the ones above are
+the most common. It is very straightforward to add other build types if needed.
 
 Variables
 ---------

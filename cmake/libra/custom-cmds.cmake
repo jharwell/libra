@@ -174,6 +174,7 @@ function(libra_config_summary)
       CMAKE_CXX_COMPILER
       LIBRA_C_STANDARD
       LIBRA_CXX_STANDARD
+      LIBRA_NO_DEBUG_INFO
       LIBRA_TESTS
       LIBRA_MT
       LIBRA_MP
@@ -243,6 +244,10 @@ function(libra_config_summary)
   message(
     STATUS
       "C++ std...............................: ${ColorBold}${EMIT_LIBRA_CXX_STANDARD}${ColorReset} [CMAKE_CXX_STANDARD]"
+  )
+  message(
+    STATUS
+      "Disable debug info....................: ${ColorBold}${EMIT_LIBRA_NO_DEBUG_INFO}${ColorReset} [LIBRA_NO_DEBUG_INFO]"
   )
 
   # LIBRA options

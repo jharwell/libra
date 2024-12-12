@@ -12,19 +12,23 @@ include(libra/compile/standard)
 # ##############################################################################
 # Debugging Options
 # ##############################################################################
-set(LIBRA_DEBUG_OPTIONS "-g2")
+if(LIBRA_NO_DEBUG_INFO)
+  set(LIBRA_DEBUG_OPTIONS "-g0")
+else()
+  set(LIBRA_DEBUG_OPTIONS "-g2")
+endif()
 
 # ##############################################################################
 # Optimization Options
 # ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(LIBRA_OPT_LEVEL -O0)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(LIBRA_OPT_LEVEL -Og)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Relese")
   set(LIBRA_OPT_LEVEL -O2)
 else()
-  # Standard cmake build types
+  message(
+    FATAL_ERROR
+      "NVIDIA compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
 set(BASE_OPT_OPTIONS)

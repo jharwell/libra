@@ -11,7 +11,11 @@ include(libra/compile/standard)
 # ##############################################################################
 # Debugging Options
 # ##############################################################################
-set(LIBRA_DEBUG_OPTIONS "-g2")
+if(LIBRA_NO_DEBUG_INFO)
+  set(LIBRA_DEBUG_OPTIONS "-g0")
+else()
+  set(LIBRA_DEBUG_OPTIONS "-g2")
+endif()
 
 # ##############################################################################
 # Fortifying Options
@@ -80,14 +84,14 @@ endif()
 # ##############################################################################
 # Optimization Options
 # ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "DEV")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   set(LIBRA_OPT_LEVEL -O0)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "DEVOPT")
-  set(LIBRA_OPT_LEVEL -Og)
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(LIBRA_OPT_LEVEL -O2)
 else()
-  # Standard cmake build types
+  message(
+    FATAL_ERROR
+      "GNU compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
 include(ProcessorCount)
@@ -112,7 +116,7 @@ endif()
 set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "OPT")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   # For handling lto with static libraries on MSI
   set(CMAKE_AR "gcc-ar")
   set(CMAKE_NM "gcc-nm")

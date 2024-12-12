@@ -108,7 +108,6 @@ Knobs For Supporting SW Engineering
 
    .. tab:: LIBRA_FORTIFY
 
-      .. versionadded:: 0.8.3
 
       Build in compiler support/runtime checking of code for heightened
       security. Which options get passed to compiler/linker AND which groups are
@@ -152,6 +151,8 @@ Knobs For Supporting SW Engineering
       - ``NONE`` - None of the above.
 
       Default: NONE. Any non-None value also sets ``LIBRA_LTO=YES``.
+
+      .. versionadded:: 0.8.3
 
    .. tab::  LIBRA_TESTS
 
@@ -276,10 +277,10 @@ Knobs For Configuring Builds
 
       Enable Link-Time Optimization.
 
+      Default: NO.
+
       .. versionchanged:: 0.8.3
          This is automatically enabled by ``LIBRA_FORTIFY != NONE``.
-
-      Default: NO.
 
 
    .. tab:: LIBRA_STDLIB
@@ -288,3 +289,12 @@ Knobs For Configuring Builds
       bare-metal builds (e.g., bootstraps).
 
       Default: YES.
+
+   .. tab:: LIBRA_NO_DEBUG_INFO
+
+      Disable generation of debug symbols *independent* of whatever the default
+      is with a given cmake build type.
+
+      Default: NO.
+
+      .. versionadded:: 0.8.4

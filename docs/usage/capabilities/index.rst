@@ -10,6 +10,11 @@ This page details the different things LIBRA can do. If some capabilities are
 only available/make sense for a particular :ref:`flavor <main/flavors>`, that is
 called out explicitly; otherwise, everything applies to all flavors.
 
+.. versionchanged:: 0.8.4
+   LIBRA no longer offers its {DEV,DEVOPT,OPT} build types, as they provided
+   marginal benefit over the fine-grained tuning available to tweak the built-in
+   cmake build types via its configure-time features.
+
 File Discovery
 ==============
 
@@ -43,26 +48,6 @@ File Discovery
           both types of tests equivalently.
 
 
-Build Modes (Stand-Alone Framework Only)
-========================================
-
-There are 3 available build modes, which are different from the default ones
-that ``cmake`` uses, because said defaults were not fine-grained enough for my
-needs.
-
-- ``DEV`` - Development mode. Turns on all compiler warnings and NO
-  optimizations.
-
-- ``DEVOPT`` - Development mode + light optimizations. Turns on all compiler
-  warnings + ``-Og`` + parallelization (if configured). Does not define
-  ``NDEBUG``.
-
-- ``OPT`` - Optimized mode. Turns on all compiler warnings and maximum
-  optimizations (``O2``), which is separate from enabled automatic/OpenMP based
-  paralellization. Defines ``NDEBUG``.
-
-If you don't select one via ``-DCMAKE_BUILD_TYPE=XXX`` at configure time, you
-get ``DEV``.
 
 .. _usage/capabilities/build-process:
 

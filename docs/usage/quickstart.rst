@@ -6,7 +6,7 @@
 Quickstart
 ==========
 
-After picking your LIBRA flavor as described :ref:`<main/flavors> here`,
+After picking your LIBRA flavor as described :ref:`here <main/flavors>`,
 proceed onward to the appropriate section below.
 
 Build System Middleware
