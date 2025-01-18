@@ -16,7 +16,7 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.4)
+set(LIBRA_VERSION 0.8.5)
 
 # ##############################################################################
 # Cmake Environment
@@ -209,7 +209,7 @@ if(${LIBRA_ANALYSIS})
     libra_message(
       WARNING
       "Static analysis enabled but LIBRA_CHECK_LANGUAGE not set; assuming CXX")
-    set(LIBRA}_CHECK_LANGUAGE CXX)
+    set(LIBRA_CHECK_LANGUAGE CXX)
   endif()
 
   if("${LIBRA_CHECK_LANGUAGE}" STREQUAL "C")

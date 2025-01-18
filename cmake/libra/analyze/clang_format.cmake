@@ -7,7 +7,6 @@
 # ##############################################################################
 # Register a target for clang_format
 # ##############################################################################
-set(clang_format_EXECUTABLE)
 
 function(do_register_clang_format FMT_TARGET TARGET)
   add_custom_target(
@@ -29,8 +28,8 @@ function(libra_register_formatter_clang_format TARGET)
     return()
   endif()
 
-  do_register_clang_format(fmt-clang-format ${TARGET} ${ARGN})
-  add_dependencies(format fmt-clang-format)
+  do_register_clang_format(format-clang-format ${TARGET} ${ARGN})
+  add_dependencies(format format-clang-format)
 endfunction()
 
 # ##############################################################################
@@ -45,7 +44,8 @@ function(libra_toggle_formatter_clang_format request)
 
   find_program(
     clang_format_EXECUTABLE
-    NAMES clang-format-19
+    NAMES clang-format-20
+          clang-format-19
           clang-format-18
           clang-format-17
           clang-format-16

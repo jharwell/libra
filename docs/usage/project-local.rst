@@ -39,6 +39,27 @@ LIBRA also provides the following additional variables which can be used. You
     - CXX
     - CUDA
 
+  - ``LIBRA_CPPCHECK_IGNORES`` - A list of files to totally ignore when running
+    ``cppcheck``. Only used if ``LIBRA_ANALYSIS`` is enabled and ``cppcheck`` is
+    found. The ``-i`` separators are added by LIBRA--this should just be a raw
+    list.
+
+    .. versionadded:: 0.8.5
+
+  - ``LIBRA_CPPCHECK_SUPPRESSIONS`` - A list of categories of warnings to
+    suppress for matching patterns ``cppcheck``. Only used if ``LIBRA_ANALYSIS``
+    is enabled and ``cppcheck`` is found. The ``--suppress=`` separators are
+    added by LIBRA--this should just be a raw list.
+
+    .. versionadded:: 0.8.5
+
+  - ``LIBRA_CPPCHECK_EXTRA_ARGS`` - A list of extra arguments to pass to
+    cppcheck. If you want to pass suppressions or ignores, use the above
+    variables; this is for other things which don't fit in those buckets. Passed
+    as-is to cppcheck.
+
+    .. versionadded:: 0.8.5
+
   - ``LIBRA_TEST_HARNESS_LIBS`` - Defines the link libraries that all
     tests/test harnesses need to link with, if any.
 

@@ -32,7 +32,7 @@ jobs:
 
           git submodule update --init --remote --recursive
 
-          PACKAGE_VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/project.cmake)
+          PACKAGE_VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/libra/project.cmake)
 
           if [ "${{ github.ref }}" = "refs/heads/devel" ]; then
             TAG_VERSION=${PACKAGE_VERSION}.beta

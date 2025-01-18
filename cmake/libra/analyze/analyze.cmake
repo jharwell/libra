@@ -10,9 +10,9 @@ include(libra/analyze/clang_check)
 
 # Function to register a target for enabled code checkers
 function(libra_register_checkers TARGET)
-  add_custom_target(check)
+  add_custom_target(analyze)
 
-  set_target_properties(check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+  set_target_properties(analyze PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
   libra_register_checker_cppcheck(${TARGET} ${ARGN})
   libra_register_checker_clang_tidy(${TARGET} ${ARGN})
   libra_register_checker_clang_check(${TARGET} ${ARGN})

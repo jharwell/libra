@@ -94,133 +94,16 @@ Build Time
 ==========
 
 After configuration, LIBRA can do many things when running ``make`` (or whatever
-the build engine is). In addition to being able to actually build the software,
+the build system is). In addition to being able to actually build the software,
 this project enables the following additional capabilities via targets:
 
-.. list-table::
-   :widths: 5,95
-   :header-rows: 1
+.. NOTE:: All examples assume the CMake generator is ``Unix Makefiles``, and
+          therefore all targets can be built with ``make``; adjust as needed if
+          you use a different generator.
 
-   * - make target
+- :ref:`usage/capabilities/build-time/build`
 
-     - Description
-
-   * - ``format``
-
-     - Run the clang formatter on the repository.
-
-   * - ``check``
-
-     - Run ALL enabled static checkers on the repository. This runs the
-       following sub-targets, which can also be run individually:
-
-       - ``check-cppcheck`` - Runs ``cppcheck`` on the repository.
-
-       - ``check-clang-check`` - Runs the clang static checker on the
-         repository.
-
-       - ``check-clang-tidy`` - Runs the clang-tidy checker on the repository,
-         using the ``.clang-tidy`` in the root of the repo. There are individual
-         ``check-clang-tidy-XX`` checks for each category of things that
-         clang-tidy can check, see ``cmake --build . --target help`` for the
-         defined set (run from build directory).
-
-
-   * - ``fix``
-
-     - Run ALL enabled auto fixers on the repository. This runs the following
-       sub-targets, which can also be run individually:
-
-       - ``fix-clang-tidy`` - Runs ``clang-tidy`` as a checker, but also passing
-         the ``--fix`` argument.
-
-   * - ``unit-tests``
-
-     - Build all of the unit tests for the project. If you want to just build a
-       single unit test, you can do ``make <name of test>``. For example::
-
-         make hfsm-utest
-
-       for a single unit test named ``hfsm-utest.cpp`` that lives somewhere
-       under ``tests/``.
-
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
-
-   * - ``integration-tests``
-
-     - Build all of the integration tests for the project. If you want to just
-       build a single test, you can do ``make <name of test>``. For example::
-
-         make hfsm-itest
-
-       for a single unit test named ``hfsm-itest.cpp`` that lives somewhere
-       under ``tests/``.
-
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
-
-   * - ``tests``
-
-     - Build all of the integration and unit tests for the project; same as
-       ``make unit-tests && make integration-tests``.
-
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
-
-   * - ``test``
-
-     - Run all of the tests for the project via ``ctest``.
-
-   * - ``apidoc``
-
-     - Generate the API documentation.
-
-   * - ``package``
-
-     - Build one or more deployable packages using CPACK. Requires
-       ``libra_configure_cpack()`` to have been called in
-       ``project-local.cmake``.
-
-       Not available if ``LIBRA_DRIVER=CONAN``.
-
-   * - ``precoverage-report``
-
-     - Run ``lcov`` to generate a baseline code coverage info (0%) for the
-       entire project to eventually generate an *absolute* code coverage report
-       after executing the project. That is, something like::
-
-         make                     # Build in coverage info into project
-         make unit-tests          # Build in coverage info into tests
-         make precoverage-report  # Set baseline coverage info for ENTIRE project
-         make test                # Populate coverage for executed parts of project
-         make coverage-report     # Build ABSOLUTE coverage report for all files
-
-       An *absolute* code coverage report uses the baseline info and the #
-       lines/functions executed in all files. If there are files which have no
-       functions executed, then they **WILL** be included in the results. This
-       may or may not be desirable; if it is not, then don't call this target
-       before running the project, and you'll get a relative report instead.
-
-   * - ``coverage-report``
-
-     - Run ``lcov`` to generate a code coverage report (presumably from the
-       results of running unit tests, though that does not have to be the
-       case). That is::
-
-         make                 # Build in coverage info into project
-         make unit-tests      # Build in coverage info into tests
-         make test            # Populate coverage for executed parts of project
-         make coverage-report # Build RELATIVE report for files had some execution
-
-
-       Not that this is a *relative* code coverage report. That is, #
-       lines/functions executed out of the total # lines/functions in all files
-       which have at least one function executed. If there are files which have
-       no functions executed, then they will not be included in the results,
-       skewing reporting coverage. This may or may not be desirable. See
-       ``precoverage-report`` if it is undesirable.
-
+- :ref:`usage/capabilities/build-time/sw-eng`
 
 Git Commit Checking
 ===================

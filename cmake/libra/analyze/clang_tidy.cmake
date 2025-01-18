@@ -3,7 +3,6 @@
 #
 # SPDX-License Identifier:  MIT
 #
-set(clang_tidy_EXECUTABLE)
 
 # We want to be able to enable only SOME checks in clang-tidy in a single run,
 # both to speed up pipelines, but also to fixing errors simpler when there are
@@ -49,6 +48,7 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
 
       add_custom_command(
         TARGET ${CHECK_TARGET}-${CATEGORY}
+        POST_BUILD
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
           -p\t${PROJECT_BINARY_DIR} ${file}
@@ -76,8 +76,8 @@ function(libra_register_checker_clang_tidy TARGET)
     return()
   endif()
 
-  do_register_clang_tidy_check(check-clang-tidy ${TARGET} ${ARGN})
-  add_dependencies(check check-clang-tidy)
+  do_register_clang_tidy_check(analyze-clang-tidy ${TARGET} ${ARGN})
+  add_dependencies(analyze analyze-clang-tidy)
 endfunction()
 
 # ##############################################################################
@@ -92,7 +92,8 @@ function(libra_toggle_checker_clang_tidy request)
 
   find_program(
     clang_tidy_EXECUTABLE
-    NAMES clang-tidy-19
+    NAMES clang-tidy-20
+          clang-tidy-19
           clang-tidy-18
           clang-tidy-17
           clang-tidy-16
@@ -127,10 +128,10 @@ function(do_register_clang_tidy_fix FIX_TARGET TARGET)
     add_dependencies(${FIX_TARGET} ${FIX_TARGET}-${CATEGORY})
     set_target_properties(${FIX_TARGET}-${CATEGORY}
                           PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
     foreach(file ${ARGN})
       add_custom_command(
         TARGET ${FIX_TARGET}-${CATEGORY}
+        POST_BUILD
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
           -p\t${PROJECT_BINARY_DIR} ${file}

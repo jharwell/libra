@@ -7,8 +7,6 @@
 # ##############################################################################
 # Register a target for clang-tidy checking
 # ##############################################################################
-set(clang_check_EXECUTABLE)
-
 function(do_register_clang_check_checker CHECK_TARGET TARGET)
   set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
   set(interface_includes
@@ -32,6 +30,7 @@ function(do_register_clang_check_checker CHECK_TARGET TARGET)
 
     add_custom_command(
       TARGET ${CHECK_TARGET}
+      POST_BUILD
       COMMAND
         ${clang_check_EXECUTABLE} -p\t${CMAKE_CURRENT_SOURCE_DIR} -analyze
         ${file} -ast-dump -- "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
@@ -43,8 +42,10 @@ function(do_register_clang_check_checker CHECK_TARGET TARGET)
       COMMENT "Running ${clang_check_EXECUTABLE} on ${file}")
 
     add_custom_command(
-      TARGET ${CHECK_TARGET} COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/*.plist
-                                     ${CMAKE_CURRENT_LIST_DIR}/*.plist)
+      TARGET ${CHECK_TARGET}
+      POST_BUILD
+      COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/*.plist
+              ${CMAKE_CURRENT_LIST_DIR}/*.plist)
   endforeach()
 
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
@@ -60,9 +61,9 @@ function(libra_register_checker_clang_check TARGET)
     return()
   endif()
 
-  do_register_clang_check_checker(check-clang-check ${TARGET} ${ARGN})
+  do_register_clang_check_checker(analyze-clang-check ${TARGET} ${ARGN})
 
-  add_dependencies(check check-clang-check)
+  add_dependencies(analyze analyze-clang-check)
 endfunction()
 
 # ##############################################################################
@@ -77,7 +78,8 @@ function(libra_toggle_checker_clang_check request)
 
   find_program(
     clang_check_EXECUTABLE
-    NAMES clang-check-19
+    NAMES clang-check-20
+          clang-check-19
           clang-check-18
           clang-check-17
           clang-check-16

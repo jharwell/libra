@@ -1,6 +1,6 @@
 .. _usage/capabilities/configure-time:
 
-
+====================
 Configure-Time Knobs
 ====================
 
@@ -12,7 +12,7 @@ details.
 .. _usage/capabilities/configure-time/libra:
 
 Knobs For Configuring LIBRA/Cmake
----------------------------------
+=================================
 
 .. tabs::
 
@@ -51,7 +51,7 @@ Knobs For Configuring LIBRA/Cmake
 .. _usage/capabilities/configure-time/sw-eng:
 
 Knobs For Supporting SW Engineering
------------------------------------
+===================================
 
 .. tabs::
 
@@ -94,8 +94,7 @@ Knobs For Supporting SW Engineering
    .. tab:: LIBRA_ANALYSIS
 
       Enable static analysis targets for checkers, formatters, etc. See below
-      for the ``make`` targets enabled (assuming the necessary executables are
-      found).
+      for the targets enabled (assuming the necessary executables are found).
 
       Default: NO.
 
@@ -169,7 +168,7 @@ Knobs For Supporting SW Engineering
 .. _usage/capabilities/configure-time/builds:
 
 Knobs For Configuring Builds
-----------------------------
+============================
 
 .. tabs::
 
