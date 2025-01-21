@@ -7,6 +7,7 @@
 # Language Standard
 # ##############################################################################
 include(libra/compile/standard)
+include(libra/messaging)
 
 # ##############################################################################
 # Debugging Options
@@ -177,39 +178,50 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wnarrowing
     -Wmultistatement-macros)
 
-set(LIBRA_C_DIAG_CANDIDATES
-    ${LIBRA_BASE_DIAG_CANDIDATES} -Wstrict-prototypes -Wmissing-prototypes
-    -Wbad-function-cast -Wnested-externs -Wnull-dereference)
+if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
+  libra_message(STATUS "Using LIBRA C diagnostic candidates for C compiler")
+  set(LIBRA_C_DIAG_CANDIDATES
+      ${LIBRA_BASE_DIAG_CANDIDATES} -Wstrict-prototypes -Wmissing-prototypes
+      -Wbad-function-cast -Wnested-externs -Wnull-dereference)
+else()
+  libra_message(STATUS "Using provided C diagnostic candidates for C compiler")
+endif()
 
-set(LIBRA_CXX_DIAG_CANDIDATES
-    ${LIBRA_BASE_DIAG_CANDIDATES}
-    -Weffc++
-    -Wunused-macros
-    -Wsuggest-override
-    -Wstrict-null-sentinel
-    -Wclass-memaccess
-    -Wsign-promo
-    -Wnoexcept
-    -Wold-style-cast
-    -Woverloaded-virtual
-    -Wnon-virtual-dtor
-    -Wctor-dtor-privacy
-    -Wdelete-non-virtual-dtor
-    -Wuseless-cast)
+if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
+  libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
+  set(LIBRA_CXX_DIAG_CANDIDATES
+      ${LIBRA_BASE_DIAG_CANDIDATES}
+      -Weffc++
+      -Wunused-macros
+      -Wsuggest-override
+      -Wstrict-null-sentinel
+      -Wclass-memaccess
+      -Wsign-promo
+      -Wnoexcept
+      -Wold-style-cast
+      -Woverloaded-virtual
+      -Wnon-virtual-dtor
+      -Wctor-dtor-privacy
+      -Wdelete-non-virtual-dtor
+      -Wuseless-cast)
+else()
+  libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
+endif()
 
 set(LIBRA_C_DIAG_OPTIONS)
 foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
-  # name the result of the check is assigned to.
-  string(REGEX REPLACE "[-=]" "_" flag ${flag})
+  # name that the result of the check is assigned to.
+  string(REGEX REPLACE "[-=]" "_" checked_flag_output ${flag})
 
   # A project can be C/C++ only
   if(CMAKE_C_COMPILER_LOADED)
-    check_c_compiler_flag(${flag} LIBRA_C_COMPILER_SUPPORTS_${flag})
+    check_c_compiler_flag(${flag}
+                          LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_C_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
     set(LIBRA_C_DIAG_OPTIONS ${LIBRA_C_DIAG_OPTIONS} ${flag})
   endif()
 endforeach()
@@ -218,15 +230,16 @@ set(LIBRA_CXX_DIAG_OPTIONS)
 foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
-  # name the result of the check is assigned to.
-  string(REGEX REPLACE "[-=]" "_" flag ${flag})
+  # name that the result of the check is assigned to.
+  string(REGEX REPLACE "[-=]" "_" checked_flag_output ${flag})
 
   # A project can be C/C++ only
   if(CMAKE_CXX_COMPILER_LOADED)
-    check_cxx_compiler_flag(${flag} LIBRA_CXX_COMPILER_SUPPORTS_${flag})
+    check_cxx_compiler_flag(${flag}
+                            LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_CXX_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
     set(LIBRA_CXX_DIAG_OPTIONS ${LIBRA_CXX_DIAG_OPTIONS} ${flag})
   endif()
 endforeach()

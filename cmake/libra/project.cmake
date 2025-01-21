@@ -16,7 +16,7 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.5)
+set(LIBRA_VERSION 0.8.6)
 
 # ##############################################################################
 # Cmake Environment
@@ -145,6 +145,37 @@ else()
 endif()
 
 # ##############################################################################
+# Source Definitions
+# ##############################################################################
+# Project name is set via CMAKE_SOURCE_DIR to get the name of the directory that
+# libra is used in, not the name of the directory where libra resides (which can
+# be anywhere).
+if(NOT "${${PROJECT_NAME}_DIR}")
+  set(${PROJECT_NAME}_DIR ${CMAKE_SOURCE_DIR})
+endif()
+
+set(${PROJECT_NAME}_SRC_PATH ${${PROJECT_NAME}_DIR}/src)
+set(${PROJECT_NAME}_INC_PATH ${${PROJECT_NAME}_DIR}/include)
+
+# 2024-11-18 [JRH]: See the docs for the rationale behind using globbing in
+# LIBRA.
+file(GLOB_RECURSE ${PROJECT_NAME}_C_SRC ${${PROJECT_NAME}_SRC_PATH}/*.c)
+file(GLOB_RECURSE ${PROJECT_NAME}_CXX_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_C_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.h)
+file(GLOB_RECURSE ${PROJECT_NAME}_CXX_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.hpp)
+
+file(GLOB_RECURSE ${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC}
+     ${${PROJECT_NAME}_CXX_SRC})
+
+# ##############################################################################
+# Target Definitions
+# ##############################################################################
+# Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
+# located in under cmake/project-local.cmake in the root of whatever
+# directory/repo is using libra.
+include(${CMAKE_SOURCE_DIR}/cmake/project-local.cmake)
+
+# ##############################################################################
 # Build/Compiler Configuration
 # ##############################################################################
 if(NOT CMAKE_BUILD_TYPE)
@@ -164,38 +195,6 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ##############################################################################
-# Source Definitions
-# ##############################################################################
-# Project name is set via CMAKE_SOURCE_DIR to get the name of the directory that
-# libra is used in, not the name of the directory where libra resides (which can
-# be anywhere).
-if(NOT "${${PROJECT_NAME}_DIR}")
-  set(${PROJECT_NAME}_DIR ${CMAKE_SOURCE_DIR})
-endif()
-
-set(${PROJECT_NAME}_SRC_PATH ${${PROJECT_NAME}_DIR}/src)
-set(${PROJECT_NAME}_INC_PATH ${${PROJECT_NAME}_DIR}/include)
-
-# 2024-11-18 [JRH]: See the docs for the rationale behind using globbing in
-# LIBRA.
-file(GLOB_RECURSE ${PROJECT_NAME}_C_SRC ${${PROJECT_NAME}_SRC_PATH}/*.c)
-file(GLOB_RECURSE ${PROJECT_NAME}_CXX_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cpp)
-file(GLOB_RECURSE ${PROJECT_NAME}_CUDA_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cu)
-file(GLOB_RECURSE ${PROJECT_NAME}_C_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.h)
-file(GLOB_RECURSE ${PROJECT_NAME}_CXX_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.hpp)
-
-file(GLOB_RECURSE ${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC}
-     ${${PROJECT_NAME}_CXX_SRC} ${${PROJECT_NAME}_CUDA_SRC})
-
-# ##############################################################################
-# Target Definitions
-# ##############################################################################
-# Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
-# located in under cmake/project-local.cmake in the root of whatever
-# directory/repo is using libra.
-include(${CMAKE_SOURCE_DIR}/cmake/project-local.cmake)
-
-# ##############################################################################
 # Code Checking/Analysis Options
 # ##############################################################################
 if(${LIBRA_ANALYSIS})
@@ -203,8 +202,8 @@ if(${LIBRA_ANALYSIS})
 
   # You have to be specific, because projects can have a mix of file types, and
   # we want to be sure we only enable checkers appropriately. If the check
-  # language is not set, assume C++, because that is more common than CUDA, and
-  # is a superset of C, so it might work OK for pure C projects too.
+  # language is not set, assume C++, because that is a superset of C, so it
+  # might work OK for pure C projects too.
   if(NOT LIBRA_CHECK_LANGUAGE)
     libra_message(
       WARNING
@@ -216,13 +215,11 @@ if(${LIBRA_ANALYSIS})
     set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_C_SRC})
   elseif("${LIBRA_CHECK_LANGUAGE}" STREQUAL "CXX")
     set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CXX_SRC})
-  elseif("${LIBRA_CHECK_LANGUAGE}" STREQUAL "CUDA")
-    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CUDA_SRC})
   else()
     libra_message(
       FATAL_ERROR
       "Bad static analysis language '${LIBRA_CHECK_LANGUAGE}' for project: \
-must be {C,CXX,CUDA}")
+must be {C,CXX}")
   endif()
 
   # Handy checking tools

@@ -37,7 +37,6 @@ LIBRA also provides the following additional variables which can be used. You
 
     - C
     - CXX
-    - CUDA
 
   - ``LIBRA_CPPCHECK_IGNORES`` - A list of files to totally ignore when running
     ``cppcheck``. Only used if ``LIBRA_ANALYSIS`` is enabled and ``cppcheck`` is
@@ -60,6 +59,26 @@ LIBRA also provides the following additional variables which can be used. You
 
     .. versionadded:: 0.8.5
 
+  - ``LIBRA_C_DIAG_CANDIDATES`` - The list of compiler warning options you want
+    to pass to the C compiler. This can be a superset of the options supported
+    by the minimum C compiler version you target; each option in the list is
+    checked to see if the current C compiler supports it. If not defined, uses
+    LIBRA's internal C diagnostic option set, which is fairly comprehensive.  If
+    you don't want to compile with any warnings, set this to ``""``.
+
+    .. versionadded: 0.8.6
+
+  - ``LIBRA_CXX_DIAG_CANDIDATES`` - The list of compiler warning options you
+    want to pass to the compiler. This can be a superset of the options
+    supported by the minimum compiler version you target; each option in the
+    list is checked to see if the current CXX compiler supports it. If not
+    defined, uses LIBRA's internal CXX diagnostic option set, which is fairly
+    comprehensive. If you don't want to compile with any warnings, set this to
+    ``""``.
+
+    .. versionadded 0.8.6
+
+
   - ``LIBRA_TEST_HARNESS_LIBS`` - Defines the link libraries that all
     tests/test harnesses need to link with, if any.
 
@@ -81,8 +100,6 @@ LIBRA also provides the following additional variables which can be used. You
   - ``${PROJECT_NAME}_C_SRC`` - Glob containing all C source files.
 
   - ``${PROJECT_NAME}_CXX_SRC`` - Glob containing all C++ source files.
-
-  - ``${PROJECT_NAME}_CUDA_SRC`` - Glob containing all CUDA source files.
 
   - ``${PROJECT_NAME}_C_HEADERS`` - Glob containing all C header files.
 

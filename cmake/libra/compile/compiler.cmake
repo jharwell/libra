@@ -15,15 +15,16 @@ include(libra/messaging)
 # Project options
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
 
 if(CCACHE_FOUND)
-  libra_message(STATUS "Found ccache")
+  libra_message(STATUS "Using ccache")
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+else()
+  libra_message(STATUS "Not using ccache [disabled=notfound]")
 endif()
 
 # ##############################################################################
@@ -151,7 +152,7 @@ if(${LIBRA_NOSTDLIB})
 endif()
 
 libra_message(STATUS "Detecting features and configuring compiler")
-set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
+# set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
 if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "${CMAKE_C_COMPILER_ID}")
   libra_message(WARNING "C compiler family=${CMAKE_C_COMPILER_ID}, CXX \
@@ -172,13 +173,6 @@ endif()
 if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
                                                MATCHES "Clang")
   include(libra/compile/clang)
-endif()
-
-# ##############################################################################
-# NVIDIA Compiler Options
-# ##############################################################################
-if("${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA")
-  include(libra/compile/nvidia)
 endif()
 
 # ##############################################################################

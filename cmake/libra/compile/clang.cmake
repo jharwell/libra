@@ -181,17 +181,27 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wno-exit-time-destructors
     -fcomment-block-commands=internal,endinternal)
 
-set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
+if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
+  libra_message(STATUS "Using LIBRA C diagnostic candidates for C compiler")
+  set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
+else()
+  libra_message(STATUS "Using provided diagnostic candidates for C compiler")
+endif()
 
-set(LIBRA_CXX_DIAG_CANDIDATES
-    ${LIBRA_BASE_DIAG_CANDIDATES} -fdiagnostics-show-template-tree
-    -Wno-c++98-compat -Wno-c++98-compat-pedantic -Weffc++ -Wno-c99-extensions)
+if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
+  libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
+  set(LIBRA_CXX_DIAG_CANDIDATES
+      ${LIBRA_BASE_DIAG_CANDIDATES} -fdiagnostics-show-template-tree
+      -Wno-c++98-compat -Wno-c++98-compat-pedantic -Weffc++ -Wno-c99-extensions)
+else()
+  libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
+endif()
 
 set(LIBRA_C_DIAG_OPTIONS)
 foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
-  # name the result of the check is assigned to.
+  # name that the result of the check is assigned to.
   string(REGEX REPLACE "[-=]" "_" flag ${flag})
 
   # A project can be C/C++ only
@@ -207,15 +217,16 @@ set(LIBRA_CXX_DIAG_OPTIONS)
 foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
-  # name the result of the check is assigned to.
-  string(REGEX REPLACE "[-=]" "_" flag ${flag})
+  # name that the result of the check is assigned to.
+  string(REGEX REPLACE "[-=]" "_" checked_flag_output ${flag})
 
   # A project can be C/C++ only
   if(CMAKE_CXX_COMPILER_LOADED)
-    check_cxx_compiler_flag(${flag} LIBRA_CXX_COMPILER_SUPPORTS_${flag})
+    check_cxx_compiler_flag(${flag}
+                            LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_CXX_COMPILER_SUPPORTS_${flag})
+  if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
     set(LIBRA_CXX_DIAG_OPTIONS ${LIBRA_CXX_DIAG_OPTIONS} ${flag})
   endif()
 endforeach()
