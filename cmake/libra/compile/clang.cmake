@@ -182,7 +182,7 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -fcomment-block-commands=internal,endinternal)
 
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
-  libra_message(STATUS "Using LIBRA C diagnostic candidates for C compiler")
+  libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
   set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C compiler")

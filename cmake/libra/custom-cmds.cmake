@@ -162,11 +162,12 @@ function(libra_config_summary)
   )
   message("")
 
+  get_filename_component(MAKE_NAME ${CMAKE_MAKE_PROGRAM} NAME)
   set(fields
       LIBRA_VERSION
       LIBRA_DRIVER
-      CMAKE_GENERATOR
       CMAKE_INSTALL_PREFIX
+      CMAKE_GENERATOR
       LIBRA_DEPS_PREFIX
       CMAKE_BUILD_TYPE
       CMAKE_SYSTEM_PROCESSOR
@@ -258,7 +259,7 @@ function(libra_config_summary)
   # LIBRA options
   message(
     STATUS
-      "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (${CMAKE_MAKE_PROGRAM} unit-tests) "
+      "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (${MAKE_NAME} unit-tests) "
   )
   message(
     STATUS
@@ -274,11 +275,11 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${CMAKE_MAKE_PROGRAM} {precoverage,coverage}-report)"
+      "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {precoverage,coverage}-report)"
   )
   message(
     STATUS
-      "Enable API doc building...............: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (${CMAKE_MAKE_PROGRAM} apidoc)"
+      "Enable API doc building...............: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (${MAKE_NAME} apidoc)"
   )
   message(
     STATUS
@@ -298,15 +299,15 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable static analysis checkers.......: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${CMAKE_MAKE_PROGRAM} {analyze,analyze-clang-check,analyze-cppcheck,analyze-clang-tidy})"
+      "Enable static analysis checkers.......: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {analyze,analyze-clang-check,analyze-cppcheck,analyze-clang-tidy})"
   )
   message(
     STATUS
-      "Enable static analysis formatters.....: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${CMAKE_MAKE_PROGRAM} {format,format-clang-format})"
+      "Enable static analysis formatters.....: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {format,format-clang-format})"
   )
   message(
     STATUS
-      "Enable static fixers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${CMAKE_MAKE_PROGRAM} {fix,fix-clang-tidy})"
+      "Enable static fixers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {fix,fix-clang-tidy})"
   )
   message(
     STATUS

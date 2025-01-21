@@ -17,35 +17,21 @@ jobs:
 
   create-conan-pkg:
     runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu22.04:2023-04-12
     steps:
       - uses: actions/checkout@v3
       - name: Create package
         shell: bash
         run: |
+          pip3 install conan
+          conan profile detect
+
           conan create \
           --user jharwell \
           --lockfile-out=package.lock \
           .
-      - name: Obtain package reference
-        id: get-package-ref
-        shell: bash
-        run: |
-          echo "PACKAGE_REF=`egrep -o mp-units[^%]+ package.lock`" >> ${GITHUB_OUTPUT}
-
-      - name: Upload libra Conan package to Conan CI repository
-        if: github.ref == 'refs/heads/master' || env.CHANNEL == 'stable'
-        shell: bash
-        run: |
-          conan remote add conan-jharwell-ci https://mpusz.jfrog.io/artifactory/api/conan/conan-ci
-          conan remote login conan-mpusz-ci ${{ secrets.CONAN_LOGIN_USERNAME }} -p ${{ secrets.CONAN_CI_PASSWORD }}
-          conan upload ${{ steps.get-package-ref.outputs.package_ref }} -r conan-jharwell-ci --confirm
 
   tag-release:
     runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu22.04:2023-04-12
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:

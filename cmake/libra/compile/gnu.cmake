@@ -179,12 +179,12 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wmultistatement-macros)
 
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
-  libra_message(STATUS "Using LIBRA C diagnostic candidates for C compiler")
+  libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
   set(LIBRA_C_DIAG_CANDIDATES
       ${LIBRA_BASE_DIAG_CANDIDATES} -Wstrict-prototypes -Wmissing-prototypes
       -Wbad-function-cast -Wnested-externs -Wnull-dereference)
 else()
-  libra_message(STATUS "Using provided C diagnostic candidates for C compiler")
+  libra_message(STATUS "Using provided diagnostic candidates for C compiler")
 endif()
 
 if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)

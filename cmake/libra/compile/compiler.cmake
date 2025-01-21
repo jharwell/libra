@@ -152,7 +152,7 @@ if(${LIBRA_NOSTDLIB})
 endif()
 
 libra_message(STATUS "Detecting features and configuring compiler")
-# set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
+set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
 if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "${CMAKE_C_COMPILER_ID}")
   libra_message(WARNING "C compiler family=${CMAKE_C_COMPILER_ID}, CXX \

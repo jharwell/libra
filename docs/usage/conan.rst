@@ -27,7 +27,7 @@ as the sum total of your cmake configuration.
             cmake_minimum_required(VERSION 3.21 FATAL_ERROR) # whatever version you like
             project(my_project CXX) # languages can be anything cmake supports
 
-            include(libra/project.cmake)
+            include(libra/project)
 
       .. group-tab:: Sole cmake configuration
 
