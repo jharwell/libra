@@ -28,7 +28,16 @@ class LIBRAConan(ConanFile):
         ).stdout.decode().strip("\n")
 
     def package(self):
-        copy(self, "*.cmake", self.source_folder, self.package_folder)
+        # Copy everything EXCEPT packaging-related things. Even though LIBRA
+        # will (eventually) become something which can only be used with package
+        # managers like conan, it is not there yet, so we filter instead of just
+        # removing irrelevant files.
+        copy(self,
+             pattern="*.cmake",
+             src=self.source_folder,
+             dst=self.package_folder,
+             excludes=["*/package/*.cmake",
+                       "*/arm-*.cmake"])
 
     def package_info(self):
         # This means that all include() statements will be of the form
