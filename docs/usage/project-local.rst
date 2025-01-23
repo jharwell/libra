@@ -59,6 +59,18 @@ LIBRA also provides the following additional variables which can be used. You
 
     .. versionadded:: 0.8.5
 
+  - ``LIBRA_CLANG_FORMAT_BAKED_IN_CONFIG`` - Whether or not to use the
+    ``.clang-format`` that comes baked-in with LIBRA. Defaults to ``YES``. Valid
+    with ``LIBRA_DRIVER={SELF, CONAN}``.
+
+    .. versionadded:: 0.8.8
+
+  - ``LIBRA_CLANG_TIDY_BAKED_IN_CONFIG`` - Whether or not to use the
+    ``.clang-tidy`` that comes baked-in with LIBRA. Defaults to ``YES``. Valid
+    with ``LIBRA_DRIVER={SELF, CONAN}``.
+
+    .. versionadded:: 0.8.8
+
   - ``LIBRA_C_DIAG_CANDIDATES`` - The list of compiler warning options you want
     to pass to the C compiler. This can be a superset of the options supported
     by the minimum C compiler version you target; each option in the list is

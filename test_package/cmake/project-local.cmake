@@ -4,4 +4,4 @@
 # SPDX-License Identifier: MIT
 #
 
-add_executable(main ${${PROJECT_NAME}_CXX_SRC})
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_CXX_SRC})

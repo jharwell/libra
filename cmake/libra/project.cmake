@@ -16,7 +16,13 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.7)
+set(LIBRA_VERSION 0.8.9)
+
+# This should generally be set undconditionally, but it is useful to be able to
+# disable it for testing in this repo.
+if(NOT DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
 
 # ##############################################################################
 # Cmake Environment
@@ -111,7 +117,22 @@ set_property(
 # Conan Configuration
 #
 # Disable all packaging stuff, connect to conan's cmake interface.
+#
+# We attempt to automatically detect if LIBRA is running under conan by checking
+# for some variables that conan defines. This is not guaranteed to work, but
+# heuristically seems to work pretty well.
 # ##############################################################################
+set(_libra_conan_var_check_list
+    CONAN_EXPORTED CONAN_CMAKE_TOOLCHAIN_FILE CONAN_C_FLAGS CONAN_CXX_FLAGS
+    CONAN_EXE_LINKER_FLAGS CONAN_SHARED_LINKER_FLAGS)
+foreach(var ${_libra_conan_var_check_list})
+  if(DEFINED ${var})
+    libra_message(STATUS "Conan detected--using LIBRA_DRIVER=CONAN")
+    set(LIBRA_DRIVER "CONAN")
+    break()
+  endif()
+endforeach()
+
 if("${LIBRA_DRIVER}" MATCHES "CONAN")
   # This is how the conan docs show to test this variable; testing any other way
   # didn't work.
@@ -148,7 +169,7 @@ endif()
 # Source Definitions
 # ##############################################################################
 # Project name is set via CMAKE_SOURCE_DIR to get the name of the directory that
-# libra is used in, not the name of the directory where libra resides (which can
+# LIBRA is used in, not the name of the directory where LIBRA resides (which can
 # be anywhere).
 if(NOT "${${PROJECT_NAME}_DIR}")
   set(${PROJECT_NAME}_DIR ${CMAKE_SOURCE_DIR})
@@ -172,7 +193,7 @@ file(GLOB_RECURSE ${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC}
 # ##############################################################################
 # Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
 # located in under cmake/project-local.cmake in the root of whatever
-# directory/repo is using libra.
+# directory/repo is using LIBRA.
 include(${CMAKE_SOURCE_DIR}/cmake/project-local.cmake)
 
 # ##############################################################################
@@ -189,10 +210,6 @@ include(libra/compile/build-types)
 if(LIBRA_OPT_REPORT)
   include(libra/compile/reporting)
 endif()
-
-# I can't think of a reason you wouldn't want this on, so unconditionally set
-# it.
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ##############################################################################
 # Code Checking/Analysis Options

@@ -3,17 +3,30 @@
 #
 # SPDX-License Identifier:  MIT
 #
-
+include(libra/messaging)
 # ##############################################################################
 # Register a target for clang_format
 # ##############################################################################
 
 function(do_register_clang_format FMT_TARGET TARGET)
+
+  get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
+
+  # A clever way to bake in .clang-format and use with cmake. Tested with both
+  # SELF and CONAN drivers, and will point to the baked-in .clang-format in this
+  # repo.
+  set(baked_in_path
+      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-format")
+
   add_custom_target(
     ${FMT_TARGET}
-    COMMAND ${clang_format_EXECUTABLE} -style=file -i ${ARGN}
+    COMMAND
+      ${clang_format_EXECUTABLE}
+      "$<$<BOOL:${LIBRA_CLANG_FORMAT_BAKED_IN_CONIFG}>:-style=file:${baked_in_path}>"
+      "$<$<NOT:$<BOOL:${LIBRA_CLANG_FORMAT_BAKED_IN_CONFIG}>>:-style=file>" -i
+      ${ARGN}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Running ${clang_format_EXECUTABLE}")
+    COMMENT "Running ${clang_format_NAME}")
 
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 

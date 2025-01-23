@@ -16,7 +16,10 @@ from conan.tools.files import copy
 
 class LIBRAConan(ConanFile):
     name = "libra"
-    exports_sources = ["cmake/libra/*.cmake"]
+    exports_sources = [
+        "cmake/libra/*.cmake",
+        "clang-tools/*"
+    ]
 
     def set_version(self):
         self.version = subprocess.run(
@@ -26,6 +29,9 @@ class LIBRAConan(ConanFile):
             check=True,
             stdout=subprocess.PIPE,
         ).stdout.decode().strip("\n")
+
+    def build_requirements(self):
+        self.tool_requires("cmake/3.30.0")
 
     def package(self):
         # Copy everything EXCEPT packaging-related things. Even though LIBRA
@@ -38,6 +44,15 @@ class LIBRAConan(ConanFile):
              dst=self.package_folder,
              excludes=["*/package/*.cmake",
                        "*/arm-*.cmake"])
+
+        copy(self,
+             pattern="*.clang-format",
+             src=self.source_folder,
+             dst=self.package_folder)
+        copy(self,
+             pattern="*.clang-tidy",
+             src=self.source_folder,
+             dst=self.package_folder)
 
     def package_info(self):
         # This means that all include() statements will be of the form

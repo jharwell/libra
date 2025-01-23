@@ -14,33 +14,31 @@ function(do_register_clang_check_checker CHECK_TARGET TARGET)
   set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
   set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
 
+  set(USE_DATABASE YES)
+  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+     OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+    set(USE_DATABASE NO)
+  endif()
+
   add_custom_target(${CHECK_TARGET})
-  # || true is to ignore all return code errors. I added this because Qt expects
-  # to be compiled with -fPIC, and because it is not, the analyzer will stop on
-  # the first Qt file it gets to.
+  get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
 
   foreach(file ${ARGN})
-    get_filename_component(fname ${file}, EXT)
-    string(FIND ${fname} "cpp" position)
-    if(NOT "${position}" MATCHES "-1")
-      set(STD gnu++${CMAKE_CXX_STANDARD})
-    else()
-      set(STD gnu${CMAKE_C_STANDARD})
-    endif()
-
     add_custom_command(
       TARGET ${CHECK_TARGET}
       POST_BUILD
       COMMAND
-        ${clang_check_EXECUTABLE} -p\t${CMAKE_CURRENT_SOURCE_DIR} -analyze
-        ${file} -ast-dump -- "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
-        "$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>"
-        "$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>"
-        "$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>"
-        -std=${STD} || true
+        ${clang_check_EXECUTABLE} ${file} -ast-dump -analyze
+        "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:-->"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT "Running ${clang_check_EXECUTABLE} on ${file}")
-
+      COMMENT
+        "Running ${clang_check_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}"
+    )
     add_custom_command(
       TARGET ${CHECK_TARGET}
       POST_BUILD

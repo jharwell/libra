@@ -52,26 +52,12 @@ as the sum total of your cmake configuration.
          In ``conanfile.py`` put the following::
 
            def build_requirements(self):
-               self.tool_requires("cmake/3.21")
+               self.tool_requires("cmake/3.30")
                self.tool_requires("libra/0.8.0") # arbitrary LIBRA version
-
-           def generate(self):
-               deps = CMakeDeps(self)
-               deps.build_context_activated = ["libra"]
-
-               tc = CMakeToolchain(self)
-               tc.variables["LIBRA_DRIVER"] = "CONAN"
-
-               deps.generate()
-               tc.generate()
 
       .. group-tab:: Sole cmake configuration
 
-         In ``conanfile.py`` put the following::
-
-           def generate(self):
-               tc = CMakeToolchain(self)
-               tc.variables["LIBRA_DRIVER"] = "CONAN"
+         Nothing to do!
 
 #. Build your project via conan::
 

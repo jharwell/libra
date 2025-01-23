@@ -30,7 +30,7 @@ class libraPackgeTestConan(ConanFile):
         deps.build_context_activated = ["libra"]
 
         tc = CMakeToolchain(self)
-        tc.variables["LIBRA_DRIVER"] = "CONAN"
+        tc.variables["LIBRA_ANALYSIS"] = "YES"
 
         deps.generate()
         tc.generate()
@@ -50,7 +50,7 @@ class libraPackgeTestConan(ConanFile):
 
     def test(self):
         if can_run(self):
-            path = pathlib.Path(self.cpp.build.bindir) / "main"
+            path = pathlib.Path(self.cpp.build.bindir) / "libra-package-test"
 
             # If you don't resolve() the path, conan can't find it; this doesn't
             # happen with os.path.join(), and I don't know why. We want to use

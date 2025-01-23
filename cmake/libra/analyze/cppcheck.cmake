@@ -27,49 +27,36 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
   set(SUPPRESSIONS "${LIBRA_CPPCHECK_SUPPRESSIONS}")
   set(IGNORES "${LIBRA_CPPCHECK_IGNORES}")
   set(EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS}")
+  set(USE_DATABASE YES)
 
-  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS)
-    libra_message(
-      WARNING
-      "cppcheck enabled without compilation database will be less accurate.")
+  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+     OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+    set(USE_DATABASE NO)
   endif()
 
-  foreach(file ${ARGN})
-    if(NOT CMAKE_EXPORT_COMPILE_COMMANDS)
-      add_custom_command(
-        TARGET ${CHECK_TARGET}
-        POST_BUILD
-        COMMAND
-          ${cppcheck_EXECUTABLE}
-          "$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>"
-          "$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>"
-          "$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>"
-          "$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>"
-          --enable=warning,style,performance,portability --template=
-          "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
-          --quiet --verbose --force
-          "$<$<BOOL:${SUPPRESSIONS}>:--suppress=$<JOIN:${SUPPRESSIONS},\t--suppress=>>"
-          "$<$<BOOL:${IGNORES}>:-i$<JOIN:${IGNORES},\t-i>>" "${EXTRA_ARGS}"
-          ${file}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${cppcheck_EXECUTABLE} on ${file}")
-    else()
-      add_custom_command(
-        TARGET ${CHECK_TARGET}
-        POST_BUILD
-        COMMAND
-          ${cppcheck_EXECUTABLE}
-          --project="${CMAKE_BINARY_DIR}/compile_commands.json"
-          --enable=warning,style,performance,portability --template=
-          "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
-          --quiet --verbose --force
-          "$<$<BOOL:${SUPPRESSIONS}>:--suppress=$<JOIN:${SUPPRESSIONS},\t--suppress=>>"
-          "$<$<BOOL:${IGNORES}>:-i$<JOIN:${IGNORES},\t-i>>" "${EXTRA_ARGS}"
-          ${file}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${cppcheck_EXECUTABLE} on ${file}")
+  get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
 
-    endif()
+  foreach(file ${ARGN})
+    add_custom_command(
+      TARGET ${CHECK_TARGET}
+      POST_BUILD
+      COMMAND
+        ${cppcheck_EXECUTABLE}
+        "$<$<BOOL:${USE_DATABASE}>:--project=${PROJECT_BINARY_DIR}/compile_commands.json>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
+        --enable=warning,style,performance,portability --template=
+        "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
+        --quiet --verbose --force
+        "$<$<BOOL:${SUPPRESSIONS}>:--suppress=$<JOIN:${SUPPRESSIONS},\t--suppress=>>"
+        "$<$<BOOL:${IGNORES}>:-i$<JOIN:${IGNORES},\t-i>>" "${EXTRA_ARGS}"
+        ${file}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT
+        "Running ${cppcheck_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}"
+    )
   endforeach()
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 

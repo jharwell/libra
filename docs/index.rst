@@ -42,6 +42,10 @@ LIBRA can be used in any of the following mutually exclusive ways:
 - As a stand-alone cmake framework, including packaging, versioning,
   installation, and deployment.
 
+The first flavor is preferred, as it is more scalable, and sticks to the single
+responsibility principle. When possible, LIBRA will detect if it is running
+under e.g., conan, and configure itself accordingly.
+
 This documentation has 3 parts, listed in probable descending order of interest:
 
 .. toctree::

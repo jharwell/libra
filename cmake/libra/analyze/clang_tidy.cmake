@@ -31,8 +31,21 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
   set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
   set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
 
+  set(USE_DATABASE YES)
+  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+     OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+    set(USE_DATABASE NO)
+  endif()
   add_custom_target(${CHECK_TARGET})
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+
+  get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
+
+  # A clever way to bake in .clang-tidy and use with cmake. Tested with both
+  # SELF and CONAN drivers, and will point to the baked-in .clang-tidy in this
+  # repo.
+  set(baked_in_path
+      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-tidy")
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
@@ -44,23 +57,28 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
     # We generate per-file commands so that we (a) get more fine-grained
     # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
     # finishes running against ALL files to get feedback for a given file.
+    #
+    # If we aren't exporting compile commands for some reason, OR the
+    # compilation database doesn't exist, which can happen for header-only
+    # libraries without tests/for which tests are not being built, we use the
+    # necessary flags extracted directly from the target each file is a part of.
     foreach(file ${ARGN})
-
       add_custom_command(
         TARGET ${CHECK_TARGET}-${CATEGORY}
         POST_BUILD
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
-          -p\t${PROJECT_BINARY_DIR} ${file}
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
-          --checks=-*,${CATEGORY}* -extra-arg=-Wno-unknown-warning-option ||
-          true
+          ${file} --checks=-*,${CATEGORY}*
+          "$<$<BOOL:${LIBRA_CLANG_TIDY_BAKED_IN_CONFIG}>:--config-file=${baked_in_path}>"
+          "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT
-          "Running ${clang_tidy_EXECUTABLE} on ${file}, category=${CATEGORY}")
+          "Running ${clang_tidy_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}, category=${CATEGORY}"
+      )
     endforeach()
   endforeach()
 
@@ -117,10 +135,27 @@ endfunction()
 # ##############################################################################
 function(do_register_clang_tidy_fix FIX_TARGET TARGET)
   set(includes "$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>")
+  set(interface_includes
+      ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
   set(defs "$<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>")
+  set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+
+  set(USE_DATABASE YES)
+  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+     OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+    set(USE_DATABASE NO)
+  endif()
 
   add_custom_target(${FIX_TARGET})
   set_target_properties(${FIX_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+
+  get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
+
+  # A clever way to bake in .clang-format and use with cmake. Tested with both
+  # SELF and CONAN drivers, and will point to the baked-in .clang-format in this
+  # repo.
+  set(baked_in_path
+      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-tidy")
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
@@ -134,16 +169,18 @@ function(do_register_clang_tidy_fix FIX_TARGET TARGET)
         POST_BUILD
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
-          -p\t${PROJECT_BINARY_DIR} ${file}
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
-          "$<$<NOT:$<BOOL:${CMAKE_EXPORT_COMPILE_COMMANDS}>>:--\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
           --checks=-*,${CATEGORY}* -extra-arg=-Wno-unknown-warning-option --fix
-          --fix-errors
+          --fix-errors ${file}
+          "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
+          "$<$<BOOL:${LIBRA_CLANG_TIDY_BAKED_IN_CONFIG}>:--config-file=${baked_in_path}>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT
-          "Running ${clang_tidy_EXECUTABLE} on ${file}, category=${CATEGORY}")
+          "Running ${clang_tidy_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}, category=${CATEGORY}"
+      )
     endforeach()
     set_target_properties(${FIX_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
     add_dependencies(${FIX_TARGET} ${TARGET})
