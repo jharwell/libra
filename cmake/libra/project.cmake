@@ -3,7 +3,7 @@
 # ##############################################################################
 
 # CMake version
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 
 # This will be set when LIBRA is used as a conan backend (we can't test directly
 # for that at this point in the file, because that option isn't defined yet).
@@ -16,7 +16,7 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.9)
+set(LIBRA_VERSION 0.8.10)
 
 # This should generally be set undconditionally, but it is useful to be able to
 # disable it for testing in this repo.
@@ -141,6 +141,11 @@ if("${LIBRA_DRIVER}" MATCHES "CONAN")
   else()
     set(LIBRA_TESTS OFF)
   endif()
+
+  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 else()
   # Conan handles all packaging related things, so don't even bother.
   include(libra/package/components)
@@ -160,10 +165,14 @@ else()
     endif()
   endif()
 
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBRA_LIBRARY_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${LIBRA_RUNTIME_OUTPUT_DIRECTORY})
 
 # ##############################################################################
 # Source Definitions
@@ -185,8 +194,7 @@ file(GLOB_RECURSE ${PROJECT_NAME}_CXX_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cpp)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.h)
 file(GLOB_RECURSE ${PROJECT_NAME}_CXX_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.hpp)
 
-file(GLOB_RECURSE ${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC}
-     ${${PROJECT_NAME}_CXX_SRC})
+set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
 
 # ##############################################################################
 # Target Definitions
@@ -217,21 +225,28 @@ endif()
 if(${LIBRA_ANALYSIS})
   include(libra/analyze/analyze)
 
-  # You have to be specific, because projects can have a mix of file types, and
-  # we want to be sure we only enable checkers appropriately. If the check
-  # language is not set, assume C++, because that is a superset of C, so it
-  # might work OK for pure C projects too.
+  # Prefer C++ over C if a project enables both languages.
+  if(CMAKE_CXX_COMPILER_LOADED)
+    set(LIBRA_CHECK_LANGUAGE CXX)
+    libra_message(STATUS "Detected language C++ for analysis")
+  elseif(CMAKE_C_COMPILER_LOADED)
+    set(LIBRA_CHECK_LANGUAGE C)
+    libra_message(STATUS "Detected language C for analysis")
+  endif()
+
   if(NOT LIBRA_CHECK_LANGUAGE)
     libra_message(
-      WARNING
-      "Static analysis enabled but LIBRA_CHECK_LANGUAGE not set; assuming CXX")
+      WARNING "Unable to autodetect languages for static analysis--assuming CXX.
+      Set LIBRA_CHECK_LANGUAGE in project-local.cmake to remove this warning.")
     set(LIBRA_CHECK_LANGUAGE CXX)
   endif()
 
   if("${LIBRA_CHECK_LANGUAGE}" STREQUAL "C")
-    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_C_SRC})
+    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_C_SRC}
+                                  ${${PROJECT_NAME}_C_HEADERS})
   elseif("${LIBRA_CHECK_LANGUAGE}" STREQUAL "CXX")
-    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CXX_SRC})
+    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CXX_SRC}
+                                  ${${PROJECT_NAME}_CXX_HEADERS})
   else()
     libra_message(
       FATAL_ERROR
@@ -278,7 +293,7 @@ if(LIBRA_TESTS)
 endif()
 
 if(LIBRA_CODE_COV)
-  include(libra/coverage)
+  include(libra/test/coverage)
 endif()
 
 # ##############################################################################

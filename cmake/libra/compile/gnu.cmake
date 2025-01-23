@@ -145,6 +145,8 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -W
     -Wall
     -Wextra
+    -Wpedantic
+    -Wconversion
     -Wcast-align
     -Wcast-qual
     -Wdisabled-optimization
@@ -166,7 +168,6 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wduplicated-branches
     -Wduplicated-cond
     -Wredundant-decls
-    -Wstrict-overflow
     -Wswitch-default
     -Wundef
     -Wpointer-arith

@@ -8,3 +8,4 @@
    capabilities/index.rst
    project-local.rst
    conan.rst
+   analysis.rst

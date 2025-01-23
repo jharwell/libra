@@ -50,7 +50,6 @@ Checks:
   '
 
 HeaderFilterRegex: ''
-AnalyzeTemporaryDtors: true
 WarningsAsErrors: ''
 FormatStyle :   none
 CheckOptions:

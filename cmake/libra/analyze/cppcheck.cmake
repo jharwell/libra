@@ -49,7 +49,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
         "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
         --enable=warning,style,performance,portability --template=
         "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
-        --quiet --verbose --force
+        --quiet --verbose --force --std=${LIBRA_CXX_STANDARD} --inline-suppr
         "$<$<BOOL:${SUPPRESSIONS}>:--suppress=$<JOIN:${SUPPRESSIONS},\t--suppress=>>"
         "$<$<BOOL:${IGNORES}>:-i$<JOIN:${IGNORES},\t-i>>" "${EXTRA_ARGS}"
         ${file}

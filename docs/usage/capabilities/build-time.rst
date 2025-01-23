@@ -92,6 +92,9 @@ Actions For Supporting SW Engineering
           to more accurately reflect in-depth code analysis, as distinct from
           code checking, which is less intense.
 
+
+       For more details, see :ref:`usage/analysis`.
+
    * - ``fix``
 
      - Run ALL enabled auto fixers on the repository. This runs the following
@@ -113,15 +116,16 @@ Actions For Supporting SW Engineering
 
        Not available if ``LIBRA_DRIVER=CONAN``.
 
-   * - ``precoverage-report``
+   * - ``precoverage-info``
 
      - Run ``lcov`` to generate a baseline code coverage info (0%) for the
        entire project to eventually generate an *absolute* code coverage report
-       after executing the project. That is, something like::
+       after executing the project. That is, this target is used as part of a
+       sequence like so::
 
          make                     # Build in coverage info into project
          make unit-tests          # Build in coverage info into tests
-         make precoverage-report  # Set baseline coverage info for ENTIRE project
+         make precoverage-info    # Set baseline coverage info for ENTIRE project
          make test                # Populate coverage for executed parts of project
          make coverage-report     # Build ABSOLUTE coverage report for all files
 

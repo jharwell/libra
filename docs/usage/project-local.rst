@@ -59,15 +59,14 @@ LIBRA also provides the following additional variables which can be used. You
 
     .. versionadded:: 0.8.5
 
-  - ``LIBRA_CLANG_FORMAT_BAKED_IN_CONFIG`` - Whether or not to use the
-    ``.clang-format`` that comes baked-in with LIBRA. Defaults to ``YES``. Valid
-    with ``LIBRA_DRIVER={SELF, CONAN}``.
+  - ``LIBRA_CLANG_FORMAT_FILEPATH`` - The path to the ``.clang-format`` file you
+    want to use. If not defined, LIBRA will use its internal .clang-format file.
 
     .. versionadded:: 0.8.8
 
-  - ``LIBRA_CLANG_TIDY_BAKED_IN_CONFIG`` - Whether or not to use the
-    ``.clang-tidy`` that comes baked-in with LIBRA. Defaults to ``YES``. Valid
-    with ``LIBRA_DRIVER={SELF, CONAN}``.
+  - ``LIBRA_CLANG_TIDY_FILEPATH`` - The path to the ``.clang-tidy`` file
+    you want to use. If not defined, LIBRA will use its internal .clang-format
+    file.
 
     .. versionadded:: 0.8.8
 
@@ -90,9 +89,13 @@ LIBRA also provides the following additional variables which can be used. You
 
     .. versionadded 0.8.6
 
-
   - ``LIBRA_TEST_HARNESS_LIBS`` - Defines the link libraries that all
-    tests/test harnesses need to link with, if any.
+    tests/test harnesses need to link with, if any. Goes hand
+    in hand with ``LIBRA_TEST_HARNESS_PACKAGES``.
+
+  - ``LIBRA_TEST_HARNESS_PACKAGES`` - Defines the packages that contain the
+    libraries that all tests/test harnesses need to link with, if any. Goes hand
+    in hand with ``LIBRA_TEST_HARNESS_LIBS``.
 
   - ``LIBRA_UNIT_TEST_MATCHER`` - The common suffix before the ``.cpp`` that all
     unit tests under ``tests/`` will have so LIBRA can glob them. If not

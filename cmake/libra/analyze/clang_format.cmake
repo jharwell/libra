@@ -15,14 +15,15 @@ function(do_register_clang_format FMT_TARGET TARGET)
   # A clever way to bake in .clang-format and use with cmake. Tested with both
   # SELF and CONAN drivers, and will point to the baked-in .clang-format in this
   # repo.
-  set(baked_in_path
-      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-format")
+  if(NOT DEFINED LIBRA_CLANG_FORMAT_FILEPATH)
+    set(LIBRA_CLANG_FORMAT_FILEPATH
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-format")
+  endif()
 
   add_custom_target(
     ${FMT_TARGET}
     COMMAND
-      ${clang_format_EXECUTABLE}
-      "$<$<BOOL:${LIBRA_CLANG_FORMAT_BAKED_IN_CONIFG}>:-style=file:${baked_in_path}>"
+      ${clang_format_EXECUTABLE} -style=file:${LIBRA_CLANG_FORMAT_FILEPATH}
       "$<$<NOT:$<BOOL:${LIBRA_CLANG_FORMAT_BAKED_IN_CONFIG}>>:-style=file>" -i
       ${ARGN}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

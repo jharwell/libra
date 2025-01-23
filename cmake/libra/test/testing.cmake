@@ -101,7 +101,8 @@ function(enable_single_utest t)
   endif()
 
   # Add the test executable to CTest
-  add_test(${test_name} ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-${test_name})
+  add_test(${test_name}
+           ${LIBRA_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}-${test_name})
 
   # Add to global "unit-tests" target
   add_dependencies(unit-tests ${PROJECT_NAME}-${test_name})
@@ -146,7 +147,8 @@ function(enable_single_itest t)
   endif()
 
   # Add the test executable to CTest
-  add_test(${test_name} ${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}-${test_name})
+  add_test(${test_name}
+           ${LIBRA_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}-${test_name})
 
   # Add to global "integration-tests" target
   add_dependencies(integration-tests ${PROJECT_NAME}-${test_name})
@@ -160,6 +162,10 @@ endfunction()
 # Configure test harness
 # ##############################################################################
 function(configure_test_harness)
+  foreach(pkg ${LIBRA_TEST_HARNESS_PACKAGES})
+    find_package(${pkg} CONFIG REQUIRED)
+  endforeach()
+
   if(NOT TARGET ${PROJECT_NAME}-c-utest-harness
      AND "${LIBRA_HAVE_c_test_harness}" MATCHES "YES")
     add_library(${PROJECT_NAME}-c-utest-harness STATIC EXCLUDE_FROM_ALL

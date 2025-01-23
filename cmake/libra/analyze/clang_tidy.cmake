@@ -44,9 +44,10 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
   # A clever way to bake in .clang-tidy and use with cmake. Tested with both
   # SELF and CONAN drivers, and will point to the baked-in .clang-tidy in this
   # repo.
-  set(baked_in_path
-      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-tidy")
-
+  if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
+    set(LIBRA_CLANG_TIDY_FILEPATH
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-tidy")
+  endif()
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
     add_custom_target(${CHECK_TARGET}-${CATEGORY})
@@ -68,9 +69,9 @@ function(do_register_clang_tidy_check CHECK_TARGET TARGET)
         POST_BUILD
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
-          ${file} --checks=-*,${CATEGORY}*
-          "$<$<BOOL:${LIBRA_CLANG_TIDY_BAKED_IN_CONFIG}>:--config-file=${baked_in_path}>"
-          "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
+          --config-file=${LIBRA_CLANG_TIDY_FILEPATH} --checks=-*,${CATEGORY}*
+          ${file} "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:-->"
           "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
           "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
           "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
@@ -154,8 +155,10 @@ function(do_register_clang_tidy_fix FIX_TARGET TARGET)
   # A clever way to bake in .clang-format and use with cmake. Tested with both
   # SELF and CONAN drivers, and will point to the baked-in .clang-format in this
   # repo.
-  set(baked_in_path
-      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-tidy")
+  if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
+    set(LIBRA_CLANG_TIDY_FILEPATH
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../clang-tools/.clang-tidy")
+  endif()
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
@@ -170,9 +173,9 @@ function(do_register_clang_tidy_fix FIX_TARGET TARGET)
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
           --checks=-*,${CATEGORY}* -extra-arg=-Wno-unknown-warning-option --fix
-          --fix-errors ${file}
+          --fix-errors ${file} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+          "$<$<NOT:$<BOOL:${USE_DATABASE}>>:-->"
           "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
-          "$<$<BOOL:${LIBRA_CLANG_TIDY_BAKED_IN_CONFIG}>:--config-file=${baked_in_path}>"
           "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
           "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
           "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
