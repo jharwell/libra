@@ -151,7 +151,7 @@ if(${LIBRA_NOSTDLIB})
   set(LIBRA_COMMON_OPT_DEFS "${LIBRA_COMMON_OPT_DEFS} -D__nostdlib__")
 endif()
 
-libra_message(STATUS "Detecting features and configuring compiler")
+libra_message(STATUS "Configuring compiler diagnostics")
 set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
 if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "${CMAKE_C_COMPILER_ID}")

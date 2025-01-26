@@ -10,6 +10,8 @@
 # file needed to run tests under valgrind
 include(CTest)
 
+include(libra/messaging)
+
 # ##############################################################################
 # Test sources
 # ##############################################################################
@@ -95,7 +97,7 @@ function(enable_single_utest t)
   # This will only work with GCC/clang compilers, but that's OK for now, as I'm
   # not doing anything that requires running unit tests on strange platforms
   # requiring more exotic compilers.
-  if("${${PROJECT_NAME}_CHECK_LANGUAGE}" MATCHES "C")
+  if("${${PROJECT_NAME}_ANALYSIS_LANGUAGE}" MATCHES "C")
     target_compile_options(${PROJECT_NAME}-${test_name}
                            PUBLIC -Wno-old-style-cast -Wno-useless-cast)
   endif()
@@ -141,7 +143,7 @@ function(enable_single_itest t)
   # This will only work with GCC/clang compilers, but that's OK for now, as I'm
   # not doing anything that requires running unit tests on strange platforms
   # requiring more exotic compilers.
-  if("${${PROJECT_NAME}_CHECK_LANGUAGE}" MATCHES "C")
+  if("${${PROJECT_NAME}_ANALYSIS_LANGUAGE}" MATCHES "C")
     target_compile_options(${PROJECT_NAME}-${test_name}
                            PUBLIC -Wno-old-style-cast -Wno-useless-cast)
   endif()
@@ -199,7 +201,7 @@ function(configure_test_harness)
     # This will only work with GCC/clang compilers, but that's OK for now, as
     # I'm not doing anything that requires running unit tests on strange
     # platforms requiring more exotic compilers.
-    if("${${PROJECT_NAME}_CHECK_LANGUAGE}" MATCHES "C")
+    if("${${PROJECT_NAME}_ANALYSIS_LANGUAGE}" MATCHES "C")
       target_compile_options(${PROJECT_NAME}-cxx-utest-harness
                              PUBLIC -Wno-old-style-cast -Wno-useless-cast)
     endif()
@@ -236,6 +238,11 @@ foreach(t ${LIBRA_c_utests} ${LIBRA_cxx_utests})
   enable_single_utest(${t})
 endforeach()
 
+list(LENGTH LIBRA_c_utests num_c_utests)
+list(LENGTH LIBRA_cxx_utests num_cxx_utests)
+libra_message(STATUS
+              "Registered ${num_c_utests}+${num_cxx_utests} C/C++ unit tests")
+
 # Add each test in tests/ under the current project one at a time.
 foreach(t ${LIBRA_c_itests} ${LIBRA_cxx_itests})
   string(FIND ${t} ".#" position)
@@ -245,3 +252,9 @@ foreach(t ${LIBRA_c_itests} ${LIBRA_cxx_itests})
 
   enable_single_itest(${t})
 endforeach()
+
+list(LENGTH LIBRA_c_itests num_c_itests)
+list(LENGTH LIBRA_cxx_itests num_cxx_itests)
+
+libra_message(
+  STATUS "Registered ${num_c_itests}+${num_cxx_itests} C/C++ integration tests")

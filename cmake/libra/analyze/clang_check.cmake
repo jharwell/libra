@@ -7,48 +7,36 @@
 # ##############################################################################
 # Register a target for clang-tidy checking
 # ##############################################################################
-function(do_register_clang_check_checker CHECK_TARGET TARGET)
-  set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
-  set(interface_includes
-      ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
-  set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+function(do_register_clang_check CHECK_TARGET TARGET JOB)
+  analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
 
-  set(USE_DATABASE YES)
-  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
-     OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
-    set(USE_DATABASE NO)
+  if(JOB STREQUAL "FIX")
+    set(JOB_ARGS --fixit)
   endif()
 
   add_custom_target(${CHECK_TARGET})
-  get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
 
+  # To get this to work with bleeding edge libraries, we have to tell clang to
+  # use its own stdlib intsead of GCC's. Not doing this is fine for some
+  # libraries, but for >= C++20 libs, it can cause problems.
+  #
+  # We also use --extra-arg=... instead of '-- ...' because the former is
+  # documented and works, and the latter is undocumented and SORT OF works.
   foreach(file ${ARGN})
     add_custom_command(
       TARGET ${CHECK_TARGET}
       POST_BUILD
       COMMAND
-        ${clang_check_EXECUTABLE} ${file} -ast-dump -analyze
-        "$<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:-->"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
-        --std=${LIBRA_CXX_STANDARD}
+        ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
+        --extra-arg=-std=${LIBRA_CXX_STANDARD} --extra-arg=--stdlib=libc++
+        --extra-arg=-Wno-unknown-warning-option
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT
-        "Running ${clang_check_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}"
-    )
-    add_custom_command(
-      TARGET ${CHECK_TARGET}
-      POST_BUILD
-      COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/*.plist
-              ${CMAKE_CURRENT_LIST_DIR}/*.plist)
+        "Running ${clang_check_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out>
+compdb on ${file}, JOB=${JOB}")
   endforeach()
 
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
   add_dependencies(${CHECK_TARGET} ${TARGET})
 endfunction()
 
@@ -60,17 +48,39 @@ function(libra_register_checker_clang_check TARGET)
     return()
   endif()
 
-  do_register_clang_check_checker(analyze-clang-check ${TARGET} ${ARGN})
-
+  do_register_clang_check(analyze-clang-check ${TARGET} "CHECK" ${ARGN})
   add_dependencies(analyze analyze-clang-check)
+
+  get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
+  list(LENGTH ARGN LEN)
+  libra_message(STATUS
+                "Registered ${LEN} files with ${clang_check_NAME} checker")
+
 endfunction()
 
 # ##############################################################################
-# Enable or disable clang-check checking for the project
+# Register all target sources with the clang_check fixer
 # ##############################################################################
-function(libra_toggle_checker_clang_check request)
+function(libra_register_fixer_clang_check TARGET)
+  if(NOT clang_check_EXECUTABLE)
+    return()
+  endif()
+
+  do_register_clang_check(fix-clang-check ${TARGET} "FIX" ${ARGN})
+  add_dependencies(fix fix-clang-check)
+
+  get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
+  list(LENGTH ARGN LEN)
+  libra_message(STATUS "Registered ${LEN} files with ${clang_check_NAME} fixer")
+
+endfunction()
+
+# ##############################################################################
+# Enable or disable clang-check fixing for the project
+# ##############################################################################
+function(libra_toggle_clang_check request)
   if(NOT request)
-    libra_message(STATUS "Disabling clang-check checker by request")
+    libra_message(STATUS "Disabling clang-check by request")
     set(clang_check_EXECUTABLE)
     return()
   endif()
@@ -95,5 +105,4 @@ function(libra_toggle_checker_clang_check request)
     message(STATUS "clang-check [disabled=not found]")
     return()
   endif()
-
 endfunction()

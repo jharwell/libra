@@ -29,7 +29,7 @@ are:
 LIBRA also provides the following additional variables which can be used. You
 *might* be able to set them on the cmdline, but doing so is not recommended.
 
-  - ``LIBRA_CHECK_LANGUAGE`` - Defines the language that the different static
+  - ``LIBRA_ANALYSIS_LANGUAGE`` - Defines the language that the different static
     analysis checkers/formatters/fixers will use for checking the project. This
     should be specified BEFORE any subdirectories, external projects, etc. are
     specified. Only used if ``LIBRA_ANALYSIS`` is enabled. If used, value must

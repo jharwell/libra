@@ -92,17 +92,23 @@ set(lcov_POSTCMD2
 
 # Strip out coverage info for everything in:
 #
-# - /usr - system libraries
-# - ~/.conan2 - Other packages which might have header files which we are using
-#   in THIS project. Don't want them polluting the data :-).
+# * /usr - STL/system libraries
+#
+# * ~/.conan2 - Other packages which have header files we are using in THIS
+#   project. Obviously conan-only.
+#
+set(STRIP_FROM_DIRS /usr/*)
+if("${LIBRA_DRIVER}" STREQUAL "CONAN")
+  set(STRIP_FROM_DIRS ${STRIP_FROM_DIRS} */.conan2/*)
+endif()
+
 set(lcov_POSTCMD3
     ${lcov_EXECUTABLE}
     --rc
     lcov_branch_coverage=1
     -r
     ${COVERAGE_DIR}/coverage.info
-    "/usr/\*"
-    "\*/.conan2\*"
+    ${STRIP_FROM_DIRS}
     -o
     ${COVERAGE_DIR}/coverage-stripped.info
     ${QUIET})

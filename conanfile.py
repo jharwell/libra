@@ -18,7 +18,7 @@ class LIBRAConan(ConanFile):
     name = "libra"
     exports_sources = [
         "cmake/libra/*.cmake",
-        "clang-tools/*"
+        "dots/*.*"
     ]
 
     def set_version(self):
@@ -51,6 +51,10 @@ class LIBRAConan(ConanFile):
              dst=self.package_folder)
         copy(self,
              pattern="*.clang-tidy",
+             src=self.source_folder,
+             dst=self.package_folder)
+        copy(self,
+             pattern="*.cmake-format",
              src=self.source_folder,
              dst=self.package_folder)
 

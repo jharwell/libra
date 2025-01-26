@@ -16,13 +16,10 @@ if(NOT PROJECT_NAME)
 endif()
 
 # The current version of LIBRA, to make debugging strange build problems easier
-set(LIBRA_VERSION 0.8.10)
+set(LIBRA_VERSION 0.8.15)
 
-# This should generally be set undconditionally, but it is useful to be able to
-# disable it for testing in this repo.
-if(NOT DEFINED CMAKE_EXPORT_COMPILE_COMMANDS)
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-endif()
+# This should generally be set undconditionally.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ##############################################################################
 # Cmake Environment
@@ -193,6 +190,8 @@ file(GLOB_RECURSE ${PROJECT_NAME}_C_SRC ${${PROJECT_NAME}_SRC_PATH}/*.c)
 file(GLOB_RECURSE ${PROJECT_NAME}_CXX_SRC ${${PROJECT_NAME}_SRC_PATH}/*.cpp)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.h)
 file(GLOB_RECURSE ${PROJECT_NAME}_CXX_HEADERS ${${PROJECT_NAME}_INC_PATH}/*.hpp)
+file(GLOB_RECURSE ${PROJECT_NAME}_CMAKE_SRC
+     ${PROJECT_SOURCE_DIR}/CMakeLists.txt ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
 
 set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
 
@@ -227,49 +226,55 @@ if(${LIBRA_ANALYSIS})
 
   # Prefer C++ over C if a project enables both languages.
   if(CMAKE_CXX_COMPILER_LOADED)
-    set(LIBRA_CHECK_LANGUAGE CXX)
+    set(LIBRA_CODE_LANGUAGE CXX)
     libra_message(STATUS "Detected language C++ for analysis")
   elseif(CMAKE_C_COMPILER_LOADED)
-    set(LIBRA_CHECK_LANGUAGE C)
+    set(LIBRA_CODE_LANGUAGE C)
     libra_message(STATUS "Detected language C for analysis")
   endif()
 
-  if(NOT LIBRA_CHECK_LANGUAGE)
+  if(NOT LIBRA_CODE_LANGUAGE)
     libra_message(
       WARNING "Unable to autodetect languages for static analysis--assuming CXX.
-      Set LIBRA_CHECK_LANGUAGE in project-local.cmake to remove this warning.")
-    set(LIBRA_CHECK_LANGUAGE CXX)
+      Set LIBRA_CODE_LANGUAGE in project-local.cmake to remove this warning.")
+    set(LIBRA_CODE_LANGUAGE CXX)
   endif()
 
-  if("${LIBRA_CHECK_LANGUAGE}" STREQUAL "C")
-    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_C_SRC}
-                                  ${${PROJECT_NAME}_C_HEADERS})
-  elseif("${LIBRA_CHECK_LANGUAGE}" STREQUAL "CXX")
-    set(${PROJECT_NAME}_CHECK_SRC ${${PROJECT_NAME}_CXX_SRC}
-                                  ${${PROJECT_NAME}_CXX_HEADERS})
+  if("${LIBRA_CODE_LANGUAGE}" STREQUAL "C")
+    set(${PROJECT_NAME}_ANALYSIS_SRC ${${PROJECT_NAME}_C_SRC}
+                                     ${${PROJECT_NAME}_C_HEADERS})
+  elseif("${LIBRA_CODE_LANGUAGE}" STREQUAL "CXX")
+    set(${PROJECT_NAME}_ANALYSIS_SRC ${${PROJECT_NAME}_CXX_SRC}
+                                     ${${PROJECT_NAME}_CXX_HEADERS})
   else()
     libra_message(
       FATAL_ERROR
-      "Bad static analysis language '${LIBRA_CHECK_LANGUAGE}' for project: \
+      "Bad static analysis language '${LIBRA_CODE_LANGUAGE}' for project: \
 must be {C,CXX}")
   endif()
+
+  # Multi-funtion tools
+  libra_toggle_clang_tidy(ON)
+  libra_toggle_clang_format(ON)
+  libra_toggle_cmake_format(ON)
+  libra_toggle_clang_check(ON)
 
   # Handy checking tools
   libra_message(STATUS "Enabling analysis tools: checkers")
   libra_toggle_checker_cppcheck(ON)
-  libra_toggle_checker_clang_tidy(ON)
-  libra_toggle_checker_clang_check(ON)
-  libra_register_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+  libra_register_code_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
+
+  libra_register_cmake_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_CMAKE_SRC})
 
   # Handy formatting tools
   libra_message(STATUS "Enabling analysis tools: formatters")
-  libra_toggle_formatter_clang_format(ON)
-  libra_register_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+  libra_register_code_formatters(${PROJECT_NAME}
+                                 ${${PROJECT_NAME}_ANALYSIS_SRC})
+  libra_register_cmake_formatters(${PROJECT_NAME} ${${PROJECT_NAME}_CMAKE_SRC})
 
   # Handy fixing tools
   libra_message(STATUS "Enabling analysis tools: fixers")
-  libra_toggle_fixer_clang_tidy(ON)
-  libra_register_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_CHECK_SRC})
+  libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
 
 endif()
 

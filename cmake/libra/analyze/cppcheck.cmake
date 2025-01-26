@@ -13,12 +13,14 @@ include(libra/messaging)
 # command if one isn't found.
 # ##############################################################################
 function(do_register_cppcheck CHECK_TARGET TARGET)
-  set(includes $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
-  set(interface_includes
-      ${includes} $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
-  set(defs $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(interface_defs $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
-  add_custom_target(${CHECK_TARGET})
+  set(INCLUDES $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
+  set(INTERFACE_INCLUDES
+      $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
+  set(INTERFACE_SYSTEM_INCLUDES
+      $<TARGET_PROPERTY:${TARGET},INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>)
+  set(DEFS $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
+  set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+  get_target_property(TARGET_TYPE ${TARGET} TYPE)
 
   if(NOT LIBRA_CPPCHECK_SUPPRESSIONS)
     set(LIBRA_CPPCHECK_SUPPRESSIONS missingInclude unusedFunction)
@@ -29,12 +31,22 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
   set(EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS}")
   set(USE_DATABASE YES)
 
-  if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
-     OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+  # cppcheck doesn't work well with using a compilation database with header
+  # only libraries, so we extract the necessary includes, defs, etc., directly
+  # from the target itself in that case.
+  set(USE_DATABASE YES)
+  if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
     set(USE_DATABASE NO)
+  else()
+    if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+       OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+      set(USE_DATABASE NO)
+    endif()
+
   endif()
 
   get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
+  add_custom_target(${CHECK_TARGET})
 
   foreach(file ${ARGN})
     add_custom_command(
@@ -43,10 +55,11 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
       COMMAND
         ${cppcheck_EXECUTABLE}
         "$<$<BOOL:${USE_DATABASE}>:--project=${PROJECT_BINARY_DIR}/compile_commands.json>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${includes}>:-I$<JOIN:${includes},\t-I>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_includes}>:-I$<JOIN:${interface_includes},\t-I>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${defs}>:-D$<JOIN:${defs},\t-D>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${interface_defs}>:-D$<JOIN:${interface_defs},\t-D>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>>"
+        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>>"
         --enable=warning,style,performance,portability --template=
         "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
         --quiet --verbose --force --std=${LIBRA_CXX_STANDARD} --inline-suppr
@@ -61,6 +74,8 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
   add_dependencies(${CHECK_TARGET} ${TARGET})
+  list(LENGTH ARGN LEN)
+  libra_message(STATUS "Registered ${LEN} files with ${cppcheck_NAME}")
 endfunction()
 
 # ##############################################################################

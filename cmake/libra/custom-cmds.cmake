@@ -259,7 +259,7 @@ function(libra_config_summary)
   # LIBRA options
   message(
     STATUS
-      "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (${MAKE_NAME} unit-tests) "
+      "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (${MAKE_NAME} {all-tests,unit-tests,integration-tests,build-and-test) "
   )
   message(
     STATUS
@@ -275,7 +275,7 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {precoverage,coverage}-report)"
+      "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} precoverage-info,coverage-report)"
   )
   message(
     STATUS
@@ -299,15 +299,15 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable static analysis checkers.......: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {analyze,analyze-clang-check,analyze-cppcheck,analyze-clang-tidy})"
+      "Enable code checkers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {analyze,analyze-clang-check,analyze-cppcheck,analyze-clang-tidy,analyze-clang-format,analyze-cmake-format})"
   )
   message(
     STATUS
-      "Enable static analysis formatters.....: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {format,format-clang-format})"
+      "Enable code formatters................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {format,format-clang-format,format-cmake-format})"
   )
   message(
     STATUS
-      "Enable static fixers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {fix,fix-clang-tidy})"
+      "Enable code fixers....................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {fix,fix-clang-tidy,fix-clang-check})"
   )
   message(
     STATUS

@@ -9,3 +9,4 @@
    project-local.rst
    conan.rst
    analysis.rst
+   testing.rst

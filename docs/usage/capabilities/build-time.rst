@@ -39,7 +39,14 @@ Actions That Build Things
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
        configuration.
 
-   * - ``tests``
+   * - ``build-and-test``
+
+     - Build ``all-tests``, and then run them via ``CTest``.
+
+       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       configuration.
+
+   * - ``all-tests``
 
      - Build all of the integration and unit tests for the project; same as
        ``make unit-tests && make integration-tests``.
@@ -67,7 +74,17 @@ Actions For Supporting SW Engineering
 
    * - ``format``
 
-     - Run the clang formatter on the repository.
+     - Run ALL enabled formatters on the repository. This runs the
+       following sub-targets, which can also be run individually:
+
+       - ``format-clang-format`` - Runs ``clang-format`` on the
+           repository.
+
+       - ``format-cmake-format`` - Runs the ``cmake-format`` on the
+           repository.
+
+           .. versionadded:: 0.8.15
+
 
    * - ``analyze``
 
@@ -85,6 +102,15 @@ Actions For Supporting SW Engineering
          clang-tidy can check, see ``cmake --build . --target help`` for the
          defined set (run from build directory).
 
+         - ``analyze-clang-format`` - Runs ``clang-format`` on the
+           repository in check mode (no code changes are made).
+
+           .. versionadded:: 0.8.15
+
+         - ``analyze-cmake-format`` - Runs the ``cmake-format`` on the
+           repository in check mode (no code changes are made).
+
+           .. versionadded:: 0.8.15
 
        .. versionchanged:: 0.8.5
 
@@ -102,6 +128,11 @@ Actions For Supporting SW Engineering
 
        - ``fix-clang-tidy`` - Runs ``clang-tidy`` as a checker, but also passing
          the ``--fix`` argument.
+
+       - ``fix-clang-check`` - Runs ``clang-checkg`` as a checker, but also
+         passing the ``--fixit`` argument.
+
+         .. versionadded:: 0.8.12
 
 
    * - ``apidoc``
@@ -124,7 +155,7 @@ Actions For Supporting SW Engineering
        sequence like so::
 
          make                     # Build in coverage info into project
-         make unit-tests          # Build in coverage info into tests
+         make all-tests           # Build in coverage info into tests
          make precoverage-info    # Set baseline coverage info for ENTIRE project
          make test                # Populate coverage for executed parts of project
          make coverage-report     # Build ABSOLUTE coverage report for all files
@@ -142,7 +173,7 @@ Actions For Supporting SW Engineering
        case). That is::
 
          make                 # Build in coverage info into project
-         make unit-tests      # Build in coverage info into tests
+         make all-tests       # Build in coverage info into tests
          make test            # Populate coverage for executed parts of project
          make coverage-report # Build RELATIVE report for files had some execution
 
