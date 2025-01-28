@@ -11,6 +11,7 @@
 include(CTest)
 
 include(libra/messaging)
+include(libra/defaults)
 
 # ##############################################################################
 # Test sources
@@ -20,19 +21,19 @@ set(${PROJECT_NAME}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 # Convention: Unit tests end with '-utest.c' or '-utest.cpp' unless otherwise
 # specified.
 if(NOT LIBRA_UNIT_TEST_MATCHER)
-  set(LIBRA_UNIT_TEST_MATCHER -utest)
+  set(LIBRA_UNIT_TEST_MATCHER ${LIBRA_UNIT_TEST_MATCHER_DEFAULT})
 endif()
 
 # Convention: Integration tests end with '-itest.c' or '-itest.cpp' unless
 # otherwise specified
 if(NOT LIBRA_INTEGRATION_TEST_MATCHER)
-  set(LIBRA_INTEGRATION_TEST_MATCHER -itest)
+  set(LIBRA_INTEGRATION_TEST_MATCHER ${LIBRA_INTEGRATION_TEST_MATCHER_DEFAULT})
 endif()
 
 # Convention: Test harness bits end with '_test.c' or '_test.cpp' unless
 # otherwise specified.
 if(NOT LIBRA_TEST_HARNESS_MATCHER)
-  set(LIBRA_TEST_HARNESS_MATCHER _test)
+  set(LIBRA_TEST_HARNESS_MATCHER ${LIBRA_TEST_HARNESS_MATCHER_DEFAULT})
 endif()
 
 file(GLOB_RECURSE LIBRA_c_utests

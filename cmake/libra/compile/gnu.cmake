@@ -4,10 +4,11 @@
 # SPDX-License Identifier:  MIT
 #
 # ##############################################################################
-# Language Standard
+# Modules
 # ##############################################################################
 include(libra/compile/standard)
 include(libra/messaging)
+include(libra/defaults)
 
 # ##############################################################################
 # Debugging Options
@@ -25,7 +26,7 @@ set(LIBRA_FORTIFY_OPTIONS)
 set(LIBRA_FORTIFY_MATCH NO)
 
 if(NOT LIBRA_FORTIFY)
-  set(LIBRA_FORTIFY "NONE")
+  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
 endif()
 
 if(NOT LIBRA_FORTIFY MATCHES "NONE")
@@ -276,8 +277,6 @@ set(UBSAN_OPTIONS
     -fsanitize-recover=all)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread
                  -fsanitize-recover=all)
-
-set(LIBRA_SAN_DEFAULT "NONE")
 
 if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})

@@ -60,7 +60,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
         "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>>"
         "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>>"
         "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>>"
-        --enable=warning,style,performance,portability --template=
+        --enable=warning,style,performance,portability,information --template=
         "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
         --quiet --verbose --force --std=${LIBRA_CXX_STANDARD} --inline-suppr
         "$<$<BOOL:${SUPPRESSIONS}>:--suppress=$<JOIN:${SUPPRESSIONS},\t--suppress=>>"

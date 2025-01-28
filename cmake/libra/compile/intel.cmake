@@ -5,9 +5,10 @@
 #
 
 # ##############################################################################
-# Language Standard
+# Modules
 # ##############################################################################
 include(libra/compile/standard)
+include(libra/defaults)
 
 # ##############################################################################
 # Debugging Options
@@ -104,7 +105,6 @@ set(MSAN_OPTIONS -fno-omit-frame-pointer -check-pointers=rw
 set(SSAN_OPTIONS -fno-omit-frame-pointer -check=stack -fstack-protector-all
                  -fstack-protector-strong)
 set(UBSAN_OPTIONS -fno-omit-frame-pointer -check=conversions,uninit)
-set(LIBRA_SAN_DEFAULT "NONE")
 
 if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})

@@ -5,13 +5,10 @@
 #
 
 # ##############################################################################
-# Custom messaging
+# Modules
 # ##############################################################################
 include(libra/messaging)
-
-# ##############################################################################
-# Language Standard
-# ##############################################################################
+include(libra/defaults)
 include(libra/compile/standard)
 
 # ##############################################################################
@@ -30,7 +27,7 @@ set(LIBRA_FORTIFY_OPTIONS)
 set(LIBRA_FORTIFY_MATCH NO)
 
 if(NOT LIBRA_FORTIFY)
-  set(LIBRA_FORTIFY "NONE")
+  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
 endif()
 
 if(NOT LIBRA_FORTIFY MATCHES "NONE")
@@ -245,8 +242,6 @@ set(UBSAN_OPTIONS
     -fsanitize=float-divide-by-zero -fsanitize=unsigned-integer-overflow
     -fsanitize=local-bounds -fsanitize=nullability)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread)
-
-set(LIBRA_SAN_DEFAULT "NONE")
 
 if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})

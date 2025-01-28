@@ -70,6 +70,15 @@ LIBRA also provides the following additional variables which can be used. You
 
     .. versionadded:: 0.8.8
 
+  - ``LIBRA_CLANG_TIDY_CHECKS_CONFIG`` - Any additional things to pass to
+    ``--checks``. If non empty, must start with ``,``. Useful to disable certain
+    checks within a each category of checks that LIBRA creates targets
+    for. Defaults to::
+
+      ,-clang-diagnostic-*
+
+    .. versionadded:: 0.8.15
+
   - ``LIBRA_C_DIAG_CANDIDATES`` - The list of compiler warning options you want
     to pass to the C compiler. This can be a superset of the options supported
     by the minimum C compiler version you target; each option in the list is

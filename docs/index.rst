@@ -56,7 +56,7 @@ This documentation has 3 parts, listed in probable descending order of interest:
 
 .. toctree::
    :maxdepth: 1
-   :caption: LIBRA Design
+   :caption: LIBRA Design And Customization
 
    design/index.rst
 

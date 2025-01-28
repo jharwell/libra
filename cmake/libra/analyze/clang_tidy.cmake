@@ -4,11 +4,14 @@
 # SPDX-License Identifier:  MIT
 #
 
+include(libra/defaults)
+
 # We want to be able to enable only SOME checks in clang-tidy in a single run,
 # both to speed up pipelines, but also to fixing errors simpler when there are
 # TONS. These seem to be a comprehensive set of errors in clang-19; may need to
 # be updated in the future.
 set(CLANG_TIDY_CATEGORIES
+    abseil
     cppcoreguidelines
     readability
     hicpp
@@ -38,12 +41,16 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
   # SELF and CONAN drivers, and will point to the baked-in .clang-tidy in this
   # repo.
   if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
-    set(LIBRA_CLANG_TIDY_FILEPATH
-        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
+    set(LIBRA_CLANG_TIDY_FILEPATH "${LIBRA_CLANG_TIDY_FILEPATH_DEFAULT}")
   endif()
 
   if("${LIBRA_DRIVER}" STREQUAL "CONAN")
     set(HEADER_EXCLUDES --exclude-header-filter=*/.conan2/*)
+  endif()
+
+  if(NOT DEFINED LIBRA_CLANG_TIDY_CHECKS_CONFIG)
+    set(LIBRA_CLANG_TIDY_CHECKS_CONFIG
+        "${LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT}")
   endif()
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
@@ -66,9 +73,9 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
           ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-          --checks=-*,${CATEGORY}* ${file} ${EXTRACTED_ARGS} ${JOB_ARGS}
-          --extra-arg=--std=${LIBRA_CXX_STANDARD} --extra-arg=--stdlib=libc++
-          --extra-arg=-Wno-unknown-warning-option
+          --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
+          ${EXTRACTED_ARGS} ${JOB_ARGS} --extra-arg=--std=${LIBRA_CXX_STANDARD}
+          --extra-arg=--stdlib=libc++ --extra-arg=-Wno-unknown-warning-option
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT
           "Running ${clang_tidy_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}, category=${CATEGORY},JOB=${JOB}"

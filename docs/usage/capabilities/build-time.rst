@@ -24,7 +24,8 @@ Actions That Build Things
        under ``tests/``.
 
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
+       configuration. No tests are included in the default build--see
+       :ref:`usage/testing/default-build` for rationale.
 
    * - ``integration-tests``
 
@@ -37,14 +38,16 @@ Actions That Build Things
        under ``tests/``.
 
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
+       configuration. No tests are included in the default build--see
+       :ref:`usage/testing/default-build` for rationale.
 
    * - ``build-and-test``
 
      - Build ``all-tests``, and then run them via ``CTest``.
 
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
+       configuration. See :ref:`usage/testing/builtin` for more details about
+       this target.
 
    * - ``all-tests``
 
@@ -52,7 +55,8 @@ Actions That Build Things
        ``make unit-tests && make integration-tests``.
 
        Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration.
+       configuration. Not included in the default build--see
+       :ref:`usage/testing/default-build` for rationale.
 
 .. _usage/capabilities/build-time/sw-eng:
 

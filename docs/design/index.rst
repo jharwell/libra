@@ -4,3 +4,4 @@
    :maxdepth: 1
 
    philosophy.rst
+   customizing.rst

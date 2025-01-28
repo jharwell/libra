@@ -19,8 +19,7 @@ function(do_register_cmake_format FMT_TARGET TARGET JOB)
   # SELF and CONAN drivers, and will point to the baked-in .cmake-format in this
   # repo.
   if(NOT DEFINED LIBRA_CMAKE_FORMAT_FILEPATH)
-    set(LIBRA_CMAKE_FORMAT_FILEPATH
-        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.cmake-format")
+    set(LIBRA_CMAKE_FORMAT_FILEPATH "${LIBRA_CMAKE_FORMAT_FILEPATH_DEFAULT}")
   endif()
 
   add_custom_target(

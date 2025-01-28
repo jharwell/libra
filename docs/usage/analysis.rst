@@ -53,3 +53,64 @@ analysis targets:
    * - Interface library
 
      - Obtain {defs, includes, etc.} from target directly.
+
+clang-tidy
+==========
+
+Targets are created for each category of checks:
+
+- abseil
+
+- cppcoreguidelines
+
+- readability
+
+- hicpp
+
+- bugprone
+
+- cert
+
+- performance
+
+- portability
+
+- concurrency
+
+- modernize
+
+- misc
+
+- google
+
+Because some warnings are enabled by default in each category, in order to ONLY
+get warnings from a given category when building the target for that category
+(e.g., only get modernize checks for ``make analyze-clang-tidy-modernize``),
+LIBRA disables all checks via ``-*`` and then enables all checks for the
+category. This whitelisting approach works well, EXCEPT that something like the
+following in the effective ``.clang-tidy`` has no effect::
+
+.. code-block:: YAML
+
+   ---
+   Checks:
+   '-*,
+   -cppcoreguidelines-pro-bounds-constant-array-index,
+   -clang-diagnostic-*,
+   -fuchsia-default-argument-calls,
+   -fuchsia-overloaded-operator,
+   -modernize-pass-by-values,
+   -modernize-use-trailing-return-type
+   '
+
+This is expected because the docs for ``--checks`` says::
+
+  Comma-separated list of globs with optional '-' prefix. Globs are processed in
+  order of appearance in the list. Globs without '-' prefix add checks with
+  matching names to the set, globs with the '-' prefix remove checks with
+  matching names from the set of enabled checks. This option's value is appended
+  to the value of the 'Checks' option in .clang-tidy file, if any.
+
+So, when using LIBRA's automation, if you want to selectively disable checks
+within a category *other* than the ones which LIBRA disables, you can use
+``LIBRA_CLANG_TIDY_EXTRA_ARGS`` as described in :ref:`usage/project-local`.
