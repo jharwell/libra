@@ -22,58 +22,82 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
   set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
   get_target_property(TARGET_TYPE ${TARGET} TYPE)
 
-  if(NOT LIBRA_CPPCHECK_SUPPRESSIONS)
-    set(LIBRA_CPPCHECK_SUPPRESSIONS missingInclude unusedFunction)
+  if(NOT DEFINED LIBRA_CPPCHECK_SUPPRESSIONS)
+    set(LIBRA_CPPCHECK_SUPPRESSIONS "${LIBRA_CPPCHECK_SUPPRESSIONS_DEFAULT}")
   endif()
 
-  set(SUPPRESSIONS "${LIBRA_CPPCHECK_SUPPRESSIONS}")
-  set(IGNORES "${LIBRA_CPPCHECK_IGNORES}")
-  set(EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS}")
-  set(USE_DATABASE YES)
+  if(NOT DEFINED LIBRA_CPPCHECK_EXTRA_ARGS)
+    set(LIBRA_CPPCHECK_EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT}")
+  endif()
 
   # cppcheck doesn't work well with using a compilation database with header
   # only libraries, so we extract the necessary includes, defs, etc., directly
-  # from the target itself in that case.
-  set(USE_DATABASE YES)
-  if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
-    set(USE_DATABASE NO)
+  # from the target itself in that case by default; the user can override this
+  # and force it if they want to.
+  if(DEFINED LIBRA_USE_COMPDB)
+    set(USE_DATABASE ${LIBRA_USE_COMPDB})
   else()
-    if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
-       OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
-      set(USE_DATABASE NO)
-    endif()
+    set(USE_DATABASE YES)
 
+    if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
+      set(USE_DATABASE NO)
+    else()
+      if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+         OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+        set(USE_DATABASE NO)
+      endif()
+
+    endif()
   endif()
 
   get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
-  add_custom_target(${CHECK_TARGET})
 
-  foreach(file ${ARGN})
-    add_custom_command(
-      TARGET ${CHECK_TARGET}
-      POST_BUILD
+  # If a compilation database is used, cppcheck doesn't let you check a specific
+  # file.
+  if(USE_DATABASE)
+    add_custom_target(
+      ${CHECK_TARGET}
       COMMAND
         ${cppcheck_EXECUTABLE}
-        "$<$<BOOL:${USE_DATABASE}>:--project=${PROJECT_BINARY_DIR}/compile_commands.json>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>>"
-        "$<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>>"
-        --enable=warning,style,performance,portability,information --template=
-        "\"[{severity}][{id}] {message} {callstack} (On {file}:{line})\""
-        --quiet --verbose --force --std=${LIBRA_CXX_STANDARD} --inline-suppr
-        "$<$<BOOL:${SUPPRESSIONS}>:--suppress=$<JOIN:${SUPPRESSIONS},\t--suppress=>>"
-        "$<$<BOOL:${IGNORES}>:-i$<JOIN:${IGNORES},\t-i>>" "${EXTRA_ARGS}"
-        ${file}
+        --project=${PROJECT_BINARY_DIR}/compile_commands.json
+        --enable=warning,style,performance,portability --verbose
+        --check-level=exhaustive --std=${LIBRA_CXX_STANDARD} --inline-suppr
+        "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
+        "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
+        "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT
-        "Running ${cppcheck_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}"
-    )
-  endforeach()
+      COMMENT "Running ${cppcheck_NAME} with compdb")
+  else()
+    add_custom_target(${CHECK_TARGET})
+    foreach(file ${ARGN})
+      # We create one target per file we want to analyze so that we can do
+      # analysis in parallel if desired. Targets can't have '/' on '.' in their
+      # names, hence the replacements.
+      string(REPLACE "/" "_" file_target "${file}")
+      string(REPLACE "." "_" file_target "${file_target}")
+
+      add_custom_target(
+        ${CHECK_TARGET}-${file_target}
+        COMMAND
+          ${cppcheck_EXECUTABLE}
+          "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"
+          "$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>"
+          "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"
+          "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
+          "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
+          --enable=warning,style,performance,portability --verbose
+          --std=${LIBRA_CXX_STANDARD} --inline-suppr
+          "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
+          "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
+          "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1 ${file}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running ${cppcheck_NAME} without compdb on ${file}")
+      add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})
+    endforeach()
+  endif()
+
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-  add_dependencies(${CHECK_TARGET} ${TARGET})
   list(LENGTH ARGN LEN)
   libra_message(STATUS "Registered ${LEN} files with ${cppcheck_NAME}")
 endfunction()
@@ -106,7 +130,7 @@ function(libra_toggle_checker_cppcheck request)
     PATHS "${cppcheck_DIR}" "$ENV{CPPCHECK_DIR}")
 
   if(NOT cppcheck_EXECUTABLE)
-    message(STATUS "cppcheck [disabled=not found]")
+    libra_message(STATUS "cppcheck [disabled=not found]")
     return()
   endif()
 endfunction()

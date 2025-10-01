@@ -4,10 +4,11 @@
 # SPDX-License Identifier:  MIT
 #
 include(libra/messaging)
+
 # ##############################################################################
 # Register a target for clang-format formatting
 # ##############################################################################
-function(do_register_clang_format FMT_TARGET TARGET JOB)
+function(do_register_clang_format FMT_TARGET JOB)
   if(JOB STREQUAL "FORMAT")
     set(JOB_ARGS -i)
   else()
@@ -18,8 +19,11 @@ function(do_register_clang_format FMT_TARGET TARGET JOB)
   # SELF and CONAN drivers, and will point to the baked-in .clang-format in this
   # repo.
   if(NOT DEFINED LIBRA_CLANG_FORMAT_FILEPATH)
+    set(LIBRA_CLANG_FORMAT_FILEPATH_DEFAULT
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-format")
     set(LIBRA_CLANG_FORMAT_FILEPATH "${LIBRA_CLANG_FORMAT_FILEPATH_DEFAULT}")
   endif()
+  get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
 
   add_custom_target(
     ${FMT_TARGET}
@@ -29,19 +33,17 @@ function(do_register_clang_format FMT_TARGET TARGET JOB)
     COMMENT "Running ${clang_format_NAME} JOB=${JOB}")
 
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-  add_dependencies(${FMT_TARGET} ${TARGET})
 endfunction()
 
 # ##############################################################################
 # Register all target sources with the clang-format formatter
 # ##############################################################################
-function(libra_register_formatter_clang_format TARGET)
+function(libra_register_formatter_clang_format)
   if(NOT clang_format_EXECUTABLE)
     return()
   endif()
 
-  do_register_clang_format(format-clang-format ${TARGET} "FORMAT" ${ARGN})
+  do_register_clang_format(format-clang-format "FORMAT" ${ARGN})
   add_dependencies(format format-clang-format)
 
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
@@ -53,12 +55,12 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang-format checker
 # ##############################################################################
-function(libra_register_checker_clang_format TARGET)
+function(libra_register_checker_clang_format)
   if(NOT clang_format_EXECUTABLE)
     return()
   endif()
 
-  do_register_clang_format(analyze-clang-format ${TARGET} "CHECK" ${ARGN})
+  do_register_clang_format(analyze-clang-format "CHECK" ${ARGN})
   add_dependencies(analyze analyze-clang-format)
 
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
@@ -80,7 +82,8 @@ function(libra_toggle_clang_format request)
 
   find_program(
     clang_format_EXECUTABLE
-    NAMES clang-format-20
+    NAMES clang-format-21
+          clang-format-20
           clang-format-19
           clang-format-18
           clang-format-17
@@ -95,7 +98,7 @@ function(libra_toggle_clang_format request)
     PATHS "${clang_format_DIR}")
 
   if(NOT clang_format_EXECUTABLE)
-    message(STATUS "clang-format [disabled=not found]")
+    libra_message(STATUS "clang-format [disabled=not found]")
     return()
   endif()
 endfunction()

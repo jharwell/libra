@@ -16,15 +16,19 @@ include(libra/messaging)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Configure CCache if available
-find_program(CCACHE_FOUND ccache)
+if(NOT LIBRA_NO_CCACHE)
+  # Configure CCache if available
+  find_program(CCACHE_FOUND ccache)
 
-if(CCACHE_FOUND)
-  libra_message(STATUS "Using ccache")
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  if(CCACHE_FOUND)
+    libra_message(STATUS "Using ccache")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  else()
+    libra_message(STATUS "Not using ccache [disabled=notfound]")
+  endif()
 else()
-  libra_message(STATUS "Not using ccache [disabled=notfound]")
+  libra_message(STATUS "Disabling ccache by request")
 endif()
 
 # ##############################################################################

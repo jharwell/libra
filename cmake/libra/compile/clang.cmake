@@ -21,12 +21,21 @@ else()
 endif()
 
 # ##############################################################################
+# Build-time Profiling Options
+# ##############################################################################
+if(LIBRA_BUILD_PROF)
+  set(LIBRA_BUILD_PROF_OPTIONS "-ftime-trace")
+else()
+  set(LIBRA_BULID_PROF_OPTIONS)
+endif()
+
+# ##############################################################################
 # Fortifying Options
 # ##############################################################################
 set(LIBRA_FORTIFY_OPTIONS)
 set(LIBRA_FORTIFY_MATCH NO)
 
-if(NOT LIBRA_FORTIFY)
+if(NOT DEFINED LIBRA_FORTIFY)
   set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
 endif()
 
@@ -117,32 +126,33 @@ endif()
 # Optimization Options
 # ##############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(LIBRA_OPT_LEVEL -O0)
+  if(NOT DEFINED LIBRA_OPT_LEVEL)
+    set(LIBRA_OPT_LEVEL -O0)
+  endif()
+
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  set(LIBRA_OPT_LEVEL -O2)
+  if(NOT DEFINED LIBRA_OPT_LEVEL)
+    set(LIBRA_OPT_LEVEL -O3)
+  endif()
 else()
   message(
     FATAL_ERROR
       "clang compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
-set(BASE_OPT_OPTIONS
-    -march=native
-    -mtune=native
-    # 2023/6/29: Disable because it causes issues in RCSW unit tests. If in the
-    # future I want/need to enable these again to get even more speed, I could
-    # add another opt level/flag controlling it. -ffast-math
-    # -fno-unsafe-math-optimizations
-)
+if(LIBRA_UNSAFE_OPT)
+  set(LIBRA_UNSAFE_OPT_OPTIONS -march=native -mtune=native)
+  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} ${LIBRA_UNSAFE_OPT_OPTIONS}")
+endif()
 
 if(LIBRA_MT)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -fopenmp)
+  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -fopenmp")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -fopenmp")
 endif()
 
-set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
+set(LIBRA_CXX_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   # For handling lto with static libraries on MSI
@@ -151,10 +161,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(CMAKE_RANLIB "llvm-ranlib")
 endif()
 
-set(CMAKE_EXE_LINKER_FLAGS
-    "${CMAKE_EXE_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
-set(CMAKE_SHARED_LINKER_FLAGS
-    "${CMAKE_SHARED_LINKER_FLAGS} ${LIBRA_DEBUG_OPTS} -fuse-ld=gold")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
 
 # ##############################################################################
 # Diagnostic Options
@@ -302,7 +310,8 @@ endif()
 # ##############################################################################
 # Code Coverage Options
 # ##############################################################################
-set(BASE_CODE_COV_OPTIONS -fprofile-instr-generate -fcoverage-mapping)
+set(BASE_CODE_COV_OPTIONS -fprofile-instr-generate -fcoverage-mapping
+                          -fno-inline)
 
 if(LIBRA_CODE_COV)
   set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})

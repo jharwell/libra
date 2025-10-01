@@ -8,7 +8,7 @@ include(libra/messaging)
 # ##############################################################################
 # Register a target for cmake-format formatting/checking
 # ##############################################################################
-function(do_register_cmake_format FMT_TARGET TARGET JOB)
+function(do_register_cmake_format FMT_TARGET JOB)
   if(JOB STREQUAL "FORMAT")
     set(JOB_ARGS -i)
   else()
@@ -19,9 +19,13 @@ function(do_register_cmake_format FMT_TARGET TARGET JOB)
   # SELF and CONAN drivers, and will point to the baked-in .cmake-format in this
   # repo.
   if(NOT DEFINED LIBRA_CMAKE_FORMAT_FILEPATH)
+    set(LIBRA_CMAKE_FORMAT_FILEPATH_DEFAULT
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.cmake-format")
+
     set(LIBRA_CMAKE_FORMAT_FILEPATH "${LIBRA_CMAKE_FORMAT_FILEPATH_DEFAULT}")
   endif()
 
+  get_filename_component(cmake_format_NAME ${cmake_format_EXECUTABLE} NAME)
   add_custom_target(
     ${FMT_TARGET}
     COMMAND ${cmake_format_EXECUTABLE} -c${LIBRA_CMAKE_FORMAT_FILEPATH}
@@ -30,19 +34,17 @@ function(do_register_cmake_format FMT_TARGET TARGET JOB)
     COMMENT "Running ${cmake_format_NAME}: JOB=${JOB}")
 
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-  add_dependencies(${FMT_TARGET} ${TARGET})
 endfunction()
 
 # ##############################################################################
 # Register all target sources with the cmake-format formatter
 # ##############################################################################
-function(libra_register_formatter_cmake_format TARGET)
+function(libra_register_formatter_cmake_format)
   if(NOT cmake_format_EXECUTABLE)
     return()
   endif()
 
-  do_register_cmake_format(format-cmake-format ${TARGET} "FORMAT" ${ARGN})
+  do_register_cmake_format(format-cmake-format "FORMAT" ${ARGN})
   add_dependencies(format format-cmake-format)
 
   get_filename_component(cmake_format_NAME ${cmake_format_EXECUTABLE} NAME)
@@ -54,12 +56,12 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the cmake-format checker
 # ##############################################################################
-function(libra_register_checker_cmake_format TARGET)
+function(libra_register_checker_cmake_format)
   if(NOT cmake_format_EXECUTABLE)
     return()
   endif()
 
-  do_register_cmake_format(analyze-cmake-format ${TARGET} "CHECK" ${ARGN})
+  do_register_cmake_format(analyze-cmake-format "CHECK" ${ARGN})
   add_dependencies(analyze analyze-cmake-format)
 
   get_filename_component(cmake_format_NAME ${cmake_format_EXECUTABLE} NAME)
@@ -84,7 +86,7 @@ function(libra_toggle_cmake_format request)
     PATHS "${cmake_format_DIR}")
 
   if(NOT cmake_format_EXECUTABLE)
-    message(STATUS "cmake-format [disabled=not found]")
+    libra_message(STATUS "cmake-format [disabled=not found]")
     return()
   endif()
 endfunction()

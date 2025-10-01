@@ -22,11 +22,11 @@ function(libra_register_code_checkers TARGET)
   libra_register_checker_cppcheck(${TARGET} ${ARGN})
   libra_register_checker_clang_tidy(${TARGET} ${ARGN})
   libra_register_checker_clang_check(${TARGET} ${ARGN})
-  libra_register_checker_clang_format(${TARGET} ${ARGN})
+  libra_register_checker_clang_format(${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated formatters
-function(libra_register_code_formatters TARGET)
+function(libra_register_code_formatters)
   if("${ARGN}" STREQUAL "")
     libra_message(FATAL_ERROR "No source files passed--misconfiguration?")
   endif()
@@ -35,26 +35,26 @@ function(libra_register_code_formatters TARGET)
 
   set_target_properties(format PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-  libra_register_formatter_clang_format(${TARGET} ${ARGN})
+  libra_register_formatter_clang_format(${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated formatters for non-code
 # things.
-function(libra_register_cmake_checkers TARGET)
+function(libra_register_cmake_checkers)
   if("${ARGN}" STREQUAL "")
     libra_message(FATAL_ERROR "No CMake files passed--misconfiguration?")
   endif()
 
-  libra_register_checker_cmake_format(${TARGET} ${ARGN})
+  libra_register_checker_cmake_format(${ARGN})
 endfunction()
 
 # Function to register a target for checking format for non-code things.
-function(libra_register_cmake_formatters TARGET)
+function(libra_register_cmake_formatters)
   if("${ARGN}" STREQUAL "")
     libra_message(FATAL_ERROR "No CMake files passed--misconfiguration?")
   endif()
 
-  libra_register_formatter_cmake_format(${TARGET} ${ARGN})
+  libra_register_formatter_cmake_format(${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated fixers
@@ -81,16 +81,25 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
   get_target_property(TARGET_TYPE ${TARGET} TYPE)
 
-  # clang-XX doesn't work well with using a compilation database with header
-  # only libraries, so we extract the necessary includes, defs, etc., directly
-  # from the target itself in that case.
-  set(USE_DATABASE YES)
-  if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
-    set(USE_DATABASE NO)
+  # clang-xx doesn't work well with using a compilation database with header
+  # only libraries without anything to compile (e.g., those without tests). But,
+  # we assume that all header-only libs HAVE tests, so it's safe to
+  # unconditionally use a compdb by default;  the user can override this and
+  # force extraction of the necessary includes,#defines, etc. from the target
+  # itself.
+
+  if(DEFINED LIBRA_USE_COMPDB)
+    set(USE_DATABASE ${LIBRA_USE_COMPDB})
   else()
-    if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
-       OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+    set(USE_DATABASE YES)
+
+    if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
       set(USE_DATABASE NO)
+    else()
+      if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
+         OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+        set(USE_DATABASE NO)
+      endif()
     endif()
   endif()
 

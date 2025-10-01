@@ -23,32 +23,39 @@ endif()
 # Optimization Options                                                         #
 # ##############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  set(LIBRA_OPT_LEVEL -O0)
+  if(NOT DEFINED LIBRA_OPT_LEVEL)
+    set(LIBRA_OPT_LEVEL -O0)
+  endif()
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  set(LIBRA_OPT_LEVEL -O2)
+  if(NOT DEFINED LIBRA_OPT_LEVEL)
+    set(LIBRA_OPT_LEVEL -O3)
+  endif()
 else()
   message(
     FATAL_ERROR
       "Intel compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
-set(BASE_OPT_OPTIONS -no-prec-div -xHost -fp-model fast=2)
+if(LIBRA_UNSAFE_OPT)
+  set(LIBRA_UNSAFE_OPT_OPTIONS -no-prec-div -xHost -fp-model fast=2)
+  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} ${LIBRA_UNSAFE_OPT_OPTIONS}")
+endif()
 
 if(LIBRA_MT)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -qopenmp -parallel
-                       -parallel-source-info=2)
+  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -qopenmp -parallel
+                        -parallel-source-info=2")
 endif()
 
 if(LIBRA_LTO)
-  set(BASE_OPT_OPTIONS ${BASE_OPT_OPTIONS} -ipo)
+  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -ipo")
   if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -ipo")
   endif()
 
 endif()
 
-set(LIBRA_C_OPT_OPTIONS ${BASE_OPT_OPTIONS})
-set(LIBRA_CXX_OPT_OPTIONS ${BASE_OPT_OPTIONS})
+set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
+set(LIBRA_CXX_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
 
 # ##############################################################################
 # Diagnostic Options

@@ -23,21 +23,24 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
   # We also use --extra-arg=... instead of '-- ...' because the former is
   # documented and works, and the latter is undocumented and SORT OF works.
   foreach(file ${ARGN})
-    add_custom_command(
-      TARGET ${CHECK_TARGET}
-      POST_BUILD
+    # We create one target per file we want to analyze so that we can do
+    # analysis in parallel if desired. Targets can't have '/' on '.' in their
+    # names, hence the replacements.
+    string(REPLACE "/" "_" file_target "${file}")
+    string(REPLACE "." "_" file_target "${file_target}")
+
+    add_custom_target(
+      ${CHECK_TARGET}-${file_target}
       COMMAND
         ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
         --extra-arg=-std=${LIBRA_CXX_STANDARD} --extra-arg=--stdlib=libc++
-        --extra-arg=-Wno-unknown-warning-option
+        --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT
-        "Running ${clang_check_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out>
-compdb on ${file}, JOB=${JOB}")
+      COMMENT "Running ${clang_check_NAME} with compdb on ${file}, JOB=${JOB}")
+    add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})
   endforeach()
 
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-  add_dependencies(${CHECK_TARGET} ${TARGET})
 endfunction()
 
 # ##############################################################################
@@ -87,7 +90,8 @@ function(libra_toggle_clang_check request)
 
   find_program(
     clang_check_EXECUTABLE
-    NAMES clang-check-20
+    NAMES clang-tidy-21
+          clang-check-20
           clang-check-19
           clang-check-18
           clang-check-17
@@ -102,7 +106,7 @@ function(libra_toggle_clang_check request)
     PATHS "${clang_check_DIR}")
 
   if(NOT clang_check_EXECUTABLE)
-    message(STATUS "clang-check [disabled=not found]")
+    libra_message(STATUS "clang-check [disabled=not found]")
     return()
   endif()
 endfunction()

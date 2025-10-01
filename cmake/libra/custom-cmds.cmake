@@ -86,16 +86,20 @@ endmacro()
 # ##############################################################################
 # Only want to show the summary once
 set(LIBRA_SHOWED_SUMMARY NO)
-function(emit)
-
-endfunction(emit)
-
 function(libra_config_summary_prepare_fields FIELDS_LIST)
   # Get maxlength of summary field value for padding so everything lines up
   # nicely.
   set(MAXLEN 0)
   foreach(field ${FIELDS_LIST})
-    set(EMIT_${field} ${${field}})
+    list(LENGTH ${field} LIST_LEN)
+    if(LIST_LEN GREATER 1)
+      string(REPLACE ";" " " OUT "${${field}}") # Joins list elements with a
+                                                # space
+      set(EMIT_${field} "${OUT}")
+    else()
+      set(EMIT_${field} ${${field}})
+    endif()
+
     if("${EMIT_${field}}" STREQUAL "")
       set(LEN 0)
     else()
@@ -176,6 +180,11 @@ function(libra_config_summary)
       CMAKE_CXX_COMPILER
       LIBRA_C_STANDARD
       LIBRA_CXX_STANDARD
+      LIBRA_NO_CCACHE
+      LIBRA_BUILD_PROF
+      LIBRA_UNSAFE_OPT
+      LIBRA_OPT_LEVEL
+      LIBRA_OPT_OPTIONS
       LIBRA_NO_DEBUG_INFO
       LIBRA_TESTS
       LIBRA_MT
@@ -253,7 +262,28 @@ function(libra_config_summary)
   )
   message(
     STATUS
+      "Optimization level override...........: ${ColorBold}${EMIT_LIBRA_OPT_LEVEL}${ColorReset} [LIBRA_OPT_LEVEL]"
+  )
+
+  message(
+    STATUS
+      "Unsafe optimization options...........: ${ColorBold}${EMIT_LIBRA_UNSAFE_OPT}${ColorReset} [LIBRA_UNSAFE_OPT]"
+  )
+  message(
+    STATUS
+      "Extra optimization options............: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
+  )
+  message(
+    STATUS
       "Disable debug info....................: ${ColorBold}${EMIT_LIBRA_NO_DEBUG_INFO}${ColorReset} [LIBRA_NO_DEBUG_INFO]"
+  )
+  message(
+    STATUS
+      "Disable ccache........................: ${ColorBold}${EMIT_LIBRA_NO_CCACHE}${ColorReset} [LIBRA_NO_CCACHE]"
+  )
+  message(
+    STATUS
+      "Enable build profiling................: ${ColorBold}${EMIT_LIBRA_BUILD_PROF}${ColorReset} [LIBRA_BUILD_PROF]"
   )
 
   # LIBRA options
@@ -275,11 +305,11 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable code coverage instrumentation..: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} precoverage-info,coverage-report)"
+      "Code coverage instrumentation.........: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {lcov-{preinfo,report, gcovr-{report,check})"
   )
   message(
     STATUS
-      "Enable API doc building...............: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (${MAKE_NAME} apidoc)"
+      "Enable API doc tools..................: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (${MAKE_NAME} apidoc,apidoc-check-{doxygen,clang})"
   )
   message(
     STATUS
@@ -299,15 +329,15 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable code checkers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {analyze,analyze-clang-check,analyze-cppcheck,analyze-clang-tidy,analyze-clang-format,analyze-cmake-format})"
+      "Enable code checkers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {analyze,analyze-{clang-{check,tidy,format},cppcheck,cmake-format}})"
   )
   message(
     STATUS
-      "Enable code formatters................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {format,format-clang-format,format-cmake-format})"
+      "Enable code formatters................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {format,format-{clang-format,cmake-format}})"
   )
   message(
     STATUS
-      "Enable code fixers....................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {fix,fix-clang-tidy,fix-clang-check})"
+      "Enable code fixers....................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {fix,fix-{clang-tidy,clang-check}})"
   )
   message(
     STATUS

@@ -8,9 +8,10 @@ include(libra/defaults)
 
 # We want to be able to enable only SOME checks in clang-tidy in a single run,
 # both to speed up pipelines, but also to fixing errors simpler when there are
-# TONS. These seem to be a comprehensive set of errors in clang-19; may need to
+# TONS. These seem to be a comprehensive set of errors in clang-20; may need to
 # be updated in the future.
 set(CLANG_TIDY_CATEGORIES
+    clang-analyzer-core
     abseil
     cppcoreguidelines
     readability
@@ -37,6 +38,9 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
   add_custom_target(${CHECK_TARGET})
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
+  set(LIBRA_CLANG_TIDY_FILEPATH_DEFAULT
+      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
+
   # A clever way to bake in .clang-tidy and use with cmake. Tested with both
   # SELF and CONAN drivers, and will point to the baked-in .clang-tidy in this
   # repo.
@@ -53,6 +57,8 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
         "${LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT}")
   endif()
 
+  get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
+
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
     add_custom_target(${CHECK_TARGET}-${CATEGORY})
@@ -67,24 +73,41 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
     # We also use --extra-arg=... instead of '-- ...' because the former is
     # documented and works, and the latter is undocumented and SORT OF works.
     foreach(file ${ARGN})
-      add_custom_command(
-        TARGET ${CHECK_TARGET}-${CATEGORY}
-        POST_BUILD
+
+      # We create one target per file we want to analyze so that we can do
+      # analysis in parallel if desired. Targets can't have '/' on '.' in their
+      # names, hence the replacements.
+      string(REPLACE "/" "_" file_target "${file}")
+      string(REPLACE "." "_" file_target "${file_target}")
+
+      # It only makes sense to run this for .hpp files; for .cpp files, it is
+      # just noise (mostly). And the noise far outweighs any benefit.
+      get_filename_component(EXT ${file} EXT)
+      set(DISABLE_INCLUDE_CLEANER)
+      if("${EXT}" STREQUAL ".cpp")
+        set(DISABLE_INCLUDE_CLEANER --checks=-misc-include-cleaner)
+      endif()
+
+      add_custom_target(
+        ${CHECK_TARGET}-${CATEGORY}-${file_target}
         COMMAND
           ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
           ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
           --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
           ${EXTRACTED_ARGS} ${JOB_ARGS} --extra-arg=--std=${LIBRA_CXX_STANDARD}
           --extra-arg=--stdlib=libc++ --extra-arg=-Wno-unknown-warning-option
+          --warnings-as-errors='*' ${DISABLE_INCLUDE_CLEANER}
+          ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT
-          "Running ${clang_tidy_NAME} with$<$<NOT:$<BOOL:${USE_DATABASE}>>:out> compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
+          "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
       )
+      add_dependencies(${CHECK_TARGET}-${CATEGORY}
+                       ${CHECK_TARGET}-${CATEGORY}-${file_target})
     endforeach()
   endforeach()
 
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-  add_dependencies(${CHECK_TARGET} ${TARGET})
 endfunction()
 
 # ##############################################################################
@@ -132,7 +155,8 @@ function(libra_toggle_clang_tidy request)
 
   find_program(
     clang_tidy_EXECUTABLE
-    NAMES clang-tidy-20
+    NAMES clang-tidy-21
+          clang-tidy-20
           clang-tidy-19
           clang-tidy-18
           clang-tidy-17
@@ -147,7 +171,7 @@ function(libra_toggle_clang_tidy request)
     PATHS "${clang_tidy_DIR}")
 
   if(NOT clang_tidy_EXECUTABLE)
-    message(STATUS "clang-tidy [disabled=not found]")
+    libra_message(STATUS "clang-tidy [disabled=not found]")
     return()
   endif()
 endfunction()
