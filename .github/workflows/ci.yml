@@ -15,10 +15,23 @@ jobs:
     uses: ./.github/workflows/pages.yml
     secrets: inherit
 
+  create-conan-pkg:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create package
+        shell: bash
+        run: |
+          pip3 install conan
+          conan profile detect
+
+          conan create \
+          --user jharwell \
+          --lockfile-out=package.lock \
+          .
+
   tag-release:
     runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu22.04:2023-04-12
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -32,7 +45,7 @@ jobs:
 
           git submodule update --init --remote --recursive
 
-          PACKAGE_VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/project.cmake)
+          PACKAGE_VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/libra/project.cmake)
 
           if [ "${{ github.ref }}" = "refs/heads/devel" ]; then
             TAG_VERSION=${PACKAGE_VERSION}.beta
