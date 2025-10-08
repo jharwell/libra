@@ -69,11 +69,10 @@ Repository/Code Structure
 Requirements
 ------------
 
-- All C++ source files end in ``.cpp``, and all C++ header files end in ``.hpp``
-  (which they should if you are following the :ref:`dev/cxx-guide`).
+- All C++ source files end in ``.cpp``, and all C++ header files end in
+  ``.hpp``.
 
-- All C source files end in ``.c`` and all C header files end in ``.h`` (which
-  they should if you are following the :ref:`dev/c-guide`).
+- All C source files end in ``.c`` and all C header files end in ``.h``.
 
 - All source files for a repository must live under ``src/`` in the root.
 

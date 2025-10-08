@@ -27,7 +27,13 @@ docs = [
      # has a fix.
     "sphinx==7.4.0",
     "docutils>=0.18.1,<0.21",
-    "sphinx_rtd_theme",
+
+    # 2025-10-08 [JRH]: # In versions >= 3.0, the only way to get the
+    # version to appear at the top of the main page is to host the
+    # docs on readthedocs and use their version selector. Pinning to
+    # the previous major release is a temporary workaround. Hopefully
+    # this will eventually be fixed.
+    "sphinx_rtd_theme==2.0.0",
     "sphinx-argparse==0.4.0",
     "sphinx-tabs",
     "tomli",

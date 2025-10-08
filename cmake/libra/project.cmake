@@ -18,7 +18,7 @@ endif()
 # The current version of LIBRA, to make debugging strange build problems easier.
 # This is set in CI; the value present in git might not match the conan package
 # version.
-set(LIBRA_VERSION 0.9.0)
+set(LIBRA_VERSION 0.9.1)
 
 # This should generally be set undconditionally.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -60,7 +60,6 @@ option(LIBRA_SUMMARY "Show a configuration summary" ON)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_UNSAFE_OPT "Enable unsafe optimization options" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
-option(LIBRA_STDLIB "Enable usage of the standard library" ON)
 option(LIBRA_NO_DEBUG_INFO
        "Disable inclusion of debug info, independent of build type" OFF)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)

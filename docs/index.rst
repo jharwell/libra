@@ -46,8 +46,6 @@ The first flavor is preferred, as it is more scalable, and sticks to the single
 responsibility principle. When possible, LIBRA will detect if it is running
 under e.g., conan, and configure itself accordingly.
 
-This documentation has 3 parts, listed in probable descending order of interest:
-
 .. toctree::
    :maxdepth: 1
    :caption: How To Use LIBRA
@@ -59,10 +57,3 @@ This documentation has 3 parts, listed in probable descending order of interest:
    :caption: LIBRA Design And Customization
 
    design/index.rst
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Software Development Resources
-
-   dev/index.rst
-   bazel/index.rst

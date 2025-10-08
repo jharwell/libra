@@ -105,11 +105,8 @@ this project enables the following additional capabilities via targets:
 
 - :ref:`usage/capabilities/build-time/sw-eng`
 
-Git Commit Checking
-===================
+.. toctree::
+   :hidden:
 
-LIBRA can lint commit messages, checking they all have a consistent format. The
-format is controlled by the file ``commitlint.config.js``. See the `husky
-<https://www.npmjs.com/package/husky>`_ for details. The default format LIBRA
-enforces is described in :ref:`dev/git/commit-guide`. To use it run ``npm
-install`` in the repo where you have setup LIBRA.
+   configure-time.rst
+   build-time.rst

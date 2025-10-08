@@ -349,7 +349,7 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable stdlib.........................: ${ColorBold}${EMIT_LIBRA_STDLIB}${ColorReset} [LIBRA_STDLIB]"
+      "Stdlib options........................: ${ColorBold}${EMIT_LIBRA_STDLIB}${ColorReset} [LIBRA_STDLIB={NONE,STDCXX,CXX}]"
   )
   message(
     STATUS

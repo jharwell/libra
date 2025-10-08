@@ -42,7 +42,7 @@ version = subprocess.run(
     shell=True,
     check=True,
     stdout=subprocess.PIPE,
-).stdout.decode()
+).stdout.decode().strip("\n")
 
 stdout = subprocess.run(
     ["git", "rev-parse", "--abbrev-ref", "HEAD"], stdout=subprocess.PIPE, check=True
@@ -52,6 +52,8 @@ git_branch = stdout.decode("ascii").strip("\n")
 # The full version, including alpha/beta/rc tags.
 if git_branch == "devel":
     version = f"{version}.beta"
+
+release = version
 
 # -- General configuration ------------------------------------------------
 
@@ -114,7 +116,9 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'display_version': True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

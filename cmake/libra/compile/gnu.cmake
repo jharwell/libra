@@ -362,7 +362,19 @@ endif()
 # Stdlib options
 # ##############################################################################
 if(NOT LIBRA_STDLIB)
-  set(LIBRA_STDLIB_OPTIONS "-nostdlib")
+  set(LIBRA_STDLIB ${LIBRA_STDLIB_DEFAULT})
+endif()
+
+set(LIBRA_STDLIB_OPTIONS)
+set(LIBRA_STDLIB_MATCH NO)
+
+if("${LIBRA_STDLIB}" MATCHES "NONE")
+  set(LIBRA_STDLIB_OPTIONS -nostdlib)
+endif()
+if(NOT ${LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
+  libra_message(
+    WARNING "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of
+{NONE,STDCXX,CXX}")
 endif()
 
 # ##############################################################################
