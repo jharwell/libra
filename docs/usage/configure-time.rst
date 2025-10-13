@@ -1,15 +1,47 @@
-.. _usage/capabilities/configure-time:
+.. _usage/configure-time:
 
-====================
-Configure-Time Knobs
-====================
+==============
+Configure-Time
+==============
+
+File Discovery
+==============
+
+- All files under ``src/`` ending in:
+
+  - ``.c``
+  - ``.cpp``
+
+  are globbed as source files (see :ref:`startup/req` for repository layout
+  requirements) so that if you add a new source file, rename a source file,
+  etc., you just need to re-run cmake. This means you don't have to MANUALLY
+  specify all the files in the cmake project. Woo-hoo!
+
+  .. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
+     contrary to common cmake guidance.
+
+- All files under ``tests/`` ending in a specified pattern are recursively
+  globbed as unit test files which will be compiled into executable unit tests
+  at build time if ``LIBRA_TESTS=YES``. See :ref:`usage/project-local/variables`
+  more details on this configuration item. Same for integration tests.
+  ``${LIBRA_INTEGRATION_TEST_MATCHER.{c,cpp}}``.
+
+- All files under ``tests/`` ending in a specified pattern are recursively
+  globbed as the test harness for unit/integration tests. All test harness files
+  will be compiled into static libraries at build time and all test targets link
+  against them if ``LIBRA_TESTS=YES``.
+
+.. NOTE:: The difference between unit tests and integration tests is purely
+          semantic, and exists solely to help organize your tests. LIBRA treats
+          both types of tests equivalently.
+
 
 The following variables are available for fine-tuning the cmake configuration
 process. All of these variables can be specified on the command line via ``-D``,
 or put in your ``project-local.cmake``--see :ref:`usage/project-local` for
 details.
 
-.. _usage/capabilities/configure-time/libra:
+.. _usage/configure-time/libra:
 
 Knobs For Configuring LIBRA/Cmake
 =================================
@@ -48,7 +80,7 @@ Knobs For Configuring LIBRA/Cmake
 
       Default: NO.
 
-.. _usage/capabilities/configure-time/sw-eng:
+.. _usage/configure-time/sw-eng:
 
 Knobs For Supporting SW Engineering
 ===================================
@@ -165,7 +197,7 @@ Knobs For Supporting SW Engineering
 
       Default: NO.
 
-.. _usage/capabilities/configure-time/builds:
+.. _usage/configure-time/builds:
 
 Knobs For Configuring Builds
 ============================

@@ -15,10 +15,7 @@ if(NOT PROJECT_NAME)
   project(${LIBRA_TARGET} C CXX)
 endif()
 
-# The current version of LIBRA, to make debugging strange build problems easier.
-# This is set in CI; the value present in git might not match the conan package
-# version.
-set(LIBRA_VERSION 0.9.1)
+include(libra/version)
 
 # This should generally be set undconditionally.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -26,8 +23,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ##############################################################################
 # Cmake Environment
 # ##############################################################################
-include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/libra/cmake")
 include(libra/messaging)
 include(libra/colorize)
 include(libra/custom-cmds)
@@ -171,7 +166,6 @@ if("${LIBRA_DRIVER}" MATCHES "CONAN")
   set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 else()
-  # Conan handles all packaging related things, so don't even bother.
   include(libra/package/components)
   include(libra/package/install)
   include(libra/package/deploy)

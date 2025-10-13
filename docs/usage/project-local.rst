@@ -20,7 +20,7 @@ defines for you to use in this file, see below.
 Variables
 =========
 
-Most variables of the form ``LIBRA_XX`` detailed in :ref:`usage/capabilities`
+Most variables of the form ``LIBRA_XX`` detailed in :ref:`usage/configure-time`
 can be permanently set in your ``project-local.cmake``, but not all. Exceptions
 are:
 

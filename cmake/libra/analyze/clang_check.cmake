@@ -33,7 +33,7 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
       ${CHECK_TARGET}-${file_target}
       COMMAND
         ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
-        --extra-arg=-std=${LIBRA_CXX_STANDARD} --extra-arg=--stdlib=libc++
+        --extra-arg=-std=${LIBRA_CXX_STANDARD}
         --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Running ${clang_check_NAME} with compdb on ${file}, JOB=${JOB}")

@@ -1,6 +1,6 @@
-n.. SPDX-License-Identifier:  MIT
+.. SPDX-License-Identifier:  MIT
 
-.. _usage/req:
+.. _startup/req:
 
 =========================
 Requirements to use LIBRA
@@ -12,8 +12,6 @@ Platform Requirements
 - A recent version of Linux.
 
 - cmake >= 3.31 (``cmake`` on ubuntu)
-
-- make >= 3.2 (``make`` on ubuntu)
 
 - graphviz if you want to generate API documentation.
 
@@ -78,10 +76,10 @@ Requirements
 
 - All tests for a project must live under the ``tests/`` directory in the root
   of the project and must end in a configured prefix (see
-  :ref:`usage/capabilities/build-process`) for details. Out of the box,
-  unit tests are expected to end in ``-utest.{cpp, c}``, integration tests are
-  expected to end in ``-itest.{cpp, c}``, and test harness files are expected
-  to end in ``_test.{c, cpp, h, hpp}``.
+  :ref:`usage/build-time`) for details. Out of the box, unit tests are
+  expected to end in ``-utest.{cpp, c}``, integration tests are expected to end
+  in ``-itest.{cpp, c}``, and test harness files are expected to end in
+  ``_test.{c, cpp, h, hpp}``.
 
   This is only required if you want to take advantage of automated test
   globbing; if you don't then you can ignore this requirement.
@@ -90,8 +88,8 @@ Requirements
 
 - All test harness files for a project must live under the ``tests/`` directory
   in the root of the project and must end in a configured prefix (see
-  :ref:`usage/capabilities/build-process`) for details. Out of the box, unit
-  they are expected to end in ``_test.{c, cpp, h, hpp}``.
+  :ref:`usage/build-time`) for details. Out of the box, unit they are
+  expected to end in ``_test.{c, cpp, h, hpp}``.
 
   This is only required if you want to take advantage of automated test
   globbing; if you don't then you can ignore this requirement.
@@ -101,7 +99,6 @@ Requirements
 - If ``LIBRA_DOCS=ON``, project documentation lives under ``<repo_name>/docs``,
   with a ``docs/Doxyfile.in`` defined to generate doxygen documentation.
 
-- All projects must include a ``cmake/project-local.cmake`` in the root of the
-  repository containing any project specific bits (i.e. adding subdirectories,
-  what libraries to create, etc.). See :ref:`usage/project-local` for how to
-  structure this file.
+- All projects must include a ``cmake/project-local.cmake`` containing any
+  project specific bits (i.e. adding subdirectories, what libraries to create,
+  etc.). See :ref:`usage/project-local` for how to structure this file.

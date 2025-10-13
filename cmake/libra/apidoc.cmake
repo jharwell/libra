@@ -83,8 +83,8 @@ function(libra_apidoc_register_clang CHECK_TARGET)
         "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"
         "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
         "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
-        --std=${LIBRA_CXX_STANDARD} --stdlib=libc++ -fsyntax-only
-        -Wno-everything -Wdocumentation -Wdocumentation-pedantic -Werror
+        --std=${LIBRA_CXX_STANDARD} -fsyntax-only -Wno-everything
+        -Wdocumentation -Wdocumentation-pedantic -Werror
         ${LIBRA_CLANG_EXTRA_ARGS} ${file}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Checking doxygen markup on ${file} with ${clang_NAME}")

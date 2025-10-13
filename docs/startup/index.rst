@@ -3,6 +3,5 @@
 .. toctree::
    :maxdepth: 1
 
-   conan.rst
-   philosophy.rst
-   customizing.rst
+   quickstart.rst
+   requirements.rst

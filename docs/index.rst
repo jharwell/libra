@@ -25,6 +25,47 @@ Motivation
   running tests, etc., using ``make analyze``, ``make format``, or ``make
   tests``, or other simple cmdline syntax.
 
+Capabilities
+============
+
+.. _main/build-process:
+
+Configure Time
+--------------
+
+LIBRA can do many things for you when cmake is run. Some highlights include:
+
+- Configuring builds in a wide variety of ways, for everything for bare-metal to
+  supercomputing multithread/multiprocess applications.
+
+- Support for fortifying projects from security attacks.
+
+- Providing plumbing to aid in debugging; e.g., through various sanitizers.
+
+- Providing plumbing for easily configuring Cmake's (really CPack's) packaging
+  capabilities. See
+
+- Handling populating a source file of your choosing so that your software can
+  accurately report the project version when run/loaded. This supports DRY of
+  the project version.
+
+- Providing plumbing for simple installation needs for {headers, binaries,
+  libraries} via globs.
+
+- Providing a nice summary of the exact configuration options set to make
+  debugging strange configuration problems much easier.
+
+See :ref:`usage/configure-time` for details.
+
+Build Time
+----------
+
+After configuration, LIBRA can do many things when running ``make`` (or whatever
+the build system is). In addition to being able to actually build the software,
+this project enables the following additional capabilities via targets:
+
+See :ref:`usage/build-time` for details.
+
 .. _main/flavors:
 
 Flavors
@@ -32,15 +73,16 @@ Flavors
 
 LIBRA can be used in any of the following mutually exclusive ways:
 
-- Build system middleware, providing nice syntactic sugar for automating various
-  things, but not: packaging, versioning, installation, and
-  deployment. The use case here is to support using a package manager such as
-  conan to manage package-y things, and let LIBRA handle all the build system-y
+- Conan middleware, providing nice syntactic sugar for automating various
+  things, but not: packaging, versioning, installation, and deployment. Conan
+  handles all the package-y things, and let LIBRA handle all the build system-y
   things (separation of responsibilities), rather than having a package manager
   or LIBRA do everything.
 
-- As a stand-alone cmake framework, including packaging, versioning,
-  installation, and deployment.
+- As a raw CMake package, handling everything above but also packaging,
+  versioning, installation, and deployment, using CMake facilities.
+
+- In-situ as a repo subdirectory or git submodule.
 
 The first flavor is preferred, as it is more scalable, and sticks to the single
 responsibility principle. When possible, LIBRA will detect if it is running
@@ -48,7 +90,13 @@ under e.g., conan, and configure itself accordingly.
 
 .. toctree::
    :maxdepth: 1
-   :caption: How To Use LIBRA
+   :caption: Getting Started
+
+   startup/index.rst
+
+.. toctree::
+   :maxdepth: 1
+   :caption: LIBRA Feature Reference
 
    usage/index.rst
 

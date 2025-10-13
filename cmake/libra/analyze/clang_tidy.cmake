@@ -95,9 +95,8 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
           ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
           --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
           ${EXTRACTED_ARGS} ${JOB_ARGS} --extra-arg=--std=${LIBRA_CXX_STANDARD}
-          --extra-arg=--stdlib=libc++ --extra-arg=-Wno-unknown-warning-option
-          --warnings-as-errors='*' ${DISABLE_INCLUDE_CLEANER}
-          ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+          --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
+          ${DISABLE_INCLUDE_CLEANER} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT
           "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"

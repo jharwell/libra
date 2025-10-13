@@ -1,10 +1,18 @@
-.. _usage/capabilities/build-time:
+.. _usage/build-time:
 
 ==================
 Build Time Actions
 ==================
 
-.. _usage/capabilities/build-time/build:
+.. NOTE:: All examples assume the CMake generator is ``Unix Makefiles``, and
+          therefore all targets can be built with ``make``; adjust as needed if
+          you use a different generator.
+
+- :ref:`usage/build-time/build`
+
+- :ref:`usage/build-time/sw-eng`
+
+.. _usage/build-time/build:
 
 Actions That Build Things
 =========================
@@ -58,7 +66,7 @@ Actions That Build Things
        configuration. Not included in the default build--see
        :ref:`usage/testing/default-build` for rationale.
 
-.. _usage/capabilities/build-time/sw-eng:
+.. _usage/build-time/sw-eng:
 
 Actions For Supporting SW Engineering
 =====================================

@@ -3,11 +3,9 @@
 .. toctree::
    :maxdepth: 1
 
-   quickstart.rst
-   requirements.rst
-   capabilities/index.rst
+   configure-time.rst
+   build-time.rst
    project-local.rst
-   conan.rst
    analysis.rst
    apidoc.rst
    testing.rst

@@ -86,7 +86,7 @@ Low Floor, High Ceiling
 LIBRA was designed to be "low floor, high ceiling", meaning that:
 
 - It can be pretty much dropped into any project meeting the
-  :ref:`requirements<usage/req>` and requiring minimal to no effort to start
+  :ref:`requirements<startup/req>` and requiring minimal to no effort to start
   using.
 
 - It provides configurability for almost *every* single thing it does, so that
