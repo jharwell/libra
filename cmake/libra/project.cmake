@@ -59,6 +59,9 @@ option(LIBRA_NO_DEBUG_INFO
        "Disable inclusion of debug info, independent of build type" OFF)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
+option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
+option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally?" OFF)
+
 set(LIBRA_DRIVER
     "SELF"
     CACHE STRING "{SELF,CONAN} Set the user front end for the build process")
@@ -71,7 +74,13 @@ set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 set(LIBRA_FPC
     "RETURN"
     CACHE STRING "{RETURN,ABORT,NONE} Function Predcondition Checking (FPC)")
-set_property(CACHE LIBRA_FPC PROPERTY STRINGS RETURN ABORT NONE INHERIT)
+set_property(
+  CACHE LIBRA_FPC
+  PROPERTY STRINGS
+           RETURN
+           ABORT
+           NONE
+           INHERIT)
 
 set(LIBRA_ERL
     "ALL"
@@ -227,7 +236,12 @@ file(GLOB ${PROJECT_NAME}_CMAKE_SRC ${PROJECT_SOURCE_DIR}/CMakeLists.txt
 # directory when we use recursive globbing, but we specifically DON'T use that
 # here. But just for safety.
 if("${LIBRA_DRIVER}" MATCHES "CONAN")
-  list(FILTER ${PROJECT_NAME}_CMAKE_SRC EXCLUDE REGEX "\.conan2")
+  list(
+    FILTER
+    ${PROJECT_NAME}_CMAKE_SRC
+    EXCLUDE
+    REGEX
+    "\.conan2")
 endif()
 
 set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
@@ -235,6 +249,10 @@ set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
 # ##############################################################################
 # Target Definitions
 # ##############################################################################
+# 2025-10-17 [JRH]: This has to be BEFORE including the project-local stuff so
+# that any targets defined in there get the correct standard set automatically.
+include(libra/compile/standard)
+
 # Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
 # located in under cmake/project-local.cmake in the root of whatever
 # directory/repo is using LIBRA.
@@ -310,7 +328,12 @@ if(${LIBRA_ANALYSIS})
   libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
   # Should not be needed, but just for safety
   if("${LIBRA_DRIVER}" MATCHES "CONAN")
-    list(FILTER ${PROJECT_NAME}_ANALYSIS_SRC EXCLUDE REGEX "\.conan2")
+    list(
+      FILTER
+      ${PROJECT_NAME}_ANALYSIS_SRC
+      EXCLUDE
+      REGEX
+      "\.conan2")
   endif()
 
   # Multi-funtion tools
@@ -351,7 +374,12 @@ if(LIBRA_DOCS)
   libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
   # Should not be needed, but just for safety
   if("${LIBRA_DRIVER}" MATCHES "CONAN")
-    list(FILTER ${PROJECT_NAME}_DOCS_SRC EXCLUDE REGEX "\.conan2")
+    list(
+      FILTER
+      ${PROJECT_NAME}_DOCS_SRC
+      EXCLUDE
+      REGEX
+      "\.conan2")
   endif()
 
   libra_apidoc_configure_doxygen()

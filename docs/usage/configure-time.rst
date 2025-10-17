@@ -248,6 +248,42 @@ Knobs For Configuring Builds
 
        Default: RETURN.
 
+   .. tab:: LIBRA_GLOBAL_C_FLAGS
+
+            Specify that the total set of C flags (diagnostic, sanitizer,
+            optimization, defines, etc.) which are automatically set for
+            ``${PROJECT_NAME}`` should be applied globally via
+            ``CMAKE_C_FLAGS_<built type>``.
+
+            Use with care, as applying said flags to external dependencies built
+            alongside your code can cause a cascade of unintended errors. That
+            said, for well-behavior dependencies, this can be a nice way of
+            ensuring uniformity of build options when building from source.
+
+            Note that when disabled, the ``target_compile_options()`` set by
+            LIBRA are private, and only the ``target_compile_definitions()`` are
+            public and propagated.
+
+            Default: NO.
+
+   .. tab:: LIBRA_GLOBAL_CXX_FLAGS
+
+            Specify that the total set of C++ flags (diagnostic, sanitizer,
+            optimization, defines, etc.) which are automatically set for
+            ``${PROJECT_NAME}`` should be applied globally via
+            ``CMAKE_CXX_FLAGS_<built type>``.
+
+            Use with care, as applying said flags to external dependencies built
+            alongside your code can cause a cascade of unintended errors. That
+            said, for well-behavior dependencies, this can be a nice way of
+            ensuring uniformity of build options when building from source.
+
+            Note that when disabled, the ``target_compile_options()`` set by
+            LIBRA are private, and only the ``target_compile_definitions()`` are
+            public and propagated.
+
+            Default: NO.
+
    .. tab:: LIBRA_ERL
 
       Specify Event Reporting Level (ERL). LIBRA does not prescribe a given

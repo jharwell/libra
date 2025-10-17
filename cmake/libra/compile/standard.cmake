@@ -17,8 +17,8 @@ include(libra/messaging)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+# 2025-10-17 [JRH]: These are ordered in from greatest to least precedence.
 set(LIBRA_C_STD_CANDIDATES 11 99)
-
 set(LIBRA_CXX_STD_CANDIDATES 20 17 14 11)
 
 if(NOT CMAKE_C_STANDARD)

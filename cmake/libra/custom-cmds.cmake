@@ -180,6 +180,8 @@ function(libra_config_summary)
       CMAKE_CXX_COMPILER
       LIBRA_C_STANDARD
       LIBRA_CXX_STANDARD
+      LIBRA_GLOBAL_C_FLAGS
+      LIBRA_GLOBAL_CXX_FLAGS
       LIBRA_NO_CCACHE
       LIBRA_BUILD_PROF
       LIBRA_UNSAFE_OPT
@@ -217,6 +219,8 @@ function(libra_config_summary)
       "Generator.............................: ${ColorBold}${EMIT_CMAKE_GENERATOR}${ColorReset} [CMAKE_GENERATOR]"
   )
 
+  # message(STATUS "${BoldBlue}PATHS${ColorReset}")
+  message("")
   # paths
   message(
     STATUS
@@ -230,6 +234,8 @@ function(libra_config_summary)
   endif()
 
   # build info
+  message("")
+  # message(STATUS "${BoldBlue}BUILD INFO${ColorReset}")
   message(
     STATUS
       "Build type............................: ${ColorBold}${EMIT_CMAKE_BUILD_TYPE}${ColorReset} [CMAKE_BUILD_TYPE]"
@@ -262,30 +268,15 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Optimization level override...........: ${ColorBold}${EMIT_LIBRA_OPT_LEVEL}${ColorReset} [LIBRA_OPT_LEVEL]"
+      "Global C flags........................: ${ColorBold}${EMIT_LIBRA_GLOBAL_C_FLAGS}${ColorReset} [LIBRA_GLOBAL_C_FLAGS]"
+  )
+  message(
+    STATUS
+      "Global C++ flags......................: ${ColorBold}${EMIT_LIBRA_GLOBAL_CXX_FLAGS}${ColorReset} [LIBRA_GLOBAL_CXX_FLAGS]"
   )
 
-  message(
-    STATUS
-      "Unsafe optimization options...........: ${ColorBold}${EMIT_LIBRA_UNSAFE_OPT}${ColorReset} [LIBRA_UNSAFE_OPT]"
-  )
-  message(
-    STATUS
-      "Extra optimization options............: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
-  )
-  message(
-    STATUS
-      "Disable debug info....................: ${ColorBold}${EMIT_LIBRA_NO_DEBUG_INFO}${ColorReset} [LIBRA_NO_DEBUG_INFO]"
-  )
-  message(
-    STATUS
-      "Disable ccache........................: ${ColorBold}${EMIT_LIBRA_NO_CCACHE}${ColorReset} [LIBRA_NO_CCACHE]"
-  )
-  message(
-    STATUS
-      "Enable build profiling................: ${ColorBold}${EMIT_LIBRA_BUILD_PROF}${ColorReset} [LIBRA_BUILD_PROF]"
-  )
-
+  # message(STATUS "${BoldBlue}FEATURES${ColorReset}")
+  message("")
   # LIBRA options
   message(
     STATUS
@@ -309,7 +300,32 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable API doc tools..................: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (${MAKE_NAME} apidoc,apidoc-check-{doxygen,clang})"
+      "Optimization level override...........: ${ColorBold}${EMIT_LIBRA_OPT_LEVEL}${ColorReset} [LIBRA_OPT_LEVEL]"
+  )
+
+  message(
+    STATUS
+      "Unsafe optimization options...........: ${ColorBold}${EMIT_LIBRA_UNSAFE_OPT}${ColorReset} [LIBRA_UNSAFE_OPT]"
+  )
+  message(
+    STATUS
+      "Extra optimization options............: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
+  )
+  message(
+    STATUS
+      "Disable debug info....................: ${ColorBold}${EMIT_LIBRA_NO_DEBUG_INFO}${ColorReset} [LIBRA_NO_DEBUG_INFO]"
+  )
+  message(
+    STATUS
+      "Disable ccache........................: ${ColorBold}${EMIT_LIBRA_NO_CCACHE}${ColorReset} [LIBRA_NO_CCACHE]"
+  )
+  message(
+    STATUS
+      "Enable build profiling................: ${ColorBold}${EMIT_LIBRA_BUILD_PROF}${ColorReset} [LIBRA_BUILD_PROF]"
+  )
+  message(
+    STATUS
+      "Enable Link-Time Optimization (LTO)...: ${ColorBold}${EMIT_LIBRA_LTO}${ColorReset} [LIBRA_LTO]"
   )
   message(
     STATUS
@@ -329,6 +345,18 @@ function(libra_config_summary)
   )
   message(
     STATUS
+      "Stdlib options........................: ${ColorBold}${EMIT_LIBRA_STDLIB}${ColorReset} [LIBRA_STDLIB={NONE,STDCXX,CXX}]"
+  )
+  message(
+    STATUS
+      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,CFI,GOT,FORMAT,ALL}]"
+  )
+  message(
+    STATUS
+      "Enable API doc tools..................: ${ColorBold}${EMIT_LIBRA_DOCS}${ColorReset} [LIBRA_DOCS] (${MAKE_NAME} apidoc,apidoc-check-{doxygen,clang})"
+  )
+  message(
+    STATUS
       "Enable code checkers..................: ${ColorBold}${EMIT_LIBRA_ANALYSIS}${ColorReset} [LIBRA_ANALYSIS] (${MAKE_NAME} {analyze,analyze-{clang-{check,tidy,format},cppcheck,cmake-format}})"
   )
   message(
@@ -341,19 +369,7 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Enable Link-Time Optimization (LTO)...: ${ColorBold}${EMIT_LIBRA_LTO}${ColorReset} [LIBRA_LTO]"
-  )
-  message(
-    STATUS
       "Enable optimization reports...........: ${ColorBold}${EMIT_LIBRA_OPT_REPORT}${ColorReset} [LIBRA_OPT_REPORT]"
-  )
-  message(
-    STATUS
-      "Stdlib options........................: ${ColorBold}${EMIT_LIBRA_STDLIB}${ColorReset} [LIBRA_STDLIB={NONE,STDCXX,CXX}]"
-  )
-  message(
-    STATUS
-      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,CFI,GOT,FORMAT,ALL}]"
   )
 
   message("")

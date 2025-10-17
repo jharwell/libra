@@ -19,7 +19,7 @@ include(GNUInstallDirs)
 # Enables the installed project to then be used with find_package()
 #
 # ##############################################################################
-function(libra_configure_exports_as TARGET PREFIX)
+function(libra_configure_exports TARGET PREFIX)
   include(CMakePackageConfigHelpers)
 
   # Project exports file (i.e., the file which defines everything necessary to
