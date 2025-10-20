@@ -37,14 +37,21 @@ File Discovery
 
 
 The following variables are available for fine-tuning the cmake configuration
-process. All of these variables can be specified on the command line via ``-D``,
-or put in your ``project-local.cmake``--see :ref:`usage/project-local` for
-details.
+process; thus, these variables are indended to be set on the command line via
+``-D``, as they enable/disable LIBRA features, instead of configuring a
+feature. However, *most* can be put in your ``project-local.cmake`` if you want
+to--see :ref:`usage/project-local` for details about restrictions.
+
+.. IMPORTANT:: Unless specified otherwise, all knobs only apply to the current
+               project and/or target; i.e., no ``CMAKE_XXX`` global variables
+               are set. This helps to prevent untended cascades of build options
+               which might cause issues.
 
 .. _usage/configure-time/libra:
 
 Knobs For Configuring LIBRA/Cmake
 =================================
+
 
 .. tabs::
 
@@ -55,7 +62,8 @@ Knobs For Configuring LIBRA/Cmake
       headers which you want to suppress all warnings for by treating them as
       system headers when you can't/don't want to install things as root.
 
-      Only available if ``LIBRA_DRIVER=SELF``.
+      Only available if ``LIBRA_DRIVER=SELF``. Cannot be set in
+      ``project-local.cmake``.
 
       Default: ``$HOME/.local/system``
 
@@ -248,6 +256,44 @@ Knobs For Configuring Builds
 
        Default: RETURN.
 
+   .. tab:: LIBRA_C_STANDARD
+
+            The C standard to use. Defaults to the latest C standard which is
+            supported by the selected ``CMAKE_C_COMPILER``. Respects
+            ``CMAKE_C_STANDARD`` if set.
+
+            .. versionadded:: 0.8.4
+
+   .. tab:: LIBRA_CXX_STANDARD
+
+            The C++ standard to use. Defaults to the latest C++ standard which
+            is supported by the selected ``CMAKE_CXX_COMPILER``. Respects
+            ``CMAKE_CXX_STANDARD`` if set.
+
+            .. versionadded:: 0.8.4
+
+   .. tab:: LIBRA_GLOBAL_C_STANDARD
+
+            Specify that the what C standard is detected for the selected
+            compiler is set globally via ``CMAKE_C_STANDARD``. This results in
+            all targets, not just the automatically defined ``${PROJECT_NAME}``
+            target getting this property set.
+
+            Default: NO.
+
+            .. versionadded:: 0.9.5
+
+   .. tab:: LIBRA_GLOBAL_CXX_STANDARD
+
+            Specify that the what C++ standard is detected for the selected
+            compiler is set globally via ``CMAKE_CXX_STANDARD``. This results in
+            all targets, not just the automatically defined ``${PROJECT_NAME}``
+            target getting this property set.
+
+            Default: NO.
+
+            .. versionadded:: 0.9.5
+
    .. tab:: LIBRA_GLOBAL_C_FLAGS
 
             Specify that the total set of C flags (diagnostic, sanitizer,
@@ -257,7 +303,7 @@ Knobs For Configuring Builds
 
             Use with care, as applying said flags to external dependencies built
             alongside your code can cause a cascade of unintended errors. That
-            said, for well-behavior dependencies, this can be a nice way of
+            said, for well-behaved dependencies, this can be a nice way of
             ensuring uniformity of build options when building from source.
 
             Note that when disabled, the ``target_compile_options()`` set by
@@ -265,6 +311,8 @@ Knobs For Configuring Builds
             public and propagated.
 
             Default: NO.
+
+            .. versionadded:: 0.9.5
 
    .. tab:: LIBRA_GLOBAL_CXX_FLAGS
 
@@ -275,7 +323,7 @@ Knobs For Configuring Builds
 
             Use with care, as applying said flags to external dependencies built
             alongside your code can cause a cascade of unintended errors. That
-            said, for well-behavior dependencies, this can be a nice way of
+            said, for well-behaved dependencies, this can be a nice way of
             ensuring uniformity of build options when building from source.
 
             Note that when disabled, the ``target_compile_options()`` set by
@@ -284,10 +332,12 @@ Knobs For Configuring Builds
 
             Default: NO.
 
+            .. versionadded:: 0.9.5
+
    .. tab:: LIBRA_ERL
 
       Specify Event Reporting Level (ERL). LIBRA does not prescribe a given
-      event reporting framework (e.g., log4ccx, log4c) which must be
+      event reporting framework (e.g., log4ccx, log4c, spdlog) which must be
       used. Instead, it provides a simple declarative interface for specifying
       the desired *result* of framework configuration at the highest
       level. Possible values of this option are:
@@ -328,7 +378,7 @@ Knobs For Configuring Builds
 
       - ``GEN`` - Input stage
 
-      - ``USE`` - Final stage (after executed the ``GEN`` build to get
+      - ``USE`` - Final stage (after executing the ``GEN`` build to get
         profiling info).
 
       Default: NONE.
@@ -352,10 +402,17 @@ Knobs For Configuring Builds
 
    .. tab:: LIBRA_STDLIB
 
-      Enable using the standard library. You would only turn this off for
-      bare-metal builds (e.g., bootstraps).
+      Enable using the standard library and/or select *which* standard library
+      to use. You would only turn this off for bare-metal builds (e.g.,
+      bootstraps). Valid values are:
 
-      Default: YES.
+      - ``NONE`` - Don't use the stdlib at all. Defines ``__nostdlib__``.
+
+      - ``CXX`` - Use libc++, if the compiler supports it.
+
+      - ``STDCXX`` - Use libstdc++, if the compiler supports itn.
+
+      Default: UNDEFINED; use compiler built-in default.
 
    .. tab:: LIBRA_NO_DEBUG_INFO
 

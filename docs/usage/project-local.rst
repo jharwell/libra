@@ -12,7 +12,7 @@ predefined things in LIBRA to make your life easier. For what things LIBRA
 defines for you to use in this file, see below.
 
 .. NOTE:: All cmake functions which LIBRA exposes are prefixed with ``libra_``;
-          all other functions should be considered not part of the API can can
+          all other functions should be considered not part of the API and can
           change at any time.
 
 .. _usage/project-local/variables:
@@ -20,11 +20,17 @@ defines for you to use in this file, see below.
 Variables
 =========
 
-Most variables of the form ``LIBRA_XX`` detailed in :ref:`usage/configure-time`
-can be permanently set in your ``project-local.cmake``, but not all. Exceptions
-are:
+The variables listed in this section are generally for configuring various LIBRA
+features, and therefore are intended to be set via
+``project-local.cmake``. However, many of the cmdline interface variables
+detailed in :ref:`usage/configure-time` can be permanently in
+``project-local.cmake`` too, but not all of them. Exceptions are:
 
 - ``LIBRA_DEPS_PREFIX``
+
+- ``LIBRA_C_STANDARD``
+
+- ``LIBRA_CXX_STANDARD``
 
 LIBRA also provides the following additional variables which can be used. You
 *might* be able to set them on the cmdline, but doing so is not recommended.
