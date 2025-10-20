@@ -6,7 +6,7 @@ Static Analysis
 
 LIBRA attempts to make static analysis as easy and automated as possible; in
 most cases, you should not have to do *anything* to get analysis working other
-than to enable it via ``LIBRA_ANALYSIS=YES``.
+than to enable it via :cmake:variable:`LIBRA_ANALYSIS`.
 
 LIBRA attempts to detect the languages enabled for your cmake project, and sets
 the source files to pass to the analysis targets appropriately. This allows for
@@ -113,4 +113,4 @@ This is expected because the docs for ``--checks`` says::
 
 So, when using LIBRA's automation, if you want to selectively disable checks
 within a category *other* than the ones which LIBRA disables, you can use
-``LIBRA_CLANG_TIDY_EXTRA_ARGS`` as described in :ref:`usage/project-local`.
+:cmake:variable:`LIBRA_CLANG_TIDY_EXTRA_ARGS`.

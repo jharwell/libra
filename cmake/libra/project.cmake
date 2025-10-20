@@ -28,15 +28,7 @@ include(libra/colorize)
 include(libra/custom-cmds)
 
 # Set policies
-cmake_policy(SET CMP0028 NEW) # ENABLE CMP0028: Double colon in target name
-                              # means ALIAS or IMPORTED target.
-cmake_policy(SET CMP0054 NEW) # ENABLE CMP0054: Only interpret if() arguments as
-                              # variables or keywords when unquoted.
-cmake_policy(SET CMP0063 NEW) # ENABLE CMP0063: Honor visibility properties for
-                              # all target types.
-cmake_policy(SET CMP0074 NEW) # ENABLE CMP0074: find_package uses
-                              # <PackageName>_ROOT variables.
-cmake_policy(SET CMP0072 NEW) # Prefer modern OpenGL
+include(libra/policies)
 
 # ##############################################################################
 # Project Cmdline Configuration
@@ -61,6 +53,8 @@ option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
 option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally?" OFF)
+option(LIBRA_GLOBAL_C_STANDARD "Should LIBRA set the C standard globally?" OFF)
+option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
 
 set(LIBRA_DRIVER
     "SELF"
@@ -251,7 +245,11 @@ set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
 # ##############################################################################
 # 2025-10-17 [JRH]: This has to be BEFORE including the project-local stuff so
 # that any targets defined in there get the correct standard set automatically.
-include(libra/compile/standard)
+# This only applies when LIBRA is setting global things. This file is included
+# AFTER project-local stuff in the general case.
+if(${LIBRA_GLOBAL_C_STANDARD} OR ${LIBRA_GLOBAL_CXX_STANDARD})
+  include(libra/compile/standard)
+endif()
 
 # Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
 # located in under cmake/project-local.cmake in the root of whatever

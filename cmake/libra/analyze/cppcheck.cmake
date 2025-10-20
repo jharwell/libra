@@ -65,7 +65,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
         "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
         "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
         "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
       COMMENT "Running ${cppcheck_NAME} with compdb")
   else()
     add_custom_target(${CHECK_TARGET})

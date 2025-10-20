@@ -20,10 +20,17 @@ Motivation
   flag I want to add, or a new static analysis checker, etc., I would have to go
   and add it to EVERY project.
 
-- No existing C/C++ build systems supported doing things like running one or
+- No existing C/C++ build system supported doing things like running one or
   more static analyzers on a repository, formatting the repository, building and
   running tests, etc., using ``make analyze``, ``make format``, or ``make
   tests``, or other simple cmdline syntax.
+
+- No existing C/C++ build system supported doing configuring compilation in a
+  declarative way across compilers. E.g., "enable the standard library", "enable
+  the address sanitizer and the undefined behavior sanitizer, but not any of the
+  others". Doing so is incredibly useful because it allows devs to focus on the
+  *result* of what they want, and not have to worry about compiler specifics, or
+  even to remember the specify option to do what they want on e.g., gcc.
 
 Capabilities
 ============
@@ -39,6 +46,9 @@ LIBRA can do many things for you when cmake is run. Some highlights include:
   supercomputing multithread/multiprocess applications.
 
 - Support for fortifying projects from security attacks.
+
+- Providing plumbing for running various static analyzers, including those for
+  checking code documentation markup.
 
 - Providing plumbing to aid in debugging; e.g., through various sanitizers.
 
@@ -62,7 +72,18 @@ Build Time
 
 After configuration, LIBRA can do many things when running ``make`` (or whatever
 the build system is). In addition to being able to actually build the software,
-this project enables the following additional capabilities via targets:
+this project enables many additional capabilities via targets. Some highlights
+include:
+
+- Running all tests {unit, regression, integration}
+
+- Running static analyzers, formatters, etc.
+
+- Building documentation
+
+- Generating coverage reports
+
+- Packaging tasks
 
 See :ref:`usage/build-time` for details.
 

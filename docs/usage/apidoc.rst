@@ -49,8 +49,9 @@ to the build stage, if desired.
       If your project depends on/links with 3rd party libraries which are not
       "system" libraries, then clang will warn about documentation issues in the
       3rd party headers as well, and error out, even if your documentation is
-      clean. This can happen with ``LIBRA_DRIVER=CONAN``, or (more rarely)
-      stand-alone 3rd party libraries don't specify their includes properly.
+      clean. This can happen with :cmake:variable:`LIBRA_DRIVER`\= ``CONAN``, or
+      (more rarely) stand-alone 3rd party libraries don't specify their includes
+      properly.
 
       There are two solutions to this:
 

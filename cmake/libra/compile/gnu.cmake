@@ -113,8 +113,7 @@ endif()
 
 if(LIBRA_MT)
   set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -fopenmp")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -fopenmp")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
+  target_link_options(${PROJECT_NAME} PUBLIC -fopenmp)
 endif()
 
 set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
@@ -135,8 +134,14 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     -Wno-suggest-attribute=cold")
 endif()
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
+# Always use the gold linker--it's a drop in replacement that is better in every
+# way. Link with the # of cores on the host machine for speed.
+target_link_options(
+  ${PROJECT_NAME}
+  PUBLIC
+  -fuse-ld=gold
+  -Wl,--threads
+  -Wl,--thread-count=${N})
 
 # ##############################################################################
 # Diagnostic Options
@@ -157,7 +162,8 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wmissing-declarations
     -Wmissing-include-dirs
     -Wstrict-overflow=5
-    # -Wsuggest-attribute=pure -Wsuggest-attribute=const
+    -Wsuggest-attribute=pure
+    -Wsuggest-attribute=const
     -Wsuggest-attribute=format
     -Wsuggest-attribute=cold
     -Wsuggest-final-types
@@ -182,8 +188,12 @@ set(LIBRA_BASE_DIAG_CANDIDATES
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
   set(LIBRA_C_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES} -Wstrict-prototypes -Wmissing-prototypes
-      -Wbad-function-cast -Wnested-externs -Wnull-dereference)
+      ${LIBRA_BASE_DIAG_CANDIDATES}
+      -Wstrict-prototypes
+      -Wmissing-prototypes
+      -Wbad-function-cast
+      -Wnested-externs
+      -Wnull-dereference)
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C compiler")
 endif()
@@ -347,8 +357,11 @@ set(BASE_CODE_COV_OPTIONS
 if(LIBRA_CODE_COV)
   set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
   set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lgcov")
+
+  # 2025-10-21 [JRH]: Has to be 'gcov' not '-lgcov', because libraries are
+  # APPENDED to the link args (what we want), and args are PREPENDED (what we
+  # don't want).
+  target_link_libraries(${PROJECT_NAME} PUBLIC gcov)
 endif()
 
 # ##############################################################################

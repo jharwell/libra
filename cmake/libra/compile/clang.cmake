@@ -146,9 +146,8 @@ if(LIBRA_UNSAFE_OPT)
 endif()
 
 if(LIBRA_MT)
+  target_link_options(${PROJECT_NAME} PUBLIC -fopenmp)
   set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -fopenmp")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fopenmp")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -fopenmp")
 endif()
 
 set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
@@ -161,8 +160,17 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(CMAKE_RANLIB "llvm-ranlib")
 endif()
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
+include(ProcessorCount)
+ProcessorCount(N)
+
+# Always use the gold linker--it's a drop in replacement that is better in every
+# way. Link with the # of cores on the host machine for speed.
+target_link_options(
+  ${PROJECT_NAME}
+  PUBLIC
+  -fuse-ld=gold
+  -Wl,--threads
+  -Wl,--thread-count=${N})
 
 # ##############################################################################
 # Diagnostic Options
@@ -196,8 +204,12 @@ endif()
 if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
   set(LIBRA_CXX_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES} -fdiagnostics-show-template-tree
-      -Wno-c++98-compat -Wno-c++98-compat-pedantic -Weffc++ -Wno-c99-extensions)
+      ${LIBRA_BASE_DIAG_CANDIDATES}
+      -fdiagnostics-show-template-tree
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Weffc++
+      -Wno-c99-extensions)
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
 endif()
@@ -246,9 +258,12 @@ set(ASAN_OPTIONS -fno-omit-frame-pointer -fno-optimize-sibling-calls
 set(SSAN_OPTIONS -fno-omit-frame-pointer -fstack-protector-all
                  -fstack-protector-strong)
 set(UBSAN_OPTIONS
-    -fno-omit-frame-pointer -fsanitize=undefined
-    -fsanitize=float-divide-by-zero -fsanitize=unsigned-integer-overflow
-    -fsanitize=local-bounds -fsanitize=nullability)
+    -fno-omit-frame-pointer
+    -fsanitize=undefined
+    -fsanitize=float-divide-by-zero
+    -fsanitize=unsigned-integer-overflow
+    -fsanitize=local-bounds
+    -fsanitize=nullability)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread)
 
 if(NOT LIBRA_SAN)

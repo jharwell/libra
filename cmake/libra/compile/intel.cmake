@@ -49,7 +49,7 @@ endif()
 if(LIBRA_LTO)
   set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -ipo")
   if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_SHARED_FLAGS} -ipo")
+    target_link_options(${PROJECT_NAME} PUBLIC -ipo)
   endif()
 
 endif()
@@ -207,8 +207,12 @@ set(BASE_REPORT_OPTIONS -qopt-report-phase=all -qopt-report=4
                         -qopt-report-file=${REPORT_DIR}/opt.rprt)
 
 if(LIBRA_OPT_REPORT)
-  set(BASE_REPORT_OPTIONS ${BASE_REPORT_OPTIONS} -guide -guide-par -guide-vec
-                          -guide-data-trans)
+  set(BASE_REPORT_OPTIONS
+      ${BASE_REPORT_OPTIONS}
+      -guide
+      -guide-par
+      -guide-vec
+      -guide-data-trans)
   set(LIBRA_C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
   set(LIBRA_CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
 
