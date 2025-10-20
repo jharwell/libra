@@ -7,6 +7,7 @@
 # Custom messaging
 # ##############################################################################
 include(libra/messaging)
+include(libra/defaults)
 
 # ##############################################################################
 # Configure CFLAGS and whatnot for different C/C++ compilers.
@@ -35,9 +36,9 @@ endif()
 # ##############################################################################
 set(LIBRA_PGO_MODES NONE GEN USE)
 
-if(NOT "${LIBRA_PGO}" IN_LIST LIBRA_PGO_MODES)
+if(NOT ${LIBRA_PGO} IN_LIST LIBRA_PGO_MODES)
   libra_message(FATAL_ERROR
-                "Bad PGO specification '${LIBRA_PGO}. Must be {NONE,GEN,USE}.")
+                "Bad PGO specification '${LIBRA_PGO}'. Must be {NONE,GEN,USE}.")
 endif()
 
 # ##############################################################################

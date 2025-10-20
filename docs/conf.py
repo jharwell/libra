@@ -70,6 +70,7 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.ifconfig",
+    "sphinxcontrib.moderncmakedomain",
     "sphinx_rtd_theme",
     'sphinx_tabs.tabs',
 ]

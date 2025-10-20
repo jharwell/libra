@@ -18,8 +18,11 @@ Actions That Build Things
 =========================
 
 .. list-table::
-   :widths: 5,95
    :header-rows: 1
+
+   * - Target
+
+     - Description
 
    * - ``unit-tests``
 
@@ -31,9 +34,9 @@ Actions That Build Things
        for a single unit test named ``hfsm-utest.cpp`` that lives somewhere
        under ``tests/``.
 
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
-       configuration. No tests are included in the default build--see
-       :ref:`usage/testing/default-build` for rationale.
+       Requires that :cmake:variable:`LIBRA_TESTS` is true. No tests are
+       included in the default build--see :ref:`usage/testing/default-build` for
+       rationale.
 
    * - ``integration-tests``
 
@@ -45,7 +48,21 @@ Actions That Build Things
        for a single unit test named ``hfsm-itest.cpp`` that lives somewhere
        under ``tests/``.
 
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       Requires that :cmake:variable:`LIBRA_TESTS` was passed to cmake during
+       configuration. No tests are included in the default build--see
+       :ref:`usage/testing/default-build` for rationale.
+
+   * - ``regression-tests``
+
+     - Build all of the regression tests for the project. If you want to just
+       build a single test, you can do ``make <name of test>``. For example::
+
+         make hfsm-itest
+
+       for a single unit test named ``hfsm-rtest.cpp`` that lives somewhere
+       under ``tests/``.
+
+       Requires that :cmake:variable:`LIBRA_TESTS` was passed to cmake during
        configuration. No tests are included in the default build--see
        :ref:`usage/testing/default-build` for rationale.
 
@@ -53,7 +70,7 @@ Actions That Build Things
 
      - Build ``all-tests``, and then run them via ``CTest``.
 
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       Requires that :cmake:variable:`LIBRA_TESTS` was passed to cmake during
        configuration. See :ref:`usage/testing/builtin` for more details about
        this target.
 
@@ -62,7 +79,7 @@ Actions That Build Things
      - Build all of the integration and unit tests for the project; same as
        ``make unit-tests && make integration-tests``.
 
-       Requires that ``LIBRA_TESTS=YES`` was passed to cmake during
+       Requires that :cmake:variable:`LIBRA_TESTS` was passed to cmake during
        configuration. Not included in the default build--see
        :ref:`usage/testing/default-build` for rationale.
 
@@ -75,14 +92,15 @@ Actions For Supporting SW Engineering
    :widths: 5,95
    :header-rows: 1
 
-   * - make target
+   * - Target
 
      - Description
 
    * - ``test``
 
      - Run all of the built tests for the project via ``ctest``. Does *NOT*
-       actually build the tests, which is unfortunate.
+       actually build the tests, which is unfortunate. Requires
+       :cmake:variable:`LIBRA_TESTS` is true.
 
    * - ``format``
 
@@ -95,7 +113,9 @@ Actions For Supporting SW Engineering
        - ``format-cmake-format`` - Runs the ``cmake-format`` on the
            repository.
 
-           .. versionadded:: 0.8.15
+       Requires :cmake:variable:`LIBRA_ANALYSIS` is true.
+
+       .. versionadded:: 0.8.15
 
 
    * - ``analyze``
@@ -131,7 +151,8 @@ Actions For Supporting SW Engineering
           code checking, which is less intense.
 
 
-       For more details, see :ref:`usage/analysis`.
+       Requires :cmake:variable:`LIBRA_ANALYSIS` is true. For more details, see
+       :ref:`usage/analysis`.
 
    * - ``fix``
 
@@ -146,10 +167,12 @@ Actions For Supporting SW Engineering
 
          .. versionadded:: 0.8.12
 
+       Requires :cmake:variable:`LIBRA_ANALYSIS` is true.
 
    * - ``apidoc``
 
-     - Generate the API documentation. For more details see :ref:`usage/apidoc`.
+     - Generate the API documentation.  Requires :cmake:variable:`LIBRA_DOCS` is
+       true.  For more details see :ref:`usage/apidoc`.
 
    * - ``apidoc-check``
 
@@ -160,8 +183,8 @@ Actions For Supporting SW Engineering
 
        - ``apidoc-check-doxygen`` - Runs ``doxygen`` with warnings as errors.
 
-
-       For more details see :ref:`usage/apidoc/check`.
+       Requires :cmake:variable:`LIBRA_DOCS` is true.  For more details see
+       :ref:`usage/apidoc/check`.
 
    * - ``package``
 
@@ -169,7 +192,7 @@ Actions For Supporting SW Engineering
        ``libra_configure_cpack()`` to have been called in
        ``project-local.cmake``.
 
-       Not available if ``LIBRA_DRIVER=CONAN``.
+       Requires :cmake:variable:`LIBRA_DRIVER` is not ``CONAN``.
 
    * - ``precoverage-info``
 
@@ -190,6 +213,8 @@ Actions For Supporting SW Engineering
        may or may not be desirable; if it is not, then don't call this target
        before running the project, and you'll get a relative report instead.
 
+       Requires :cmake:variable:`LIBRA_TESTS` is true.
+
    * - ``coverage-report``
 
      - Run ``lcov`` to generate a code coverage report (presumably from the
@@ -208,3 +233,5 @@ Actions For Supporting SW Engineering
        no functions executed, then they will not be included in the results,
        skewing reporting coverage. This may or may not be desirable. See
        ``precoverage-report`` if it is undesirable.
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true.

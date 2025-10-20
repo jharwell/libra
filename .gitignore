@@ -51,3 +51,4 @@ build
 node_modules
 docs/_build
 __pycache__/
+tests/cmake-pkg/build

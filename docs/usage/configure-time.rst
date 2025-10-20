@@ -37,331 +37,413 @@ File Discovery
 
 
 The following variables are available for fine-tuning the cmake configuration
-process. All of these variables can be specified on the command line via ``-D``,
-or put in your ``project-local.cmake``--see :ref:`usage/project-local` for
-details.
+process; thus, these variables are indended to be set on the command line via
+``-D``, as they enable/disable LIBRA features, instead of configuring a
+feature. However, *most* can be put in your ``project-local.cmake`` if you want
+to--see :ref:`usage/project-local` for details about restrictions.
+
+.. IMPORTANT:: Unless specified otherwise, all knobs only apply to the current
+               project and/or target; i.e., no ``CMAKE_XXX`` global variables
+               are set. This helps to prevent untended cascades of build options
+               which might cause issues.
 
 .. _usage/configure-time/libra:
 
-Knobs For Configuring LIBRA/Cmake
+Knobs For Configuring LIBRA/CMake
 =================================
 
-.. tabs::
 
-   .. tab:: LIBRA_DEPS_PREFIX
+.. cmake:variable:: LIBRA_DEPS_PREFIX
 
-      The location where cmake should search for other locally installed
-      libraries (e.g., ``$HOME/.local``). VERY useful to separate out 3rd party
-      headers which you want to suppress all warnings for by treating them as
-      system headers when you can't/don't want to install things as root.
+   :default: $HOME/.local/system
+   :type: STRING
 
-      Only available if ``LIBRA_DRIVER=SELF``.
+   The location where cmake should search for other locally installed libraries
+   (e.g., ``$HOME/.local``). VERY useful to separate out 3rd party headers which
+   you want to suppress all warnings for by treating them as system headers when
+   you can't/don't want to install things as root.
 
-      Default: ``$HOME/.local/system``
+   Only available if ``LIBRA_DRIVER=SELF``. Cannot be set in
+   ``project-local.cmake``.
 
-   .. tab:: LIBRA_DRIVER
+.. cmake:variable:: LIBRA_DRIVER
 
-      The *primary* user-visible driver to LIBRA, if any. Possible values are:
+   :default: SELF
+   :type: STRING
 
-      - ``SELF`` - LIBRA itself is the driver/main way users interact with the
-        build system; for all intents and purposes, LIBRA *IS* the build
-        system. It also handles packaging duties, to the extent that cmake
-        supports packaging.
+   The *primary* user-visible driver to LIBRA, if any. Possible values are:
 
-      - ``CONAN`` - CONAN is the primary driver of the build system. It sets up
-        the environment and handles all packaging tasks. LIBRA only has to run
-        the actual builds.
+   - ``SELF`` - LIBRA itself is the driver/main way users interact with the
+     build system; for all intents and purposes, LIBRA *IS* the build system. It
+     also handles packaging duties, to the extent that cmake supports packaging.
 
-      Default: SELF.
+   - ``CONAN`` - CONAN is the primary driver of the build system. It sets up the
+     environment and handles all packaging tasks. LIBRA only has to run the
+     actual builds.
 
-   .. tab:: LIBRA_SUMMARY
+.. cmake:variable:: LIBRA_SUMMARY
 
-      Show a configuration summary after the configuration step finishes.
+   :default: YES
+   :type: BOOL
 
-      Default: NO.
+   Show a configuration summary after the configuration step finishes.
 
 .. _usage/configure-time/sw-eng:
 
 Knobs For Supporting SW Engineering
 ===================================
 
-.. tabs::
 
-   .. tab:: LIBRA_DOCS
+.. cmake:variable:: LIBRA_DOCS
 
-      Enable documentation build via ``make apidoc``.
+   :default: NO
+   :type: BOOL
 
-      Default: NO.
+   Enable documentation build via ``make apidoc``.
 
-   .. tab:: LIBRA_CODE_COV
+.. cmake:variable:: LIBRA_CODE_COV
 
-      Build in runtime code-coverage instrumentation for use with ``make
-      precoverage-report`` and ``make coverage-report``.
+   :default: NO
+   :type: BOOL
 
-      Default: NO.
-
-   .. tab:: LIBRA_SAN
-
-      Build in runtime checking of code using any compiler. When passed, the
-      value should be a comma-separated list of sanitizer groups to enable:
-
-      - ``MSAN`` - Memory checking/sanitization.
-
-      - ``ASAN`` - Address sanitization.
-
-      - ``SSAN`` - Aggressive stack checking.
-
-      - ``UBSAN`` - Undefined behavior checks.
-
-      - ``TSAN`` - Multithreading checks.
-
-      - ``None`` - None of the above.
-
-      The first 4 can generally be stacked together without issue. Depending on
-      compiler; the thread sanitizer is incompatible with some other sanitizer
-      groups.
-
-      Default: "None".
-
-   .. tab:: LIBRA_ANALYSIS
-
-      Enable static analysis targets for checkers, formatters, etc. See below
-      for the targets enabled (assuming the necessary executables are found).
-
-      Default: NO.
-
-   .. tab:: LIBRA_OPT_REPORT
-
-     Enable compiler-generated reports for optimizations performed, as well as
-     suggestions for further optimizations.
-
-     Default: NO.
-
-   .. tab:: LIBRA_FORTIFY
+   Build in runtime code-coverage instrumentation for use with ``make
+   precoverage-report`` and ``make coverage-report``.
 
 
-      Build in compiler support/runtime checking of code for heightened
-      security. Which options get passed to compiler/linker AND which groups are
-      supported is obviously compiler dependent.
+.. cmake:variable:: LIBRA_SAN
 
-      .. IMPORTANT:: When enabling things using this variable, you probably will
-                     have to compile *everything* with the same settings to
-                     avoid getting linker errors.
+   :default: NONE
+   :type: STRING
 
-      When passed, the value should be a comma-separated list of groups to
-      enable:
+   Build in runtime checking of code using any compiler. When passed, the
+   value should be a comma-separated list of sanitizer groups to enable:
 
-      - ``STACK`` - Fortify the stack: add stack protector, etc.
+   - ``MSAN`` - Memory checking/sanitization.
 
-      - ``SOURCE`` - Fortify source code via ``_FORTIFY_SOURCE=2``.
+   - ``ASAN`` - Address sanitization.
 
-      - ``LIBCXX_FAST`` - Fortify libc++ with the set of "fast" checks. clang
-        only. See `here <https://libcxx.llvm.org/Hardening.html>`_ for more
-        details. LIBRA does not currently set clang to use libc++ for you.
+   - ``SSAN`` - Aggressive stack checking.
 
-      - ``LIBCXX_EXTENSIVE`` - Fortify libc++ with the set of "extensive"
-        checks. clang only. See `here <https://libcxx.llvm.org/Hardening.html>`_
-        for more details. LIBRA does not currently set clang to use libc++ for
-        you.
+   - ``UBSAN`` - Undefined behavior checks.
 
-      - ``LIBCXX_DEBUG`` - Fortify libc++ with a comprehensive set of debug
-        checks that might slow things down a lot. clang only. See `here
-        <https://libcxx.llvm.org/Hardening.html>`_ for more details. LIBRA does
-        not currently set clang to use libc++ for you.
+   - ``TSAN`` - Multithreading checks.
 
-      - ``CFI`` - Fortify against Control Flow Integrity (CFI) attacks. clang
-        only.
+   - ``NONE`` - None of the above.
 
-      - ``GOT`` - Fortify against Global Offset Table (GOT) attacks with
-        read-only relocations and immediate symbol binding on load.
+   The first 4 can generally be stacked together without issue. Depending on
+   compiler; the thread sanitizer is incompatible with some other sanitizer
+   groups.
 
-      - ``FORMAT`` - Fortify against formatting attacks.
+.. cmake:variable:: LIBRA_ANALYSIS
 
-      - ``ALL`` - All of the above.
+   :default: NO
+   :type: BOOL
 
-      - ``NONE`` - None of the above.
+   Enable static analysis targets for checkers, formatters, etc. See below for
+   the targets enabled (assuming the necessary executables are found).
 
-      Default: NONE. Any non-None value also sets ``LIBRA_LTO=YES``.
+.. cmake:variable:: LIBRA_OPT_REPORT
 
-      .. versionadded:: 0.8.3
+   :default: NO
+   :type: BOOL
 
-   .. tab::  LIBRA_TESTS
+   Enable compiler-generated reports for optimizations performed, as well as
+   suggestions for further optimizations.
 
-      Enable building of tests via:
+.. cmake:variable:: LIBRA_FORTIFY
 
-      - ``make unit-tests`` (unit tests only)
+   :default: NONE. Any non-None value also sets ``LIBRA_LTO=YES``.
+   :type: STRING
 
-      - ``make integration-tests`` (integration tests only)
+   Build in compiler support/runtime checking of code for heightened
+   security. Which options get passed to compiler/linker AND which groups are
+   supported is obviously compiler dependent.
 
-      - ``make tests`` (all tests)
+   .. IMPORTANT:: When enabling things using this variable, you probably will
+                  have to compile *everything* with the same settings to avoid
+                  getting linker errors.
 
-      Default: NO.
+   When passed, the value should be a comma-separated list of groups to enable:
+
+   - ``STACK`` - Fortify the stack: add stack protector, etc.
+
+   - ``SOURCE`` - Fortify source code via ``_FORTIFY_SOURCE=2``.
+
+   - ``LIBCXX_FAST`` - Fortify libc++ with the set of "fast" checks. clang
+     only. See `here <https://libcxx.llvm.org/Hardening.html>`_ for more
+     details. LIBRA does not currently set clang to use libc++ for you.
+
+   - ``LIBCXX_EXTENSIVE`` - Fortify libc++ with the set of "extensive"
+     checks. clang only. See `here <https://libcxx.llvm.org/Hardening.html>`_
+     for more details. LIBRA does not currently set clang to use libc++ for
+     you.
+
+   - ``LIBCXX_DEBUG`` - Fortify libc++ with a comprehensive set of debug
+     checks that might slow things down a lot. clang only. See `here
+     <https://libcxx.llvm.org/Hardening.html>`_ for more details. LIBRA does
+     not currently set clang to use libc++ for you.
+
+   - ``CFI`` - Fortify against Control Flow Integrity (CFI) attacks. clang
+     only.
+
+   - ``GOT`` - Fortify against Global Offset Table (GOT) attacks with
+     read-only relocations and immediate symbol binding on load.
+
+   - ``FORMAT`` - Fortify against formatting attacks.
+
+   - ``ALL`` - All of the above.
+
+   - ``NONE`` - None of the above.
+
+   .. versionadded:: 0.8.3
+
+.. cmake:variable:: LIBRA_TESTS
+
+   :default: NO
+   :type: BOOL
+
+   Enable building of tests via:
+
+   - ``make unit-tests`` (unit tests only)
+
+   - ``make integration-tests`` (integration tests only)
+
+   - ``make regression-tests`` (regression tests only)
+
+   - ``make tests`` (all tests)
+
 
 .. _usage/configure-time/builds:
 
 Knobs For Configuring Builds
 ============================
 
-.. tabs::
+
+.. cmake:variable:: LIBRA_MT
+
+   :default: NO
+   :type: BOOL
+
+   Enable multithreaded code/OpenMP code via compiler flags (e.g.,
+   ``-fopenmp``), and/or selecting additional code for compilation.
+
+.. cmake:variable:: LIBRA_MP
+
+   :default: NO
+   :type: BOOL
+
+   Enable multiprocess code/MPI code for the selected compiler, if
+   supported.
+
+.. cmake:variable:: LIBRA_FPC
+
+   :default: RETURN
+   :type: STRING
+
+   Enable Function Precondition Checking (FPC): checking function
+   parameters/global state before executing a function, for functions which
+   a library/application has defined conditions for. LIBRA does not define
+   *how* precondition checking is implemented for a given
+   library/application using it, only a simple declarative interface for
+   specifying *what* type of checking is desired at build time; a library
+   application can choose how to interpret the specification. This
+   flexibility and simplicity is part of what makes LIBRA a very useful
+   build process front-end across different projects.
+
+   FPC is, generally speaking, mostly used in C, and is very helpful for
+   debugging, but can slow things down in production builds. Possible values
+   for this option are:
+
+   - ``NONE`` - Checking compiled out.
+
+   - ``RETURN`` - If at least one precondition is not met, return without
+     executing the function. Do not abort() the program.
+
+   - ``ABORT`` - If at least one precondition is not met, abort() the
+     program.
+
+   - ``INHERIT`` - FPC configuration should be inherited from a parent
+     project which exposes it.
 
 
-   .. tab:: LIBRA_MT
+.. cmake:variable:: LIBRA_C_STANDARD
 
-      Enable multithreaded code/OpenMP code via compiler flags (e.g.,
-      ``-fopenmp``), and/or selecting additional code for compilation.
+   :default: Autodetected to the Latest C standard supported by
+             ``CMAKE_C_COMPILER``.
 
-      Default: NO.
+   :type: STRING
 
-   .. tab:: LIBRA_MP
+   Respects ``CMAKE_C_STANDARD`` if set.
 
-      Enable multiprocess code/MPI code for the selected compiler, if
-      supported.
+   .. versionadded:: 0.8.4
 
-      Default: NO.
+.. cmake:variable:: LIBRA_CXX_STANDARD
 
-   .. tab:: LIBRA_FPC
+   :default: Autodetected to the latest C++ standard supported by
+             ``CMAKE_CXX_COMPILER``.
+   :type: STRING
 
-      Enable Function Precondition Checking (FPC): checking function
-      parameters/global state before executing a function, for functions which
-      a library/application has defined conditions for. LIBRA does not define
-      *how* precondition checking is implemented for a given
-      library/application using it, only a simple declarative interface for
-      specifying *what* type of checking is desired at build time; a library
-      application can choose how to interpret the specification. This
-      flexibility and simplicity is part of what makes LIBRA a very useful
-      build process front-end across different projects.
+   Respects ``CMAKE_CXX_STANDARD`` if set.
 
-      FPC is, generally speaking, mostly used in C, and is very helpful for
-      debugging, but can slow things down in production builds. Possible values
-      for this option are:
+   .. versionadded:: 0.8.4
 
-      - ``NONE`` - Checking compiled out.
+.. cmake:variable:: LIBRA_GLOBAL_C_STANDARD
 
-      - ``RETURN`` - If at least one precondition is not met, return without
-        executing the function. Do not abort() the program.
+   :default: NO
+   :type: BOOL
 
-      - ``ABORT`` - If at least one precondition is not met, abort() the
-        program.
+   Specify that the what C standard is detected for the selected compiler is set
+   globally via ``CMAKE_C_STANDARD``. This results in all targets, not just the
+   automatically defined ``${PROJECT_NAME}`` target getting this property set.
 
-      - ``INHERIT`` - FPC configuration should be inherited from a parent
-        project which exposes it.
+   .. versionadded:: 0.9.5
 
-       Default: RETURN.
+.. cmake:variable:: LIBRA_GLOBAL_CXX_STANDARD
 
-   .. tab:: LIBRA_GLOBAL_C_FLAGS
+    :default: NO
+    :type: BOOL
 
-            Specify that the total set of C flags (diagnostic, sanitizer,
-            optimization, defines, etc.) which are automatically set for
-            ``${PROJECT_NAME}`` should be applied globally via
-            ``CMAKE_C_FLAGS_<built type>``.
+    Specify that the what C++ standard is detected for the selected compiler is
+    set globally via ``CMAKE_CXX_STANDARD``. This results in all targets, not
+    just the automatically defined ``${PROJECT_NAME}`` target getting this
+    property set.
 
-            Use with care, as applying said flags to external dependencies built
-            alongside your code can cause a cascade of unintended errors. That
-            said, for well-behavior dependencies, this can be a nice way of
-            ensuring uniformity of build options when building from source.
+    .. versionadded:: 0.9.5
 
-            Note that when disabled, the ``target_compile_options()`` set by
-            LIBRA are private, and only the ``target_compile_definitions()`` are
-            public and propagated.
+.. cmake:variable:: LIBRA_GLOBAL_C_FLAGS
 
-            Default: NO.
+   :default: NO
+   :type: BOOL
 
-   .. tab:: LIBRA_GLOBAL_CXX_FLAGS
+   Specify that the total set of C flags (diagnostic, sanitizer, optimization,
+   defines, etc.) which are automatically set for ``${PROJECT_NAME}`` should be
+   applied globally via ``CMAKE_C_FLAGS_<built type>``.
 
-            Specify that the total set of C++ flags (diagnostic, sanitizer,
-            optimization, defines, etc.) which are automatically set for
-            ``${PROJECT_NAME}`` should be applied globally via
-            ``CMAKE_CXX_FLAGS_<built type>``.
+   Use with care, as applying said flags to external dependencies built
+   alongside your code can cause a cascade of unintended errors. That said, for
+   well-behaved dependencies, this can be a nice way of ensuring uniformity of
+   build options when building from source.
 
-            Use with care, as applying said flags to external dependencies built
-            alongside your code can cause a cascade of unintended errors. That
-            said, for well-behavior dependencies, this can be a nice way of
-            ensuring uniformity of build options when building from source.
+   Note that when disabled, the ``target_compile_options()`` set by LIBRA are
+   private, and only the ``target_compile_definitions()`` are public and
+   propagated.
 
-            Note that when disabled, the ``target_compile_options()`` set by
-            LIBRA are private, and only the ``target_compile_definitions()`` are
-            public and propagated.
+   .. versionadded:: 0.9.5
 
-            Default: NO.
+.. cmake:variable:: LIBRA_GLOBAL_CXX_FLAGS
 
-   .. tab:: LIBRA_ERL
+   :default: NO
+   :type: BOOL
 
-      Specify Event Reporting Level (ERL). LIBRA does not prescribe a given
-      event reporting framework (e.g., log4ccx, log4c) which must be
-      used. Instead, it provides a simple declarative interface for specifying
-      the desired *result* of framework configuration at the highest
-      level. Possible values of this option are:
+   Specify that the total set of C++ flags (diagnostic, sanitizer,
+   optimization, defines, etc.) which are automatically set for
+   ``${PROJECT_NAME}`` should be applied globally via
+   ``CMAKE_CXX_FLAGS_<built type>``.
 
-      - ``ALL`` - Event reporting is compiled in fully and linked with; that
-        is, all possible events of all levels are present in the compiled
-        binary, and whether an encountered event is emitted is dependent on the
-        level and scope of the event (which may be configured at runtime).
+   Use with care, as applying said flags to external dependencies built
+   alongside your code can cause a cascade of unintended errors. That
+   said, for well-behaved dependencies, this can be a nice way of
+   ensuring uniformity of build options when building from source.
 
-      - ``FATAL`` - Compile out event reporting EXCEPT FATAL events.
+   Note that when disabled, the ``target_compile_options()`` set by
+   LIBRA are private, and only the ``target_compile_definitions()`` are
+   public and propagated.
 
-      - ``ERROR`` - Compile out event reporting EXCEPT [FATAL, ERROR] events.
+   .. versionadded:: 0.9.5
 
-      - ``WARN`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN]
-        events.
+.. cmake:variable:: LIBRA_ERL
 
-      - ``INFO`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN,
-        INFO] events.
+   :default: ALL
+   :type: STRING
 
-      - ``DEBUG`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN,
-        INFO, DEBUG] events.
+   Specify Event Reporting Level (ERL). LIBRA does not prescribe a given
+   event reporting framework (e.g., log4ccx, log4c, spdlog) which must be
+   used. Instead, it provides a simple declarative interface for specifying
+   the desired *result* of framework configuration at the highest
+   level. Possible values of this option are:
 
-      - ``TRACE`` - Same as ``ALL``.
+   - ``ALL`` - Event reporting is compiled in fully and linked with; that
+     is, all possible events of all levels are present in the compiled
+     binary, and whether an encountered event is emitted is dependent on the
+     level and scope of the event (which may be configured at runtime).
 
-      - ``NONE`` - All event reporting compiled out.
+   - ``FATAL`` - Compile out event reporting EXCEPT FATAL events.
 
-      - ``INHERIT`` - Event reporting configuration should be inherited from a
-        parent project which exposes it.
+   - ``ERROR`` - Compile out event reporting EXCEPT [FATAL, ERROR] events.
 
-     Default: "".
+   - ``WARN`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN]
+     events.
 
-   .. tab:: LIBRA_PGO
+   - ``INFO`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN,
+     INFO] events.
 
-      Generate a PGO build for the selected compiler, if supported. Possible
-      values for this option are:
+   - ``DEBUG`` - Compile out event reporting EXCEPT [FATAL, ERROR, WARN,
+     INFO, DEBUG] events.
 
-      - ``NONE``
+   - ``TRACE`` - Same as ``ALL``.
 
-      - ``GEN`` - Input stage
+   - ``NONE`` - All event reporting compiled out.
 
-      - ``USE`` - Final stage (after executed the ``GEN`` build to get
-        profiling info).
-
-      Default: NONE.
-
-   .. tab:: LIBRA_VALGRIND_COMPAT
-
-      Disable compiler instructions in 64-bit code so that programs will run
-      under valgrind reliably.
-
-      Default: NO.
-
-   .. tab:: LIBRA_LTO
-
-      Enable Link-Time Optimization.
-
-      Default: NO.
-
-      .. versionchanged:: 0.8.3
-         This is automatically enabled by ``LIBRA_FORTIFY != NONE``.
+   - ``INHERIT`` - Event reporting configuration should be inherited from a
+     parent project which exposes it.
 
 
-   .. tab:: LIBRA_STDLIB
+.. cmake:variable:: LIBRA_PGO
 
-      Enable using the standard library. You would only turn this off for
-      bare-metal builds (e.g., bootstraps).
+   :default: NONE
+   :type: STRING
 
-      Default: YES.
+   Generate a PGO build for the selected compiler, if supported. Possible values
+   for this option are:
 
-   .. tab:: LIBRA_NO_DEBUG_INFO
+   - ``NONE``
 
-      Disable generation of debug symbols *independent* of whatever the default
-      is with a given cmake build type.
+   - ``GEN`` - Input stage
 
-      Default: NO.
+   - ``USE`` - Final stage (after executing the ``GEN`` build to get
+     profiling info).
 
-      .. versionadded:: 0.8.4
+
+.. cmake:variable:: LIBRA_VALGRIND_COMPAT
+
+   :default: NO
+   :type: BOOL
+
+   Disable compiler instructions in 64-bit code so that programs will run under
+   valgrind reliably.
+
+.. cmake:variable:: LIBRA_LTO
+
+   :default: NO
+   :type: BOOL
+
+   Enable Link-Time Optimization.
+
+   .. versionchanged:: 0.8.3
+      This is automatically enabled by ``LIBRA_FORTIFY != NONE``.
+
+
+.. cmake:variable:: LIBRA_STDLIB
+
+   :default: UNDEFINED; use compiler built-in default.
+   :type: STRING
+
+   Enable using the standard library and/or select *which* standard library to
+   use. You would only turn this off for bare-metal builds (e.g.,
+   bootstraps). Valid values are:
+
+   - ``NONE`` - Don't use the stdlib at all. Defines ``__nostdlib__``.
+
+   - ``CXX`` - Use libc++, if the compiler supports it.
+
+   - ``STDCXX`` - Use libstdc++, if the compiler supports itn.
+
+.. cmake:variable:: LIBRA_NO_DEBUG_INFO
+
+   :default: NO
+   :type: BOOL
+
+   Disable generation of debug symbols *independent* of whatever the default is
+   with a given cmake build type.
+
+   .. versionadded:: 0.8.4

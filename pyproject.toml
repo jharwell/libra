@@ -38,6 +38,7 @@ docs = [
     "sphinx-tabs",
     "tomli",
     "sphinxcontrib-napoleon",
+    "sphinxcontrib-moderncmakedomain",
     "psutil",
     "sphinx-last-updated-by-git",
     "graphviz",

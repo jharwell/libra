@@ -416,7 +416,7 @@ CheckOptions:
   readability-identifier-naming.GetConfigPerFile: 'true'
   readability-identifier-naming.IgnoreFailedSplit: 'false'
   readability-identifier-naming.IgnoreMainLikeFunctions: 'false'
-  readability-identifier-naming.ClassCase: 'CamelCase'
+  readability-identifier-naming.ClassCase: 'lower_case'
   readability-identifier-naming.ClassConstantCase: 'UPPER_CASE'
   readability-identifier-naming.ClassMemberCase: lower_case
   readability-identifier-naming.ClassMemberPrefix: 'm_'

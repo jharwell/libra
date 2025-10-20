@@ -35,6 +35,7 @@ onward to the appropriate section below. Make sure you've checked the
             cmake_minimum_required(VERSION 3.21 FATAL_ERROR) # whatever version you like
             project(my_project CXX) # languages can be anything cmake supports
 
+            find_package(libra REQUIRED)
             include(libra/project)
 
             # Whatever other cmake config you like starts here
