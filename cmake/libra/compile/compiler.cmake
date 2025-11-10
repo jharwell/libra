@@ -44,7 +44,9 @@ endif()
 # ##############################################################################
 # Definitions
 # ##############################################################################
-set(LIBRA_COMMON_OPT_DEFS -DNDEBUG)
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  set(LIBRA_COMMON_OPT_DEFS -DNDEBUG)
+endif()
 
 if("${LIBRA_FPC}" MATCHES "NONE")
   list(APPEND LIBRA_COMMON_DEV_DEFS -DLIBRA_FPC=LIBRA_FPC_NONE)

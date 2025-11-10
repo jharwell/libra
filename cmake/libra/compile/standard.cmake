@@ -19,7 +19,12 @@ include(CheckCXXCompilerFlag)
 
 # 2025-10-17 [JRH]: These are ordered in from greatest to least precedence.
 set(LIBRA_C_STD_CANDIDATES 11 99)
-set(LIBRA_CXX_STD_CANDIDATES 20 17 14 11)
+set(LIBRA_CXX_STD_CANDIDATES
+    23
+    20
+    17
+    14
+    11)
 
 if(CMAKE_C_COMPILER_LOADED)
   if(CMAKE_C_STANDARD)
@@ -64,7 +69,6 @@ if(CMAKE_CXX_COMPILER_LOADED)
 
         if(LIBRA_CXX_COMPILER_SUPPORTS_cxx${std})
           if(TARGET ${PROJECT_NAME})
-            message("${PROJECT_NAME}")
             set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD
                                                              ${std})
           endif()

@@ -201,7 +201,7 @@ CheckOptions:
   google-readability-braces-around-statements.ShortStatementLines: '1'
   google-readability-function-size.BranchThreshold: 10
   google-readability-function-size.LineThreshold: 100
-  google-readability-function-size.NestingThreshold: 4
+  google-readability-function-size.NestingThreshold: 5
   google-readability-function-size.ParameterThreshold: 5
   google-readability-function-size.StatementThreshold: '800'
   google-readability-function-size.VariableThreshold: 15
@@ -215,7 +215,7 @@ CheckOptions:
   hicpp-deprecated-headers.CheckHeaderFile: 'false'
   hicpp-function-size.BranchThreshold: 10
   hicpp-function-size.LineThreshold: 100
-  hicpp-function-size.NestingThreshold: 4
+  hicpp-function-size.NestingThreshold: 5
   hicpp-function-size.ParameterThreshold: 5
   hicpp-function-size.StatementThreshold: '800'
   hicpp-function-size.VariableThreshold: none
@@ -399,7 +399,7 @@ CheckOptions:
   readability-function-cognitive-complexity.Threshold: '25'
   readability-function-size.BranchThreshold: 10
   readability-function-size.LineThreshold: 100
-  readability-function-size.NestingThreshold: 4
+  readability-function-size.NestingThreshold: 5
   readability-function-size.ParameterThreshold: 5
   readability-function-size.StatementThreshold: '800'
   readability-function-size.VariableThreshold: 15
@@ -458,7 +458,7 @@ CheckOptions:
   readability-identifier-naming.MemberSuffix: ''
   readability-identifier-naming.NamespaceCase: 'lower_case'
   readability-identifier-naming.ParameterCase: 'lower_case'
-  readability-identifier-naming.ParameterPackCase: 'CamelCase'
+  readability-identifier-naming.ParameterPackCase: 'lower_case'
   readability-identifier-naming.PointerParameterCase: 'lower_case'
   readability-identifier-naming.PrivateMemberCase: 'lower_case'
   readability-identifier-naming.PrivateMemberPrefix: 'm_'
