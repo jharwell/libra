@@ -20,6 +20,9 @@ include(libra/version)
 # This should generally be set undconditionally.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# This makes ninja add stuff for C++20 modules, which confuses clang-tidy.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 # ##############################################################################
 # Cmake Environment
 # ##############################################################################
