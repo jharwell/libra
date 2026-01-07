@@ -14,9 +14,9 @@ include(libra/defaults)
 # Debugging Options
 # ##############################################################################
 if(LIBRA_NO_DEBUG_INFO)
-  set(LIBRA_DEBUG_OPTIONS "-g0")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
 else()
-  set(LIBRA_DEBUG_OPTIONS "-g2")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
 endif()
 
 # ##############################################################################
@@ -106,13 +106,12 @@ endif()
 include(ProcessorCount)
 ProcessorCount(N)
 
-if(LIBRA_UNSAFE_OPT)
-  set(LIBRA_UNSAFE_OPT_OPTIONS -march=native -mtune=generic -frename-registers)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} ${LIBRA_UNSAFE_OPT_OPTIONS}")
+if(LIBRA_NATIVE_OPT)
+  list(APPEND LIBRA_OPT_OPTIONS -march=native -mtune=native)
 endif()
 
 if(LIBRA_MT)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -fopenmp")
+  list(APPEND LIBRA_OPT_OPTIONS -fopenmp)
   target_link_options(${PROJECT_NAME} PUBLIC -fopenmp)
 endif()
 
@@ -127,11 +126,12 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 
   # Without turning off these warnings we get a bunch of spurious warnings about
   # the attributes, even though they are already present.
-  set(CMAKE_SHARED_LINKER_FLAGS
-      "${CMAKE_SHARED_LINKER_FLAGS}\
-    -Wno-suggest-attribute=pure\
-    -Wno-suggest-attribute=const\
-    -Wno-suggest-attribute=cold")
+  list(
+    APPEND
+    CMAKE_SHARED_LINKER_FLAGS
+    -Wno-suggest-attribute=pure
+    -Wno-suggest-attribute=const
+    -Wno-suggest-attribute=cold)
 endif()
 
 # Always use the gold linker--it's a drop in replacement that is better in every
@@ -233,7 +233,7 @@ foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   endif()
 
   if(LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
-    set(LIBRA_C_DIAG_OPTIONS ${LIBRA_C_DIAG_OPTIONS} ${flag})
+    list(APPEND LIBRA_C_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
@@ -251,7 +251,7 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   endif()
 
   if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
-    set(LIBRA_CXX_DIAG_OPTIONS ${LIBRA_CXX_DIAG_OPTIONS} ${flag})
+    list(APPEND LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
@@ -296,27 +296,27 @@ set(LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${MSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${MSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${ASAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${SSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${UBSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${TSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${TSAN_OPTIONS})
 endif()
 
 if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
@@ -398,7 +398,7 @@ endif()
 # * Include -m[arch|tune], -flto, anything with 'math' in in it
 # * Include -fopenmp, anything with 'sanitize' in it.
 # * Include anything with 'profile' or 'coverage' in it.
-# * Include anything with 'stack', 'frame', or 'optimize' in it.
+# * Include anything with 'stack', 'frame', or 'optimize' in it
 # ##############################################################################
 set(LIBRA_BUILD_FLAGS_FILTER_REGEX
     "-[D]|[O]|[g][0-9+]|march|mtune|flto|math|rename|openmp|sanitize|profile|coverage|stack|frame|optimize.*"

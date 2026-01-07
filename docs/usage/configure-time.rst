@@ -324,11 +324,10 @@ Knobs For Configuring Builds
    well-behaved dependencies, this can be a nice way of ensuring uniformity of
    build options when building from source.
 
-   Note that when disabled, the ``target_compile_options()`` set by LIBRA are
-   private, and only the ``target_compile_definitions()`` are public and
-   propagated.
+   .. versionchanged:: 0.9.14
 
-   .. versionadded:: 0.9.5
+      When disabled, the ``target_compile_options()`` and
+      ``target_compile_definitions()`` set by LIBRA are PRIVATE not PUBLIC.
 
 .. cmake:variable:: LIBRA_GLOBAL_CXX_FLAGS
 
@@ -345,11 +344,10 @@ Knobs For Configuring Builds
    said, for well-behaved dependencies, this can be a nice way of
    ensuring uniformity of build options when building from source.
 
-   Note that when disabled, the ``target_compile_options()`` set by
-   LIBRA are private, and only the ``target_compile_definitions()`` are
-   public and propagated.
+   .. versionchanged:: 0.9.14
 
-   .. versionadded:: 0.9.5
+      When disabled, the ``target_compile_options()`` and
+      ``target_compile_definitions()`` set by LIBRA are PRIVATE, not PUBLIC.
 
 .. cmake:variable:: LIBRA_ERL
 
@@ -447,3 +445,25 @@ Knobs For Configuring Builds
    with a given cmake build type.
 
    .. versionadded:: 0.8.4
+
+.. cmake:variable:: LIBRA_NATIVE_OPT
+
+   :default: NO
+   :type: BOOL
+
+   Enable compiler optimizations native to the current machine. This will likely
+   make code compiled in this way *only* runnable on the current machine. Not
+   recommended for use with docker/CI pipelines.
+
+   .. versionadded:: 0.9.15
+
+.. cmake:variable:: LIBRA_UNSAFE_OPT
+
+   :default: NO
+   :type: BOOL
+
+   Enable compiler optimizations which are considered "unsafe"; that is, can
+   change numerical results. Most of these pertain to relaxing floating point
+   rigor. Tread carefully!!!
+
+   .. versionadded:: 0.9.15

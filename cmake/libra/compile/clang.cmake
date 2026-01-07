@@ -15,9 +15,9 @@ include(libra/compile/standard)
 # Debugging Options
 # ##############################################################################
 if(LIBRA_NO_DEBUG_INFO)
-  set(LIBRA_DEBUG_OPTIONS "-g0")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
 else()
-  set(LIBRA_DEBUG_OPTIONS "-g2")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
 endif()
 
 # ##############################################################################
@@ -140,14 +140,13 @@ else()
     "clang compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
-if(LIBRA_UNSAFE_OPT)
-  set(LIBRA_UNSAFE_OPT_OPTIONS -march=native -mtune=native)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} ${LIBRA_UNSAFE_OPT_OPTIONS}")
+if(LIBRA_NATIVE_OPT)
+  list(APPEND LIBRA_OPT_OPTIONS -march=native -mtune=native)
 endif()
 
 if(LIBRA_MT)
   target_link_options(${PROJECT_NAME} PUBLIC -fopenmp)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -fopenmp")
+  list(APPEND LIBRA_OPT_OPTIONS -fopenmp)
 endif()
 
 set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
@@ -226,7 +225,7 @@ foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
     check_c_compiler_flag(${flag} LIBRA_C_COMPILER_SUPPORTS_${flag})
   endif()
   if(LIBRA_C_COMPILER_SUPPORTS_${flag})
-    set(LIBRA_C_DIAG_OPTIONS ${LIBRA_C_DIAG_OPTIONS} ${flag})
+    list(APPEND LIBRA_C_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
@@ -244,7 +243,7 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   endif()
 
   if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
-    set(LIBRA_CXX_DIAG_OPTIONS ${LIBRA_CXX_DIAG_OPTIONS} ${flag})
+    list(APPEND LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
@@ -275,27 +274,27 @@ set(LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${MSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${MSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${ASAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${SSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${UBSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${TSAN_OPTIONS}")
+  set(LIBRA_SAN_OPTIONS ${TSAN_OPTIONS})
 endif()
 
 if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")

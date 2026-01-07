@@ -8,7 +8,7 @@
 # ##############################################################################
 include(libra/messaging)
 
-function(libra_configure_version INFILE OUTFILE SRC)
+function(libra_configure_source_file INFILE OUTFILE SRC)
   execute_process(
     COMMAND git log --pretty=format:%H -n 1
     OUTPUT_VARIABLE LIBRA_GIT_REV
@@ -37,18 +37,29 @@ function(libra_configure_version INFILE OUTFILE SRC)
     string(STRIP "${LIBRA_GIT_TAG}" LIBRA_GIT_TAG)
     string(STRIP "${LIBRA_GIT_BRANCH}" LIBRA_GIT_BRANCH)
   endif()
+
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
+
   # Filter out flags which don't affect the build at all
-  set(LIBRA_C_FLAGS_BUILD ${LIBRA_C_FLAGS_${CMAKE_BUILD_TYPE}})
+  set(LIBRA_C_FLAGS_BUILD ${CMAKE_C_FLAGS_${BUILD_TYPE_UPPER}})
   separate_arguments(LIBRA_C_FLAGS_BUILD NATIVE_COMMAND
                      "${LIBRA_C_FLAGS_BUILD}")
-  list(FILTER LIBRA_C_FLAGS_BUILD INCLUDE REGEX
-       "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
+  list(
+    FILTER
+    LIBRA_C_FLAGS_BUILD
+    INCLUDE
+    REGEX
+    "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
 
-  set(LIBRA_CXX_FLAGS_BUILD ${LIBRA_CXX_FLAGS_${CMAKE_BUILD_TYPE}})
+  set(LIBRA_CXX_FLAGS_BUILD ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}})
   separate_arguments(LIBRA_CXX_FLAGS_BUILD NATIVE_COMMAND
                      "${LIBRA_CXX_FLAGS_BUILD}")
-  list(FILTER LIBRA_CXX_FLAGS_BUILD INCLUDE REGEX
-       "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
+  list(
+    FILTER
+    LIBRA_CXX_FLAGS_BUILD
+    INCLUDE
+    REGEX
+    "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
 
   # Write the file
   configure_file(${INFILE} ${OUTFILE})

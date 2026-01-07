@@ -162,8 +162,8 @@ under ``tests/`` will have so LIBRA can glob them. If not specified, defaults to
 .. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
           contrary to common cmake guidance.
 
-Build and Run-time Diagnostics
-==============================
+Build And Configure-time Diagnostics
+====================================
 
 LIBRA provides a number of functions/macros to simplify the complexity of cmake,
 and answer questions such as "am I really building/running what I think I
@@ -188,20 +188,22 @@ am?". Some useful functions available in ``project-local.cmake`` are:
 
    :param FIELDS: List of fields.
 
-.. cmake:signature:: libra_configure_version(INFILE OUTFILE SRC)
+.. cmake:signature:: libra_configure_source_file(INFILE OUTFILE SRC)
 
-   Use build information from LIBRA to populate a source file of your choosing
-   which you can then print out when your library loads/application starts as a
-   sanity check during debugging that you are running what you think you
-   are. LIBRA automatically adds this file to the provided list of files
-   (``SRC``) which will ultimately be compiled for the project.
+   Use build information from LIBRA and your project to populate a source file
+   of your choosing.  LIBRA automatically adds this file to the provided list of
+   files (``SRC``) which will ultimately be compiled for the project. This is
+   useful for e.g., printing out when your library loads/application starts as a
+   sanity check during debugging to help ensure that you are running what you
+   think you are.
 
    :param INFILE: The input template file.
 
    :param OUTFILE: The output file.
 
    :param SRC: An existing list of source files for compilation to which
-               ``OUTFILE`` should be appended.
+               ``OUTFILE`` should be appended. This is the *name* of the
+               variable, not its contents.
 
 
   Available LIBRA CMake variables for population by cmake in ``INFILE`` file
@@ -232,8 +234,11 @@ am?". Some useful functions available in ``project-local.cmake`` are:
 You can also put whatever cmake variables you want to in there as well (e.g.,
 ``CMAKE_C_FLAGS_RELEASE``).
 
+
 Installation
 ============
+
+.. NOTE:: These functions are only available if ``LIBRA_DRIVER=SELF``.
 
 .. cmake:signature:: libra_configure_exports(TARGET PREFIX)
 
@@ -247,6 +252,8 @@ Installation
    add said deps to your ``config.cmake.in`` file via ``find_dependency()``, as
    that will cause an infinite loop.
 
+   To use, ``include(libra/package/install.cmake)``.
+
    :param TARGET: The target to add to the export set.
 
    :param PREFIX: The prefix that ``TARGET`` will be installed into.
@@ -256,6 +263,8 @@ Installation
 
    Register ``TARGET`` to be installed at ``PREFIX`` and associated with the
    necessary exports file so child projects can find it.
+
+   To use, ``include(libra/package/install.cmake)``.
 
    :param TARGET: The target to register for which
                   :cmake:command:`libra_configure_exports` has already been
@@ -269,6 +278,8 @@ Installation
    provides some reusable cmake functionality that you want child projects to
    also be able to access.
 
+   To use, ``include(libra/package/install.cmake)``.
+
    :param TARGET: A target for which :cmake:command:`libra_configure_exports`
                   has already been called.
 
@@ -278,6 +289,8 @@ Installation
 
 
 .. cmake:signature:: libra_register_headers_for_install(DIRECTORY PREFIX)
+
+   To use, ``include(libra/package/install.cmake)``.
 
    Register all headers (``.h`` or ``.hpp``) under ``DIRECTORY`` to be installed
    at ``PREFIX`` and associated with the necessary exports file so child
@@ -292,6 +305,8 @@ Installation
 Deployment
 ==========
 
+.. NOTE:: These functions are only available if ``LIBRA_DRIVER=SELF``.
+
 .. cmake:signature:: libra_configure_cpack(GENERATORS
                                            DESCRIPTION
                                            VENDORHOMEPAGE
@@ -299,6 +314,8 @@ Deployment
 
   Configure CPack to run the list of ``GENERATORS`` (if more than 1, must be
   separated by ``;``) via ``make package``. ``GENERATORS`` can be a subset of:
+
+  To use, ``include(libra/package/deploy.cmake)``.
 
   :param GENERATORS: The list of generators to run. Can be:
 

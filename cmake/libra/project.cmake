@@ -11,7 +11,6 @@ if(NOT PROJECT_NAME)
   # I define the current target as the same as the directory that the
   # CMakeLists.txt resides in--simpler that way.
   get_filename_component(LIBRA_TARGET ${CMAKE_CURRENT_LIST_DIR} NAME)
-
   project(${LIBRA_TARGET} C CXX)
 endif()
 
@@ -49,6 +48,7 @@ option(LIBRA_ANALYSIS "Enable static analysis checkers" OFF)
 option(LIBRA_SUMMARY "Show a configuration summary" ON)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_UNSAFE_OPT "Enable unsafe optimization options" OFF)
+option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
 option(LIBRA_NO_DEBUG_INFO
        "Disable inclusion of debug info, independent of build type" OFF)
@@ -176,7 +176,7 @@ else()
   include(libra/package/install)
   include(libra/package/deploy)
   include(libra/package/uninstall)
-  include(libra/package/version)
+  include(libra/package/configure)
 
   # Conan handles this too via the conan cache
   if(NOT DEFINED LIBRA_DEPS_PREFIX)

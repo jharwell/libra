@@ -187,6 +187,7 @@ function(libra_config_summary)
       LIBRA_GLOBAL_CXX_FLAGS
       LIBRA_NO_CCACHE
       LIBRA_BUILD_PROF
+      LIBRA_NATIVE_OPT
       LIBRA_UNSAFE_OPT
       LIBRA_OPT_LEVEL
       LIBRA_OPT_OPTIONS
@@ -238,7 +239,6 @@ function(libra_config_summary)
 
   # build info
   message("")
-  # message(STATUS "${BoldBlue}BUILD INFO${ColorReset}")
   message(
     STATUS
       "Build type............................: ${ColorBold}${EMIT_CMAKE_BUILD_TYPE}${ColorReset} [CMAKE_BUILD_TYPE]"
@@ -286,7 +286,6 @@ function(libra_config_summary)
       "Global C++ flags......................: ${ColorBold}${EMIT_LIBRA_GLOBAL_CXX_FLAGS}${ColorReset} [LIBRA_GLOBAL_CXX_FLAGS]"
   )
 
-  # message(STATUS "${BoldBlue}FEATURES${ColorReset}")
   message("")
   # LIBRA options
   message(
@@ -316,11 +315,15 @@ function(libra_config_summary)
 
   message(
     STATUS
+      "Native optimization options...........: ${ColorBold}${EMIT_LIBRA_NATIVE_OPT}${ColorReset} [LIBRA_NATIVE_OPT]"
+  )
+  message(
+    STATUS
       "Unsafe optimization options...........: ${ColorBold}${EMIT_LIBRA_UNSAFE_OPT}${ColorReset} [LIBRA_UNSAFE_OPT]"
   )
   message(
     STATUS
-      "Extra optimization options............: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
+      "Active optimization options...........: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
   )
   message(
     STATUS

@@ -14,9 +14,9 @@ include(libra/defaults)
 # Debugging Options
 # ##############################################################################
 if(LIBRA_NO_DEBUG_INFO)
-  set(LIBRA_DEBUG_OPTIONS "-g0")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
 else()
-  set(LIBRA_DEBUG_OPTIONS "-g2")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
 endif()
 
 # ##############################################################################
@@ -36,22 +36,30 @@ else()
     "Intel compiler plugin is only configured for {Debug, Release} builds")
 endif()
 
+if(LIBRA_NATIVE_OPT)
+  list(APPEND LIBRA_OPT_OPTIONS -xHost)
+endif()
+
 if(LIBRA_UNSAFE_OPT)
-  set(LIBRA_UNSAFE_OPT_OPTIONS -no-prec-div -xHost -fp-model fast=2)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} ${LIBRA_UNSAFE_OPT_OPTIONS}")
+  list(
+    APPEND
+    LIBRA_OPT_OPTIONS
+    -no-prec-div
+    -fp-model
+    fast=2)
 endif()
 
 if(LIBRA_MT)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -qopenmp -parallel
-                        -parallel-source-info=2")
+  list(
+    APPEND
+    LIBRA_OPT_OPTIONS
+    -qopenmp
+    -parallel
+    -parallel-source-info=2)
 endif()
 
 if(LIBRA_LTO)
-  set(LIBRA_OPT_OPTIONS "${LIBRA_OPT_OPTIONS} -ipo")
-  if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    target_link_options(${PROJECT_NAME} PUBLIC -ipo)
-  endif()
-
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif()
 
 set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
@@ -85,7 +93,7 @@ set(BASE_DIAG_OPTIONS
 # If I have a bad OpenMP pragma when OpenMP is enabled, warn about it. Otherwise
 # OpenMP is disabled and all OpenMP pragma warnings are spurious.
 if(NOT LIBRA_MT)
-  set(BASE_DIAG_OPTIONS "${BASE_DIAG_OPTIONS} -wd3180")
+  list(APPEND BASE_DIAG_OPTIONS -wd3180)
 endif()
 
 set(LIBRA_C_DIAG_OPTIONS ${BASE_DIAG_OPTIONS})
@@ -122,27 +130,27 @@ set(LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${MSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${MSAN_OPTIONS}")
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${ASAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${SSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${UBSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
   set(LIBRA_SAN_MATCH YES)
-  set(LIBRA_SAN_OPTIONS "${LIBRA_SAN_OPTIONS} ${TSAN_OPTIONS}")
+  list(APPEND LIBRA_SAN_OPTIONS ${TSAN_OPTIONS})
 endif()
 
 if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
@@ -151,7 +159,7 @@ if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
 endif()
 
 set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
-set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
+list(APPEND LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 
 # ##############################################################################
 # Profiling Options
@@ -215,5 +223,4 @@ if(LIBRA_OPT_REPORT)
       -guide-data-trans)
   set(LIBRA_C_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
   set(LIBRA_CXX_REPORT_OPTIONS ${BASE_REPORT_OPTIONS})
-
 endif()
