@@ -44,50 +44,70 @@ endif()
 # ##############################################################################
 # Definitions
 # ##############################################################################
-set(LIBRA_COMMON_DEFS)
-
-if("${LIBRA_FPC}" MATCHES "NONE")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_FPC=LIBRA_FPC_NONE)
-elseif("${LIBRA_FPC}" MATCHES "RETURN")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_FPC=LIBRA_FPC_RETURN)
-elseif("${LIBRA_FPC}" MATCHES "ABORT")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_FPC=LIBRA_FPC_ABORT)
-  libra_message(
-    FATAL_ERROR "Bad Function Precondition Checking (FPC) specification
+macro(_gen_fpc_defs DEFS)
+  if("${LIBRA_FPC}" MATCHES "NONE")
+    list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_NONE)
+  elseif("${LIBRA_FPC}" MATCHES "RETURN")
+    list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_RETURN)
+  elseif("${LIBRA_FPC}" MATCHES "ABORT")
+    list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_ABORT)
+    libra_message(
+      FATAL_ERROR "Bad Function Precondition Checking (FPC) specification
     '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN}")
+  endif()
+endmacro()
+
+macro(_gen_erl_defs DEFS)
+  if("${LIBRA_ERL}" MATCHES "NONE")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_NONE)
+  elseif("${LIBRA_ERL}" MATCHES "FATAL")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_FATAL)
+  elseif("${LIBRA_ERL}" MATCHES "ERROR")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_ERROR)
+  elseif("${LIBRA_ERL}" MATCHES "WARN")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_WARN)
+  elseif("${LIBRA_ERL}" MATCHES "INFO")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_INFO)
+  elseif("${LIBRA_ERL}" MATCHES "DEBUG")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_DEBUG)
+  elseif("${LIBRA_ERL}" MATCHES "TRACE")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_TRACE)
+  elseif("${LIBRA_ERL}" MATCHES "ALL")
+    list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_ALL)
+  else()
+    libra_message(
+      FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
+    Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE}")
+  endif()
+
+endmacro()
+
+set(LIBRA_PUBLIC_DEFS)
+set(LIBRA_PRIVATE_DEFS)
+
+if(LIBRA_FPC_EXPORT)
+  _gen_fpc_defs(LIBRA_PUBLIC_DEFS)
+else()
+  _gen_fpc_defs(LIBRA_PRIVATE_DEFS)
 endif()
 
-if("${LIBRA_ERL}" MATCHES "NONE")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_NONE)
-elseif("${LIBRA_ERL}" MATCHES "FATAL")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_FATAL)
-elseif("${LIBRA_ERL}" MATCHES "ERROR")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_ERROR)
-elseif("${LIBRA_ERL}" MATCHES "WARN")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_WARN)
-elseif("${LIBRA_ERL}" MATCHES "INFO")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_INFO)
-elseif("${LIBRA_ERL}" MATCHES "DEBUG")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_DEBUG)
-elseif("${LIBRA_ERL}" MATCHES "TRACE")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_TRACE)
-elseif("${LIBRA_ERL}" MATCHES "ALL")
-  list(APPEND LIBRA_COMMON_DEFS -DLIBRA_ERL=LIBRA_ERL_ALL)
+if(LIBRA_ERL_EXPORT)
+  _gen_erl_defs(LIBRA_PUBLIC_DEFS)
 else()
-  libra_message(
-    FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
-    Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE}")
+  _gen_erl_defs(LIBRA_PRIVATE_DEFS)
 endif()
 
 if("${LIBRA_NOSTDLIB}" MATCHES "NONE")
-  list(APPEND LIBRA_COMMON_DEFS -D__nostdlib__)
+  list(APPEND ${LIBRA_PUBLIC_DEFS} -D__nostdlib__)
 endif()
 
-set(LIBRA_DEV_DEFS ${LIBRA_COMMON_DEF})
-set(LIBRA_OPT_DEFS ${LIBRA_COMMON_DEFS})
+set(LIBRA_PRIVATE_DEV_DEFS ${LIBRA_PRIVATE_DEFS})
+set(LIBRA_PUBLIC_DEV_DEFS ${LIBRA_PUBLIC_DEFS})
+set(LIBRA_PRIVATE_OPT_DEFS ${LIBRA_PRIVATE_DEFS})
+set(LIBRA_PUBLIC_OPT_DEFS ${LIBRA_PUBLIC_DEFS})
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  list(APPEND LIBRA_OPT_DEFS -DNDEBUG)
+  list(APPEND LIBRA_PRIVATE_OPT_DEFS -DNDEBUG)
 endif()
 
 libra_message(STATUS "Configuring compiler diagnostics")

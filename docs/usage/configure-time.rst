@@ -265,6 +265,15 @@ Knobs For Configuring Builds
    - ``INHERIT`` - FPC configuration should be inherited from a parent
      project which exposes it.
 
+.. cmake:variable:: LIBRA_FPC_EXPORT
+
+   :default: NO
+   :type: BOOL
+
+   Make :cmake:variable:`LIBRA_FPC` visible to downstream projects; it is
+   private by default. This allows you to create an arbitrary dependency graph
+   w.r.t which projects define their own FPC vs. which inherit it from
+   elsewhere.
 
 .. cmake:variable:: LIBRA_C_STANDARD
 
@@ -385,6 +394,15 @@ Knobs For Configuring Builds
    - ``INHERIT`` - Event reporting configuration should be inherited from a
      parent project which exposes it.
 
+.. cmake:variable:: LIBRA_ERL_EXPORT
+
+   :default: NO
+   :type: BOOL
+
+   Make :cmake:variable:`LIBRA_ERL` visible to downstream projects; it is
+   private by default. This allows you to create an arbitrary dependency graph
+   w.r.t which projects define their own ERL vs. which inherit it from
+   elsewhere.
 
 .. cmake:variable:: LIBRA_PGO
 

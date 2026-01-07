@@ -58,6 +58,8 @@ option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
 option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally?" OFF)
 option(LIBRA_GLOBAL_C_STANDARD "Should LIBRA set the C standard globally?" OFF)
 option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
+option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
+option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
 
 set(LIBRA_DRIVER
     "SELF"

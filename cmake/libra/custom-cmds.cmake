@@ -199,7 +199,9 @@ function(libra_config_summary)
       LIBRA_CODE_COV
       LIBRA_DOCS
       LIBRA_FPC
+      LIBRA_FPC_EXPORT
       LIBRA_ERL
+      LIBRA_ERL_EXPORT
       LIBRA_SAN
       LIBRA_VALGRIND_COMPAT
       LIBRA_ANALYSIS
@@ -347,7 +349,15 @@ function(libra_config_summary)
   )
   message(
     STATUS
+      "FPC Export............................: ${ColorBold}${EMIT_LIBRA_FPC_EXPORT}${ColorReset} [LIBRA_FPC_EXPORT]"
+  )
+  message(
+    STATUS
       "Event reporting level (ERL)...........: ${ColorBold}${EMIT_LIBRA_ERL}${ColorReset} [LIBRA_ERL={FATAL,ERROR,WARN,INFO,DEBUG,TRACE,ALL,NONE,INHERIT}]"
+  )
+  message(
+    STATUS
+      "ERL Export............................: ${ColorBold}${EMIT_LIBRA_ERL_EXPORT}${ColorReset} [LIBRA_ERL_EXPORT]"
   )
   message(
     STATUS
