@@ -308,24 +308,34 @@ Deployment
 .. NOTE:: These functions are only available if ``LIBRA_DRIVER=SELF``.
 
 .. cmake:signature:: libra_configure_cpack(GENERATORS
+                                           SUMMARY
                                            DESCRIPTION
                                            VENDORHOMEPAGE
                                            CONTACT)
 
-  Configure CPack to run the list of ``GENERATORS`` (if more than 1, must be
-  separated by ``;``) via ``make package``. ``GENERATORS`` can be a subset of:
-
-  To use, ``include(libra/package/deploy.cmake)``.
+  Configure CPack to run the list of ``GENERATORS`` via ``make package``.  To
+  use, ``include(libra/package/deploy.cmake)``.
 
   :param GENERATORS: The list of generators to run. Can be:
 
-                     - ``TGZ`` - A tarball. If selected, the ``DESCRIPTION,
-                       VENDOR, HOMEPAGE, CONTACT`` fields are ignored.
+                     - ``TGZ|ZIP|STGZ|TBZ2|TXZ`` - A tarball/zip
+                       archive/etc. The ``DESCRIPTION, VENDOR, HOMEPAGE,
+                       CONTACT`` fields are ignored.
 
                      - ``DEB`` - A Debian archive. .deb packages are set to
                        always install into ``/usr``, unless
                        ``CPACK_PACKAGE_INSTALL_DIRECTORY`` is set prior to
                        calling :cmake:command:`libra_configure_cpack()`.
+
+                     - ``RPM`` - A Debian archive. .deb packages are set to
+                       always install into ``/usr``, unless
+                       ``CPACK_PACKAGE_INSTALL_DIRECTORY`` is set prior to
+                       calling :cmake:command:`libra_configure_cpack()`.
+
+                     You can have more than 1 generator just separate them by
+                     ``;``.
+
+  :param SUMMARY: One line package summary.
 
   :param DESCRIPTION: Package description.
 
