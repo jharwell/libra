@@ -329,7 +329,7 @@ Knobs For Configuring Builds
 
    Specify that the total set of C flags (diagnostic, sanitizer, optimization,
    defines, etc.) which are automatically set for ``${PROJECT_NAME}`` should be
-   applied globally via ``CMAKE_C_FLAGS_<built type>``.
+   applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
 
    Use with care, as applying said flags to external dependencies built
    alongside your code can cause a cascade of unintended errors. That said, for
@@ -349,7 +349,7 @@ Knobs For Configuring Builds
    Specify that the total set of C++ flags (diagnostic, sanitizer,
    optimization, defines, etc.) which are automatically set for
    ``${PROJECT_NAME}`` should be applied globally via
-   ``CMAKE_CXX_FLAGS_<built type>``.
+   ``CMAKE_CXX_FLAGS_<build type>`` to all C++ files.
 
    Use with care, as applying said flags to external dependencies built
    alongside your code can cause a cascade of unintended errors. That
