@@ -134,6 +134,12 @@ macro(
 
     # Architecture (auto-detected if not specified)
     # set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+
+    # 2026-01-08 [JRH]: This does not appear to be necessary for .deb packages
+    # like it is for .rpm, but adding for consistency.
+    set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
+    set(CPACK_DEBIAN_PACKAGE_SUMMARY "${CPACK_PACKAGE_DESCRIPTION_SUMMARY}")
+
   endif()
 
   # ============================================================================
@@ -218,9 +224,10 @@ macro(
     # Vendor
     set(CPACK_RPM_PACKAGE_VENDOR "${VENDOR}")
 
-    # Description
-    set(CPACK_RPM_PACKAGE_DESCRIPTION "${DESCRIPTION}")
-    set(CPACK_RPM_PACKAGE_SUMMARY "${SUMMARY}")
+    # 2026-01-08 [JRH]: This is necessary to get the description to show up; for
+    # unknown reasons CPACK_PACKAGE_DESCRIPTION is not respected
+    set(CPACK_RPM_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
+    set(CPACK_RPM_PACKAGE_SUMMARY "${CPACK_PACKAGE_DESCRIPTION_SUMMARY}")
 
     # Debug package (optional - creates separate debug symbols package)
     # set(CPACK_RPM_DEBUGINFO_PACKAGE ON)

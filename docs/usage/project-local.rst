@@ -38,126 +38,136 @@ LIBRA also provides the following additional variables which can be used. You
 
 .. cmake:variable:: LIBRA_ANALYSIS_LANGUAGE
 
-Defines the language that the different static analysis
-checkers/formatters/fixers will use for checking the project. This should be
-specified BEFORE any subdirectories, external projects, etc. are specified. Only
-used if :cmake:variable:`LIBRA_ANALYSIS` is true. If used, value must be one of:
+   Defines the language that the different static analysis
+   checkers/formatters/fixers will use for checking the project. This should be
+   specified BEFORE any subdirectories, external projects, etc. are
+   specified. Only used if :cmake:variable:`LIBRA_ANALYSIS` is true. If used,
+   value must be one of:
 
-- C
-- CXX
+   - C
+   - CXX
 
-You should only ever need to set this if your project contains both C and C++
-code, to switch between which is checked.
+   You should only ever need to set this if your project contains both C and
+   C++ code, to switch between which is checked.
 
 .. cmake:variable:: LIBRA_CPPCHECK_IGNORES
 
-A list of files to totally ignore when running ``cppcheck``. Only used if
-:cmake:variable:`LIBRA_ANALYSIS` is enabled and ``cppcheck`` is found. The
-``-i`` separators are added by LIBRA--this should just be a raw list.
+   A list of files to totally ignore when running ``cppcheck``. Only used if
+   :cmake:variable:`LIBRA_ANALYSIS` is enabled and ``cppcheck`` is found. The
+   ``-i`` separators are added by LIBRA--this should just be a raw list.
 
-.. versionadded:: 0.8.5
+   .. versionadded:: 0.8.5
 
 .. cmake:variable:: LIBRA_CPPCHECK_SUPPRESSIONS
 
-A list of categories of warnings to suppress for matching patterns
-``cppcheck``. Only used if :cmake:variable:`LIBRA_ANALYSIS` is enabled and
-``cppcheck`` is found. The ``--suppress=`` separators are added by LIBRA--this
-should just be a raw list.
+   A list of categories of warnings to suppress for matching patterns
+   ``cppcheck``. Only used if :cmake:variable:`LIBRA_ANALYSIS` is enabled and
+   ``cppcheck`` is found. The ``--suppress=`` separators are added by
+   LIBRA--this should just be a raw list.
 
-.. versionadded:: 0.8.5
+   .. versionadded:: 0.8.5
 
 .. cmake:variable:: LIBRA_CPPCHECK_EXTRA_ARGS
 
-A list of extra arguments to pass to cppcheck. If you want to pass suppressions
-or ignores, use the above variables; this is for other things which don't fit in
-those buckets. Passed as-is to cppcheck.
+   A list of extra arguments to pass to cppcheck. If you want to pass
+   suppressions or ignores, use the above variables; this is for other things
+   which don't fit in those buckets. Passed as-is to cppcheck.
 
-.. versionadded:: 0.8.5
+   .. versionadded:: 0.8.5
 
 .. cmake:variable:: LIBRA_CLANG_FORMAT_FILEPATH
 
-The path to the ``.clang-format`` file you want to use. If not defined, LIBRA
-will use its internal .clang-format file.
+   The path to the ``.clang-format`` file you want to use. If not defined, LIBRA
+   will use its internal .clang-format file.
 
-.. versionadded:: 0.8.8
+   .. versionadded:: 0.8.8
 
 .. cmake:variable:: LIBRA_CLANG_TIDY_FILEPATH
 
-The path to the ``.clang-tidy`` file you want to use. If not defined, LIBRA will
-use its internal .clang-format file.
+   The path to the ``.clang-tidy`` file you want to use. If not defined, LIBRA will
+   use its internal .clang-format file.
 
-.. versionadded:: 0.8.8
+   .. versionadded:: 0.8.8
 
 .. cmake:variable:: LIBRA_CLANG_TIDY_CHECKS_CONFIG
 
-Any additional things to pass to ``--checks``. If non empty, must start with
-``,``. Useful to disable certain checks within a each category of checks that
-LIBRA creates targets for. Defaults to::
+   Any additional things to pass to ``--checks``. If non empty, must start with
+   ``,``. Useful to disable certain checks within a each category of checks that
+   LIBRA creates targets for. Defaults to::
 
-  ,-clang-diagnostic-*
+     ,-clang-diagnostic-*
 
-.. versionadded:: 0.8.15
+   .. versionadded:: 0.8.15
 
 .. cmake:variable:: LIBRA_C_DIAG_CANDIDATES
 
-The list of compiler warning options you want to pass to the C compiler. This
-can be a superset of the options supported by the minimum C compiler version you
-target; each option in the list is checked to see if the current C compiler
-supports it. If not defined, uses LIBRA's internal C diagnostic option set,
-which is fairly comprehensive.  If you don't want to compile with any warnings,
-set this to ``""``.
+   The list of compiler warning options you want to pass to the C compiler. This
+   can be a superset of the options supported by the minimum C compiler version
+   you target; each option in the list is checked to see if the current C
+   compiler supports it. If not defined, uses LIBRA's internal C diagnostic
+   option set, which is fairly comprehensive.  If you don't want to compile with
+   any warnings, set this to ``""``.
 
-.. versionadded:: 0.8.6
+   .. versionadded:: 0.8.6
 
 .. cmake:variable:: LIBRA_CXX_DIAG_CANDIDATES
 
-The list of compiler warning options you want to pass to the compiler. This can
-be a superset of the options supported by the minimum compiler version you
-target; each option in the list is checked to see if the current CXX compiler
-supports it. If not defined, uses LIBRA's internal CXX diagnostic option set,
-which is fairly comprehensive. If you don't want to compile with any warnings,
-set this to ``""``.
+   The list of compiler warning options you want to pass to the compiler. This
+   can be a superset of the options supported by the minimum compiler version
+   you target; each option in the list is checked to see if the current CXX
+   compiler supports it. If not defined, uses LIBRA's internal CXX diagnostic
+   option set, which is fairly comprehensive. If you don't want to compile with
+   any warnings, set this to ``""``.
 
-.. versionadded:: 0.8.6
+   .. versionadded:: 0.8.6
 
 .. cmake:variable:: LIBRA_TEST_HARNESS_LIBS
 
-Defines the link libraries that all tests/test harnesses need to link with, if
-any. Goes hand in hand with :cmake:variable:`LIBRA_TEST_HARNESS_PACKAGES``.
+   Defines the link libraries that all tests/test harnesses need to link with,
+   if any. Goes hand in hand with
+   :cmake:variable:`LIBRA_TEST_HARNESS_PACKAGES``.
 
 .. cmake:variable:: LIBRA_TEST_HARNESS_PACKAGES
 
-Defines the packages that contain the libraries that all tests/test harnesses
-need to link with, if any. Goes hand in hand with
-:cmake:variable:`LIBRA_TEST_HARNESS_LIBS``.
+   Defines the packages that contain the libraries that all tests/test harnesses
+   need to link with, if any. Goes hand in hand with
+   :cmake:variable:`LIBRA_TEST_HARNESS_LIBS``.
 
 .. cmake:variable:: LIBRA_UNIT_TEST_MATCHER
 
-The common suffix before the ``.cpp`` that all unit tests under ``tests/`` will
-have so LIBRA can glob them. If not specified, defaults to ``-utest``; a valid
-unit test would then be, e.g., ``tests/myclass-utest.cpp``.
+   The common suffix before the ``.cpp`` that all unit tests under ``tests/``
+   will have so LIBRA can glob them. If not specified, defaults to ``-utest``; a
+   valid unit test would then be, e.g., ``tests/myclass-utest.cpp``.
 
 .. cmake:variable:: LIBRA_INTEGRATION_TEST_MATCHER
 
-The common suffix before the ``.cpp`` that all integration tests under
-``tests/`` will have so LIBRA can glob them. If not specified, defaults to
-``-itest``; a valid integration test would then be, e.g.,
-``tests/thing-itest.cpp``.
+   The common suffix before the ``.cpp`` that all integration tests under
+   ``tests/`` will have so LIBRA can glob them. If not specified, defaults to
+   ``-itest``; a valid integration test would then be, e.g.,
+   ``tests/thing-itest.cpp``.
 
 .. cmake:variable:: LIBRA_TEST_HARNESS_MATCHER
 
-The common suffix before the ``{.cpp,.hpp}`` that all test harness files tests
-under ``tests/`` will have so LIBRA can glob them. If not specified, defaults to
-``_test``; valid test harness would then be, e.g.,
-``tests/thing_test{.cpp,.hpp}``.
+   The common suffix before the ``{.cpp,.hpp}`` that all test harness files
+   tests under ``tests/`` will have so LIBRA can glob them. If not specified,
+   defaults to ``_test``; valid test harness would then be, e.g.,
+   ``tests/thing_test{.cpp,.hpp}``.
 
-``${PROJECT_NAME}_C_SRC`` - Glob containing all C source files.
+.. cmake:variable:: ${PROJECT_NAME}_C_SRC
 
-``${PROJECT_NAME}_CXX_SRC`` - Glob containing all C++ source files.
+   Glob containing all C source files.
 
-``${PROJECT_NAME}_C_HEADERS`` - Glob containing all C header files.
+.. cmake:variable:: ${PROJECT_NAME}_CXX_SRC
 
-``${PROJECT_NAME}_CXX_HEADERS`` - Glob containing all C++ header files.
+   Glob containing all C++ source files.
+
+.. cmake:variable:: ${PROJECT_NAME}_C_HEADERS
+
+   Glob containing all C header files.
+
+.. cmake:variable:: ${PROJECT_NAME}_CXX_HEADERS
+
+   Glob containing all C++ header files.
 
 .. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
           contrary to common cmake guidance.

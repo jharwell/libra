@@ -303,7 +303,9 @@ Knobs For Configuring Builds
 
    Specify that the what C standard is detected for the selected compiler is set
    globally via ``CMAKE_C_STANDARD``. This results in all targets, not just the
-   automatically defined ``${PROJECT_NAME}`` target getting this property set.
+   automatically defined ``${PROJECT_NAME}`` target getting this property
+   set. For this to work, this variable must be set *before* you define the
+   ``project()`` *and* before you ``include(libra/project)``.
 
    .. versionadded:: 0.9.5
 
@@ -315,7 +317,8 @@ Knobs For Configuring Builds
     Specify that the what C++ standard is detected for the selected compiler is
     set globally via ``CMAKE_CXX_STANDARD``. This results in all targets, not
     just the automatically defined ``${PROJECT_NAME}`` target getting this
-    property set.
+    property set. For this to work, this variable must be set *before* you
+    define the ``project()`` *and* before you ``include(libra/project)``.
 
     .. versionadded:: 0.9.5
 

@@ -114,7 +114,6 @@ if(LIBRA_MT)
   list(APPEND LIBRA_OPT_OPTIONS -fopenmp)
   target_link_options(${PROJECT_NAME} PUBLIC -fopenmp)
 endif()
-
 set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
 set(LIBRA_CXX_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
 

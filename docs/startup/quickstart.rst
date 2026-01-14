@@ -20,11 +20,11 @@ onward to the appropriate section below. Make sure you've checked the
           file, create something like this::
 
             cmake_minimum_required(VERSION 3.21 FATAL_ERROR) # whatever version you like
+            include(libra/project)
             project(my_project CXX) # languages can be anything cmake supports
 
-            include(libra/project)
-
             # Whatever other cmake config you like starts here
+
 
       .. group-tab:: CMake package
 
@@ -32,11 +32,10 @@ onward to the appropriate section below. Make sure you've checked the
           file, create something like this::
 
             cmake_minimum_required(VERSION 3.21 FATAL_ERROR) # whatever version you like
-            project(my_project CXX) # languages can be anything cmake supports
-
             find_package(libra REQUIRED)
             include(libra/project)
 
+            project(my_project CXX) # languages can be anything cmake supports
             # Whatever other cmake config you like starts here
 
       .. group-tab:: In situ

@@ -14,6 +14,7 @@
 # ##############################################################################
 set(LIBRA_COMMON_C_FLAGS
     ${LIBRA_OPT_LEVEL}
+    ${LIBRA_DEBUG_INFO_OPTIONS}
     ${LIBRA_BUILD_PROF_OPTIONS}
     ${LIBRA_STDLIB_OPTIONS}
     ${LIBRA_FORTIFY_OPTIONS}
@@ -29,6 +30,7 @@ set(LIBRA_COMMON_C_FLAGS
 
 set(LIBRA_COMMON_CXX_FLAGS
     ${LIBRA_OPT_LEVEL}
+    ${LIBRA_DEBUG_INFO_OPTIONS}
     ${LIBRA_BUILD_PROF_OPTIONS}
     ${LIBRA_STDLIB_OPTIONS}
     ${LIBRA_FORTIFY_OPTIONS}
@@ -49,17 +51,16 @@ get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
   if("C" IN_LIST LANGUAGES_LIST)
-    target_compile_options(${PROJECT_NAME} PRIVATE ${LIBRA_COMMON_C_FLAGS}
-                                                   ${LIBRA_DEBUG_INFO_OPTIONS})
+    target_compile_options(${PROJECT_NAME} PRIVATE ${LIBRA_COMMON_C_FLAGS})
     target_compile_definitions(${PROJECT_NAME}
                                PRIVATE ${LIBRA_PRIVATE_DEV_DEFS})
     target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBRA_PUBLIC_DEV_DEFS})
     if(LIBRA_GLOBAL_C_FLAGS)
-      set(CMAKE_C_FLAGS_DEBUG
-          ${LIBRA_COMMON_C_FLAGS} ${LIBRA_DEBUG_INFO_OPTIONS}
-          ${LIBRA_PUBLIC_DEV_DEFS} ${LIBRA_PRIVATE_DEV_DEFS}
-          CACHE STRING "Flags used by the C compiler during debug builds."
-                FORCE)
+      add_compile_options(
+        "$<$<CONFIG:Debug>:${LIBRA_COMMON_C_FLAGS}>"
+        "$<$<CONFIG:Debug>:${LIBRA_C_OPT_OPTIONS}>"
+        "$<$<CONFIG:Debug>:${LIBRA_PUBLIC_OPT_DEFS}>"
+        "$<$<CONFIG:Debug>:${LIBRA_PRIVATE_OPT_DEFS}>")
     endif()
   endif()
 
@@ -70,11 +71,11 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBRA_PUBLIC_DEV_DEFS})
 
     if(LIBRA_GLOBAL_CXX_FLAGS)
-      set(CMAKE_CXX_FLAGS_DEBUG
-          ${LIBRA_COMMON_CXX_FLAGS} ${LIBRA_DEBUG_INFO_OPTIONS}
-          ${LIBRA_PUBLIC_DEV_DEFS} ${LIBRA_PRIVATE_DEV_DEFS}
-          CACHE STRING "Flags used by the C++ compiler during debug builds."
-                FORCE)
+      add_compile_options(
+        "$<$<CONFIG:Debug>:${LIBRA_COMMON_CXX_FLAGS}>"
+        "$<$<CONFIG:Debug>:${LIBRA_CXX_OPT_OPTIONS}>"
+        "$<$<CONFIG:Debug>:${LIBRA_PUBLIC_OPT_DEFS}>"
+        "$<$<CONFIG:Debug>:${LIBRA_PRIVATE_OPT_DEFS}>")
     endif()
   endif()
 endif()
@@ -84,43 +85,34 @@ endif()
 # ##############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   if("C" IN_LIST LANGUAGES_LIST)
-    target_compile_options(
-      ${PROJECT_NAME}
-      PRIVATE ${LIBRA_COMMON_C_FLAGS} ${LIBRA_DEBUG_INFO_OPTIONS}
-              ${LIBRA_C_OPT_OPTIONS})
+    target_compile_options(${PROJECT_NAME} PRIVATE ${LIBRA_COMMON_C_FLAGS}
+                                                   ${LIBRA_C_OPT_OPTIONS})
     target_compile_definitions(${PROJECT_NAME}
                                PRIVATE ${LIBRA_PRIVATE_OPT_DEFS})
     target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBRA_PRIVATE_OPT_DEFS})
 
     if(LIBRA_GLOBAL_C_FLAGS)
-      set(CMAKE_C_FLAGS_RELEASE
-          ${LIBRA_COMMON_C_FLAGS}
-          ${LIBRA_C_OPT_OPTIONS}
-          ${LIBRA_DEBUG_INFO_OPTIONS}
-          ${LIBRA_PUBLIC_OPT_DEFS}
-          ${LIBRA_PRIVATE_OPT_DEFS}
-          CACHE STRING "Flags used by the C compiler during release builds."
-                FORCE)
+      add_compile_options(
+        "$<$<CONFIG:Release>:${LIBRA_COMMON_C_FLAGS}>"
+        "$<$<CONFIG:Release>:${LIBRA_C_OPT_OPTIONS}>"
+        "$<$<CONFIG:Release>:${LIBRA_PUBLIC_OPT_DEFS}>"
+        "$<$<CONFIG:Release>:${LIBRA_PRIVATE_OPT_DEFS}>")
     endif()
   endif()
   if("CXX" IN_LIST LANGUAGES_LIST)
-    target_compile_options(
-      ${PROJECT_NAME}
-      PRIVATE ${LIBRA_COMMON_CXX_FLAGS} ${LIBRA_CXX_OPT_OPTIONS}
-              ${LIBRA_DEBUG_INFO_OPTIONS})
+    target_compile_options(${PROJECT_NAME} PRIVATE ${LIBRA_COMMON_CXX_FLAGS}
+                                                   ${LIBRA_CXX_OPT_OPTIONS})
     target_compile_definitions(${PROJECT_NAME}
                                PRIVATE ${LIBRA_PRIVATE_OPT_DEFS})
     target_compile_definitions(${PROJECT_NAME} PUBLIC ${LIBRA_PUBLIC_OPT_DEFS})
 
     if(LIBRA_GLOBAL_CXX_FLAGS)
-      set(CMAKE_CXX_FLAGS_RELEASE
-          ${LIBRA_COMMON_CXX_FLAGS}
-          ${LIBRA_CXX_OPT_OPTIONS}
-          ${LIBRA_DEBUG_INFO_OPTIONS}
-          ${LIBRA_PUBLIC_OPT_DEFS}
-          ${LIBRA_PRIVATE_OPT_DEFS}
-          CACHE STRING "Flags used by the C++ compiler during release builds."
-                FORCE)
+      add_compile_options(
+        "$<$<CONFIG:Release>:${LIBRA_COMMON_CXX_FLAGS}>"
+        "$<$<CONFIG:Release>:${LIBRA_CXX_OPT_OPTIONS}>"
+        "$<$<CONFIG:Release>:${LIBRA_PUBLIC_OPT_DEFS}>"
+        "$<$<CONFIG:Release>:${LIBRA_PRIVATE_OPT_DEFS}>")
+
     endif()
   endif()
 endif()
