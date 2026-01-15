@@ -2,8 +2,9 @@
 
 .. _startup:
 
+
 .. toctree::
    :maxdepth: 1
 
    quickstart.rst
-   requirements.rst
+   config.rst

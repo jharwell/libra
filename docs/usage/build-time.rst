@@ -4,6 +4,10 @@
 Build Time Actions
 ==================
 
+This page details LIBRA usage and actions when *after* you've invoked CMake on
+the cmdline (see :ref:`usage/configure-time`), and the build system has been
+generated.
+
 .. NOTE:: All examples assume the CMake generator is ``Unix Makefiles``, and
           therefore all targets can be built with ``make``; adjust as needed if
           you use a different generator.
@@ -192,7 +196,7 @@ Actions For Supporting SW Engineering
        ``libra_configure_cpack()`` to have been called in
        ``project-local.cmake``.
 
-       Requires :cmake:variable:`LIBRA_DRIVER` is not ``CONAN``.
+       Requires :cmake:variable:`LIBRA_DRIVER` is  ``SELF``.
 
    * - ``precoverage-info``
 

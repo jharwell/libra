@@ -4,6 +4,23 @@
 Configure-Time
 ==============
 
+This page details LIBRA usage and actions when you invoke CMake on the
+cmdline. It is coupled to, but distinct from, :ref:`usage/project-local`.
+
+Target Configuration
+====================
+
+LIBRA will apply all of its magic (compile options, analysis config, etc.) to
+all targets in :cmake:variable:`LIBRA_TARGETS`. By default, this contains only
+the :cmake:variable:`PROJECT_NAME` target (i.e., the target has the same name as the
+project--Principle of Least Surprise). If you want to include multiple targets
+it is recommended to use :cmake:command:`libra_add_library()`,
+:cmake:command:`libra_add_executable()`, to have LIBRA handle multiple targets.
+You can also use :cmake:variable:`LIBRA_GLOBAL_C_FLAGS`,
+:cmake:command:`LIBRA_GLOBAL_CXX_FLAGS` to apply compiler configuration to all
+targets, though this will affect ALL Cmake targets, which is generally a bad
+idea.
+
 File Discovery
 ==============
 
@@ -22,25 +39,25 @@ File Discovery
 
 - All files under ``tests/`` ending in a specified pattern are recursively
   globbed as unit test files which will be compiled into executable unit tests
-  at build time if ``LIBRA_TESTS=YES``. See :ref:`usage/project-local/variables`
-  more details on this configuration item. Same for integration tests.
-  ``${LIBRA_INTEGRATION_TEST_MATCHER.{c,cpp}}``.
+  at build time if :cmake:variable:`LIBRA_TESTS` is enabled. See
+  :ref:`usage/project-local/variables` more details on this configuration
+  item. Same for integration tests.
 
 - All files under ``tests/`` ending in a specified pattern are recursively
   globbed as the test harness for unit/integration tests. All test harness files
   will be compiled into static libraries at build time and all test targets link
-  against them if ``LIBRA_TESTS=YES``.
+  against them if :cmake:variable:`LIBRA_TESTS` is enabled.
 
 .. NOTE:: The difference between unit tests and integration tests is purely
           semantic, and exists solely to help organize your tests. LIBRA treats
           both types of tests equivalently.
 
-
-The following variables are available for fine-tuning the cmake configuration
-process; thus, these variables are indended to be set on the command line via
-``-D``, as they enable/disable LIBRA features, instead of configuring a
-feature. However, *most* can be put in your ``project-local.cmake`` if you want
-to--see :ref:`usage/project-local` for details about restrictions.
+The rest of the page details variables available for fine-tuning the cmake
+configuration process; thus, these variables are indended to be set on the
+command line via ``-D``, as they enable/disable LIBRA features, instead of
+configuring a feature. However, *most* can be put in your
+``project-local.cmake`` if you want to--see :ref:`usage/project-local` for
+details about restrictions.
 
 .. IMPORTANT:: Unless specified otherwise, all knobs only apply to the current
                project and/or target; i.e., no ``CMAKE_XXX`` global variables
@@ -51,7 +68,6 @@ to--see :ref:`usage/project-local` for details about restrictions.
 
 Knobs For Configuring LIBRA/CMake
 =================================
-
 
 .. cmake:variable:: LIBRA_DEPS_PREFIX
 
@@ -92,7 +108,6 @@ Knobs For Configuring LIBRA/CMake
 
 Knobs For Supporting SW Engineering
 ===================================
-
 
 .. cmake:variable:: LIBRA_DOCS
 
@@ -303,9 +318,9 @@ Knobs For Configuring Builds
 
    Specify that the what C standard is detected for the selected compiler is set
    globally via ``CMAKE_C_STANDARD``. This results in all targets, not just the
-   automatically defined ``${PROJECT_NAME}`` target getting this property
-   set. For this to work, this variable must be set *before* you define the
-   ``project()`` *and* before you ``include(libra/project)``.
+   automatically defined :cmake:variable:`PROJECT_NAME` target getting this
+   property set. For this to work, this variable must be set *before* you define
+   the ``project()`` *and* before you ``include(libra/project)``.
 
    .. versionadded:: 0.9.5
 
@@ -316,8 +331,8 @@ Knobs For Configuring Builds
 
     Specify that the what C++ standard is detected for the selected compiler is
     set globally via ``CMAKE_CXX_STANDARD``. This results in all targets, not
-    just the automatically defined ``${PROJECT_NAME}`` target getting this
-    property set. For this to work, this variable must be set *before* you
+    just the automatically defined :cmake:variable:`PROJECT_NAME` target getting
+    this property set. For this to work, this variable must be set *before* you
     define the ``project()`` *and* before you ``include(libra/project)``.
 
     .. versionadded:: 0.9.5
@@ -328,7 +343,7 @@ Knobs For Configuring Builds
    :type: BOOL
 
    Specify that the total set of C flags (diagnostic, sanitizer, optimization,
-   defines, etc.) which are automatically set for ``${PROJECT_NAME}`` should be
+   defines, etc.) which are automatically set for :cmake:variable:`PROJECT_NAME` should be
    applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
 
    Use with care, as applying said flags to external dependencies built
@@ -348,7 +363,7 @@ Knobs For Configuring Builds
 
    Specify that the total set of C++ flags (diagnostic, sanitizer,
    optimization, defines, etc.) which are automatically set for
-   ``${PROJECT_NAME}`` should be applied globally via
+   :cmake:variable:`PROJECT_NAME` should be applied globally via
    ``CMAKE_CXX_FLAGS_<build type>`` to all C++ files.
 
    Use with care, as applying said flags to external dependencies built

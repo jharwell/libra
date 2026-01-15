@@ -3,82 +3,30 @@
 #
 # SPDX-License Identifier:  MIT
 #
-# Set policy if policy is available
-function(set_policy POL VAL)
+# ##############################################################################
+# Target Configuration
+# ##############################################################################
+macro(libra_add_library NAME)
+  # Save the target name for later use
+  list(APPEND LIBRA_TARGETS ${NAME})
+  set(LIBRA_TARGETS
+      ${LIBRA_TARGETS}
+      CACHE INTERNAL)
 
-  if(POLICY ${POL})
-    cmake_policy(SET ${POL} ${VAL})
-  endif()
-
-endfunction(set_policy)
-
-# Define function "source_group_by_path with three mandatory arguments
-# (PARENT_PATH, REGEX, GROUP, ...) to group source files in folders (e.g. for
-# MSVC solutions).
-#
-# Example: source_group_by_path("${CMAKE_CURRENT_SOURCE_DIR}/src"
-# "\\\\.h$|\\\\.inl$|\\\\.cpp$|\\\\.c$|\\\\.ui$|\\\\.qrc$" "Source Files"
-# ${sources})
-function(source_group_by_path PARENT_PATH REGEX GROUP)
-
-  foreach(FILENAME ${ARGN})
-
-    get_filename_component(FILEPATH "${FILENAME}" REALPATH)
-    file(RELATIVE_PATH FILEPATH ${PARENT_PATH} ${FILEPATH})
-    get_filename_component(FILEPATH "${FILEPATH}" DIRECTORY)
-
-    string(REPLACE "/" "\\" FILEPATH "${FILEPATH}")
-
-    source_group(
-      "${GROUP}\\${FILEPATH}"
-      REGULAR_EXPRESSION "${REGEX}"
-      FILES ${FILENAME})
-
-  endforeach()
-
-endfunction(source_group_by_path)
-
-# Function that extract entries matching a given regex from a list. ${OUTPUT}
-# will store the list of matching filenames.
-function(list_extract OUTPUT REGEX)
-  foreach(FILENAME ${ARGN})
-    if(${FILENAME} MATCHES "${REGEX}")
-      list(APPEND ${OUTPUT} ${FILENAME})
-    endif()
-  endforeach()
-
-  set(${OUTPUT}
-      ${${OUTPUT}}
-      PARENT_SCOPE)
-
-endfunction(list_extract)
-
-# Get all the subdirectories in a directory.
-macro(subdirlist result curdir)
-  file(
-    GLOB children
-    RELATIVE ${curdir}
-    ${curdir}/*)
-  set(dirlist "")
-  foreach(child ${children})
-    if(IS_DIRECTORY ${curdir}/${child})
-      list(APPEND dirlist ${child})
-    endif()
-  endforeach()
-  set(${result} ${dirlist})
+  libra_message(STATUS "Added library target ${NAME}")
+  # Forward all arguments to add_library
+  add_library(${NAME} ${ARGN})
 endmacro()
 
-function(add_mpi_executable EXECUTABLE)
-  add_executable(${EXECUTABLE})
-  target_link_libraries(${EXECUTABLE} ${MPI_C_LIBRARIES})
-endfunction(add_mpi_executable)
+macro(libra_add_executable NAME)
+  # Save the target name for later use list(APPEND LIBRA_TARGETS ${NAME})
+  set(LIBRA_TARGETS
+      ${LIBRA_TARGETS}
+      CACHE INTERNAL)
 
-macro(dual_scope_set name value)
-  # Set a variable in parent scope and make it visible in current scope
-  set(${name}
-      "${value}"
-      PARENT_SCOPE)
-  set(${name} "${value}")
+  libra_message(STATUS "Added executable target ${NAME}")
+  # Forward all arguments to add_executable
+  add_executable(${NAME} ${ARGN})
 endmacro()
 
 # ##############################################################################
@@ -405,3 +353,35 @@ function(libra_config_summary)
       YES
       PARENT_SCOPE)
 endfunction()
+
+# Set policy if policy is available
+function(set_policy POL VAL)
+
+  if(POLICY ${POL})
+    cmake_policy(SET ${POL} ${VAL})
+  endif()
+
+endfunction(set_policy)
+
+# Function that extract entries matching a given regex from a list. ${OUTPUT}
+# will store the list of matching filenames.
+function(list_extract OUTPUT REGEX)
+  foreach(FILENAME ${ARGN})
+    if(${FILENAME} MATCHES "${REGEX}")
+      list(APPEND ${OUTPUT} ${FILENAME})
+    endif()
+  endforeach()
+
+  set(${OUTPUT}
+      ${${OUTPUT}}
+      PARENT_SCOPE)
+
+endfunction(list_extract)
+
+macro(dual_scope_set name value)
+  # Set a variable in parent scope and make it visible in current scope
+  set(${name}
+      "${value}"
+      PARENT_SCOPE)
+  set(${name} "${value}")
+endmacro()

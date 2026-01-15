@@ -8,7 +8,7 @@ Quickstart
 
 After picking your LIBRA flavor as described :ref:`here <main/flavors>`, proceed
 onward to the appropriate section below. Make sure you've checked the
-:ref:`requirements <startup/req>` first!
+:ref:`environment setup and requirements <startup/config>` first!
 
 #. Setup your repo:
 
@@ -19,7 +19,7 @@ onward to the appropriate section below. Make sure you've checked the
           Create ``CMakeLists.txt`` in the root of your repo. Within that
           file, create something like this::
 
-            cmake_minimum_required(VERSION 3.21 FATAL_ERROR) # whatever version you like
+            cmake_minimum_required(VERSION 3.31 FATAL_ERROR) # whatever version you like
             include(libra/project)
             project(my_project CXX) # languages can be anything cmake supports
 
@@ -31,7 +31,7 @@ onward to the appropriate section below. Make sure you've checked the
           Create ``CMakeLists.txt`` in the root of your repo. Within that
           file, create something like this::
 
-            cmake_minimum_required(VERSION 3.21 FATAL_ERROR) # whatever version you like
+            cmake_minimum_required(VERSION 3.31 FATAL_ERROR) # whatever version you like
             find_package(libra REQUIRED)
             include(libra/project)
 

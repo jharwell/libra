@@ -27,7 +27,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 # ##############################################################################
 include(libra/messaging)
 include(libra/colorize)
-include(libra/custom-cmds)
+include(libra/utils)
 
 # Set policies
 include(libra/policies)
@@ -83,10 +83,8 @@ set_property(
 
 set(LIBRA_ERL
     "ALL"
-    CACHE
-      STRING
-      "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL, INHERIT} Set the logging level"
-)
+    CACHE STRING
+          "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL} Set the logging level")
 
 set(LIBRA_FORTIFY
     "NONE"
@@ -94,6 +92,10 @@ set(LIBRA_FORTIFY
       STRING
       "{NONE, STACK, SOURCE, CFI, GOT, FORMAT, LIBCXX_FAST, LIBCXX_EXTENSIVE,LIBCXX_DEBUG,ALL"
 )
+set(LIBRA_TARGETS
+    ${PROJECT_NAME}
+    CACHE INTERNAL "List of target to apply LIBRA magic to")
+
 set_property(
   CACHE LIBRA_FORTIFY
   PROPERTY STRINGS NONE STACK
