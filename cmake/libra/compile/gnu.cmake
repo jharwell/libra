@@ -324,6 +324,7 @@ endif()
 
 set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
+
 # ##############################################################################
 # Profiling Options
 # ##############################################################################
@@ -347,9 +348,12 @@ endif()
 # and linking, additional warning options like -fno-inline fail when linking
 # ##############################################################################
 set(BASE_CODE_COV_OPTIONS
-    -fprofile-arcs -ftest-coverage
+    -fprofile-arcs
+    -ftest-coverage
     # Suppress template inlining for more accurate coverage reports
-    -fno-inline)
+    -fno-inline
+    # Thread-safe updates to coverage counters
+    -fprofile-update=atomic)
 
 if(LIBRA_CODE_COV)
   set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
