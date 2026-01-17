@@ -142,9 +142,3 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
     ")
   include(libra/compile/intel)
 endif()
-
-# Setup MPI
-if(LIBRA_MP)
-  find_package(MPI REQUIRED)
-  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
-endif()
