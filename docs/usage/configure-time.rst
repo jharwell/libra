@@ -242,14 +242,6 @@ Knobs For Configuring Builds
    Enable multithreaded code/OpenMP code via compiler flags (e.g.,
    ``-fopenmp``), and/or selecting additional code for compilation.
 
-.. cmake:variable:: LIBRA_MP
-
-   :default: NO
-   :type: BOOL
-
-   Enable multiprocess code/MPI code for the selected compiler, if
-   supported.
-
 .. cmake:variable:: LIBRA_FPC
 
    :default: RETURN

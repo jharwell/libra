@@ -58,6 +58,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${LIBRA_PRIVATE_DEV_DEFS}>)
       target_compile_definitions(
         ${target} PUBLIC $<$<COMPILE_LANGUAGE:C>:${LIBRA_PUBLIC_DEV_DEFS}>)
+      target_link_options(${target} PUBLIC
+                          $<$<COMPILE_LANGUAGE:C>:${LIBRA_C_SAN_OPTIONS}>)
     endforeach()
 
     if(LIBRA_GLOBAL_C_FLAGS)
@@ -78,7 +80,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PRIVATE_DEV_DEFS}>)
       target_compile_definitions(
         ${target} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PUBLIC_DEV_DEFS}>)
-
+      target_link_options(${target} PUBLIC
+                          $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_CXX_SAN_OPTIONS}>)
     endforeach()
 
     if(LIBRA_GLOBAL_CXX_FLAGS)
@@ -105,6 +108,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${LIBRA_PRIVATE_OPT_DEFS}>)
       target_compile_definitions(
         ${target} PUBLIC $<$<COMPILE_LANGUAGE:C>:${LIBRA_PUBLIC_OPT_DEFS}>)
+      target_link_options(${target} PUBLIC
+                          $<$<COMPILE_LANGUAGE:C>:${LIBRA_C_SAN_OPTIONS}>)
     endforeach()
     if(LIBRA_GLOBAL_C_FLAGS)
       add_compile_options(
@@ -125,6 +130,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PRIVATE_OPT_DEFS}>)
       target_compile_definitions(
         ${target} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PUBLIC_OPT_DEFS}>)
+      target_link_options(${target} PUBLIC
+                          $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_CXX_SAN_OPTIONS}>)
     endforeach()
 
     if(LIBRA_GLOBAL_CXX_FLAGS)

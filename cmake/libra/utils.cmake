@@ -11,7 +11,7 @@ macro(libra_add_library NAME)
   list(APPEND LIBRA_TARGETS ${NAME})
   set(LIBRA_TARGETS
       ${LIBRA_TARGETS}
-      CACHE INTERNAL)
+      CACHE INTERNAL "")
 
   libra_message(STATUS "Added library target ${NAME}")
   # Forward all arguments to add_library
@@ -22,7 +22,7 @@ macro(libra_add_executable NAME)
   # Save the target name for later use list(APPEND LIBRA_TARGETS ${NAME})
   set(LIBRA_TARGETS
       ${LIBRA_TARGETS}
-      CACHE INTERNAL)
+      CACHE INTERNAL "")
 
   libra_message(STATUS "Added executable target ${NAME}")
   # Forward all arguments to add_executable
@@ -245,10 +245,6 @@ function(libra_config_summary)
   message(
     STATUS
       "Enable multithread+openmp.............: ${ColorBold}${EMIT_LIBRA_MT}${ColorReset} [LIBRA_MT]"
-  )
-  message(
-    STATUS
-      "Enable multiprocess+MPI...............: ${ColorBold}${EMIT_LIBRA_MP}${ColorReset} [LIBRA_MP]"
   )
   message(
     STATUS

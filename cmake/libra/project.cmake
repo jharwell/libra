@@ -37,7 +37,6 @@ include(libra/policies)
 # ##############################################################################
 option(LIBRA_TESTS "Build tests." OFF)
 option(LIBRA_MT "Enable multithreaded+openmp code." OFF)
-option(LIBRA_MP "Enable multiprocess+MPI code." OFF)
 option(LIBRA_CODE_COV "Compile with code coverage instrumentation" OFF)
 option(LIBRA_DOCS "Enable documentation build" OFF)
 option(
@@ -45,7 +44,7 @@ option(
   "Disable some compiler instructions so 64-bit code can robustly be run under valgrind"
   OFF)
 option(LIBRA_ANALYSIS "Enable static analysis checkers" OFF)
-option(LIBRA_SUMMARY "Show a configuration summary" ON)
+option(LIBRA_SUMMARY "Show a configuration summary" OFF)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_UNSAFE_OPT "Enable unsafe optimization options" OFF)
 option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
@@ -418,4 +417,10 @@ if(${LIBRA_SUMMARY})
   if(NOT ${LIBRA_SHOWED_SUMMARY})
     libra_config_summary()
   endif()
+else()
+  libra_message(
+    STATUS
+    "Configuration complete. To see a detailed configuration summary, re-run with -DLIBRA_SUMMARY=YES."
+  )
+
 endif()

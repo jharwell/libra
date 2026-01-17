@@ -150,7 +150,6 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -W
     -Wall
     -Wextra
-    -Wpedantic
     -Wconversion
     -Wcast-align
     -Wcast-qual
@@ -160,7 +159,7 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wlogical-op
     -Wmissing-declarations
     -Wmissing-include-dirs
-    -Wstrict-overflow=5
+    -Wstrict-overflow=2
     -Wsuggest-attribute=pure
     -Wsuggest-attribute=const
     -Wsuggest-attribute=format
@@ -325,7 +324,6 @@ endif()
 
 set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
 set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
-
 # ##############################################################################
 # Profiling Options
 # ##############################################################################

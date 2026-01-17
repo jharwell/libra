@@ -95,13 +95,19 @@ function(libra_coverage_register_lcov)
       -r
       ${COVERAGE_DIR}/coverage.info
       ${STRIP_FROM_DIRS}
+      --ignore-errors=unused
       -o
       ${COVERAGE_DIR}/coverage-stripped.info
       ${QUIET})
 
   # Generate the html coverage report.
-  set(genhtml_CMD ${genhtml_EXECUTABLE} ${COVERAGE_DIR}/coverage-stripped.info
-                  --output-directory coverage --branch-coverage --legend)
+  set(genhtml_CMD
+      ${genhtml_EXECUTABLE}
+      ${COVERAGE_DIR}/coverage-stripped.info
+      --output-directory
+      coverage
+      --branch-coverage
+      --legend)
 
   # Generate coverage BEFORE any execution to enable post-run coverage which
   # will encompass the WHOLE library--not just files which had at least 1 line
