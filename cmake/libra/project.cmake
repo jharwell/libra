@@ -28,6 +28,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
+include(libra/diagnostics)
 
 # Set policies
 include(libra/policies)

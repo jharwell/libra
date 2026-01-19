@@ -19,8 +19,8 @@ Platform Requirements
 
 - lcov if you want to do code coverage.
 
-Compiler Support
-================
+Supported Compilers
+-------------------
 
 - ``g++/gcc``
 - ``clang++/clang``
@@ -29,13 +29,12 @@ Compiler Support
 A recent version of any supported compiler can be selected as the
 ``CMAKE_<LANG>_COMPILER`` via command line. The correct compile options will be
 populated. Note that the C and CXX compiler vendors should always match, in
-order to avoid strange build issues (LIBRA warns if they don't).
-
-The exact version of the compiler you use doesn't really matter from LIBRA's
-perspective, because it allows you to specify the exact set of diagnostics to
-supply to the compiler (see :ref:`usage/project-local`). Non-diagnostic flags
-passed to the compiler are common to all recent versions; additional
-configurability may be added in the future.
+order to avoid strange build issues (LIBRA warns if they don't).  The exact
+version of the compiler you use doesn't really matter from LIBRA's perspective,
+because it allows you to specify the exact set of diagnostics to supply to the
+compiler (see :ref:`usage/project-local/variables`). Non-diagnostic flags passed
+to the compiler are common to all recent versions; additional configurability
+may be added in the future.
 
 LIBRA comes with an internal set of diagnostics targeted at GCC 12, icc 18,
 and clang-16.
@@ -48,24 +47,21 @@ and clang-16.
 
 
 Supported Analysis Tooling
-==========================
+--------------------------
 
 - cppcheck - Tested with >= 1.72.
 
 - clang-check - Tested with >= 10.0.
 
-- clang-format - Tested with >= 10.0.
+- cmake-format - Tested with >= 0.6.
 
 - clang-tidy - Tested with >= 10.0.
 
 
 .. _startup/config/structure:
 
-Repository/Code Structure
-=========================
-
-Requirements
-------------
+Repository/Code Structure Requirements
+======================================
 
 - All C++ source files end in ``.cpp``, and all C++ header files end in
   ``.hpp``.
@@ -76,8 +72,8 @@ Requirements
   project specific bits (i.e. adding subdirectories, what libraries to create,
   etc.). See :ref:`usage/project-local` for how to structure this file.
 
-Recommendations
----------------
+Repository/Code Structure Recommendations
+=========================================
 
 These are *recommended* elements of repository/code structure, which can safely
 be ignored if you don't want to use them.

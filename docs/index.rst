@@ -53,17 +53,13 @@ LIBRA can do many things for you when cmake is run. Some highlights include:
 - Providing plumbing to aid in debugging; e.g., through various sanitizers.
 
 - Providing plumbing for easily configuring Cmake's (really CPack's) packaging
-  capabilities. See
+  capabilities.
 
 - Handling populating a source file of your choosing so that your software can
-  accurately report the project version when run/loaded. This supports DRY of
-  the project version.
+  accurately report the project version when run/loaded.
 
 - Providing plumbing for simple installation needs for {headers, binaries,
   libraries} via globs.
-
-- Providing a nice summary of the exact configuration options set to make
-  debugging strange configuration problems much easier.
 
 See :ref:`usage/configure-time` for details.
 

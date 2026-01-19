@@ -105,6 +105,7 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+cmake_doc_dirs = ["../cmake"]
 
 # -- Options for HTML output ----------------------------------------------
 

@@ -15,9 +15,10 @@ BOOM--done.
 
 .. IMPORTANT:: Only non-empty defaults are contained in ``defaults.cmake``. For
                things which default to empty, such as
-               ``LIBRA_CPPCHECK_EXTRA_ARGS``, you can just define them directly
-               in that file. See :ref:`usage/project-local` for which
-               variables fall into this category.
+               :cmake:variable:`LIBRA_CPPCHECK_EXTRA_ARGS`, you can just define
+               them directly in that file. See
+               :ref:`usage/project-local/variables` for which variables fall
+               into this category.
 
 The main exception to this single point of customization is the C/C++ diagnostic
 candidates; since those are uniquely defined for each compiler, you can't put
