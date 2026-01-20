@@ -28,6 +28,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
+include(libra/diagnostics)
 
 # Set policies
 include(libra/policies)
@@ -179,7 +180,6 @@ else()
   include(libra/package/install)
   include(libra/package/deploy)
   include(libra/package/uninstall)
-  include(libra/package/configure)
 
   # Conan handles this too via the conan cache
   if(NOT DEFINED LIBRA_DEPS_PREFIX)

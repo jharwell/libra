@@ -8,7 +8,7 @@
 # ##############################################################################
 include(libra/messaging)
 
-include(libra/custom-cmds)
+include(libra/utils)
 
 # ##############################################################################
 # Register a COMPONENT as part of a project for use with find_package()
@@ -17,8 +17,13 @@ include(libra/custom-cmds)
 # sources to include for a particular project/library).
 #
 # ##############################################################################
-function(libra_component_register_as_src enabled_component_SRC TARGET
-         TARGET_SRC component_name REGEX)
+function(
+  libra_component_register_as_src
+  enabled_component_SRC
+  TARGET
+  TARGET_SRC
+  component_name
+  REGEX)
   list_extract(enabled_component_SRC "${REGEX}" "${TARGET_SRC}")
   set(${TARGET}_${component_name}_FOUND
       1
@@ -33,7 +38,12 @@ endfunction()
 #
 # Adds sources matching the regex into a library representing the component.
 # ##############################################################################
-function(libra_component_register_as_lib TARGET TARGET_SRC component_name REGEX)
+function(
+  libra_component_register_as_lib
+  TARGET
+  TARGET_SRC
+  component_name
+  REGEX)
   list_extract(component_SRC "${REGEX}" "${TARGET_SRC}")
   add_library(${TARGET}_${component_name} SHARED EXCLUDE_FROM_ALL
               ${component_SRC})

@@ -17,7 +17,7 @@ project--Principle of Least Surprise). If you want to include multiple targets
 it is recommended to use :cmake:command:`libra_add_library()`,
 :cmake:command:`libra_add_executable()`, to have LIBRA handle multiple targets.
 You can also use :cmake:variable:`LIBRA_GLOBAL_C_FLAGS`,
-:cmake:command:`LIBRA_GLOBAL_CXX_FLAGS` to apply compiler configuration to all
+:cmake:variable:`LIBRA_GLOBAL_CXX_FLAGS` to apply compiler configuration to all
 targets, though this will affect ALL Cmake targets, which is generally a bad
 idea.
 

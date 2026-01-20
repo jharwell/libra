@@ -5,8 +5,8 @@ Testing
 =======
 
 LIBRA attempts to make building and running unit/integration/etc tests as
-painless as possible through automatic test discovery if ``LIBRA_TESTS=YES``
-(see :ref:`usage/project-local`).
+painless as possible through automatic test discovery if
+:cmake:variable:`LIBRA_TESTS` is enabled.
 
 .. _usage/testing/builtin:
 
