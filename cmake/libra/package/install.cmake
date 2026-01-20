@@ -7,6 +7,7 @@
 # Custom messaging
 # ##############################################################################
 include(libra/messaging)
+cmake_policy(SET CMP0177 NEW) # Normalize paths
 
 # ##############################################################################
 # Exports Configuration
@@ -16,7 +17,8 @@ include(GNUInstallDirs)
 #[[.rst:
 .. cmake:command:: libra_configure_exports
 
-  Configure the exports for a TARGET to be installed at PREFIX.
+  Configure the exports for a TARGET to be installed at
+  ``${CMAKE_INSTALL_PREFIX}``.
 
   Enables the installed project to be used with ``find_package()`` by downstream
   projects. This function requires a ``cmake/config.cmake.in`` template file in
@@ -31,9 +33,6 @@ include(GNUInstallDirs)
    *not* add said dependencies to your ``config.cmake.in`` file via
    ``find_dependency()``, as that will cause an infinite loop.
 
-  :param PREFIX: Installation prefix for the config file. Typically
-   ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}``.
-
   **Requirements:**
 
   The function expects a template file at
@@ -45,16 +44,12 @@ include(GNUInstallDirs)
 
   .. code-block:: cmake
 
-    libra_configure_exports(mylib ${CMAKE_INSTALL_LIBDIR}/cmake/mylib)
+    libra_configure_exports(mylib)
 ]]
-function(libra_configure_exports TARGET PREFIX)
+function(libra_configure_exports TARGET)
   # Validate arguments
   if(NOT TARGET)
     libra_message(FATAL_ERROR "libra_configure_exports: TARGET is required")
-  endif()
-
-  if(NOT PREFIX)
-    libra_message(FATAL_ERROR "libra_configure_exports: PREFIX is required")
   endif()
 
   include(CMakePackageConfigHelpers)
@@ -73,19 +68,25 @@ function(libra_configure_exports TARGET PREFIX)
 
   set(OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-config.cmake")
 
-  configure_package_config_file(${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
-                                INSTALL_DESTINATION "${PREFIX}")
+  configure_package_config_file(
+    ${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
 
   # Install the configured exports file
-  install(FILES "${OUTPUT_FILE}" DESTINATION "${PREFIX}")
+  install(FILES "${OUTPUT_FILE}"
+          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
 
-  libra_message(STATUS "Configured exports for ${TARGET} -> ${PREFIX}")
+  libra_message(
+    STATUS
+    "Configured cmake exports for ${TARGET} -> ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}"
+  )
 endfunction()
 
 #[[.rst:
 .. cmake:command:: libra_register_extra_configs_for_install
 
-  Register extra .cmake files for a TARGET to be installed at PREFIX.
+  Register extra .cmake files for a TARGET to be installed at
+  ``${CMAKE_INSTALL_PREFIX}``.
 
   Configure additional ``.cmake`` files/directories for export. Useful if your
   project provides reusable CMake functionality that you want downstream
@@ -102,10 +103,6 @@ endfunction()
    .cmake files. Directories are searched recursively, and the directory
    structure is preserved during installation (not flattened).
 
-  :param PREFIX: Installation prefix (follows after PREFIX keyword). All files
-   are installed relative to this path. Typically
-   ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}``.
-
   **Examples:**
 
   .. code-block:: cmake
@@ -113,79 +110,49 @@ endfunction()
     # Install individual files
     libra_register_extra_configs_for_install(mylib
       cmake/MyLibHelpers.cmake
-      cmake/MyLibUtils.cmake
-      PREFIX ${CMAKE_INSTALL_LIBDIR}/cmake/mylib)
+      cmake/MyLibUtils.cmake)
 
     # Install entire directory (recursive, structure preserved)
     libra_register_extra_configs_for_install(mylib
-      cmake/modules
-      PREFIX ${CMAKE_INSTALL_LIBDIR}/cmake/mylib)
+      cmake/modules)
 
     # Mix files and directories
     libra_register_extra_configs_for_install(mylib
       cmake/special.cmake
-      cmake/modules
-      PREFIX ${CMAKE_INSTALL_LIBDIR}/cmake/mylib)
+      cmake/modules)
 
   .. versionchanged:: 0.9.26
      Can now handle files OR directories of extra configs.
 ]]
-function(libra_register_extra_configs_for_install TARGET)
+function(libra_register_extra_configs_for_install)
+  # Track total number of files
+  set(TOTAL_FILES 0)
+
+  # Parse arguments
+  set(one_value_args TARGET)
+  set(multi_value_args FILES_OR_DIRS)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "${one_value_args}"
+    "${multi_value_args}"
+    ${ARGN})
+
   # Validate TARGET
-  if(NOT TARGET)
+  if(NOT ARG_TARGET)
     libra_message(
       FATAL_ERROR
       "libra_register_extra_configs_for_install: TARGET argument is required")
   endif()
 
-  # Parse arguments
-  set(options)
-  set(oneValueArgs PREFIX)
-  set(multiValueArgs)
-  cmake_parse_arguments(
-    ARG
-    "${options}"
-    "${oneValueArgs}"
-    "${multiValueArgs}"
-    ${ARGN})
-
-  # Get everything between TARGET and PREFIX keyword
-  list(FIND ARGN "PREFIX" prefix_idx)
-  if(prefix_idx EQUAL -1)
+  if(NOT ARG_FILES_OR_DIRS)
     libra_message(
       FATAL_ERROR
-      "libra_register_extra_configs_for_install: PREFIX keyword is required\n"
-      "  Usage: libra_register_extra_configs_for_install(<TARGET> <FILES...> PREFIX <prefix>)"
+      "libra_register_extra_configs_for_install: No files or directories specified.\n"
     )
   endif()
 
-  # Extract FILES_OR_DIRS (everything before PREFIX)
-  list(
-    SUBLIST
-    ARGN
-    0
-    ${prefix_idx}
-    FILES_OR_DIRS)
-
-  if(NOT FILES_OR_DIRS)
-    libra_message(
-      FATAL_ERROR
-      "libra_register_extra_configs_for_install: No files or directories specified\n"
-      "  Provide at least one .cmake file or directory before the PREFIX keyword"
-    )
-  endif()
-
-  if(NOT ARG_PREFIX)
-    libra_message(
-      FATAL_ERROR
-      "libra_register_extra_configs_for_install: PREFIX value is required\n"
-      "  Usage: PREFIX <installation-path>")
-  endif()
-
-  # Track total number of files
-  set(TOTAL_FILES 0)
-
-  foreach(ITEM ${FILES_OR_DIRS})
+  foreach(ITEM ${ARG_FILES_OR_DIRS})
     # Make the path absolute if it's relative
     if(NOT IS_ABSOLUTE "${ITEM}")
       set(ITEM "${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}")
@@ -203,17 +170,23 @@ function(libra_register_extra_configs_for_install TARGET)
         foreach(REL_FILE ${DIR_CMAKE_FILES})
           get_filename_component(REL_DIR "${REL_FILE}" DIRECTORY)
           if(REL_DIR)
-            install(FILES "${ITEM}/${REL_FILE}"
-                    DESTINATION "${ARG_PREFIX}/${REL_DIR}")
+            message(
+              "DEST:     ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${REL_DIR}"
+            )
+            install(
+              FILES "${ITEM}/${REL_FILE}"
+              DESTINATION
+                "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${REL_DIR}")
           else()
-            install(FILES "${ITEM}/${REL_FILE}" DESTINATION "${ARG_PREFIX}")
+            install(FILES "${ITEM}/${REL_FILE}"
+                    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}")
           endif()
           math(EXPR TOTAL_FILES "${TOTAL_FILES} + 1")
         endforeach()
 
-        libra_message(
-          STATUS
-          "Found ${CMAKE_MATCH_COUNT} .cmake file(s) in directory: ${ITEM}")
+        list(LENGTH DIR_CMAKE_FILES N_FILES)
+        libra_message(STATUS
+                      "Found ${N_FILES} .cmake file(s) in directory: ${ITEM}")
       else()
         libra_message(
           WARNING
@@ -224,7 +197,8 @@ function(libra_register_extra_configs_for_install TARGET)
     elseif(EXISTS "${ITEM}")
       # It's a file - validate and add it
       if(ITEM MATCHES "\\.cmake$")
-        install(FILES "${ITEM}" DESTINATION "${ARG_PREFIX}")
+        install(FILES "${ITEM}"
+                DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}")
         math(EXPR TOTAL_FILES "${TOTAL_FILES} + 1")
       else()
         libra_message(
@@ -250,7 +224,8 @@ function(libra_register_extra_configs_for_install TARGET)
   # Print what was registered
   libra_message(
     STATUS
-    "Registered ${TOTAL_FILES} .cmake file(s) for ${TARGET} -> ${ARG_PREFIX}")
+    " Registered ${TOTAL_FILES} extra .cmake file(s) for install -> ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}"
+  )
 
 endfunction()
 
@@ -321,7 +296,8 @@ endfunction()
 #[[.rst:
 .. cmake:command:: libra_register_headers_for_install
 
-  Register header files from a DIRECTORY to be installed at PREFIX.
+  Register header files from a DIRECTORY to be installed at
+  ``${CMAKE_INSTALL_PREFIX}``.
 
   Recursively finds and installs all ``.hpp`` and ``.h`` files from the
   specified directory, preserving the directory structure. These can be from
@@ -332,9 +308,6 @@ endfunction()
   :param DIRECTORY: The directory containing header files to install. Searched
    recursively for ``.hpp`` and ``.h`` files.
 
-  :param PREFIX: Installation prefix. Headers are installed to
-   ``${PREFIX}/include`` with directory structure preserved.
-
   **Example:**
 
   .. code-block:: cmake
@@ -342,20 +315,15 @@ endfunction()
     # Install headers from include/ to ${CMAKE_INSTALL_PREFIX}/include
     libra_register_headers_for_install(
       ${PROJECT_SOURCE_DIR}/include
-      ${CMAKE_INSTALL_PREFIX})
+      )
 
     # This installs: include/mylib/foo.hpp -> ${CMAKE_INSTALL_PREFIX}/include/mylib/foo.hpp
 ]]
-function(libra_register_headers_for_install DIRECTORY PREFIX)
+function(libra_register_headers_for_install DIRECTORY)
   # Validate arguments
   if(NOT DIRECTORY)
     libra_message(FATAL_ERROR
                   "libra_register_headers_for_install: DIRECTORY is required")
-  endif()
-
-  if(NOT PREFIX)
-    libra_message(FATAL_ERROR
-                  "libra_register_headers_for_install: PREFIX is required")
   endif()
 
   # Make the path absolute if it's relative
@@ -383,7 +351,7 @@ function(libra_register_headers_for_install DIRECTORY PREFIX)
     libra_message(STATUS "Found ${NUM_HEADERS} header file(s) in ${DIRECTORY}")
   endif()
 
-  set(INSTALL_PATH "${PREFIX}/include")
+  set(INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/include")
 
   install(
     DIRECTORY ${DIRECTORY}
@@ -413,10 +381,10 @@ endfunction()
    Must be a target for which :cmake:command:`libra_configure_exports` has
    already been called.
 
-  :param PREFIX: Installation prefix. The target is installed with:
+  The target is installed with:
 
     - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
-    - Public headers: ``${PREFIX}/include``
+    - Public headers: ``${CMAKE_INSTALL_PREFIX}/include``
     - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
@@ -434,23 +402,18 @@ endfunction()
     add_library(mylib src/mylib.cpp)
     set_target_properties(mylib PROPERTIES PUBLIC_HEADER "include/mylib.hpp")
 
-    libra_register_target_for_install(mylib ${CMAKE_INSTALL_PREFIX})
+    libra_register_target_for_install(mylib)
 
     # Downstream projects can now use:
     # find_package(mylib REQUIRED)
     # target_link_libraries(their_target mylib::mylib)
 
 ]]
-function(libra_register_target_for_install TARGET PREFIX)
+function(libra_register_target_for_install TARGET)
   # Validate arguments
   if(NOT TARGET)
     libra_message(FATAL_ERROR
                   "libra_register_target_for_install: TARGET is required")
-  endif()
-
-  if(NOT PREFIX)
-    libra_message(FATAL_ERROR
-                  "libra_register_target_for_install: PREFIX is required")
   endif()
 
   # Verify target exists
@@ -482,7 +445,7 @@ function(libra_register_target_for_install TARGET PREFIX)
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${PREFIX}/include)
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 
   install(
     EXPORT ${TARGET}-exports
@@ -493,7 +456,7 @@ function(libra_register_target_for_install TARGET PREFIX)
   libra_message(STATUS
                 "Registered target for install: ${TARGET} (${TARGET_TYPE})")
   libra_message(STATUS "  Libraries -> ${CMAKE_INSTALL_LIBDIR}")
-  libra_message(STATUS "  Headers -> ${PREFIX}/include")
+  libra_message(STATUS "  Headers -> ${CMAKE_INSTALL_PREFIX}/include")
   libra_message(
     STATUS
     "  Exports -> ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake"

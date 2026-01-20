@@ -5,22 +5,27 @@
 #
 cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 
+cmake_policy(SET CMP0177 NEW) # Normalize paths
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 include(cmake/libra/version.cmake)
+
+project(
+  libra
+  VERSION ${LIBRA_VERSION}
+  LANGUAGES C CXX)
+
 include(cmake/libra/package/install.cmake)
 include(cmake/libra/package/deploy.cmake)
 
-project(libra VERSION ${LIBRA_VERSION})
-
-# Configure cmake config export for install
-libra_configure_exports(${PROJECT_NAME} PREFIX ${CMAKE_INSTALL_PREFIX})
-
-# Define install location
 set(CMAKE_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
-libra_register_extra_configs_for_install(
-  FILES_OR_DIRS ${CMAKE_SOURCE_DIR}/cmake/libra PREFIX
-  ${CMAKE_INSTALL_CMAKEDIR})
+# Configure cmake config export for install
+libra_configure_exports(${PROJECT_NAME})
+
+libra_register_extra_configs_for_install(TARGET ${PROJECT_NAME} FILES_OR_DIRS
+                                         ${CMAKE_SOURCE_DIR}/cmake/libra)
 
 # The ../ is necessary to get the dotfiles to be found in the various places.
 # Easier to make the change here than to try and figure out how to get conan to

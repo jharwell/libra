@@ -84,7 +84,6 @@ include(libra/messaging)
 
   - ``LICENSE*`` - License file (used for package and license detection)
   - ``README*`` - README file
-  - ``changelog.gz`` - Compressed changelog (RPM format)
 
   Warnings are emitted if these files are not found, but package generation
   continues.
@@ -117,7 +116,6 @@ include(libra/messaging)
   - File naming: ``RPM-DEFAULT`` (includes version, release, architecture)
   - Relocatable packages (allows installation to different prefixes)
   - Standard system directories excluded from package
-  - Changelog support if ``changelog.gz`` exists
 
 ]]
 macro(
@@ -163,7 +161,6 @@ macro(
   # Find common package files
   file(GLOB LICENSE "${CMAKE_SOURCE_DIR}/LICENSE*")
   file(GLOB README "${CMAKE_SOURCE_DIR}/README*")
-  file(GLOB CHANGELOG "${CMAKE_SOURCE_DIR}/changelog.gz")
 
   if(NOT LICENSE)
     libra_message(
@@ -174,12 +171,6 @@ macro(
     libra_message(
       WARNING "libra_configure_cpack: No README file found (tried README*)\n"
       "  A README file is recommended for package generation")
-  endif()
-  if(NOT CHANGELOG)
-    libra_message(
-      STATUS
-      "libra_configure_cpack: No changelog.gz found - RPM changelog will not be included"
-    )
   endif()
 
   # ============================================================================
@@ -343,11 +334,6 @@ macro(
         /usr/local/include
         /usr/share)
 
-    # Changelog file (if exists)
-    if(CHANGELOG)
-      set(CPACK_RPM_CHANGELOG_FILE "${CHANGELOG}")
-    endif()
-
     # Architecture (auto-detected if not specified)
     # set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
 
@@ -376,7 +362,7 @@ macro(
   # Status message
   libra_message(STATUS
                 "Configured CPack for ${PROJECT_NAME} ${CPACK_PACKAGE_VERSION}")
-  libra_message(STATUS "  Generators: ${CPACK_GENERATOR}")
+  libra_message(STATUS "  Generators: ${GENERATORS}")
   libra_message(STATUS
                 "  Install directory: ${CPACK_PACKAGE_INSTALL_DIRECTORY}")
 

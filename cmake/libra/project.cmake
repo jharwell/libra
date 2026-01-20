@@ -180,7 +180,6 @@ else()
   include(libra/package/install)
   include(libra/package/deploy)
   include(libra/package/uninstall)
-  include(libra/package/configure)
 
   # Conan handles this too via the conan cache
   if(NOT DEFINED LIBRA_DEPS_PREFIX)
