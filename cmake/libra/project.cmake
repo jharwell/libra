@@ -28,7 +28,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
-include(libra/diagnostics)
+include(libra/diagnostics_pre)
 
 # Set policies
 include(libra/policies)
@@ -82,9 +82,11 @@ set_property(
            INHERIT)
 
 set(LIBRA_ERL
-    "ALL"
-    CACHE STRING
-          "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL} Set the logging level")
+    "INHERIT"
+    CACHE
+      STRING
+      "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL, INHERIT} Set the logging level"
+)
 
 set(LIBRA_FORTIFY
     "NONE"
@@ -92,9 +94,15 @@ set(LIBRA_FORTIFY
       STRING
       "{NONE, STACK, SOURCE, CFI, GOT, FORMAT, LIBCXX_FAST, LIBCXX_EXTENSIVE,LIBCXX_DEBUG,ALL"
 )
-set(LIBRA_TARGETS
-    ${PROJECT_NAME}
-    CACHE INTERNAL "List of target to apply LIBRA magic to")
+set(LIBRA_TARGETS CACHE INTERNAL "List of target to apply LIBRA magic to")
+
+set(LIBRA_CONFIGURED_SOURCE_FILES_SRC
+    CACHE INTERNAL
+          "List of source files to configure and add to ${PROJECT_NAME}")
+
+set(LIBRA_CONFIGURED_SOURCE_FILES_DEST
+    CACHE INTERNAL
+          "List of dest files for configured source files for ${PROJECT_NAME}")
 
 set_property(
   CACHE LIBRA_FORTIFY
@@ -272,6 +280,9 @@ endif()
 # Must be before build types to populate options
 include(libra/compile/compiler)
 include(libra/compile/build-types)
+
+# Must be after compile options are populated
+include(libra/diagnostics_post)
 
 if(LIBRA_OPT_REPORT)
   include(libra/compile/reporting)

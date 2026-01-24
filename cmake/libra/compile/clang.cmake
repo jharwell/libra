@@ -367,12 +367,5 @@ endif()
 # Filtering build flags for versioning
 #
 # * No warnings, since they have no effect on the build
-# * Include -D, -O -g flags
-# * Include -m[arch|tune], -flto, anything with 'math' in in it
-# * Include -fopenmp, anything with 'sanitize' in it.
-# * Include anything with 'profile' or 'coverage' in it.
-# * Include anything with 'stack', 'frame', or 'optimize' in it.
 # ##############################################################################
-set(LIBRA_BUILD_FLAGS_FILTER_REGEX
-    "-[D]|[O]|[g][0-9+]|march|mtune|flto|math|rename|openmp|sanitize|profile|coverage|stack|frame|optimize.*"
-)
+set(LIBRA_TARGET_FLAGS_FILTER_REGEX "^-W")

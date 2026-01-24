@@ -370,7 +370,7 @@ Knobs For Configuring Builds
 
 .. cmake:variable:: LIBRA_ERL
 
-   :default: ALL
+   :default: INHERIT
    :type: STRING
 
    Specify Event Reporting Level (ERL). LIBRA does not prescribe a given

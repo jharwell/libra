@@ -8,9 +8,8 @@
 # ##############################################################################
 macro(libra_add_library NAME)
   # Save the target name for later use
-  list(APPEND LIBRA_TARGETS ${NAME})
   set(LIBRA_TARGETS
-      ${LIBRA_TARGETS}
+      "${LIBRA_TARGETS};${NAME}"
       CACHE INTERNAL "")
 
   libra_message(STATUS "Added library target ${NAME}")
@@ -21,7 +20,7 @@ endmacro()
 macro(libra_add_executable NAME)
   # Save the target name for later use list(APPEND LIBRA_TARGETS ${NAME})
   set(LIBRA_TARGETS
-      ${LIBRA_TARGETS}
+      "${LIBRA_TARGETS};${NAME}"
       CACHE INTERNAL "")
 
   libra_message(STATUS "Added executable target ${NAME}")

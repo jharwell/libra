@@ -12,13 +12,14 @@
 # ##############################################################################
 # Common Bits
 # ##############################################################################
-set(LIBRA_COMMON_C_FLAGS
+set(LIBRA_COMMON_FLAGS
     ${LIBRA_OPT_LEVEL}
     ${LIBRA_DEBUG_INFO_OPTIONS}
     ${LIBRA_BUILD_PROF_OPTIONS}
     ${LIBRA_STDLIB_OPTIONS}
     ${LIBRA_FORTIFY_OPTIONS}
-    ${LIBRA_VALGRIND_COMPAT_OPTIONS}
+    ${LIBRA_VALGRIND_COMPAT_OPTIONS})
+set(LIBRA_COMMON_C_FLAGS
     ${LIBRA_C_DIAG_OPTIONS}
     ${LIBRA_C_PARALLEL_OPTIONS}
     ${LIBRA_C_SAN_OPTIONS}
@@ -29,12 +30,6 @@ set(LIBRA_COMMON_C_FLAGS
     ${LIBRA_C_CODE_COV_OPTIONS})
 
 set(LIBRA_COMMON_CXX_FLAGS
-    ${LIBRA_OPT_LEVEL}
-    ${LIBRA_DEBUG_INFO_OPTIONS}
-    ${LIBRA_BUILD_PROF_OPTIONS}
-    ${LIBRA_STDLIB_OPTIONS}
-    ${LIBRA_FORTIFY_OPTIONS}
-    ${LIBRA_VALGRIND_COMPAT_OPTIONS}
     ${LIBRA_CXX_DIAG_OPTIONS}
     ${LIBRA_CXX_PARALLEL_OPTIONS}
     ${LIBRA_CXX_SAN_OPTIONS}
@@ -45,6 +40,7 @@ set(LIBRA_COMMON_CXX_FLAGS
     ${LIBRA_CXX_CODE_COV_OPTIONS})
 
 get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
+
 # ##############################################################################
 # Development/Debug Mode
 # ##############################################################################
@@ -52,44 +48,52 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
   if("C" IN_LIST LANGUAGES_LIST)
     foreach(target ${LIBRA_TARGETS})
+      target_compile_options(${target} PRIVATE ${LIBRA_COMMON_FLAGS})
+      target_compile_definitions(${target} PRIVATE ${LIBRA_PRIVATE_DEV_DEFS})
+      target_compile_definitions(${target} PUBLIC ${LIBRA_PUBLIC_DEV_DEFS})
       target_compile_options(
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${LIBRA_COMMON_C_FLAGS}>)
-      target_compile_definitions(
-        ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${LIBRA_PRIVATE_DEV_DEFS}>)
-      target_compile_definitions(
-        ${target} PUBLIC $<$<COMPILE_LANGUAGE:C>:${LIBRA_PUBLIC_DEV_DEFS}>)
+
       target_link_options(${target} PUBLIC
                           $<$<COMPILE_LANGUAGE:C>:${LIBRA_C_SAN_OPTIONS}>)
     endforeach()
 
     if(LIBRA_GLOBAL_C_FLAGS)
       add_compile_options(
+        "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_COMMON_FLAGS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_COMMON_C_FLAGS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_C_OPT_OPTIONS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_PUBLIC_OPT_DEFS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_PRIVATE_OPT_DEFS}>"
+      )
+      add_link_options(
+        "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_C_SAN_OPTIONS}>"
       )
     endif()
   endif()
 
   if("CXX" IN_LIST LANGUAGES_LIST)
     foreach(target ${LIBRA_TARGETS})
+      target_compile_options(${target} PRIVATE ${LIBRA_COMMON_FLAGS})
+      target_compile_definitions(${target} PRIVATE ${LIBRA_PRIVATE_DEV_DEFS})
+      target_compile_definitions(${target} PUBLIC ${LIBRA_PUBLIC_DEV_DEFS})
       target_compile_options(
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_COMMON_CXX_FLAGS}>)
-      target_compile_definitions(
-        ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PRIVATE_DEV_DEFS}>)
-      target_compile_definitions(
-        ${target} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PUBLIC_DEV_DEFS}>)
+
       target_link_options(${target} PUBLIC
                           $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_CXX_SAN_OPTIONS}>)
     endforeach()
 
     if(LIBRA_GLOBAL_CXX_FLAGS)
       add_compile_options(
+        "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_COMMON_FLAGS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_COMMON_CXX_FLAGS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_CXX_OPT_OPTIONS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_PUBLIC_OPT_DEFS}>"
         "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_PRIVATE_OPT_DEFS}>"
+      )
+      add_link_options(
+        "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_CXX_SAN_OPTIONS}>"
       )
     endif()
   endif()
@@ -101,45 +105,56 @@ endif()
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   if("C" IN_LIST LANGUAGES_LIST)
     foreach(target ${LIBRA_TARGETS})
+      target_compile_options(${target} PRIVATE ${LIBRA_COMMON_FLAGS})
+      target_compile_definitions(${target} PRIVATE ${LIBRA_PRIVATE_OPT_DEFS})
+      target_compile_definitions(${target} PUBLIC ${LIBRA_PUBLIC_OPT_DEFS})
+
       target_compile_options(
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${LIBRA_COMMON_C_FLAGS}>
                           $<$<COMPILE_LANGUAGE:C>:${LIBRA_C_OPT_OPTIONS}>)
-      target_compile_definitions(
-        ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${LIBRA_PRIVATE_OPT_DEFS}>)
-      target_compile_definitions(
-        ${target} PUBLIC $<$<COMPILE_LANGUAGE:C>:${LIBRA_PUBLIC_OPT_DEFS}>)
+
       target_link_options(${target} PUBLIC
                           $<$<COMPILE_LANGUAGE:C>:${LIBRA_C_SAN_OPTIONS}>)
     endforeach()
+
     if(LIBRA_GLOBAL_C_FLAGS)
       add_compile_options(
+        "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_COMMON_FLAGS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_COMMON_C_FLAGS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_C_OPT_OPTIONS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_PUBLIC_OPT_DEFS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_PRIVATE_OPT_DEFS}>"
+      )
+      add_link_options(
+        "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_C_SAN_OPTIONS}>"
       )
     endif()
   endif()
 
   if("CXX" IN_LIST LANGUAGES_LIST)
     foreach(target ${LIBRA_TARGETS})
+      target_compile_options(${target} PRIVATE ${LIBRA_COMMON_FLAGS})
+      target_compile_definitions(${target} PRIVATE ${LIBRA_PRIVATE_OPT_DEFS})
+      target_compile_definitions(${target} PUBLIC ${LIBRA_PUBLIC_OPT_DEFS})
+
       target_compile_options(
         ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_COMMON_CXX_FLAGS}>
                           $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_CXX_OPT_OPTIONS}>)
-      target_compile_definitions(
-        ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PRIVATE_OPT_DEFS}>)
-      target_compile_definitions(
-        ${target} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_PUBLIC_OPT_DEFS}>)
+
       target_link_options(${target} PUBLIC
                           $<$<COMPILE_LANGUAGE:CXX>:${LIBRA_CXX_SAN_OPTIONS}>)
     endforeach()
 
     if(LIBRA_GLOBAL_CXX_FLAGS)
       add_compile_options(
+        "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_COMMON_FLAGS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_COMMON_CXX_FLAGS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_CXX_OPT_OPTIONS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_PUBLIC_OPT_DEFS}>"
         "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_PRIVATE_OPT_DEFS}>"
+      )
+      add_link_options(
+        "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_CXX_SAN_OPTIONS}>"
       )
     endif()
   endif()

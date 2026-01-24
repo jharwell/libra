@@ -27,7 +27,7 @@ set(LIBRA_FORTIFY_MATCH NO)
 
 set(LIBRA_FORTIFY_DEFAULT "NONE")
 
-if(NOT DEFINED LIBRA_FORTIFY)
+if(NOT LIBRA_FORTIFY)
   set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
 endif()
 
@@ -128,9 +128,8 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   list(
     APPEND
     CMAKE_SHARED_LINKER_FLAGS
-    -Wno-suggest-attribute=pure
-    -Wno-suggest-attribute=const
-    -Wno-suggest-attribute=cold)
+    "-Wno-suggest-attribute=pure -Wno-suggest-attribute=const -Wno-suggest-attribute=cold"
+  )
 endif()
 
 # Always use the gold linker--it's a drop in replacement that is better in every
@@ -212,6 +211,7 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
       -Wnon-virtual-dtor
       -Wctor-dtor-privacy
       -Wdelete-non-virtual-dtor
+      -fconcepts-diagnostics-depth=10
       -Wuseless-cast)
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
@@ -395,12 +395,5 @@ endif()
 # Filtering build flags for versioning
 #
 # * No warnings, since they have no effect on the build
-# * Include -D, -O -g flags
-# * Include -m[arch|tune], -flto, anything with 'math' in in it
-# * Include -fopenmp, anything with 'sanitize' in it.
-# * Include anything with 'profile' or 'coverage' in it.
-# * Include anything with 'stack', 'frame', or 'optimize' in it
 # ##############################################################################
-set(LIBRA_BUILD_FLAGS_FILTER_REGEX
-    "-[D]|[O]|[g][0-9+]|march|mtune|flto|math|rename|openmp|sanitize|profile|coverage|stack|frame|optimize.*"
-)
+set(LIBRA_TARGET_FLAGS_FILTER_REGEX "^-W")

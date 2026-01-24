@@ -74,10 +74,12 @@ macro(_gen_erl_defs DEFS)
     list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_TRACE)
   elseif("${LIBRA_ERL}" MATCHES "ALL")
     list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_ALL)
+  elseif("${LIBRA_ERL}" MATCHES "INHERIT")
+
   else()
     libra_message(
       FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
-    Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE}")
+    Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE,INHERIT}")
   endif()
 
 endmacro()
