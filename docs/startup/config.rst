@@ -19,12 +19,12 @@ Platform Requirements
 
 - lcov if you want to do code coverage.
 
-Supported Compilers
--------------------
+Compiler Support
+----------------
 
 - ``g++/gcc``
 - ``clang++/clang``
-- ``icpc/icc``
+- ``icpx/icx``
 
 A recent version of any supported compiler can be selected as the
 ``CMAKE_<LANG>_COMPILER`` via command line. The correct compile options will be
@@ -34,7 +34,8 @@ version of the compiler you use doesn't really matter from LIBRA's perspective,
 because it allows you to specify the exact set of diagnostics to supply to the
 compiler (see :ref:`usage/project-local/variables`). Non-diagnostic flags passed
 to the compiler are common to all recent versions; additional configurability
-may be added in the future.
+may be added in the future. See :ref:`usage/configure-time/compiler` for more
+details about supported compiler support.
 
 LIBRA comes with an internal set of diagnostics targeted at GCC 12, icc 18,
 and clang-16.
@@ -43,7 +44,9 @@ and clang-16.
                download and install it from Intel's website. It installs to a
                non-standard location, so prior to being able to use it in the
                terminal like clang or gcc, you will need to source the compiler
-               definitions (actual command varies by version).
+               definitions (actual command varies by version). Note also that
+               only the LLVM-based Intel suite is supported; the ``icc/icpc``
+               legacy suited is deprecated both by Intel and LIBRA.
 
 
 Supported Analysis Tooling

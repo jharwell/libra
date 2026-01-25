@@ -37,7 +37,6 @@ include(libra/policies)
 # Project Cmdline Configuration
 # ##############################################################################
 option(LIBRA_TESTS "Build tests." OFF)
-option(LIBRA_MT "Enable multithreaded+openmp code." OFF)
 option(LIBRA_CODE_COV "Compile with code coverage instrumentation" OFF)
 option(LIBRA_DOCS "Enable documentation build" OFF)
 option(
@@ -47,11 +46,10 @@ option(
 option(LIBRA_ANALYSIS "Enable static analysis checkers" OFF)
 option(LIBRA_SUMMARY "Show a configuration summary" OFF)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
-option(LIBRA_UNSAFE_OPT "Enable unsafe optimization options" OFF)
 option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
-option(LIBRA_NO_DEBUG_INFO
-       "Disable inclusion of debug info, independent of build type" OFF)
+option(LIBRA_DEBUG_INFO
+       "Enable inclusion of debug info, independent of build type" ON)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)

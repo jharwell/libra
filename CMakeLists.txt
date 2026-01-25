@@ -29,7 +29,7 @@ libra_register_extra_configs_for_install(TARGET ${PROJECT_NAME} FILES_OR_DIRS
 # Easier to make the change here than to try and figure out how to get conan to
 # conform to what cmake does by default.
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/dots
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/..)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/..)
 
 set(CMAKE_PACKAGE_VERSION "${LIBRA_VERSION}")
 set(LIBRA_DESCRIPTION

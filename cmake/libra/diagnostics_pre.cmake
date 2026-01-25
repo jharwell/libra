@@ -219,13 +219,10 @@ function(libra_config_summary)
       LIBRA_NO_CCACHE
       LIBRA_BUILD_PROF
       LIBRA_NATIVE_OPT
-      LIBRA_UNSAFE_OPT
       LIBRA_OPT_LEVEL
       LIBRA_OPT_OPTIONS
-      LIBRA_NO_DEBUG_INFO
+      LIBRA_DEBUG_INFO
       LIBRA_TESTS
-      LIBRA_MT
-      LIBRA_MP
       LIBRA_PGO
       LIBRA_CODE_COV
       LIBRA_DOCS
@@ -324,10 +321,7 @@ function(libra_config_summary)
     STATUS
       "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (${MAKE_NAME} {all-tests,unit-tests,integration-tests,build-and-test) "
   )
-  message(
-    STATUS
-      "Enable multithread+openmp.............: ${ColorBold}${EMIT_LIBRA_MT}${ColorReset} [LIBRA_MT]"
-  )
+
   message(
     STATUS
       "PGO...................................: ${ColorBold}${EMIT_LIBRA_PGO}${ColorReset} [LIBRA_PGO={NONE,GEN,USE}]"
@@ -347,15 +341,11 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Unsafe optimization options...........: ${ColorBold}${EMIT_LIBRA_UNSAFE_OPT}${ColorReset} [LIBRA_UNSAFE_OPT]"
-  )
-  message(
-    STATUS
       "Active optimization options...........: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
   )
   message(
     STATUS
-      "Disable debug info....................: ${ColorBold}${EMIT_LIBRA_NO_DEBUG_INFO}${ColorReset} [LIBRA_NO_DEBUG_INFO]"
+      "Debug info.............................: ${ColorBold}${EMIT_LIBRA_DEBUG_INFO}${ColorReset} [LIBRA_DEBUG_INFO]"
   )
   message(
     STATUS
@@ -468,7 +458,10 @@ endfunction()
   - ``LIBRA_GIT_BRANCH`` - The current git branch, if any. Result of
     ``git rev-parse --abbrev-ref HEAD``.
 
-  - ``LIBRA_TARGET_FLAGS_BUILD`` - The configured C compiler flags relevant for
+  - ``LIBRA_TARGET_FLAGS_COMPILE`` - The configured compiler flags relevant
+    for building (excludes diagnostic flags like ``-W*``).
+
+  - ``LIBRA_TARGET_FLAGS_LINK`` - The configured linker flags relevant for
     building (excludes diagnostic flags like ``-W*``).
 
   You can also use any standard CMake variables (e.g., ``CMAKE_C_FLAGS_RELEASE``,

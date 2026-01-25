@@ -198,7 +198,7 @@ Actions For Supporting SW Engineering
 
        Requires :cmake:variable:`LIBRA_DRIVER` is  ``SELF``.
 
-   * - ``precoverage-info``
+   * - ``lcov-report``
 
      - Run ``lcov`` to generate a baseline code coverage info (0%) for the
        entire project to eventually generate an *absolute* code coverage report
@@ -207,9 +207,9 @@ Actions For Supporting SW Engineering
 
          make                     # Build in coverage info into project
          make all-tests           # Build in coverage info into tests
-         make precoverage-info    # Set baseline coverage info for ENTIRE project
+         make lcov-preinfo        # Set baseline coverage info for ENTIRE project
          make test                # Populate coverage for executed parts of project
-         make coverage-report     # Build ABSOLUTE coverage report for all files
+         make lcov-report         # Build ABSOLUTE coverage report for all files
 
        An *absolute* code coverage report uses the baseline info and the #
        lines/functions executed in all files. If there are files which have no
@@ -217,25 +217,47 @@ Actions For Supporting SW Engineering
        may or may not be desirable; if it is not, then don't call this target
        before running the project, and you'll get a relative report instead.
 
+       This target always succeeds, regardless of coverage level.
+
        Requires :cmake:variable:`LIBRA_TESTS` is true.
 
-   * - ``coverage-report``
+   * - ``gcovr-report``
 
-     - Run ``lcov`` to generate a code coverage report (presumably from the
+     - Run ``gcovr`` to generate a code coverage report (presumably from the
        results of running unit tests, though that does not have to be the
        case). That is::
 
          make                 # Build in coverage info into project
          make all-tests       # Build in coverage info into tests
          make test            # Populate coverage for executed parts of project
-         make coverage-report # Build RELATIVE report for files had some execution
+         make gcovr-report    # Build RELATIVE report for files had some execution
 
 
-       Not that this is a *relative* code coverage report. That is, #
+       Note that this is a *relative* code coverage report. That is, #
        lines/functions executed out of the total # lines/functions in all files
        which have at least one function executed. If there are files which have
        no functions executed, then they will not be included in the results,
        skewing reporting coverage. This may or may not be desirable. See
-       ``precoverage-report`` if it is undesirable.
+       ``lcov-report`` if it is undesirable.
+
+       This target always succeeds, regardless of coverage level.
 
        Requires :cmake:variable:`LIBRA_TESTS` is true.
+
+   * - ``gcovr-check``
+
+     - Run ``gcovr`` to check code coverage (presumably from the results of
+       running unit tests, though that does not have to be the case). That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make gcovr-check     # Check coverage against configured thresholds
+
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true. Thresholds are set via:
+
+       - :cmake:variable:`LIBRA_GCOVR_LINES_THRESH`
+       - :cmake:variable:`LIBRA_GCOVR_FUNCTIONS_THRESH`
+       - :cmake:variable:`LIBRA_GCOVR_BRANCHES_THRESH`
+       - :cmake:variable:`LIBRA_GCOVR_DECISIONS_THRESH`

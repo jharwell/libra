@@ -6,6 +6,7 @@
    configure-time.rst
    build-time.rst
    project-local.rst
+   compilers.rst
    analysis.rst
    apidoc.rst
    testing.rst

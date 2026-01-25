@@ -9,7 +9,6 @@ LIBRA (Luigi buIld Reusable Automation)
 Motivation
 ==========
 
-
 - No existing C/C++ build system supported automatic file discovery like
   ``make`` via globs.
 
@@ -30,7 +29,7 @@ Motivation
   the address sanitizer and the undefined behavior sanitizer, but not any of the
   others". Doing so is incredibly useful because it allows devs to focus on the
   *result* of what they want, and not have to worry about compiler specifics, or
-  even to remember the specify option to do what they want on e.g., gcc.
+  even to remember the specific option to do what they want on a given compiler.
 
 Capabilities
 ============

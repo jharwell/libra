@@ -203,7 +203,7 @@ LIBRA provides a number of functions/macros to simplify the complexity of cmake,
 and answer questions such as "am I really building/running what I think I
 am?". Some useful functions available in ``project-local.cmake`` are:
 
-.. cmake-module:: ../../cmake/libra/diagnostics.cmake
+.. cmake-module:: ../../cmake/libra/diagnostics_pre.cmake
 
 
 .. _usage/project-local/install:

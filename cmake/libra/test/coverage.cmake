@@ -35,7 +35,7 @@ function(libra_coverage_register_lcov)
       --capture
       --initial
       --directory
-      ${PROJECT_SOURCE_DIR}
+      ${PROJECT_BINARY_DIR}
       --output-file
       ${COVERAGE_DIR}/pre.info
       ${QUIET})
@@ -45,9 +45,9 @@ function(libra_coverage_register_lcov)
       ${lcov_EXECUTABLE}
       --capture
       --rc
-      lcov_branch_coverage=1
+      branch_coverage=1
       --directory
-      ${PROJECT_SOURCE_DIR}
+      ${PROJECT_BINARY_DIR}
       --output-file
       ${COVERAGE_DIR}/post.info
       ${QUIET})
@@ -67,7 +67,7 @@ function(libra_coverage_register_lcov)
       --rc
       lcov_branch_coverage=1
       --directory
-      ${PROJECT_SOURCE_DIR}
+      ${PROJECT_BINARY_DIR}
       --output-file
       ${COVERAGE_DIR}/coverage.info
       ${QUIET}

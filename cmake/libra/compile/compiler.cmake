@@ -42,7 +42,57 @@ if(NOT ${LIBRA_PGO} IN_LIST LIBRA_PGO_MODES)
 endif()
 
 # ##############################################################################
+# GNU Compiler Options
+# ##############################################################################
+if("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES
+                                             "GNU")
+  include(libra/compile/gnu)
+  set(_SUPPORTED_COMPILER YES)
+endif()
+
+# ##############################################################################
+# clang Compiler Options
+# ##############################################################################
+if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
+                                               MATCHES "Clang")
+  include(libra/compile/clang)
+  set(_SUPPORTED_COMPILER YES)
+endif()
+
+# ##############################################################################
+# Intel Compiler Options
+# ##############################################################################
+if(("${CMAKE_C_COMPILER_ID}" MATCHES "Intel" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                MATCHES "Intel")
+   AND NOT ("${CMAKE_C_COMPILER_ID}" MATCHES "IntelLLVM"
+            OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM"))
+  libra_message(
+    WARNING
+    "Support for the classic Intel compilers icc/icpc is deprecated and may break without warning"
+  )
+endif()
+
+if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
+   OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel"
+   OR "${CMAKE_C_COMPILER_ID}" MATCHES "IntelLLVM"
+   OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
+  set(_SUPPORTED_COMPILER YES)
+
+  include(libra/compile/intel)
+endif()
+
+if(NOT _SUPPORTED_COMPILER)
+  libra_message(
+    FATAL_ERROR
+    "C/C++ compiler ${CMAKE_C_COMPILER_ID}/${CMAKE_CXX_COMPILER_ID} not supported"
+  )
+endif()
+
+# ##############################################################################
 # Definitions
+#
+# Needs to be after including compilers, in case some of the defs depending on
+# LIBRA_ variables being set.
 # ##############################################################################
 macro(_gen_fpc_defs DEFS)
   if("${LIBRA_FPC}" MATCHES "NONE")
@@ -99,8 +149,8 @@ else()
   _gen_erl_defs(LIBRA_PRIVATE_DEFS)
 endif()
 
-if("${LIBRA_NOSTDLIB}" MATCHES "NONE")
-  list(APPEND ${LIBRA_PUBLIC_DEFS} -D__nostdlib__)
+if("${LIBRA_STDLIB}" MATCHES "NONE")
+  list(APPEND LIBRA_PUBLIC_DEFS -D__nostdlib__)
 endif()
 
 set(LIBRA_PRIVATE_DEV_DEFS ${LIBRA_PRIVATE_DEFS})
@@ -116,31 +166,8 @@ libra_message(STATUS "Configuring compiler diagnostics")
 # set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
 if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "${CMAKE_C_COMPILER_ID}")
-  libra_message(WARNING "C compiler family=${CMAKE_C_COMPILER_ID}, CXX compiler
-  family=${CMAKE_CXX_COMPILER_ID}; are you sure you want to mix?")
-endif()
-
-# ##############################################################################
-# GNU Compiler Options
-# ##############################################################################
-if("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES
-                                             "GNU")
-  include(libra/compile/gnu)
-endif()
-
-# ##############################################################################
-# clang Compiler Options
-# ##############################################################################
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
-                                               MATCHES "Clang")
-  include(libra/compile/clang)
-endif()
-
-# ##############################################################################
-# Intel Compiler Options
-# ##############################################################################
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
-   OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel
-    ")
-  include(libra/compile/intel)
+  libra_message(
+    WARNING
+    "C compiler family=${CMAKE_C_COMPILER_ID}, CXX compiler family=${CMAKE_CXX_COMPILER_ID}; are you sure you want to mix?"
+  )
 endif()

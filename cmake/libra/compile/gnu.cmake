@@ -13,139 +13,23 @@ include(libra/defaults)
 # ##############################################################################
 # Debugging Options
 # ##############################################################################
-if(LIBRA_NO_DEBUG_INFO)
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
-else()
+#[[.rst:
+.. cmake:variable:: LIBRA_DEBUG_INFO_GNU
+
+  If enabled: ``-g2``. If disabled: ``-g0``.
+]]
+if(LIBRA_DEBUG_INFO)
   set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
-endif()
-
-# ##############################################################################
-# Fortifying Options
-# ##############################################################################
-set(LIBRA_FORTIFY_OPTIONS)
-set(LIBRA_FORTIFY_MATCH NO)
-
-set(LIBRA_FORTIFY_DEFAULT "NONE")
-
-if(NOT LIBRA_FORTIFY)
-  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
-endif()
-
-if(NOT LIBRA_FORTIFY MATCHES "NONE")
-  set(LIBRA_LTO ON)
-endif()
-
-# -fstack-protector-{strong,all} are also options which could be swapped
-# in/added eventually.
-set(LIBRA_FORTIFY_STACK -fstack-protector)
-set(LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
-set(LIBRA_FORTIFY_GOT -Wl,-z,relro -Wl,-z,now)
-set(LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format=2)
-
-if("${LIBRA_FORTIFY}" MATCHES "STACK")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_STACK}")
-endif()
-
-if("${LIBRA_FORTIFY}" MATCHES "SOURCE")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_SOURCE}")
-endif()
-
-if("${LIBRA_FORTIFY}" MATCHES "GOT")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_GOT}")
-endif()
-
-if("${LIBRA_FORTIFY}" MATCHES "FORMAT")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_FORMAT}")
-endif()
-
-if("${LIBRA_FORTIFY}" MATCHES "ALL")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS
-      "${LIBRA_FORTIFY_STACK} ${LIBRA_FORTIFY_SOURCE}  ${LIBRA_FORTIFY_GOT} ${LIBRA_FORTIFY_FORMAT}"
-  )
-endif()
-
-if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
-  libra_message(
-    WARNING "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset \
-of {STACK,SOURCE,GOT,FORMAT,ALL} or set to NONE for gcc")
-endif()
-
-set(LIBRA_C_FORTIFY_OPTIONS ${LIBRA_FORTIFY_OPTIONS})
-set(LIBRA_CXX_FORTIFY_OPTIONS ${LIBRA_FORTIFY_OPTIONS})
-
-# ##############################################################################
-# LTO Options
-# ##############################################################################
-if(LIBRA_LTO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-endif()
-
-# ##############################################################################
-# Optimization Options
-# ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O0)
-  endif()
-
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O3)
-  endif()
 else()
-  libra_message(
-    FATAL_ERROR
-    "GNU compiler plugin is only configured for {Debug, Release} builds")
+  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
 endif()
-
-include(ProcessorCount)
-ProcessorCount(N)
-
-if(LIBRA_NATIVE_OPT)
-  list(APPEND LIBRA_OPT_OPTIONS -march=native -mtune=native)
-endif()
-
-if(LIBRA_MT)
-  list(APPEND LIBRA_OPT_OPTIONS -fopenmp)
-  target_link_options(${PROJECT_NAME} PUBLIC -fopenmp)
-endif()
-set(LIBRA_C_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
-set(LIBRA_CXX_OPT_OPTIONS ${LIBRA_OPT_OPTIONS})
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  # For handling lto with static libraries on MSI
-  set(CMAKE_AR "gcc-ar")
-  set(CMAKE_NM "gcc-nm")
-  set(CMAKE_RANLIB "gcc-ranlib")
-
-  # Without turning off these warnings we get a bunch of spurious warnings about
-  # the attributes, even though they are already present.
-  list(
-    APPEND
-    CMAKE_SHARED_LINKER_FLAGS
-    "-Wno-suggest-attribute=pure -Wno-suggest-attribute=const -Wno-suggest-attribute=cold"
-  )
-endif()
-
-# Always use the gold linker--it's a drop in replacement that is better in every
-# way. Link with the # of cores on the host machine for speed.
-target_link_options(
-  ${PROJECT_NAME}
-  PUBLIC
-  -fuse-ld=gold
-  -Wl,--threads
-  -Wl,--thread-count=${N})
 
 # ##############################################################################
 # Diagnostic Options
 # ##############################################################################
 set(LIBRA_BASE_DIAG_CANDIDATES
     -fdiagnostics-color=always
+    -fdiagnostics-all-candidates
     -W
     -Wall
     -Wextra
@@ -254,8 +138,179 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
 endforeach()
 
 # ##############################################################################
-# Checking Options
+# Fortifying Options
 # ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_FORTIFY_GNU
+
+If STACK: ``-fstack-protector``.
+
+If SOURCE: ``-D_FORTIFY_SOURCE=2``.
+
+If FORMAT: ``-Wformat-security -Werror=format=2``.
+]]
+set(LIBRA_FORTIFY_OPTIONS)
+set(LIBRA_FORTIFY_MATCH NO)
+
+set(LIBRA_FORTIFY_DEFAULT "NONE")
+
+if(NOT LIBRA_FORTIFY)
+  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
+endif()
+
+if(NOT LIBRA_FORTIFY MATCHES "NONE")
+  set(LIBRA_LTO ON)
+endif()
+
+# -fstack-protector-{strong,all} are also options which could be swapped
+# in/added eventually.
+set(LIBRA_FORTIFY_STACK -fstack-protector)
+set(LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+set(LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format=2)
+
+if("${LIBRA_FORTIFY}" MATCHES "STACK")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_STACK}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "SOURCE")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_SOURCE}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "FORMAT")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_FORMAT}")
+endif()
+
+if("${LIBRA_FORTIFY}" MATCHES "ALL")
+  set(LIBRA_FORTIFY_MATCH YES)
+  set(LIBRA_FORTIFY_OPTIONS ${LIBRA_FORTIFY_STACK} ${LIBRA_FORTIFY_SOURCE}
+                            ${LIBRA_FORTIFY_FORMAT})
+endif()
+
+if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
+  libra_message(
+    WARNING "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset \
+of {STACK,SOURCE,FORMAT,ALL} or set to NONE for gcc")
+endif()
+
+# ##############################################################################
+# Optimization Options
+# ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_LEVEL_GNU
+
+Set to ``-O0`` on Debug builds and ``-O3`` on release builds, unless overriden.
+]]
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  if(NOT DEFINED LIBRA_OPT_LEVEL)
+    set(LIBRA_OPT_LEVEL -O0)
+  endif()
+
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  if(NOT DEFINED LIBRA_OPT_LEVEL)
+    set(LIBRA_OPT_LEVEL -O3)
+  endif()
+else()
+  libra_message(
+    FATAL_ERROR
+    "GNU compiler plugin is only configured for {Debug, Release} builds")
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_NATIVE_OPT_GNU
+
+If enabled: ``-march=native -mtune=native``.
+]]
+if(LIBRA_NATIVE_OPT)
+  list(APPEND LIBRA_OPT_OPTIONS -march=native -mtune=native)
+endif()
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  # For handling lto with static libraries on MSI
+  set(CMAKE_AR "gcc-ar")
+  set(CMAKE_NM "gcc-nm")
+  set(CMAKE_RANLIB "gcc-ranlib")
+
+  # Without turning off these warnings we get a bunch of spurious warnings about
+  # the attributes, even though they are already present.
+  target_link_options(
+    ${PROJECT_NAME}
+    PUBLIC
+    -Wno-suggest-attribute=pure
+    -Wno-suggest-attribute=const
+    -Wno-suggest-attribute=cold)
+
+endif()
+
+# Always use the gold linker--it's a drop in replacement that is better in every
+# way. Link with the # of cores on the host machine for speed.
+include(ProcessorCount)
+ProcessorCount(N)
+
+target_link_options(
+  ${PROJECT_NAME}
+  PUBLIC
+  -fuse-ld=gold
+  -Wl,--threads
+  -Wl,--thread-count=${N})
+
+# ##############################################################################
+# Sanitizer Options
+# ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_SAN_GNU
+
+If MSAN enabled::
+
+  -fno-omit-frame-pointer
+  -fno-optimize-sibling-calls
+  -fsanitize=leak
+  -fsanitize-recover=all
+
+If ASAN is enabled::
+
+  -fno-omit-frame-pointer
+  -fno-optimize-sibling-calls
+  -fsanitize=address
+  -fsanitize-address-use-after-scope
+  -fsanitize=pointer-compare
+  -fsanitize=pointer-subtract
+  -fsanitize-recover=all
+
+If SSAN is enabled::
+
+  -fno-omit-frame-pointer
+  -fstack-protector-all
+  -fstack-protector-strong
+  -fsanitize-recover=all.
+
+If UBSAN is enabled::
+
+  -fno-omit-frame-pointer
+  -fsanitize=undefined
+  -fsanitize=float-divide-by-zero
+  -fsanitize=float-cast-overflow
+  -fsanitize=null
+  -fsanitize=signed-integer-overflow
+  -fsanitize=bool
+  -fsanitize=enum
+  -fsanitize=builtin
+  -fsanitize=bounds
+  -fsanitize=vptr
+  -fsanitize=pointer-overflow
+  -fsanitize-recover=all
+
+If TSAN is enabled::
+
+  -fno-omit-frame-pointer
+  -fsanitize=thread
+  -fsanitize-recover=all
+
+]]
+
 set(MSAN_OPTIONS -fno-omit-frame-pointer -fno-optimize-sibling-calls
                  -fsanitize=leak -fsanitize-recover=all)
 set(ASAN_OPTIONS
@@ -289,32 +344,38 @@ if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
 endif()
 
-set(LIBRA_SAN_OPTIONS)
+set(LIBRA_SAN_COMPILE_OPTIONS)
+set(LIBRA_SAN_LINK_OPTIONS)
 set(LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
   set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_OPTIONS ${MSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
   set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_OPTIONS ${ASAN_OPTIONS})
+  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
+  list(APPEND LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
   set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_OPTIONS ${SSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
   set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_OPTIONS ${UBSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
   set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_OPTIONS ${TSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
+  list(APPEND LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
 endif()
 
 if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
@@ -322,23 +383,24 @@ if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
 of {MSAN,ASAN,SSAN,UBSAN,TSAN} or set to NONE")
 endif()
 
-set(LIBRA_C_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
-set(LIBRA_CXX_SAN_OPTIONS ${LIBRA_SAN_OPTIONS})
-
 # ##############################################################################
 # Profiling Options
 # ##############################################################################
-set(BASE_PGO_GEN_OPTIONS -fprofile-generate)
-set(BASE_PGO_USE_OPTIONS -fprofile-use)
+#[[.rst:
+.. cmake:variable:: LIBRA_PGO_GNU
+
+If GEN: ``-fprofile-generate``.
+
+If USE: ``-fprofile-use``.
+]]
 
 if("${LIBRA_PGO}" MATCHES "GEN")
-  set(LIBRA_C_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
-  set(LIBRA_CXX_PGO_GEN_OPTIONS ${BASE_PGO_GEN_OPTIONS})
+  set(LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
+  set(LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
 endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
-  set(LIBRA_C_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
-  set(LIBRA_CXX_PGO_USE_OPTIONS ${BASE_PGO_USE_OPTIONS})
+  set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################
@@ -347,27 +409,32 @@ endif()
 # We don't use the --coverage alias, because while that works for both compiling
 # and linking, additional warning options like -fno-inline fail when linking
 # ##############################################################################
-set(BASE_CODE_COV_OPTIONS
-    -fprofile-arcs
-    -ftest-coverage
-    # Suppress template inlining for more accurate coverage reports
-    -fno-inline
-    # Thread-safe updates to coverage counters
-    -fprofile-update=atomic)
+#[[.rst:
+.. cmake:variable:: LIBRA_CODE_COV_GNU
 
+If enabled: ``-fprofile-arcs -ftest-coverage -fno-inline
+-fprofile-update=atomic`` to compiler, and ``-fprofile-arcs`` to linker.
+]]
 if(LIBRA_CODE_COV)
-  set(LIBRA_C_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
-  set(LIBRA_CXX_CODE_COV_OPTIONS ${BASE_CODE_COV_OPTIONS})
+  set(LIBRA_CODE_COV_COMPILE_OPTIONS
+      -fprofile-arcs
+      -ftest-coverage
+      # Suppress template inlining for more accurate coverage reports
+      -fno-inline
+      # Thread-safe updates to coverage counters
+      -fprofile-update=atomic)
 
-  # 2025-10-21 [JRH]: Has to be 'gcov' not '-lgcov', because libraries are
-  # APPENDED to the link args (what we want), and args are PREPENDED (what we
-  # don't want).
-  target_link_libraries(${PROJECT_NAME} PUBLIC gcov)
+  set(LIBRA_CODE_COV_LINK_OPTIONS -fprofile-arcs)
 endif()
 
 # ##############################################################################
 # Valgrind Compatibility Options
 # ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_VALGRIND_COMPAT_CLANG
+
+If enabled: ``-mno-sse3`` to compiler.
+]]
 if(LIBRA_VALGRIND_COMPAT)
   set(LIBRA_VALGRIND_COMPAT_OPTIONS "-mno-sse3")
 endif()
@@ -375,20 +442,34 @@ endif()
 # ##############################################################################
 # Stdlib options
 # ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_STDLIB_GNU
+
+If NONE: ``-nostdlib`` during at link, both C/C++.
+
+If STDCXX: N/A.
+
+If CXX: N/A.
+
+]]
+
 if(NOT LIBRA_STDLIB)
   set(LIBRA_STDLIB ${LIBRA_STDLIB_DEFAULT})
 endif()
 
-set(LIBRA_STDLIB_OPTIONS)
+set(LIBRA_STDLIB_LINK_OPTIONS)
 set(LIBRA_STDLIB_MATCH NO)
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  set(LIBRA_STDLIB_OPTIONS -nostdlib)
+  set(LIBRA_STDLIB_MATCH YES)
+  set(LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
+  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
 endif()
 if(NOT ${LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
-    WARNING "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of
-{NONE,STDCXX,CXX}")
+    WARNING
+    "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of {NONE,STDCXX,CXX}"
+  )
 endif()
 
 # ##############################################################################
@@ -396,4 +477,7 @@ endif()
 #
 # * No warnings, since they have no effect on the build
 # ##############################################################################
-set(LIBRA_TARGET_FLAGS_FILTER_REGEX "^-W")
+set(LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W")
+
+# Regex intentionally matches nothing
+set(LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")

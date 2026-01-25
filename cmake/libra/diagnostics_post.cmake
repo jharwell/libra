@@ -4,6 +4,57 @@
 # SPDX-License Identifier: MIT
 #
 
+# Function to extract and filter flags from a string containing generator
+# expressions
+#
+# Usage: extract_and_filter_flags(<input_string> <filter_regex>
+# <output_variable>)
+function(extract_and_filter_flags input_string filter_regex output_var)
+  set(filtered_result)
+
+  # Work with the string representation
+  set(flags_string "${input_string}")
+
+  # Match nested generator expressions: $<$<...>:...> Use a greedy match to get
+  # the full generator expression
+  while(flags_string MATCHES "\\$<\\$<[^>]+>:([^>]+)>")
+    set(genex_content "${CMAKE_MATCH_1}")
+
+    # Split the content by semicolons
+    string(REPLACE ";" "%%SEP%%" temp_content "${genex_content}")
+    string(REPLACE "%%SEP%%" ";" flag_list "${temp_content}")
+
+    foreach(flag IN LISTS flag_list)
+      if(NOT flag MATCHES "${filter_regex}")
+        list(APPEND filtered_result ${flag})
+      endif()
+    endforeach()
+
+    # Remove this generator expression from the string and continue
+    string(REGEX REPLACE "\\$<\\$<[^>]+>:[^>]+>" "" flags_string
+                         "${flags_string}")
+  endwhile()
+
+  # Handle any remaining non-generator-expression flags
+  if(flags_string)
+    string(REPLACE ";" "%%SEP%%" temp "${flags_string}")
+    string(REPLACE "%%SEP%%" ";" remaining_flags "${temp}")
+
+    foreach(flag IN LISTS remaining_flags)
+      if(flag AND NOT flag MATCHES "[$<>]")
+        if(NOT flag MATCHES "${filter_regex}")
+          list(APPEND filtered_result ${flag})
+        endif()
+      endif()
+    endforeach()
+  endif()
+
+  # Return the result
+  set(${output_var}
+      ${filtered_result}
+      PARENT_SCOPE)
+endfunction()
+
 # This is separate from the the API function so that the API version can be
 # available in project-local.cmake. Target compile flags/options/etc aren't set
 # until AFTER project-local.cmake is included, so if we try to filter out build
@@ -48,34 +99,34 @@ function(_libra_configure_source_file_post INFILE OUTFILE)
   get_target_property(COMPILE_FLAGS ${PROJECT_NAME} COMPILE_FLAGS)
   get_target_property(INTERFACE_COMPILE_OPTIONS ${PROJECT_NAME}
                       INTERFACE_COMPILE_OPTIONS)
+  get_target_property(LINK_OPTIONS ${PROJECT_NAME} LINK_OPTIONS)
 
-  set(LIBRA_TARGET_FLAGS_BUILD)
   if(COMPILE_OPTIONS)
-    list(APPEND LIBRA_TARGET_FLAGS_BUILD ${COMPILE_OPTIONS})
+    list(APPEND RAW_FLAGS_COMPILE ${COMPILE_OPTIONS})
   endif()
   if(COMPILE_DEFINITIONS)
-    list(APPEND LIBRA_TARGET_FLAGS_BUILD ${COMPILE_DEFINITIONS})
+    list(APPEND RAW_FLAGS_COMPILE ${COMPILE_DEFINITIONS})
+  endif()
+  if(LINK_OPTIONS)
+    list(APPEND RAW_FLAGS_LINK ${LINK_OPTIONS})
   endif()
 
-  # Filter: skip generator expressions, remove warning flags
-  set(FILTERED_FLAGS)
-  foreach(flag IN LISTS LIBRA_TARGET_FLAGS_BUILD)
-    # Skip generator expressions entirely
-    if(flag MATCHES "[$<>]")
-      continue()
-    endif()
+  set(FILTERED_FLAGS_COMPILE)
+  extract_and_filter_flags(
+    "${RAW_FLAGS_COMPILE}" "${LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX}"
+    FILTERED_FLAGS_COMPILE)
 
-    if(NOT flag MATCHES "${LIBRA_TARGET_FLAGS_FILTER_REGEX}")
-      list(APPEND FILTERED_FLAGS ${flag})
-    endif()
-  endforeach()
-
-  list(REMOVE_DUPLICATES FILTERED_FLAGS)
-  set(LIBRA_TARGET_FLAGS_BUILD ${FILTERED_FLAGS})
+  set(FILTERED_FLAGS_LINK)
+  extract_and_filter_flags(
+    "${RAW_FLAGS_LINK}" "${LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX}"
+    FILTERED_FLAGS_LINK)
 
   # Have to join with ' '; a list joined with ';' is (apparently) not valid in a
   # configured source file.
-  list(JOIN FILTERED_FLAGS " " LIBRA_TARGET_FLAGS_BUILD)
+  list(REMOVE_DUPLICATES FILTERED_FLAGS_COMPILE)
+  list(REMOVE_DUPLICATES FILTERED_FLAGS_LINK)
+  list(JOIN FILTERED_FLAGS_COMPILE " " LIBRA_TARGET_FLAGS_COMPILE)
+  list(JOIN FILTERED_FLAGS_LINK " " LIBRA_TARGET_FLAGS_LINK)
 
   # Write the file
   configure_file(${INFILE} ${OUTFILE})

@@ -64,7 +64,6 @@ details about restrictions.
                are set. This helps to prevent untended cascades of build options
                which might cause issues.
 
-.. _usage/configure-time/libra:
 
 Knobs For Configuring LIBRA/CMake
 =================================
@@ -109,6 +108,9 @@ Knobs For Configuring LIBRA/CMake
 Knobs For Supporting SW Engineering
 ===================================
 
+See also the :ref:`individual docs pages for each compiler <usage/compilers>`,
+which describe how these knobs are realized for each supported compiler.
+
 .. cmake:variable:: LIBRA_DOCS
 
    :default: NO
@@ -133,29 +135,33 @@ Knobs For Supporting SW Engineering
    Build in runtime checking of code using any compiler. When passed, the
    value should be a comma-separated list of sanitizer groups to enable:
 
-   - ``MSAN`` - Memory checking/sanitization.
+   - ``MSAN`` - Memory checking/sanitization. To use this, you may need
+     ``liblsan`` installed, compatible with your compiler.
 
-   - ``ASAN`` - Address sanitization.
+   - ``ASAN`` - Address sanitization. To use this, you will need ``libasan``
+     installed, compatible with your compiler.
 
    - ``SSAN`` - Aggressive stack checking.
 
    - ``UBSAN`` - Undefined behavior checks.
 
-   - ``TSAN`` - Multithreading checks.
+   - ``TSAN`` - Multithreading checks. To use this, you will need ``libtsan``
+     installed, compatible with your compiler.
 
    - ``NONE`` - None of the above.
 
-   The first 4 can generally be stacked together without issue. Depending on
-   compiler; the thread sanitizer is incompatible with some other sanitizer
-   groups.
+   .. NOTE:: The first 4 can generally be stacked together without
+              issue. Depending on compiler; the thread sanitizer is incompatible
+              with some other sanitizer groups.
 
 .. cmake:variable:: LIBRA_ANALYSIS
 
    :default: NO
    :type: BOOL
 
-   Enable static analysis targets for checkers, formatters, etc. See below for
-   the targets enabled (assuming the necessary executables are found).
+   Enable static analysis targets for checkers, formatters, etc. See
+   :ref:`usage/build-time` for the targets enabled (assuming the necessary
+   executables are found).
 
 .. cmake:variable:: LIBRA_OPT_REPORT
 
@@ -183,26 +189,6 @@ Knobs For Supporting SW Engineering
    - ``STACK`` - Fortify the stack: add stack protector, etc.
 
    - ``SOURCE`` - Fortify source code via ``_FORTIFY_SOURCE=2``.
-
-   - ``LIBCXX_FAST`` - Fortify libc++ with the set of "fast" checks. clang
-     only. See `here <https://libcxx.llvm.org/Hardening.html>`_ for more
-     details. LIBRA does not currently set clang to use libc++ for you.
-
-   - ``LIBCXX_EXTENSIVE`` - Fortify libc++ with the set of "extensive"
-     checks. clang only. See `here <https://libcxx.llvm.org/Hardening.html>`_
-     for more details. LIBRA does not currently set clang to use libc++ for
-     you.
-
-   - ``LIBCXX_DEBUG`` - Fortify libc++ with a comprehensive set of debug
-     checks that might slow things down a lot. clang only. See `here
-     <https://libcxx.llvm.org/Hardening.html>`_ for more details. LIBRA does
-     not currently set clang to use libc++ for you.
-
-   - ``CFI`` - Fortify against Control Flow Integrity (CFI) attacks. clang
-     only.
-
-   - ``GOT`` - Fortify against Global Offset Table (GOT) attacks with
-     read-only relocations and immediate symbol binding on load.
 
    - ``FORMAT`` - Fortify against formatting attacks.
 
@@ -232,15 +218,6 @@ Knobs For Supporting SW Engineering
 
 Knobs For Configuring Builds
 ============================
-
-
-.. cmake:variable:: LIBRA_MT
-
-   :default: NO
-   :type: BOOL
-
-   Enable multithreaded code/OpenMP code via compiler flags (e.g.,
-   ``-fopenmp``), and/or selecting additional code for compilation.
 
 .. cmake:variable:: LIBRA_FPC
 
@@ -443,7 +420,8 @@ Knobs For Configuring Builds
    :default: NO
    :type: BOOL
 
-   Enable Link-Time Optimization.
+   Enable Link-Time Optimization (LTO), also known as Interprocedural
+   optimization (IPO). Compiler-independent.
 
    .. versionchanged:: 0.8.3
       This is automatically enabled by ``LIBRA_FORTIFY != NONE``.
@@ -458,21 +436,25 @@ Knobs For Configuring Builds
    use. You would only turn this off for bare-metal builds (e.g.,
    bootstraps). Valid values are:
 
-   - ``NONE`` - Don't use the stdlib at all. Defines ``__nostdlib__``.
+   - ``NONE`` - Don't use the stdlib at all. Defines ``__nostdlib__`` macro for
+     all source files.
 
    - ``CXX`` - Use libc++, if the compiler supports it.
 
-   - ``STDCXX`` - Use libstdc++, if the compiler supports itn.
+   - ``STDCXX`` - Use libstdc++, if the compiler supports it.
 
-.. cmake:variable:: LIBRA_NO_DEBUG_INFO
+.. cmake:variable:: LIBRA_DEBUG_INFO
 
-   :default: NO
+   :default: YES
    :type: BOOL
 
-   Disable generation of debug symbols *independent* of whatever the default is
+   Enable generation of debug symbols *independent* of whatever the default is
    with a given cmake build type.
 
    .. versionadded:: 0.8.4
+
+   .. versionchanged:: 0.9.36 Renamed to ``LIBRA_DEBUG_INFO``, and default to
+                       on.
 
 .. cmake:variable:: LIBRA_NATIVE_OPT
 
@@ -482,16 +464,5 @@ Knobs For Configuring Builds
    Enable compiler optimizations native to the current machine. This will likely
    make code compiled in this way *only* runnable on the current machine. Not
    recommended for use with docker/CI pipelines.
-
-   .. versionadded:: 0.9.15
-
-.. cmake:variable:: LIBRA_UNSAFE_OPT
-
-   :default: NO
-   :type: BOOL
-
-   Enable compiler optimizations which are considered "unsafe"; that is, can
-   change numerical results. Most of these pertain to relaxing floating point
-   rigor. Tread carefully!!!
 
    .. versionadded:: 0.9.15
