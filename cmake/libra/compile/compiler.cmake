@@ -101,9 +101,12 @@ macro(_gen_fpc_defs DEFS)
     list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_RETURN)
   elseif("${LIBRA_FPC}" MATCHES "ABORT")
     list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_ABORT)
+  elseif("${LIBRA_FPC}" MATCHES "INHERIT")
+
+  else()
     libra_message(
       FATAL_ERROR "Bad Function Precondition Checking (FPC) specification
-    '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN}")
+    '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN,INHERIT}")
   endif()
 endmacro()
 

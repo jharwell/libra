@@ -59,6 +59,9 @@ option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
 
+# 2026-02-02 [JRH]: All of these are cache variables, because option() does not
+# support non-boolean things.
+
 set(LIBRA_DRIVER
     "SELF"
     CACHE STRING "{SELF,CONAN} Set the user front end for the build process")
@@ -70,7 +73,8 @@ set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 
 set(LIBRA_FPC
     "RETURN"
-    CACHE STRING "{RETURN,ABORT,NONE} Function Predcondition Checking (FPC)")
+    CACHE STRING
+          "{RETURN,ABORT,NONE,INHERIT} Function Predcondition Checking (FPC)")
 set_property(
   CACHE LIBRA_FPC
   PROPERTY STRINGS
