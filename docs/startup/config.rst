@@ -34,7 +34,7 @@ version of the compiler you use doesn't really matter from LIBRA's perspective,
 because it allows you to specify the exact set of diagnostics to supply to the
 compiler (see :ref:`usage/project-local/variables`). Non-diagnostic flags passed
 to the compiler are common to all recent versions; additional configurability
-may be added in the future. See :ref:`usage/configure-time/compiler` for more
+may be added in the future. See :ref:`usage/compilers` for more
 details about supported compiler support.
 
 LIBRA comes with an internal set of diagnostics targeted at GCC 12, icc 18,

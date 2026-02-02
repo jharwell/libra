@@ -59,6 +59,13 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
 
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
+  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
+  if(NOT LIBRA_USE_COMPDB)
+    set(USE_DATABASE NO)
+  else()
+    set(USE_DATABASE ${LIBRA_USE_COMPDB})
+  endif()
+
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
     add_custom_target(${CHECK_TARGET}-${CATEGORY})
@@ -88,19 +95,44 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
         set(DISABLE_INCLUDE_CLEANER --checks=-misc-include-cleaner)
       endif()
 
-      add_custom_target(
-        ${CHECK_TARGET}-${CATEGORY}-${file_target}
-        COMMAND
-          ${clang_tidy_EXECUTABLE} --header-filter=${CMAKE_SOURCE_DIR}/include/*
-          ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-          --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
-          ${EXTRACTED_ARGS} ${JOB_ARGS} --extra-arg=--std=${LIBRA_CXX_STANDARD}
-          --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
-          ${DISABLE_INCLUDE_CLEANER} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT
-          "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
-      )
+      if(USE_DATABASE)
+        message("USE DATABASE")
+        add_custom_target(
+          ${CHECK_TARGET}-${CATEGORY}-${file_target}
+          COMMAND
+            ${clang_tidy_EXECUTABLE}
+            --header-filter=${CMAKE_SOURCE_DIR}/include/* ${HEADER_EXCLUDES}
+            --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+            --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
+            ${JOB_ARGS} --extra-arg=--std=${LIBRA_CXX_STANDARD}
+            --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
+            ${PROJECT_BINARY_DIR} ${DISABLE_INCLUDE_CLEANER}
+            ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT
+            "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
+        )
+      else()
+        add_custom_target(
+          ${CHECK_TARGET}-${CATEGORY}-${file_target}
+          COMMAND
+            ${clang_tidy_EXECUTABLE}
+            --header-filter=${CMAKE_SOURCE_DIR}/include/* ${HEADER_EXCLUDES}
+            --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+            --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
+            ${EXTRACTED_ARGS} ${JOB_ARGS}
+            --extra-arg=--std=${LIBRA_CXX_STANDARD}
+            --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
+            --quiet ${DISABLE_INCLUDE_CLEANER} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+            "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"
+            "$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>"
+            "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"
+            "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
+            "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT "Running ${clang_tidy_NAME} without compdb on ${file}")
+
+      endif()
       add_dependencies(${CHECK_TARGET}-${CATEGORY}
                        ${CHECK_TARGET}-${CATEGORY}-${file_target})
     endforeach()

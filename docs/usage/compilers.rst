@@ -5,11 +5,11 @@
 
 .. _usage/compilers:
 
-================
-Compiler Support
-================
+=================================
+Compiler Support: All The Details
+=================================
 
-This table summarizes how the supported compilers interact with the variables
+This pages summarizes how the supported compilers interact with the variables
 described on :ref:`usage/configure-time` and :ref:`usage/project-local`.
 The variables in the table are an attempt at a polymorphic interface for
 supporting different compilers, cmake style. In the compiler-specific sections

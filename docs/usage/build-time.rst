@@ -166,7 +166,7 @@ Actions For Supporting SW Engineering
        - ``fix-clang-tidy`` - Runs ``clang-tidy`` as a checker, but also passing
          the ``--fix`` argument.
 
-       - ``fix-clang-check`` - Runs ``clang-checkg`` as a checker, but also
+       - ``fix-clang-check`` - Runs ``clang-check`` as a checker, but also
          passing the ``--fixit`` argument.
 
          .. versionadded:: 0.8.12

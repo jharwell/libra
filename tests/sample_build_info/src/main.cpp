@@ -7,7 +7,7 @@
 #include <iostream>
 
 int main(int, char**) {
-  int n = 14;
+  int n     = 14;
   int first = 0, second = 1, nextTerm;
 #ifndef __nostdlib__
   std::cout << "Fibonacci Series: ";
@@ -17,8 +17,8 @@ int main(int, char**) {
     std::cout << first << " ";
 #endif
     nextTerm = first + second;
-    first = second;
-    second = nextTerm;
+    first    = second;
+    second   = nextTerm;
   }
 #ifndef __nostdlib__
   std::cout << std::endl;

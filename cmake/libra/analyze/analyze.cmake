@@ -81,18 +81,8 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
   get_target_property(TARGET_TYPE ${TARGET} TYPE)
 
-  # clang-xx doesn't work well with using a compilation database with header
-  # only libraries without anything to compile (e.g., those without tests). But,
-  # we assume that all header-only libs HAVE tests, so it's safe to
-  # unconditionally use a compdb by default;  the user can override this and
-  # force extraction of the necessary includes,#defines, etc. from the target
-  # itself.
-
-  if(DEFINED LIBRA_USE_COMPDB)
-    set(USE_DATABASE ${LIBRA_USE_COMPDB})
-  else()
-    set(USE_DATABASE YES)
-
+  if(NOT LIBRA_USE_COMPDB)
+    set(USE_DATABASE NO)
     if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
       set(USE_DATABASE NO)
     else()
@@ -101,16 +91,20 @@ function(analyze_clang_extract_args_from_target TARGET RET)
         set(USE_DATABASE NO)
       endif()
     endif()
+  else()
+    set(USE_DATABASE ${LIBRA_USE_COMPDB})
   endif()
 
-  # We use --extra-arg=... instead of '-- ...' because the former is documented
-  # and works, and the latter is undocumented and SORT OF works.
-  set(${RET}
-      $<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>
-      $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INCLUDES}>:--extra-arg=-I$<JOIN:${INCLUDES},\t--extra-arg=-I>>>
-      $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_INCLUDES}>:--extra-arg=-I$<JOIN:${INTERFACE_INCLUDES},\t--extra-arg=-I>>>
-      $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:--extra-arg=-isystem$<JOIN:${INTERFACE_SYSTEM_INCLUDES},\t--extra-arg=-isystem>>>
-      $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${DEFS}>:--extra-arg=-D$<JOIN:${DEFS},\t--extra-arg=-D>>>
-      $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_DEFS}>:--extra-arg=-D$<JOIN:${INTERFACE_DEFS},\t--extra-arg=-D>>>
-      PARENT_SCOPE)
+  if(NOT USE_DATABASE)
+    # We use --extra-arg=... instead of '-- ...' because the former is
+    # documented and works, and the latter is undocumented and SORT OF works.
+    set(${RET}
+        $<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>
+        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INCLUDES}>:--extra-arg=-I$<JOIN:${INCLUDES},\t--extra-arg=-I>>>
+        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_INCLUDES}>:--extra-arg=-I$<JOIN:${INTERFACE_INCLUDES},\t--extra-arg=-I>>>
+        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:--extra-arg=-isystem$<JOIN:${INTERFACE_SYSTEM_INCLUDES},\t--extra-arg=-isystem>>>
+        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${DEFS}>:--extra-arg=-D$<JOIN:${DEFS},\t--extra-arg=-D>>>
+        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_DEFS}>:--extra-arg=-D$<JOIN:${INTERFACE_DEFS},\t--extra-arg=-D>>>
+        PARENT_SCOPE)
+  endif()
 endfunction()

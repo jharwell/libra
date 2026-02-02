@@ -29,10 +29,10 @@ File Discovery
   - ``.c``
   - ``.cpp``
 
-  are globbed as source files (see :ref:`startup/req` for repository layout
-  requirements) so that if you add a new source file, rename a source file,
-  etc., you just need to re-run cmake. This means you don't have to MANUALLY
-  specify all the files in the cmake project. Woo-hoo!
+  are globbed as source files (see :ref:`startup/config/structure` for
+  repository layout requirements) so that if you add a new source file, rename a
+  source file, etc., you just need to re-run cmake. This means you don't have to
+  MANUALLY specify all the files in the cmake project. Woo-hoo!
 
   .. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
      contrary to common cmake guidance.
@@ -466,3 +466,20 @@ Knobs For Configuring Builds
    recommended for use with docker/CI pipelines.
 
    .. versionadded:: 0.9.15
+
+.. cmake:variable:: LIBRA_USE_COMPDB
+
+   :default: NO
+   :type: BOOL
+
+  Tell LIBRA that all analysis tools should use a compilation database, rather
+  than the default of extracting the necessary includes, #defines, etc. from the
+  target itself. See :ref:`usage/analysis` for more details about this decision.
+
+  For best results, if you are using any of the clang-based analysis targets,
+  set the compiler to clang and then set :cmake:variable:`LIBRA_USE_COMPDB`. If
+  you are using e.g., gcc as the compiler, clang-based analysis may still work,
+  but generate some spurious warnings about a compilation database not being
+  found/used.
+
+   .. versionadded:: 0.9.36
