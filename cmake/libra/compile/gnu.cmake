@@ -138,6 +138,20 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
 endforeach()
 
 # ##############################################################################
+# Build-time Profiling Options
+# ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_BUILD_PROF_GNU
+
+If enabled: ``-ftime-report``.
+]]
+if(LIBRA_BUILD_PROF)
+  set(LIBRA_BUILD_PROF_OPTIONS "-ftime-report")
+else()
+  set(LIBRA_BUILD_PROF_OPTIONS)
+endif()
+
+# ##############################################################################
 # Fortifying Options
 # ##############################################################################
 #[[.rst:
@@ -244,18 +258,6 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     -Wno-suggest-attribute=cold)
 
 endif()
-
-# Always use the gold linker--it's a drop in replacement that is better in every
-# way. Link with the # of cores on the host machine for speed.
-include(ProcessorCount)
-ProcessorCount(N)
-
-target_link_options(
-  ${PROJECT_NAME}
-  PUBLIC
-  -fuse-ld=gold
-  -Wl,--threads
-  -Wl,--thread-count=${N})
 
 # ##############################################################################
 # Sanitizer Options
@@ -401,6 +403,7 @@ endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
   set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
+  set(LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################

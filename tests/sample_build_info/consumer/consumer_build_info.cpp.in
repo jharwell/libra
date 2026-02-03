@@ -1,0 +1,11 @@
+//
+// Copyright 2025 John Harwell, All rights reserved.
+//
+// SPDX-License Identifier: MIT
+//
+// Generated at configure time by the LIBRA_ERL_EXPORT test.
+//
+
+namespace consumer {
+constexpr const char* CONSUMER_IFACE_DEFS = "@CONSUMER_IFACE_DEFS_STR@";
+}

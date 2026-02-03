@@ -50,13 +50,12 @@ declare -a GNU_YES_LINK_FLAGS=(
 
 # Clang code coverage flags
 declare -a CLANG_YES_COMPILE_FLAGS=(
-    "-fprofile-instr-generate"
-    "-fcoverage-mapping"
+    "-coverage"
     "-fno-inline"
 )
 
 declare -a CLANG_YES_LINK_FLAGS=(
-    "-fprofile-instr-generate"
+    "--coverage"
 )
 # Flags that should NOT be present for NO
 declare -a GNU_NO_ABSENT_FLAGS=(
@@ -67,8 +66,7 @@ declare -a GNU_NO_ABSENT_FLAGS=(
 )
 
 declare -a CLANG_NO_ABSENT_FLAGS=(
-    "-fprofile-instr-generate"
-    "-fcoverage-mapping"
+    "--coverage"
     "-fno-inline"
 )
 

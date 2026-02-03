@@ -22,23 +22,17 @@ Platform Requirements
 Compiler Support
 ----------------
 
-- ``g++/gcc``
-- ``clang++/clang``
-- ``icpx/icx``
+- gcc/g++, version 9+
+- clang++/clang, version 17+
+- icpx/icx, version 2024.1+
 
-A recent version of any supported compiler can be selected as the
-``CMAKE_<LANG>_COMPILER`` via command line. The correct compile options will be
-populated. Note that the C and CXX compiler vendors should always match, in
-order to avoid strange build issues (LIBRA warns if they don't).  The exact
-version of the compiler you use doesn't really matter from LIBRA's perspective,
-because it allows you to specify the exact set of diagnostics to supply to the
-compiler (see :ref:`usage/project-local/variables`). Non-diagnostic flags passed
-to the compiler are common to all recent versions; additional configurability
-may be added in the future. See :ref:`usage/compilers` for more
+Older compiler versions may or may not work. Note that the C and CXX compiler
+vendors should always match (e.g., GNU for gcc/g++), in order to avoid strange
+build issues (LIBRA warns if they don't). See :ref:`usage/compilers` for more
 details about supported compiler support.
 
-LIBRA comes with an internal set of diagnostics targeted at GCC 12, icc 18,
-and clang-16.
+LIBRA comes with an internal set of diagnostics targeted at GCC 12, icx 2025,
+and clang-21.
 
 .. IMPORTANT:: If you are want to use the Intel compiler suite, you will have to
                download and install it from Intel's website. It installs to a
@@ -47,18 +41,6 @@ and clang-16.
                definitions (actual command varies by version). Note also that
                only the LLVM-based Intel suite is supported; the ``icc/icpc``
                legacy suited is deprecated both by Intel and LIBRA.
-
-
-Supported Analysis Tooling
---------------------------
-
-- cppcheck - Tested with >= 1.72.
-
-- clang-check - Tested with >= 10.0.
-
-- cmake-format - Tested with >= 0.6.
-
-- clang-tidy - Tested with >= 10.0.
 
 
 .. _startup/config/structure:

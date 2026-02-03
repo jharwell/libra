@@ -73,7 +73,7 @@ run_analysis_on_test() {
     echo "  Running analysis targets..."
     for target in "${EXPECTED_MK_TARGETS[@]}"; do
         echo "    Running: make $target"
-        make $target
+        make -j $target
     done
 
     echo "------------------------------------------------------------------------"

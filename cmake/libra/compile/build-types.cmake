@@ -64,6 +64,7 @@ foreach(target ${LIBRA_TARGETS})
                       $<$<LINK_LANGUAGE:C>:${LIBRA_C_LINK_OPTIONS}>)
   target_link_options(${target} PUBLIC
                       $<$<LINK_LANGUAGE:CXX>:${LIBRA_CXX_LINK_OPTIONS}>)
+
 endforeach()
 
 # ##############################################################################
@@ -87,22 +88,22 @@ endif()
 # ##############################################################################
 # Global Application
 # ##############################################################################
-if(LIBRA_GLOBAL_C_FLAGS)
+if(LIBRA_GLOBAL_C_FLAGS AND "C" IN_LIST LANGUAGES_LIST)
   add_compile_options(
-    "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:C>>:${LIBRA_C_COMPILE_OPTIONS} ${LIBRA_OPT_OPTIONS} ${LIBRA_PUBLIC_OPT_DEFS} ${LIBRA_PRIVATE_OPT_DEFS}>"
+    "$<$<CONFIG:Release>:${LIBRA_C_COMPILE_OPTIONS} ${LIBRA_OPT_OPTIONS} ${LIBRA_PUBLIC_OPT_DEFS} ${LIBRA_PRIVATE_OPT_DEFS}>"
   )
   add_compile_options(
-    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${LIBRA_C_COMPILE_OPTIONS} ${LIBRA_PUBLIC_DEV_DEFS} ${LIBRA_PRIVATE_DEV_DEFS}>"
+    "$<$<CONFIG:Debug>:${LIBRA_C_COMPILE_OPTIONS} ${LIBRA_PUBLIC_DEV_DEFS} ${LIBRA_PRIVATE_DEV_DEFS}>"
   )
-  add_link_options($<$<COMPILE_LANGUAGE:C>:${LIBRA_C_LINK_OPTIONS}>)
+  add_link_options(${LIBRA_C_LINK_OPTIONS})
 endif()
 
 if(LIBRA_GLOBAL_CXX_FLAGS)
   add_compile_options(
-    "$<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_CXX_COMPILE_OPTIONS} ${LIBRA_OPT_OPTIONS} ${LIBRA_PUBLIC_OPT_DEFS} ${LIBRA_PRIVATE_OPT_DEFS}>"
+    "$<$<CONFIG:Release>:${LIBRA_CXX_COMPILE_OPTIONS} ${LIBRA_OPT_OPTIONS} ${LIBRA_PUBLIC_OPT_DEFS} ${LIBRA_PRIVATE_OPT_DEFS}>"
   )
   add_compile_options(
-    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:${LIBRA_CXX_COMPILE_OPTIONS} ${LIBRA_PUBLIC_DEV_DEFS} ${LIBRA_PRIVATE_DEV_DEFS}>"
+    "$<$<CONFIG:Debug>:${LIBRA_CXX_COMPILE_OPTIONS} ${LIBRA_PUBLIC_DEV_DEFS} ${LIBRA_PRIVATE_DEV_DEFS}>"
   )
-  add_link_options($<$<COMPILE_LANGUAGE:CXX>:${LIBRA_CXX_LINK_OPTIONS}>)
+  add_link_options(${LIBRA_CXX_LINK_OPTIONS})
 endif()

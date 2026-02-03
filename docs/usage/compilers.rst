@@ -34,7 +34,7 @@ are pure to get the docs to link unambiguously and are not present in the code.
      - Yes
 
    * - :cmake:variable:`LIBRA_BUILD_PROF`
-     - No
+     - Yes
      - Yes
      - No
 

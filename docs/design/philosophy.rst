@@ -101,6 +101,11 @@ cmake builds and packaging, OR as a cmake middleware / sister framework to
 a package manager like conan, where it then only is responsible for things
 related to building and analyzing the code.
 
+One important consequence of this is that LIBRA minimizes its use of cmake cache
+variables, preferring to use regular variables as much as possible, so that *if*
+something is set on the cmdline at configure time, it is actually effective
+(principle of least surprise).
+
 Automate Everything
 ===================
 

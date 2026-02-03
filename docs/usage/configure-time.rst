@@ -221,7 +221,7 @@ Knobs For Configuring Builds
 
 .. cmake:variable:: LIBRA_FPC
 
-   :default: RETURN
+   :default: INHERIT
    :type: STRING
 
    Enable Function Precondition Checking (FPC): checking function
@@ -246,8 +246,9 @@ Knobs For Configuring Builds
    - ``ABORT`` - If at least one precondition is not met, abort() the
      program.
 
-   - ``INHERIT`` - FPC configuration should be inherited from a parent
-     project which exposes it.
+   - ``INHERIT`` - FPC configuration should be inherited from a parent project
+     which exposes it. This is the default because it prevents cluttering
+     compiler commands with #defines for projects which don't use it.
 
 .. cmake:variable:: LIBRA_FPC_EXPORT
 
@@ -379,7 +380,8 @@ Knobs For Configuring Builds
    - ``NONE`` - All event reporting compiled out.
 
    - ``INHERIT`` - Event reporting configuration should be inherited from a
-     parent project which exposes it.
+     parent project which exposes it. This is the default because it prevents
+     cluttering compiler commands with #defines for projects which don't use it.
 
 .. cmake:variable:: LIBRA_ERL_EXPORT
 

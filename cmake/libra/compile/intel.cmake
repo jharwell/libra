@@ -252,6 +252,7 @@ endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
   set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
+  set(LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################

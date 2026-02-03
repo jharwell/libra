@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 
-
 # Function to check if a Makefile target exists
 # Usage: target_exists BUILD_DIR TARGET_NAME
 mk_target_exists() {
@@ -71,6 +70,55 @@ verify_mk_targets_absent() {
     fi
 
     echo "SUCCESS: All targets are correctly absent"
+}
+
+
+# Verify the define IS present in the consumer's build_info
+# Usage: verify_define_present BUILD_DIR
+consumer_verify_define_present() {
+    local build_dir="$1"
+    local define="$2"
+    local consumer_info="$build_dir/consumer/consumer_build_info.c"
+
+    echo "  Checking consumer_build_info for $define..."
+
+    if [ ! -f "$consumer_info" ]; then
+        echo "    ✗ ERROR: consumer_build_info.c not found: $consumer_info"
+        exit 1
+    fi
+
+    if grep -q "$define" "$consumer_info"; then
+        echo "    ✓ $define found in consumer (propagated correctly)"
+    else
+        echo "    ✗ ERROR: $define NOT found in consumer"
+        echo "    File contents:"
+        cat "$consumer_info"
+        exit 1
+    fi
+}
+
+# Verify the define is NOT present in the consumer's build_info
+# Usage: verify_define_absent BUILD_DIR
+consumer_verify_define_absent() {
+    local build_dir="$1"
+    local define="$2"
+    local consumer_info="$build_dir/consumer/consumer_build_info.c"
+
+    echo "  Checking consumer_build_info has no $define define..."
+
+    if [ ! -f "$consumer_info" ]; then
+        echo "    ✗ ERROR: consumer_build_info.c not found: $consumer_info"
+        exit 1
+    fi
+
+    if grep -q "$define" "$consumer_info"; then
+        echo "    ✗ ERROR: $define define found in consumer but should be absent"
+        echo "    File contents:"
+        cat "$consumer_info"
+        exit 1
+    else
+        echo "    ✓ No $define define in consumer (correctly not exported)"
+    fi
 }
 
 # Get the expected flags for a compiler/variable combination

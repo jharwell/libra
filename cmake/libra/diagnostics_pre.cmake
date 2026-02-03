@@ -435,6 +435,8 @@ endfunction()
   are. Must be called *after* the :cmake:variable:`PROJECT_NAME` target is
   defined.
 
+  :param TARGET: The target the the configured source file should be added to.
+
   :param INFILE: The input template file. Should contain CMake variable
    references like ``@LIBRA_GIT_REV@`` that will be replaced with actual values.
 
@@ -477,6 +479,7 @@ endfunction()
     libra_add_executable(${PROJECT_NAME} ${MY_SOURCES})
 
     libra_configure_source_file(
+      ${PROJECT_NAME}
       ${PROJECT_SOURCE_DIR}/src/version.cpp.in
       ${CMAKE_BINARY_DIR}/version.cpp)
 
@@ -492,13 +495,13 @@ endfunction()
       std::cout << "Build Type: @CMAKE_BUILD_TYPE@" << std::endl;
     }
 
-  .. note::
+  .. NOTE::
      If your code is not in a git repository, all git-related fields will be
      stubbed out with ``N/A`` and will not be very useful. A warning will be
      emitted during configuration.
 
 ]]
-function(libra_configure_source_file INFILE OUTFILE)
+function(libra_configure_source_file TARGET INFILE OUTFILE)
   # Validate arguments
   if(NOT INFILE)
     libra_message(FATAL_ERROR "libra_configure_source_file: INFILE is required")
@@ -516,13 +519,17 @@ function(libra_configure_source_file INFILE OUTFILE)
       "libra_configure_source_file: Input file does not exist: ${INFILE}")
   endif()
 
-  list(APPEND LIBRA_CONFIGURED_SOURCE_FILES_SRC "${INFILE}")
-  set(LIBRA_CONFIGURED_SOURCE_FILES_SRC
-      "${LIBRA_CONFIGURED_SOURCE_FILES_SRC}"
-      CACHE INTERNAL "")
+  if(NOT "${INFILE}" IN_LIST LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC)
+    list(APPEND LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC "${INFILE}")
+    set(LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC
+        "${LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC}"
+        CACHE INTERNAL "")
+  endif()
 
-  list(APPEND LIBRA_CONFIGURED_SOURCE_FILES_DEST "${OUTFILE}")
-  set(LIBRA_CONFIGURED_SOURCE_FILES_DEST
-      "${LIBRA_CONFIGURED_SOURCE_FILES_DEST}"
-      CACHE INTERNAL "")
+  if(NOT "${OUTFILE}" IN_LIST LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST)
+    list(APPEND LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST "${OUTFILE}")
+    set(LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST
+        "${LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST}"
+        CACHE INTERNAL "")
+  endif()
 endfunction()

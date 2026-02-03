@@ -205,18 +205,6 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(CMAKE_RANLIB "llvm-ranlib")
 endif()
 
-include(ProcessorCount)
-ProcessorCount(N)
-
-# Always use the gold linker--it's a drop in replacement that is better in every
-# way. Link with the # of cores on the host machine for speed.
-target_link_options(
-  ${PROJECT_NAME}
-  PUBLIC
-  -fuse-ld=gold
-  -Wl,--threads
-  -Wl,--thread-count=${N})
-
 # ##############################################################################
 # Sanitizer Options
 # ##############################################################################
@@ -343,14 +331,24 @@ endif()
 #[[.rst:
 .. cmake:variable:: LIBRA_CODE_COV_CLANG
 
-If enabled: ``-fprofile-instr-generate -fcoverage-mapping -fno-inline`` to
-compiler, -fprofile-instr-generate`` to linker.
+If enabled: ``--coverage -fno-inline`` to compiler, ``--coverage`` to linker. This
+makes clang emit .gcno files which are compatible with ``gcovr``, and therefore
+with the various ``gcovr-`` targets.
+
+This *also* eliminates the need for an intermediate processing step before
+coverage can be shown. If we use the LLVM toolchain, we would pass
+``-fprofile-instr-generate -fcoverage-mapping`` to the compiler, and
+``-fprofile-instr-generate`` to the linker, run our code, and then have to do::
+
+  llvm-profdata merge default.profraw -o default.profdata
+
+before we can view the coverage with ``llvm-cov``.
+
 ]]
 
 if(LIBRA_CODE_COV)
-  set(LIBRA_CODE_COV_COMPILE_OPTIONS -fprofile-instr-generate
-                                     -fcoverage-mapping -fno-inline)
-  set(LIBRA_CODE_COV_LINK_OPTIONS -fprofile-instr-generate)
+  set(LIBRA_CODE_COV_COMPILE_OPTIONS --coverage -fno-inline)
+  set(LIBRA_CODE_COV_LINK_OPTIONS --coverage)
 endif()
 
 # ##############################################################################

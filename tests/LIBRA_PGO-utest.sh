@@ -7,7 +7,7 @@
 #   LANGUAGE: c, cxx, or both (default: both)
 #
 
-# set -x
+set -x
 set -e
 SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 SCRIPT_NAME=$(basename "$0")
@@ -124,8 +124,8 @@ run_pgo_test() {
 
     make
     $test_dir/bin/sample_build_info
-    if [ "$COMPILER_TYPE" = "intel" ]; then
-        llvm-profdata merge -o default.profdata default.profraw
+    if [ "$COMPILER_TYPE" = "intel" ] || [ "$COMPILER_TYPE" = "clang" ]; then
+        llvm-profdata-19 merge -o default.profdata default*.profraw
     fi
 
 

@@ -41,6 +41,7 @@ declare -A CXX_COMPILER_EXEC=(
 
 # GNU build profiling flags
 declare -a GNU_ON_FLAGS=(
+    "-ftime-report"
 )
 
 # Clang build profiling flags

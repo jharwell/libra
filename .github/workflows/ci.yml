@@ -18,6 +18,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-02-06
     steps:
       - uses: actions/checkout@v3
       - name: Run tests
@@ -25,7 +27,7 @@ jobs:
         run: |
           cd tests && mkdir -p build && cd build
           cmake ..
-          ctest --output-on-failure
+          ctest --output-on-failure -j $(nproc)
 
   create-conan-pkg:
     runs-on: ubuntu-latest

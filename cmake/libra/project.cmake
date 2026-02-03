@@ -72,7 +72,7 @@ set(LIBRA_PGO
 set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 
 set(LIBRA_FPC
-    "RETURN"
+    "INHERIT"
     CACHE STRING
           "{RETURN,ABORT,NONE,INHERIT} Function Predcondition Checking (FPC)")
 set_property(
@@ -285,10 +285,6 @@ include(libra/compile/build-types)
 
 # Must be after compile options are populated
 include(libra/diagnostics_post)
-
-if(LIBRA_OPT_REPORT)
-  include(libra/compile/reporting)
-endif()
 
 # ##############################################################################
 # Code Checking/Analysis Options
