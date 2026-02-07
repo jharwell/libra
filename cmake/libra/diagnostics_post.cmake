@@ -44,7 +44,7 @@ function(evaluate_single_genex genex target output_var)
     # Missing final >: $<$<CONFIG:Debug>:-O3
     set(condition "${CMAKE_MATCH_1}")
     set(value "${CMAKE_MATCH_2}")
-    libra_message(WARNING "Fixed malformed genex: ${genex}")
+    # libra_message(WARNING "Fixed malformed genex: ${genex}")
 
   else()
     # Not a conditional genex, try simple queries

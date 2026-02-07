@@ -419,6 +419,12 @@ If enabled: ``-fprofile-arcs -ftest-coverage -fno-inline
 -fprofile-update=atomic`` to compiler, and ``-fprofile-arcs`` to linker.
 ]]
 if(LIBRA_CODE_COV)
+  if(NOT LIBRA_CODE_COV_NATIVE)
+    libra_message(
+      WARNING
+      "Non-native code coverage instrumentation format selected for GNU; LIBRA's common format is GNU. Configuration error?"
+    )
+  endif()
   set(LIBRA_CODE_COV_COMPILE_OPTIONS
       -fprofile-arcs
       -ftest-coverage

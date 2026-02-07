@@ -328,7 +328,7 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Code coverage instrumentation.........: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {lcov-{preinfo,report}, gcovr-{report,check}})"
+      "Code coverage instrumentation.........: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {lcov-{preinfo,report}, gcovr-{report,check}, llvm-{summary,show,report-coverage,export-lcov}})"
   )
   message(
     STATUS

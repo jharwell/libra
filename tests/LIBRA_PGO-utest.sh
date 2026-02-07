@@ -122,12 +122,14 @@ run_pgo_test() {
               --log-level=$LOGLEVEL
     fi
 
-    make
-    $test_dir/bin/sample_build_info
-    if [ "$COMPILER_TYPE" = "intel" ] || [ "$COMPILER_TYPE" = "clang" ]; then
-        llvm-profdata-19 merge -o default.profdata default*.profraw
+    if [ "$libra_pgo_value" = "USE" ]; then
+        if [ "$COMPILER_TYPE" = "clang" ]; then
+            llvm-profdata-17 merge -o default.profdata default*.profraw
+        fi
+    else
+        make
+        $test_dir/bin/sample_build_info
     fi
-
 
     # Get expected flags for this compiler/PGO mode combination
     local expected_flags=($(get_expected_flags "$COMPILER_TYPE" "$pgo_mode"))

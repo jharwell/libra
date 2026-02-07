@@ -18,7 +18,7 @@ include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
 # 2025-10-17 [JRH]: These are ordered in from greatest to least precedence.
-set(LIBRA_C_STD_CANDIDATES 11 99)
+set(LIBRA_C_STD_CANDIDATES 23 17 11 99)
 set(LIBRA_CXX_STD_CANDIDATES
     23
     20
@@ -38,9 +38,6 @@ if(CMAKE_C_COMPILER_LOADED)
         if(LIBRA_C_COMPILER_SUPPORTS_c${std})
           if(TARGET ${PROJECT_NAME})
             set_target_properties(${PROJECT_NAME} PROPERTIES C_STANDARD ${std})
-          endif()
-          if(LIBRA_GLOBAL_C_STANDARD)
-            set(CMAKE_C_STANDARD ${std})
           endif()
           set(LIBRA_C_STANDARD c${std})
           break()
@@ -71,9 +68,6 @@ if(CMAKE_CXX_COMPILER_LOADED)
           if(TARGET ${PROJECT_NAME})
             set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD
                                                              ${std})
-          endif()
-          if(LIBRA_GLOBAL_CXX_STANDARD)
-            set(CMAKE_CXX_STANDARD ${std})
           endif()
           set(LIBRA_CXX_STANDARD c++${std})
           break()

@@ -26,11 +26,12 @@ mk_target_exists() {
 # Usage: verify_targets_present BUILD_DIR
 verify_mk_targets_present() {
     local build_dir="$1"
+    local mk_targets_var=$2
+    local -n mk_targets="$mk_targets_var"
     local all_found=true
-
     echo "  Verifying expected targets are present..."
 
-    for target in "${EXPECTED_MK_TARGETS[@]}"; do
+    for target in "${mk_targets[@]}"; do
         if mk_target_exists "$build_dir" "$target"; then
             echo "    ✓ Target '$target' found"
         else
@@ -51,11 +52,13 @@ verify_mk_targets_present() {
 # Usage: verify_targets_absent BUILD_DIR
 verify_mk_targets_absent() {
     local build_dir="$1"
+    local mk_targets_var=$2
+    local -n mk_targets="$mk_targets_var"
     local none_found=true
 
     echo "  Verifying targets are absent..."
 
-    for target in "${EXPECTED_MK_TARGETS[@]}"; do
+    for target in "${mk_targets[@]}"; do
         if mk_target_exists "$build_dir" "$target"; then
             echo "    ✗ ERROR: Target '$target' found but should be absent"
             none_found=false
@@ -302,4 +305,83 @@ verify_link_flags_absent() {
     done
 
     echo "SUCCESS: No unexpected flags found in Link flags"
+}
+
+# Extract C standard from build_info.cpp
+# Usage: get_cxx_standard BUILD_DIR
+get_cxx_standard() {
+    local build_dir="$1"
+    local build_info_file="$build_dir/build_info.cpp"
+
+    if [ ! -f "$build_info_file" ]; then
+        echo "ERROR: Build info file not found: $build_info_file"
+        exit 1
+    fi
+
+    # Look for lines like: const char* CXX_STANDARD = "11";
+    local std=$(grep 'CXX_STANDARD = ' "$build_info_file" | sed 's/.*CXX_STANDARD = "\(.*\)";/\1/')
+
+    if [ -z "$std" ]; then
+        echo "ERROR: Could not extract C standard from $build_info_file"
+        exit 1
+    fi
+
+    echo "$std"
+}
+
+# Verify C standard matches expected value
+# Usage: verify_c_standard BUILD_DIR EXPECTED_STD
+verify_c_standard() {
+    local build_dir="$1"
+    local expected="$2"
+
+    local actual=$(get_c_standard "$build_dir")
+
+    if [ "$actual" != "$expected" ]; then
+        echo "ERROR: C standard mismatch!"
+        echo "  Expected: $expected"
+        echo "  Actual:   $actual"
+        exit 1
+    fi
+
+    echo "SUCCESS: C standard is $actual"
+}
+# Extract C++ standard from build_info.cpp
+# Usage: get_c_standard BUILD_DIR
+get_cxx_standard() {
+    local build_dir="$1"
+    local build_info_file="$build_dir/build_info.cpp"
+
+    if [ ! -f "$build_info_file" ]; then
+        echo "ERROR: Build info file not found: $build_info_file"
+        exit 1
+    fi
+
+    # Look for lines like: const char* CXX_STANDARD = "11";
+    local std=$(grep 'CXX_STANDARD = ' "$build_info_file" | sed 's/.*CXX_STANDARD = "\(.*\)";/\1/')
+
+    if [ -z "$std" ]; then
+        echo "ERROR: Could not extract C++ standard from $build_info_file"
+        exit 1
+    fi
+
+    echo "$std"
+}
+
+# Verify C++ standard matches expected value
+# Usage: verify_cxx_standard BUILD_DIR EXPECTED_STD
+verify_cxx_standard() {
+    local build_dir="$1"
+    local expected="$2"
+
+    local actual=$(get_cxx_standard "$build_dir")
+
+    if [ "$actual" != "$expected" ]; then
+        echo "ERROR: C++ standard mismatch!"
+        echo "  Expected: $expected"
+        echo "  Actual:   $actual"
+        exit 1
+    fi
+
+    echo "SUCCESS: C++ standard is $actual"
 }

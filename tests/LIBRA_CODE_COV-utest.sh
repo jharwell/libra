@@ -5,7 +5,6 @@
 # Usage: ./09_LIBRA_CODE_COV-utest.sh [COMPILER_TYPE] [LANGUAGE]
 #   COMPILER_TYPE: gnu or clang (default: gnu)
 #   LANGUAGE: c, cxx, or both (default: both)
-#
 
 # set -x
 set -e
@@ -50,12 +49,13 @@ declare -a GNU_YES_LINK_FLAGS=(
 
 # Clang code coverage flags
 declare -a CLANG_YES_COMPILE_FLAGS=(
-    "-coverage"
+    "-fprofile-instr-generate"
+    "-fcoverage-mapping"
     "-fno-inline"
 )
 
 declare -a CLANG_YES_LINK_FLAGS=(
-    "--coverage"
+    "-fprofile-instr-generate"
 )
 # Flags that should NOT be present for NO
 declare -a GNU_NO_ABSENT_FLAGS=(
@@ -66,15 +66,23 @@ declare -a GNU_NO_ABSENT_FLAGS=(
 )
 
 declare -a CLANG_NO_ABSENT_FLAGS=(
-    "--coverage"
+    "-fprofile-instr-generate"
+    "-fcoverage-mapping"
     "-fno-inline"
 )
 
-declare -a EXPECTED_MK_TARGETS=(
+declare -a GNU_EXPECTED_MK_TARGETS=(
     "lcov-preinfo"
     "lcov-report"
     "gcovr-report"
     "gcovr-check"
+)
+declare -a CLANG_EXPECTED_MK_TARGETS=(
+    "llvm-summary"
+    "llvm-report"
+    "llvm-show"
+    "llvm-export-lcov"
+    "llvm-coverage"
 )
 ################################################################################
 # Helper Functions
@@ -86,11 +94,13 @@ source $SCRIPTDIR/utils.sh
 run_code_cov_test() {
     local lang="$1"
     local cov_mode="$2"
+    local cov_native="$3"
     local test_dir="$BUILDDIR/${lang}/${cov_mode,,}"
 
     local lang_upper=$(echo "$lang" | tr '[:lower:]' '[:upper:]')
     local compiler_var="${lang_upper}_COMPILER_EXEC[$COMPILER_TYPE]"
     local compiler="${!compiler_var}"
+    local mk_targets_var="${COMPILER_TYPE^^}_EXPECTED_MK_TARGETS"
 
     echo "[TEST $COMPILER_TYPE/$lang] LIBRA_CODE_COV=$cov_mode..."
 
@@ -101,9 +111,11 @@ run_code_cov_test() {
         cmake "$SCRIPTDIR/sample_build_info" \
               -DCMAKE_INSTALL_PREFIX=/tmp/libra_code_cov_test \
               -DCMAKE_C_COMPILER="$compiler" \
+              -DCMAKE_CXX_COMPILER="$compiler" \
               -DCMAKE_BUILD_TYPE=Debug \
               -DLIBRA_CODE_COV="$cov_mode" \
               -DLIBRA_TEST_LANGUAGE=C \
+              -DLIBRA_CODE_COV_NATIVE="$cov_native" \
               --log-level=$LOGLEVEL
     else
         cmake "$SCRIPTDIR/sample_build_info" \
@@ -112,34 +124,44 @@ run_code_cov_test() {
               -DCMAKE_BUILD_TYPE=Debug \
               -DLIBRA_CODE_COV="$cov_mode" \
               -DLIBRA_TEST_LANGUAGE=CXX \
+              -DLIBRA_CODE_COV_NATIVE="$cov_native" \
               --log-level=$LOGLEVEL
     fi
 
     make
     $test_dir/bin/sample_build_info
-    verify_mk_targets_present "$test_dir"
 
-    # Run all targets
-    for target in "${EXPECTED_MK_TARGETS[@]}"; do
-        make $target
-        $test_dir/bin/sample_build_info
-    done
+    if [ "$cov_native" = "YES" ]; then
+        verify_mk_targets_present "$test_dir" $mk_targets_var
+        for target in "${mk_targets[@]}"; do
+            $test_dir/bin/sample_build_info
+            make $target
+        done
+        # Get expected flags for this compiler/code coverage mode combination
+        local expected_compile_flags=($(get_expected_compile_flags "$COMPILER_TYPE" "$cov_mode"))
+        local expected_link_flags=($(get_expected_link_flags "$COMPILER_TYPE" "$cov_mode"))
 
-    # Get expected flags for this compiler/code coverage mode combination
-    local expected_compile_flags=($(get_expected_compile_flags "$COMPILER_TYPE" "$cov_mode"))
-    local expected_link_flags=($(get_expected_link_flags "$COMPILER_TYPE" "$cov_mode"))
+        if [ ${#expected_link_flags[@]} -eq 0 ]; then
+            echo "WARNING: No expected link flags defined for $COMPILER_TYPE/$cov_mode, skipping verification"
+            return 0
+        fi
+        if [ ${#expected_compile_flags[@]} -eq 0 ]; then
+            echo "WARNING: No expected compile flags defined for $COMPILER_TYPE/$cov_mode, skipping verification"
+            return 0
+        fi
 
-    if [ ${#expected_link_flags[@]} -eq 0 ]; then
-        echo "WARNING: No expected link flags defined for $COMPILER_TYPE/$cov_mode, skipping verification"
-        return 0
+        verify_compile_flags_present "$test_dir" "${expected_compile_flags[@]}"
+        verify_link_flags_present "$test_dir" "${expected_link_flags[@]}"
+
+    else
+        verify_mk_targets_present "$test_dir" "GNU_EXPECTED_MK_TARGETS"
+        # Don't try to run the targets--they won't work for clang
+        # because it detects its coverage tool differently.
+
+        # Don't check for correct compile/link flags, at least for
+        # now, because that would add way too much complexity. Maybe
+        # ask claude to do it in the future.
     fi
-    if [ ${#expected_compile_flags[@]} -eq 0 ]; then
-        echo "WARNING: No expected compile flags defined for $COMPILER_TYPE/$cov_mode, skipping verification"
-        return 0
-    fi
-
-    verify_compile_flags_present "$test_dir" "${expected_compile_flags[@]}"
-    verify_link_flags_present "$test_dir" "${expected_link_flags[@]}"
 }
 
 # Run all code coverage tests for a specific language
@@ -149,6 +171,7 @@ run_all_tests() {
     local lang_upper=$(echo "$lang" | tr '[:lower:]' '[:upper:]')
     local compiler_var="${lang_upper}_COMPILER_EXEC[$COMPILER_TYPE]"
     local compiler="${!compiler_var}"
+    local mk_targets_var="${COMPILER_TYPE^^}_EXPECTED_MK_TARGETS"
 
     echo "========================================================================"
     echo "Testing LIBRA_CODE_COV with $COMPILER_TYPE/$lang ($compiler)"
@@ -177,7 +200,7 @@ run_all_tests() {
     fi
 
     make
-    verify_mk_targets_absent "$test_dir"
+    verify_mk_targets_absent "$test_dir" $mk_targets_var
 
     # Get flags that should be absent for this compiler
     absent_flags_var="${COMPILER_TYPE^^}_NO_ABSENT_FLAGS[@]"
@@ -185,7 +208,8 @@ run_all_tests() {
     verify_compile_flags_absent "$test_dir" "${absent_flags[@]}"
     verify_link_flags_absent "$test_dir" "${absent_flags[@]}"
 
-    run_code_cov_test "$lang" "YES"
+    run_code_cov_test "$lang" "YES" "YES"
+    run_code_cov_test "$lang" "YES" "NO"
 
     echo "========================================================================"
     echo "ALL TESTS PASSED for $COMPILER_TYPE/$lang!"

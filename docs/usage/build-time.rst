@@ -219,7 +219,9 @@ Actions For Supporting SW Engineering
 
        This target always succeeds, regardless of coverage level.
 
-       Requires :cmake:variable:`LIBRA_TESTS` is true.
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the GNU format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
 
    * - ``gcovr-report``
 
@@ -242,7 +244,9 @@ Actions For Supporting SW Engineering
 
        This target always succeeds, regardless of coverage level.
 
-       Requires :cmake:variable:`LIBRA_TESTS` is true.
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the GNU format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
 
    * - ``gcovr-check``
 
@@ -255,9 +259,91 @@ Actions For Supporting SW Engineering
          make gcovr-check     # Check coverage against configured thresholds
 
 
-       Requires :cmake:variable:`LIBRA_TESTS` is true. Thresholds are set via:
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the GNU format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info. Thresholds are set
+       via:
 
        - :cmake:variable:`LIBRA_GCOVR_LINES_THRESH`
        - :cmake:variable:`LIBRA_GCOVR_FUNCTIONS_THRESH`
        - :cmake:variable:`LIBRA_GCOVR_BRANCHES_THRESH`
        - :cmake:variable:`LIBRA_GCOVR_DECISIONS_THRESH`
+
+   * - ``llvm-summary``
+
+     - Run ``llvm-cov`` to output code coverage (presumably from the results of
+       running unit tests, though that does not have to be the case) to the
+       terminal. That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make llvm-summary    # Build RELATIVE report for files had some execution
+
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-show``
+
+     - Run ``llvm-cov`` to output detailed code coverage (presumably from the
+       results of running unit tests, though that does not have to be the case)
+       to the terminal. Basically, the same as the HTML output, but in the
+       terminal. That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make llvm-show       # Build RELATIVE report for files had some execution
+
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-report``
+
+     - Run ``llvm-cov`` to output detailed code coverage (presumably from the
+       results of running unit tests, though that does not have to be the case)
+       in a browsable HTML blob. That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make llvm-report     # Build RELATIVE report for files had some execution
+
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-export-lcov``
+
+     - Run ``llvm-cov`` to export code coverage (presumably from the
+       results of running unit tests, though that does not have to be the case)
+       to lcov format for further processing. That is::
+
+         make                  # Build in coverage info into project
+         make all-tests        # Build in coverage info into tests
+         make test             # Populate coverage for executed parts of project
+         make llvm-export-lcov # Export
+
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-coverage``
+
+     - Run ``llvm-report`` and ``llvm-summary`` in sequence. That is::
+
+         make                  # Build in coverage info into project
+         make all-tests        # Build in coverage info into tests
+         make test             # Populate coverage for executed parts of project
+         make llvm-coverage    # Generate HTML and text reports
+
+
+       Requires :cmake:variable:`LIBRA_TESTS` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.

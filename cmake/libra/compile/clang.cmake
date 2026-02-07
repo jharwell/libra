@@ -323,6 +323,7 @@ endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
   set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
+  set(LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################
@@ -331,24 +332,34 @@ endif()
 #[[.rst:
 .. cmake:variable:: LIBRA_CODE_COV_CLANG
 
-If enabled: ``--coverage -fno-inline`` to compiler, ``--coverage`` to linker. This
-makes clang emit .gcno files which are compatible with ``gcovr``, and therefore
-with the various ``gcovr-`` targets.
+If enabled and :cmake:variable:`LIBRA_CODE_COV_NATIVE` is true:
+``-fprofile-instr-generate -fcoverage-mapping -fno-inline`` to compiler,
+-fprofile-instr-generate`` to linker. This makes clang use its native code
+coverage format, and enables processing with LLVM tools and the various
+``llvm-`` targets. Because of the nature of llvm-profdata merging, *all*
+executables which have been defined as targets in
+:cmake:variable:`CMAKE_SOURCE_DIR` (recursively) are included for merging.
 
-This *also* eliminates the need for an intermediate processing step before
-coverage can be shown. If we use the LLVM toolchain, we would pass
-``-fprofile-instr-generate -fcoverage-mapping`` to the compiler, and
-``-fprofile-instr-generate`` to the linker, run our code, and then have to do::
-
-  llvm-profdata merge default.profraw -o default.profdata
-
-before we can view the coverage with ``llvm-cov``.
+If enabled and :cmake:variable:`LIBRA_CODE_COV_NATIVE` is false: ``--coverage
+-fno-inline`` to compiler, ``--coverage`` to linker. This makes clang emit .gcno
+files which are compatible with ``gcovr``, and therefore with the various
+``gcovr-`` targets.
 
 ]]
 
 if(LIBRA_CODE_COV)
-  set(LIBRA_CODE_COV_COMPILE_OPTIONS --coverage -fno-inline)
-  set(LIBRA_CODE_COV_LINK_OPTIONS --coverage)
+  if(LIBRA_CODE_COV_NATIVE)
+    set(LIBRA_CODE_COV_COMPILE_OPTIONS -fprofile-instr-generate
+                                       -fcoverage-mapping -fno-inline)
+    set(LIBRA_CODE_COV_LINK_OPTIONS -fprofile-instr-generate)
+    libra_message(
+      STATUS "Clang will generate code coverage instrumentation in LLVM format")
+  else()
+    libra_message(
+      STATUS "Clang will generate code coverage instrumentation in GNU format")
+    set(LIBRA_CODE_COV_COMPILE_OPTIONS --coverage)
+    set(LIBRA_CODE_COV_LINK_OPTIONS --coverage)
+  endif()
 endif()
 
 # ##############################################################################

@@ -58,6 +58,8 @@ option(LIBRA_GLOBAL_C_STANDARD "Should LIBRA set the C standard globally?" OFF)
 option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
+option(LIBRA_CODE_COV_NATIVE
+       "Should code coverage be emitted in the compiler's native format??" YES)
 
 # 2026-02-02 [JRH]: All of these are cache variables, because option() does not
 # support non-boolean things.

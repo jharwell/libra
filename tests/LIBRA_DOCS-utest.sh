@@ -62,7 +62,7 @@ cmake "$source_dir" \
       --log-level=$LOGLEVEL
 
 # Verify targets exist
-verify_mk_targets_present "$test_dir"
+verify_mk_targets_present "$test_dir" "EXPECTED_MK_TARGETS"
 
 echo ""
 echo "------------------------------------------------------------------------"
@@ -82,7 +82,7 @@ cmake "$source_dir" \
       --log-level=$LOGLEVEL
 
 # Verify targets do NOT exist
-verify_mk_targets_absent "$test_dir"
+verify_mk_targets_absent "$test_dir" "EXPECTED_MK_TARGETS"
 
 echo ""
 echo "------------------------------------------------------------------------"

@@ -123,9 +123,17 @@ which describe how these knobs are realized for each supported compiler.
    :default: NO
    :type: BOOL
 
-   Build in runtime code-coverage instrumentation for use with ``make
-   precoverage-report`` and ``make coverage-report``.
+   Build in runtime code-coverage instrumentation for report generation and
+   coverage checking. See :ref:`usage/build-time/sw-eng` for specifics.
 
+.. cmake:variable:: LIBRA_CODE_COV_NATIVE
+
+   :default: YES
+   :type: BOOL
+
+   Direct compilers to build in coverage instrumentation in their "native"
+   format. E.g., clang will using LLVM format, and GCC will use GNU
+   format. If false, all compilers will use GNU format.
 
 .. cmake:variable:: LIBRA_SAN
 
@@ -263,7 +271,8 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_C_STANDARD
 
    :default: Autodetected to the Latest C standard supported by
-             ``CMAKE_C_COMPILER``.
+             :cmake:variable:`CMAKE_C_COMPILER`. Respects
+             :cmake:variable:`CMAKE_C_STANDARD`, if set.
 
    :type: STRING
 
@@ -274,38 +283,14 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_CXX_STANDARD
 
    :default: Autodetected to the latest C++ standard supported by
-             ``CMAKE_CXX_COMPILER``.
+             :cmake:variable:`CMAKE_CXX_COMPILER`. Respects
+             :cmake:variable:`CMAKE_CXX_STANDARD`, if set.
+
    :type: STRING
 
    Respects ``CMAKE_CXX_STANDARD`` if set.
 
    .. versionadded:: 0.8.4
-
-.. cmake:variable:: LIBRA_GLOBAL_C_STANDARD
-
-   :default: NO
-   :type: BOOL
-
-   Specify that the what C standard is detected for the selected compiler is set
-   globally via ``CMAKE_C_STANDARD``. This results in all targets, not just the
-   automatically defined :cmake:variable:`PROJECT_NAME` target getting this
-   property set. For this to work, this variable must be set *before* you define
-   the ``project()`` *and* before you ``include(libra/project)``.
-
-   .. versionadded:: 0.9.5
-
-.. cmake:variable:: LIBRA_GLOBAL_CXX_STANDARD
-
-    :default: NO
-    :type: BOOL
-
-    Specify that the what C++ standard is detected for the selected compiler is
-    set globally via ``CMAKE_CXX_STANDARD``. This results in all targets, not
-    just the automatically defined :cmake:variable:`PROJECT_NAME` target getting
-    this property set. For this to work, this variable must be set *before* you
-    define the ``project()`` *and* before you ``include(libra/project)``.
-
-    .. versionadded:: 0.9.5
 
 .. cmake:variable:: LIBRA_GLOBAL_C_FLAGS
 

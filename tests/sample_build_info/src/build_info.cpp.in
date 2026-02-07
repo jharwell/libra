@@ -8,6 +8,7 @@
 namespace build_info {
 
 // Build configuration information
+const char* CXX_STANDARD = "@LIBRA_CXX_STANDARD@";
 constexpr const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
 constexpr const char* LINK_FLAGS = "@LIBRA_TARGET_FLAGS_LINK@";
 constexpr const char* GIT_REV = "@LIBRA_GIT_REV@";
