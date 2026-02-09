@@ -7,5 +7,5 @@
 //
 
 namespace consumer {
-constexpr const char* CONSUMER_IFACE_DEFS = "@CONSUMER_IFACE_DEFS_STR@";
+const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
 }

@@ -13,11 +13,10 @@ Platform Requirements
 
 - cmake >= 3.31
 
-- graphviz if you want to generate API documentation.
+- doxygen/graphviz if you want to generate API documentation.
 
-- doxygen if you want to generate API documentation.
-
-- lcov if you want to do code coverage.
+- lcov/gcovr if you want to do GNU code coverage, llvm-XX if you want to do
+  clang/LLVM code coverage.
 
 Compiler Support
 ----------------
@@ -47,6 +46,9 @@ and clang-21.
 
 Repository/Code Structure Requirements
 ======================================
+
+.. uml:: /figures/layout.uml
+
 
 - All C++ source files end in ``.cpp``, and all C++ header files end in
   ``.hpp``.

@@ -1,11 +1,12 @@
 .. _usage/configure-time:
 
-==============
-Configure-Time
-==============
+======================
+Configure-Time Actions
+======================
 
 This page details LIBRA usage and actions when you invoke CMake on the
 cmdline. It is coupled to, but distinct from, :ref:`usage/project-local`.
+
 
 Target Configuration
 ====================
@@ -23,6 +24,9 @@ idea.
 
 File Discovery
 ==============
+
+.. uml:: /figures/layout.uml
+
 
 - All files under ``src/`` ending in:
 
@@ -133,7 +137,8 @@ which describe how these knobs are realized for each supported compiler.
 
    Direct compilers to build in coverage instrumentation in their "native"
    format. E.g., clang will using LLVM format, and GCC will use GNU
-   format. If false, all compilers will use GNU format.
+   format. If false, all compilers will use GNU format. The created targets will
+   reflect which format is selected.
 
 .. cmake:variable:: LIBRA_SAN
 
@@ -270,13 +275,11 @@ Knobs For Configuring Builds
 
 .. cmake:variable:: LIBRA_C_STANDARD
 
-   :default: Autodetected to the Latest C standard supported by
+   :default: Autodetected to the latest C standard supported by
              :cmake:variable:`CMAKE_C_COMPILER`. Respects
-             :cmake:variable:`CMAKE_C_STANDARD`, if set.
+             :cmake:variable:`CMAKE_C_STANDARD`, if set/overridden.
 
    :type: STRING
-
-   Respects ``CMAKE_C_STANDARD`` if set.
 
    .. versionadded:: 0.8.4
 
@@ -284,11 +287,9 @@ Knobs For Configuring Builds
 
    :default: Autodetected to the latest C++ standard supported by
              :cmake:variable:`CMAKE_CXX_COMPILER`. Respects
-             :cmake:variable:`CMAKE_CXX_STANDARD`, if set.
+             :cmake:variable:`CMAKE_CXX_STANDARD`, if set/overridden.
 
    :type: STRING
-
-   Respects ``CMAKE_CXX_STANDARD`` if set.
 
    .. versionadded:: 0.8.4
 
@@ -298,8 +299,8 @@ Knobs For Configuring Builds
    :type: BOOL
 
    Specify that the total set of C flags (diagnostic, sanitizer, optimization,
-   defines, etc.) which are automatically set for :cmake:variable:`PROJECT_NAME` should be
-   applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
+   defines, etc.) which are automatically set for :cmake:variable:`PROJECT_NAME`
+   should be applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
 
    Use with care, as applying said flags to external dependencies built
    alongside your code can cause a cascade of unintended errors. That said, for
@@ -388,10 +389,27 @@ Knobs For Configuring Builds
 
    - ``NONE``
 
-   - ``GEN`` - Input stage
+   - ``GEN`` - Input stage. Generally, you would do something like::
+
+       cmake -DLIBRA_PGO=GEN ..
+       make
+       ./bin/my_application  # Run with representative workload
+
+
+     If you're using clang, you would then have to do something like::
+
+       llvm-profdata merge -o default.profdata default*.profraw
 
    - ``USE`` - Final stage (after executing the ``GEN`` build to get
-     profiling info).
+     profiling info and running)::
+
+       cmake -DLIBRA_PGO=USE ..
+       make
+
+     The optimized binary in will be tuned based on the runtime behavior
+     observed in when running with PGO instrumentation compiled in.
+
+Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 
 
 .. cmake:variable:: LIBRA_VALGRIND_COMPAT
