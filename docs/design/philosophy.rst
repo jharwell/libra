@@ -1,6 +1,6 @@
 .. SPDX-License-Identifier:  MIT
 
-.. _philosophy:
+.. _design/philosophy:
 
 =======================
 LIBRA Design Philosophy
@@ -9,7 +9,7 @@ LIBRA Design Philosophy
 This page details the "why" behind some of the foundational design decisions
 within LIBRA.
 
-.. _philosophy/globbing:
+.. _design/philosophy/globbing:
 
 Using cmake Globbing
 ====================
@@ -78,7 +78,7 @@ the each reason isn't a dealbreaker for using globbing.
    SAME update in multiple repos because we needed to tweak some aspect of how
    we built some of our projects.
 
-.. _philosophy/floor-ceiling:
+.. _design/philosophy/floor-ceiling:
 
 Low Floor, High Ceiling
 =======================

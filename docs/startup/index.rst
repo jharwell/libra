@@ -2,7 +2,6 @@
 
 .. _startup:
 
-
 .. toctree::
    :maxdepth: 1
 

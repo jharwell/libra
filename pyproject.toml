@@ -34,6 +34,9 @@ docs = [
     # the previous major release is a temporary workaround. Hopefully
     # this will eventually be fixed.
     "sphinx_rtd_theme==2.0.0",
+    "sphinx_immaterial",
+    "pydata-sphinx-theme",
+    "furo",
     "sphinx-argparse==0.4.0",
     "sphinx-tabs",
     "tomli",

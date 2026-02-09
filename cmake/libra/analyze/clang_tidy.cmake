@@ -104,7 +104,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             --header-filter=${CMAKE_SOURCE_DIR}/include/* ${HEADER_EXCLUDES}
             --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
-            ${JOB_ARGS} --extra-arg=--std=${LIBRA_CXX_STANDARD}
+            ${JOB_ARGS} --extra-arg=--std=c++${LIBRA_CXX_STANDARD}
             --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
             ${PROJECT_BINARY_DIR} ${DISABLE_INCLUDE_CLEANER}
             ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
@@ -121,7 +121,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
             ${EXTRACTED_ARGS} ${JOB_ARGS}
-            --extra-arg=--std=${LIBRA_CXX_STANDARD}
+            --extra-arg=--std=c++${LIBRA_CXX_STANDARD}
             --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
             --quiet ${DISABLE_INCLUDE_CLEANER} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
             "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"

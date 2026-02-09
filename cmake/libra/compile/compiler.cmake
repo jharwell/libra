@@ -31,6 +31,14 @@ else()
   libra_message(STATUS "Disabling ccache by request")
 endif()
 
+# Remove default optimization flags for release
+set(CMAKE_CXX_FLAGS_RELEASE
+    ""
+    CACHE STRING "Flags used by the C++ compiler for release builds." FORCE)
+set(CMAKE_C_FLAGS_RELEASE
+    ""
+    CACHE STRING "Flags used by the C compiler for release builds." FORCE)
+#
 # ##############################################################################
 # Profile-Guided Optimization (PGO)
 # ##############################################################################

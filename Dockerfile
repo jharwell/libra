@@ -153,7 +153,8 @@ RUN apt-get update && apt-get install -y \
     graphviz \
     doxygen \
     cppcheck \
-    cmake-format
+    cmake-format \
+    bats
 
 RUN pip3 install --break-system-packages \
     sphinx \

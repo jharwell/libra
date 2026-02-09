@@ -40,7 +40,7 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
         ${CHECK_TARGET}-${file_target}
         COMMAND
           ${clang_check_EXECUTABLE} ${file} -analyze
-          --extra-arg=-std=${LIBRA_CXX_STANDARD}
+          --extra-arg=-std=c++${LIBRA_CXX_STANDARD}
           --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror -p
           ${PROJECT_BINARY_DIR}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -51,7 +51,7 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
         ${CHECK_TARGET}-${file_target}
         COMMAND
           ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
-          --extra-arg=-std=${LIBRA_CXX_STANDARD}
+          --extra-arg=-std=c++${LIBRA_CXX_STANDARD}
           --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT

@@ -48,7 +48,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
         ${cppcheck_EXECUTABLE}
         --project=${PROJECT_BINARY_DIR}/compile_commands.json
         --enable=warning,style,performance,portability --verbose
-        --check-level=exhaustive --std=${LIBRA_CXX_STANDARD} --inline-suppr
+        --check-level=exhaustive --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
         "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
         "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
         "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1
@@ -73,7 +73,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
           "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
           "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
           --enable=warning,style,performance,portability --verbose
-          --std=${LIBRA_CXX_STANDARD} --inline-suppr
+          --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
           "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
           "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
           "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1 ${file}

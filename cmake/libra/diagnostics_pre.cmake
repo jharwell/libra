@@ -389,7 +389,7 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,CFI,GOT,FORMAT,ALL}]"
+      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,ALL}]"
   )
   message(
     STATUS

@@ -77,3 +77,40 @@ Using CDash
 CTest also has the ability to build and run tests, gather coverage info, and
 report results to a centralized server; LIBRA does not currently use this
 functionality, though it might in the future.
+
+Testing LIBRA Itself
+====================
+
+LIBRA uses `BATS <https://github.com/bats-core/bats-core>`_ (Bash Automated
+Testing System) for testing its CMake configuration logic. The tests verify that
+compiler flags, build options, and feature toggles work correctly across
+different compilers (GNU, Clang, Intel).
+
+Running LIBRA's Tests
+---------------------
+
+From the LIBRA repository root::
+
+    cd tests
+    bats LIBRA_<FEATURE>.bats
+
+For example::
+
+    bats LIBRA_CODE_COV.bats
+    bats LIBRA_FORTIFY.bats
+    bats LIBRA_SAN.bats
+
+Test Coverage
+-------------
+
+The BATS test suite covers:
+
+- Compiler flag verification (compile and link flags)
+- Feature interaction (e.g., sanitizers + coverage)
+- Cross-compiler compatibility (GNU/Clang/Intel)
+- Full workflows (e.g., PGO generate → use, coverage generation → reporting)
+- Makefile target existence and executability
+
+Each test builds a minimal ``sample_build_info`` project, generates a
+``build_info`` file containing all compile/link flags, verifies the
+expected flags are present or absent, and executes makefile targets.

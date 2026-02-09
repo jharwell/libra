@@ -1,5 +1,7 @@
 .. SPDX-License-Identifier:  MIT
 
+.. _design:
+
 .. toctree::
    :maxdepth: 1
 

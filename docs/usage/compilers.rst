@@ -9,6 +9,36 @@
 Compiler Support: All The Details
 =================================
 
+.. plantuml::
+
+   !theme cerulean-outline
+
+   skinparam DefaultFontSize 14
+   skinparam defaultTextAlignment center
+   skinparam TitleFontSize 24
+   skinparam SequenceMessageAlignment center
+   skinparam DefaultFontColor #black
+   skinparam TitleFontColor #black
+   skinparam ParticipantFontColor #black
+
+   title Compiler Abstraction Layer
+
+   skinparam componentStyle rectangle
+
+   component "User Intent\n(e.g. Enable ASAN,\nEnable LTO)" as Intent
+
+   component "LIBRA Compiler Interface" as Interface
+
+   component "GCC Flags" as GCC
+   component "Clang Flags" as Clang
+   component "Intel LLVM Flags" as Intel
+
+   Intent --> Interface
+
+   Interface --> GCC
+   Interface --> Clang
+   Interface --> Intel
+
 This pages summarizes how the supported compilers interact with the variables
 described on :ref:`usage/configure-time` and :ref:`usage/project-local`.
 The variables in the table are an attempt at a polymorphic interface for

@@ -191,8 +191,8 @@ detailed in :ref:`usage/configure-time` can be set permanently in
 
    Glob containing all C++ header files.
 
-.. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
-          contrary to common cmake guidance.
+.. NOTE:: See :ref:`design/philosophy/globbing` for rationale on why globs are
+          used, contrary to common cmake guidance.
 
 .. _usage/project-local/diagnostics:
 
@@ -225,3 +225,31 @@ All functions in this section are only available if :cmake:variable:`LIBRA_DRIVE
 is ``SELF``.
 
 .. cmake-module:: ../../cmake/libra/package/deploy.cmake
+
+Complete Example
+================
+
+Here's a full-featured ``cmake/project-local.cmake`` showing common patterns::
+
+    # Library target
+    libra_add_library(my_library STATIC
+        src/core.cpp
+        src/utils.cpp
+    )
+    target_include_directories(my_library PUBLIC include)
+
+    # Application target
+    libra_add_executable(my_app src/main.cpp)
+    target_link_libraries(my_app PRIVATE my_library)
+
+    # Enable features (optional)
+    # set(LIBRA_TESTS ON)        # Enable test discovery
+    # set(LIBRA_DOCS ON)          # Enable API docs
+    # set(LIBRA_ANALYSIS ON)      # Enable static analysis
+    # set(LIBRA_CODE_COV ON)      # Enable coverage instrumentation
+
+    # Compiler-specific options
+    # set(LIBRA_NATIVE_OPT ON)    # Optimize for this CPU
+    # set(LIBRA_LTO ON)           # Link-time optimization
+    # set(LIBRA_FORTIFY ALL)      # Security hardening
+    # set(LIBRA_SAN "ASAN+UBSAN") # Runtime sanitizers (Debug builds)

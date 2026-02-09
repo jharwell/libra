@@ -1,0 +1,198 @@
+#!/usr/bin/env bats
+#
+# BATS tests for LIBRA_OPT_REPORT
+#
+# LIBRA_OPT_REPORT controls whether the compiler emits optimisation reports:
+#   - ON:  Adds compiler-specific optimisation-report flags (compile flags)
+#   - OFF: No optimisation-report flags added (default)
+#
+# Per-compiler flags when ON:
+#   Clang: -Rpass=.* -Rpass-missed=.* -Rpass-analysis=.* -fsave-optimization-record
+#   Intel: -qopt-report=3 -qopt-report-phase=all
+#
+# All flags land in COMPILE_FLAGS in the generated build_info file.
+# Build type: Release (same as the shell test)
+#
+
+load test_helpers
+
+setup() {
+    setup_libra_test
+    export CMAKE_BUILD_TYPE=Release
+}
+
+# ------------------------------------------------------------------------------
+# Clang compiler - C
+# ------------------------------------------------------------------------------
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass=.*" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass-missed=.*" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass-missed=.*"
+}
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass-analysis=.*" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass-analysis=.*"
+}
+
+@test "OPT_REPORT: Clang/C ON adds -fsave-optimization-record" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "c" "-fsave-optimization-record"
+}
+
+@test "OPT_REPORT: Clang/C OFF does not add -Rpass" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "c" "-Rpass"
+}
+
+@test "OPT_REPORT: Clang/C OFF does not add -fsave-optimization-record" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "c" "-fsave-optimization-record"
+}
+
+# ------------------------------------------------------------------------------
+# Clang compiler - C++
+# ------------------------------------------------------------------------------
+
+@test "OPT_REPORT: Clang/C++ ON adds -Rpass=.*" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "cxx" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C++ ON adds -Rpass-missed=.*" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "cxx" "-Rpass-missed=.*"
+}
+
+@test "OPT_REPORT: Clang/C++ ON adds -Rpass-analysis=.*" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "cxx" "-Rpass-analysis=.*"
+}
+
+@test "OPT_REPORT: Clang/C++ ON adds -fsave-optimization-record" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "cxx" "-fsave-optimization-record"
+}
+
+@test "OPT_REPORT: Clang/C++ OFF does not add -Rpass" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-Rpass"
+}
+
+@test "OPT_REPORT: Clang/C++ OFF does not add -fsave-optimization-record" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-fsave-optimization-record"
+}
+
+# ------------------------------------------------------------------------------
+# Intel compiler - C
+# ------------------------------------------------------------------------------
+
+@test "OPT_REPORT: Intel/C ON adds -qopt-report=3" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "c" "-qopt-report=3"
+}
+
+@test "OPT_REPORT: Intel/C ON adds -qopt-report-phase=all" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "c" "-qopt-report-phase=all"
+}
+
+@test "OPT_REPORT: Intel/C OFF does not add -qopt-report=3" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "c" "-qopt-report=3"
+}
+
+@test "OPT_REPORT: Intel/C OFF does not add -qopt-report-phase=all" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "c" "-qopt-report-phase=all"
+}
+
+# ------------------------------------------------------------------------------
+# Intel compiler - C++
+# ------------------------------------------------------------------------------
+
+@test "OPT_REPORT: Intel/C++ ON adds -qopt-report=3" {
+    skip_if_compiler_missing "intel" "cxx"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "cxx" "-qopt-report=3"
+}
+
+@test "OPT_REPORT: Intel/C++ ON adds -qopt-report-phase=all" {
+    skip_if_compiler_missing "intel" "cxx"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_present "$test_dir" "cxx" "-qopt-report-phase=all"
+}
+
+@test "OPT_REPORT: Intel/C++ OFF does not add -qopt-report=3" {
+    skip_if_compiler_missing "intel" "cxx"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-qopt-report=3"
+}
+
+@test "OPT_REPORT: Intel/C++ OFF does not add -qopt-report-phase=all" {
+    skip_if_compiler_missing "intel" "cxx"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=OFF)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-qopt-report-phase=all"
+}

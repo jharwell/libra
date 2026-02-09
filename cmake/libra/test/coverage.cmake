@@ -21,8 +21,13 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES
                                               "Clang")
     # Extract Clang version
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+    if(CMAKE_CXX_COMPILER)
+      execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
+                      OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+    else()
+      execute_process(COMMAND ${CMAKE_C_COMPILER} --version
+                      OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+    endif()
     string(REGEX MATCH "clang version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
     set(CLANG_MAJOR ${CMAKE_MATCH_1})
 
@@ -31,12 +36,16 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
     set(${OUTPUT_VAR}
         "${LLVM_COV} gcov"
         PARENT_SCOPE)
-    libra_message(STATUS "Using clang coverage: ${LLVM_COV}")
+    libra_message(STATUS "Using clang coverage for GNU format: ${LLVM_COV}")
 
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES
                                                 "GNU")
+    if(CMAKE_CXX_COMPILER)
+      get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
+    else()
+      get_filename_component(COMPILER_NAME ${CMAKE_C_COMPILER} NAME)
+    endif()
     # Extract GCC version from compiler name (e.g., gcc-13 -> gcov-13)
-    get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
     string(REPLACE "g++" "gcov" GCOV_NAME ${COMPILER_NAME})
     string(REPLACE "gcc" "gcov" GCOV_NAME ${GCOV_NAME})
 
@@ -44,7 +53,7 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
     set(${OUTPUT_VAR}
         ${GCOV_TOOL}
         PARENT_SCOPE)
-    libra_message(STATUS "Using GCC coverage: ${GCOV_TOOL}")
+    libra_message(STATUS "Using GCC coverage for GNU format: ${GCOV_TOOL}")
 
   else()
     libra_message(FATAL_ERROR
@@ -55,8 +64,14 @@ endfunction()
 # Detect llvm-cov and llvm-profdata for native Clang coverage
 function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
   # Extract Clang version
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                  OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+  if(CMAKE_CXX_COMPILER)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
+                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+  else()
+    execute_process(COMMAND ${CMAKE_C_COMPILER} --version
+                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+  endif()
+
   string(REGEX MATCH "clang version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
   set(CLANG_MAJOR ${CMAKE_MATCH_1})
 
@@ -176,6 +191,7 @@ function(libra_coverage_register_lcov)
               --output-directory ${COVERAGE_DIR} --branch-coverage --legend
       COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}"
       VERBATIM)
+    libra_message(STATUS "Created lcov coverage targets")
   endif()
 endfunction()
 
@@ -185,11 +201,11 @@ endfunction()
 function(libra_coverage_register_gcovr)
   _libra_detect_gcov_tool(GCOV_TOOL)
 
-  libra_message(STATUS "Using gcovr=${GCOVR_TOOL}")
+  libra_message(STATUS "Using gcovr=${GCOV_TOOL}")
 
   # Base gcovr command
   set(GCOVR_BASE_CMD
-      ${GCOVR_EXECUTABLE}
+      gcovr
       --gcov-executable=${GCOV_TOOL}
       --root=${PROJECT_SOURCE_DIR}
       --object-directory=${PROJECT_BINARY_DIR}
@@ -226,6 +242,7 @@ function(libra_coverage_register_gcovr)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}/index.html"
       VERBATIM)
+    libra_message(STATUS "Created gcovr coverage targets")
   endif()
 endfunction()
 
@@ -326,11 +343,17 @@ function(libra_coverage_register_llvm)
     llvm-coverage
     DEPENDS llvm-profdata llvm-report llvm-summary
     COMMENT "Generating complete LLVM coverage report")
+  libra_message(STATUS "Created LLVM coverage targets")
 endfunction()
 
 if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
                                                MATCHES "Clang")
-  libra_coverage_register_llvm()
+  if(LIBRA_CODE_COV_NATIVE)
+    libra_coverage_register_llvm()
+  else()
+    libra_coverage_register_lcov()
+    libra_coverage_register_gcovr()
+  endif()
 elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
                                                  MATCHES "GNU")
   libra_coverage_register_lcov()

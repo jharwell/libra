@@ -1,0 +1,35 @@
+@startuml
+title LIBRA Configure-Time and Build-Time Flow
+
+!theme cerulean-outline
+
+skinparam DefaultFontSize 14
+skinparam defaultTextAlignment center
+skinparam TitleFontSize 24
+skinparam SequenceMessageAlignment center
+skinparam DefaultFontColor #black
+skinparam TitleFontColor #black
+skinparam ParticipantFontColor #black
+
+title Project Layout and Automatic Discovery
+
+folder "Project Root" {
+        folder "src/" {
+                file "*.c, *.cpp"
+        }
+        folder "include/" {
+                file "*.h, *.hpp"
+        }
+        folder "tests/" {
+                file "*_test.cpp"
+        }
+        folder "cmake/" {
+                file "project-local.cmake"
+        }
+}
+
+note right of "src/" : Sources auto-discovered
+note right of "include/" : Public headers
+note right of "tests/" : Tests auto-registered
+
+@enduml

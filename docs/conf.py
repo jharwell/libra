@@ -21,6 +21,7 @@ import os
 import sys
 import subprocess
 import datetime
+import requests
 
 # -- Path setup --------------------------------------------------------------
 
@@ -73,6 +74,7 @@ extensions = [
     "sphinxcontrib.moderncmakedomain",
     "sphinx_rtd_theme",
     'sphinx_tabs.tabs',
+    "sphinxcontrib.plantuml",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -114,12 +116,23 @@ cmake_doc_dirs = ["../cmake"]
 #
 html_theme = "sphinx_rtd_theme"
 
+plantuml = "java -jar /tmp/plantuml.jar"
+plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
+
+if not os.path.exists("/tmp/plantuml.jar"):
+    print("DOCS: Downloading latest plantuml...")
+    response = requests.get(plantuml_url)
+    with open("/tmp/plantuml.jar", "wb") as file:
+        file.write(response.content)
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
 html_theme_options = {
     'display_version': True,
+    'navigation_depth': 4,
+    'collapse_navigation': False
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
