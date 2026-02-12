@@ -31,6 +31,14 @@ else()
   libra_message(STATUS "Disabling ccache by request")
 endif()
 
+# Remove default optimization flags for release
+set(CMAKE_CXX_FLAGS_RELEASE
+    ""
+    CACHE STRING "Flags used by the C++ compiler for release builds." FORCE)
+set(CMAKE_C_FLAGS_RELEASE
+    ""
+    CACHE STRING "Flags used by the C compiler for release builds." FORCE)
+#
 # ##############################################################################
 # Profile-Guided Optimization (PGO)
 # ##############################################################################
@@ -42,7 +50,57 @@ if(NOT ${LIBRA_PGO} IN_LIST LIBRA_PGO_MODES)
 endif()
 
 # ##############################################################################
+# GNU Compiler Options
+# ##############################################################################
+if("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES
+                                             "GNU")
+  include(libra/compile/gnu)
+  set(_SUPPORTED_COMPILER YES)
+endif()
+
+# ##############################################################################
+# clang Compiler Options
+# ##############################################################################
+if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
+                                               MATCHES "Clang")
+  include(libra/compile/clang)
+  set(_SUPPORTED_COMPILER YES)
+endif()
+
+# ##############################################################################
+# Intel Compiler Options
+# ##############################################################################
+if(("${CMAKE_C_COMPILER_ID}" MATCHES "Intel" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                MATCHES "Intel")
+   AND NOT ("${CMAKE_C_COMPILER_ID}" MATCHES "IntelLLVM"
+            OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM"))
+  libra_message(
+    WARNING
+    "Support for the classic Intel compilers icc/icpc is deprecated and may break without warning"
+  )
+endif()
+
+if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
+   OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel"
+   OR "${CMAKE_C_COMPILER_ID}" MATCHES "IntelLLVM"
+   OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM")
+  set(_SUPPORTED_COMPILER YES)
+
+  include(libra/compile/intel)
+endif()
+
+if(NOT _SUPPORTED_COMPILER)
+  libra_message(
+    FATAL_ERROR
+    "C/C++ compiler ${CMAKE_C_COMPILER_ID}/${CMAKE_CXX_COMPILER_ID} not supported"
+  )
+endif()
+
+# ##############################################################################
 # Definitions
+#
+# Needs to be after including compilers, in case some of the defs depending on
+# LIBRA_ variables being set.
 # ##############################################################################
 macro(_gen_fpc_defs DEFS)
   if("${LIBRA_FPC}" MATCHES "NONE")
@@ -51,9 +109,12 @@ macro(_gen_fpc_defs DEFS)
     list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_RETURN)
   elseif("${LIBRA_FPC}" MATCHES "ABORT")
     list(APPEND ${DEFS} -DLIBRA_FPC=LIBRA_FPC_ABORT)
+  elseif("${LIBRA_FPC}" MATCHES "INHERIT")
+
+  else()
     libra_message(
       FATAL_ERROR "Bad Function Precondition Checking (FPC) specification
-    '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN}")
+    '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN,INHERIT}")
   endif()
 endmacro()
 
@@ -74,10 +135,12 @@ macro(_gen_erl_defs DEFS)
     list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_TRACE)
   elseif("${LIBRA_ERL}" MATCHES "ALL")
     list(APPEND ${DEFS} -DLIBRA_ERL=LIBRA_ERL_ALL)
+  elseif("${LIBRA_ERL}" MATCHES "INHERIT")
+
   else()
     libra_message(
       FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
-    Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE}")
+    Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE,INHERIT}")
   endif()
 
 endmacro()
@@ -97,8 +160,8 @@ else()
   _gen_erl_defs(LIBRA_PRIVATE_DEFS)
 endif()
 
-if("${LIBRA_NOSTDLIB}" MATCHES "NONE")
-  list(APPEND ${LIBRA_PUBLIC_DEFS} -D__nostdlib__)
+if("${LIBRA_STDLIB}" MATCHES "NONE")
+  list(APPEND LIBRA_PUBLIC_DEFS -D__nostdlib__)
 endif()
 
 set(LIBRA_PRIVATE_DEV_DEFS ${LIBRA_PRIVATE_DEFS})
@@ -113,32 +176,14 @@ endif()
 libra_message(STATUS "Configuring compiler diagnostics")
 # set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
-if(NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "${CMAKE_C_COMPILER_ID}")
-  libra_message(WARNING "C compiler family=${CMAKE_C_COMPILER_ID}, CXX compiler
-  family=${CMAKE_CXX_COMPILER_ID}; are you sure you want to mix?")
-endif()
+get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
 
-# ##############################################################################
-# GNU Compiler Options
-# ##############################################################################
-if("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES
-                                             "GNU")
-  include(libra/compile/gnu)
-endif()
-
-# ##############################################################################
-# clang Compiler Options
-# ##############################################################################
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
-                                               MATCHES "Clang")
-  include(libra/compile/clang)
-endif()
-
-# ##############################################################################
-# Intel Compiler Options
-# ##############################################################################
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
-   OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel
-    ")
-  include(libra/compile/intel)
+# Only warn about mismatch if both languages are enabled
+if("C" IN_LIST languages AND "CXX" IN_LIST languages)
+  if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "${CMAKE_C_COMPILER_ID}")
+    libra_message(
+      WARNING
+      "Mixing compiler families: C=${CMAKE_C_COMPILER_ID}, CXX=${CMAKE_CXX_COMPILER_ID}"
+    )
+  endif()
 endif()

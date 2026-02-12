@@ -13,55 +13,42 @@ Platform Requirements
 
 - cmake >= 3.31
 
-- graphviz if you want to generate API documentation.
+- doxygen/graphviz if you want to generate API documentation.
 
-- doxygen if you want to generate API documentation.
+- lcov/gcovr if you want to do GNU code coverage, llvm-XX if you want to do
+  clang/LLVM code coverage.
 
-- lcov if you want to do code coverage.
+Compiler Support
+----------------
 
-Supported Compilers
--------------------
+- gcc/g++, version 9+
+- clang++/clang, version 17+
+- icpx/icx, version 2024.1+
 
-- ``g++/gcc``
-- ``clang++/clang``
-- ``icpc/icc``
+Older compiler versions may or may not work. Note that the C and CXX compiler
+vendors should always match (e.g., GNU for gcc/g++), in order to avoid strange
+build issues (LIBRA warns if they don't). See :ref:`usage/compilers` for more
+details about supported compiler support.
 
-A recent version of any supported compiler can be selected as the
-``CMAKE_<LANG>_COMPILER`` via command line. The correct compile options will be
-populated. Note that the C and CXX compiler vendors should always match, in
-order to avoid strange build issues (LIBRA warns if they don't).  The exact
-version of the compiler you use doesn't really matter from LIBRA's perspective,
-because it allows you to specify the exact set of diagnostics to supply to the
-compiler (see :ref:`usage/project-local/variables`). Non-diagnostic flags passed
-to the compiler are common to all recent versions; additional configurability
-may be added in the future.
-
-LIBRA comes with an internal set of diagnostics targeted at GCC 12, icc 18,
-and clang-16.
+LIBRA comes with an internal set of diagnostics targeted at GCC 12, icx 2025,
+and clang-21.
 
 .. IMPORTANT:: If you are want to use the Intel compiler suite, you will have to
                download and install it from Intel's website. It installs to a
                non-standard location, so prior to being able to use it in the
                terminal like clang or gcc, you will need to source the compiler
-               definitions (actual command varies by version).
-
-
-Supported Analysis Tooling
---------------------------
-
-- cppcheck - Tested with >= 1.72.
-
-- clang-check - Tested with >= 10.0.
-
-- cmake-format - Tested with >= 0.6.
-
-- clang-tidy - Tested with >= 10.0.
+               definitions (actual command varies by version). Note also that
+               only the LLVM-based Intel suite is supported; the ``icc/icpc``
+               legacy suited is deprecated both by Intel and LIBRA.
 
 
 .. _startup/config/structure:
 
 Repository/Code Structure Requirements
 ======================================
+
+.. uml:: /figures/layout.uml
+
 
 - All C++ source files end in ``.cpp``, and all C++ header files end in
   ``.hpp``.

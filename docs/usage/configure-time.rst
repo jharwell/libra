@@ -1,11 +1,12 @@
 .. _usage/configure-time:
 
-==============
-Configure-Time
-==============
+======================
+Configure-Time Actions
+======================
 
 This page details LIBRA usage and actions when you invoke CMake on the
 cmdline. It is coupled to, but distinct from, :ref:`usage/project-local`.
+
 
 Target Configuration
 ====================
@@ -24,15 +25,18 @@ idea.
 File Discovery
 ==============
 
+.. uml:: /figures/layout.uml
+
+
 - All files under ``src/`` ending in:
 
   - ``.c``
   - ``.cpp``
 
-  are globbed as source files (see :ref:`startup/req` for repository layout
-  requirements) so that if you add a new source file, rename a source file,
-  etc., you just need to re-run cmake. This means you don't have to MANUALLY
-  specify all the files in the cmake project. Woo-hoo!
+  are globbed as source files (see :ref:`startup/config/structure` for
+  repository layout requirements) so that if you add a new source file, rename a
+  source file, etc., you just need to re-run cmake. This means you don't have to
+  MANUALLY specify all the files in the cmake project. Woo-hoo!
 
   .. NOTE:: See :ref:`philosophy/globbing` for rationale on why globs are used,
      contrary to common cmake guidance.
@@ -64,7 +68,6 @@ details about restrictions.
                are set. This helps to prevent untended cascades of build options
                which might cause issues.
 
-.. _usage/configure-time/libra:
 
 Knobs For Configuring LIBRA/CMake
 =================================
@@ -109,6 +112,9 @@ Knobs For Configuring LIBRA/CMake
 Knobs For Supporting SW Engineering
 ===================================
 
+See also the :ref:`individual docs pages for each compiler <usage/compilers>`,
+which describe how these knobs are realized for each supported compiler.
+
 .. cmake:variable:: LIBRA_DOCS
 
    :default: NO
@@ -121,9 +127,18 @@ Knobs For Supporting SW Engineering
    :default: NO
    :type: BOOL
 
-   Build in runtime code-coverage instrumentation for use with ``make
-   precoverage-report`` and ``make coverage-report``.
+   Build in runtime code-coverage instrumentation for report generation and
+   coverage checking. See :ref:`usage/build-time/sw-eng` for specifics.
 
+.. cmake:variable:: LIBRA_CODE_COV_NATIVE
+
+   :default: YES
+   :type: BOOL
+
+   Direct compilers to build in coverage instrumentation in their "native"
+   format. E.g., clang will using LLVM format, and GCC will use GNU
+   format. If false, all compilers will use GNU format. The created targets will
+   reflect which format is selected.
 
 .. cmake:variable:: LIBRA_SAN
 
@@ -133,29 +148,33 @@ Knobs For Supporting SW Engineering
    Build in runtime checking of code using any compiler. When passed, the
    value should be a comma-separated list of sanitizer groups to enable:
 
-   - ``MSAN`` - Memory checking/sanitization.
+   - ``MSAN`` - Memory checking/sanitization. To use this, you may need
+     ``liblsan`` installed, compatible with your compiler.
 
-   - ``ASAN`` - Address sanitization.
+   - ``ASAN`` - Address sanitization. To use this, you will need ``libasan``
+     installed, compatible with your compiler.
 
    - ``SSAN`` - Aggressive stack checking.
 
    - ``UBSAN`` - Undefined behavior checks.
 
-   - ``TSAN`` - Multithreading checks.
+   - ``TSAN`` - Multithreading checks. To use this, you will need ``libtsan``
+     installed, compatible with your compiler.
 
    - ``NONE`` - None of the above.
 
-   The first 4 can generally be stacked together without issue. Depending on
-   compiler; the thread sanitizer is incompatible with some other sanitizer
-   groups.
+   .. NOTE:: The first 4 can generally be stacked together without
+              issue. Depending on compiler; the thread sanitizer is incompatible
+              with some other sanitizer groups.
 
 .. cmake:variable:: LIBRA_ANALYSIS
 
    :default: NO
    :type: BOOL
 
-   Enable static analysis targets for checkers, formatters, etc. See below for
-   the targets enabled (assuming the necessary executables are found).
+   Enable static analysis targets for checkers, formatters, etc. See
+   :ref:`usage/build-time` for the targets enabled (assuming the necessary
+   executables are found).
 
 .. cmake:variable:: LIBRA_OPT_REPORT
 
@@ -183,26 +202,6 @@ Knobs For Supporting SW Engineering
    - ``STACK`` - Fortify the stack: add stack protector, etc.
 
    - ``SOURCE`` - Fortify source code via ``_FORTIFY_SOURCE=2``.
-
-   - ``LIBCXX_FAST`` - Fortify libc++ with the set of "fast" checks. clang
-     only. See `here <https://libcxx.llvm.org/Hardening.html>`_ for more
-     details. LIBRA does not currently set clang to use libc++ for you.
-
-   - ``LIBCXX_EXTENSIVE`` - Fortify libc++ with the set of "extensive"
-     checks. clang only. See `here <https://libcxx.llvm.org/Hardening.html>`_
-     for more details. LIBRA does not currently set clang to use libc++ for
-     you.
-
-   - ``LIBCXX_DEBUG`` - Fortify libc++ with a comprehensive set of debug
-     checks that might slow things down a lot. clang only. See `here
-     <https://libcxx.llvm.org/Hardening.html>`_ for more details. LIBRA does
-     not currently set clang to use libc++ for you.
-
-   - ``CFI`` - Fortify against Control Flow Integrity (CFI) attacks. clang
-     only.
-
-   - ``GOT`` - Fortify against Global Offset Table (GOT) attacks with
-     read-only relocations and immediate symbol binding on load.
 
    - ``FORMAT`` - Fortify against formatting attacks.
 
@@ -233,18 +232,9 @@ Knobs For Supporting SW Engineering
 Knobs For Configuring Builds
 ============================
 
-
-.. cmake:variable:: LIBRA_MT
-
-   :default: NO
-   :type: BOOL
-
-   Enable multithreaded code/OpenMP code via compiler flags (e.g.,
-   ``-fopenmp``), and/or selecting additional code for compilation.
-
 .. cmake:variable:: LIBRA_FPC
 
-   :default: RETURN
+   :default: INHERIT
    :type: STRING
 
    Enable Function Precondition Checking (FPC): checking function
@@ -269,8 +259,9 @@ Knobs For Configuring Builds
    - ``ABORT`` - If at least one precondition is not met, abort() the
      program.
 
-   - ``INHERIT`` - FPC configuration should be inherited from a parent
-     project which exposes it.
+   - ``INHERIT`` - FPC configuration should be inherited from a parent project
+     which exposes it. This is the default because it prevents cluttering
+     compiler commands with #defines for projects which don't use it.
 
 .. cmake:variable:: LIBRA_FPC_EXPORT
 
@@ -284,50 +275,23 @@ Knobs For Configuring Builds
 
 .. cmake:variable:: LIBRA_C_STANDARD
 
-   :default: Autodetected to the Latest C standard supported by
-             ``CMAKE_C_COMPILER``.
+   :default: Autodetected to the latest C standard supported by
+             :cmake:variable:`CMAKE_C_COMPILER`. Respects
+             :cmake:variable:`CMAKE_C_STANDARD`, if set/overridden.
 
    :type: STRING
-
-   Respects ``CMAKE_C_STANDARD`` if set.
 
    .. versionadded:: 0.8.4
 
 .. cmake:variable:: LIBRA_CXX_STANDARD
 
    :default: Autodetected to the latest C++ standard supported by
-             ``CMAKE_CXX_COMPILER``.
+             :cmake:variable:`CMAKE_CXX_COMPILER`. Respects
+             :cmake:variable:`CMAKE_CXX_STANDARD`, if set/overridden.
+
    :type: STRING
 
-   Respects ``CMAKE_CXX_STANDARD`` if set.
-
    .. versionadded:: 0.8.4
-
-.. cmake:variable:: LIBRA_GLOBAL_C_STANDARD
-
-   :default: NO
-   :type: BOOL
-
-   Specify that the what C standard is detected for the selected compiler is set
-   globally via ``CMAKE_C_STANDARD``. This results in all targets, not just the
-   automatically defined :cmake:variable:`PROJECT_NAME` target getting this
-   property set. For this to work, this variable must be set *before* you define
-   the ``project()`` *and* before you ``include(libra/project)``.
-
-   .. versionadded:: 0.9.5
-
-.. cmake:variable:: LIBRA_GLOBAL_CXX_STANDARD
-
-    :default: NO
-    :type: BOOL
-
-    Specify that the what C++ standard is detected for the selected compiler is
-    set globally via ``CMAKE_CXX_STANDARD``. This results in all targets, not
-    just the automatically defined :cmake:variable:`PROJECT_NAME` target getting
-    this property set. For this to work, this variable must be set *before* you
-    define the ``project()`` *and* before you ``include(libra/project)``.
-
-    .. versionadded:: 0.9.5
 
 .. cmake:variable:: LIBRA_GLOBAL_C_FLAGS
 
@@ -335,8 +299,8 @@ Knobs For Configuring Builds
    :type: BOOL
 
    Specify that the total set of C flags (diagnostic, sanitizer, optimization,
-   defines, etc.) which are automatically set for :cmake:variable:`PROJECT_NAME` should be
-   applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
+   defines, etc.) which are automatically set for :cmake:variable:`PROJECT_NAME`
+   should be applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
 
    Use with care, as applying said flags to external dependencies built
    alongside your code can cause a cascade of unintended errors. That said, for
@@ -370,7 +334,7 @@ Knobs For Configuring Builds
 
 .. cmake:variable:: LIBRA_ERL
 
-   :default: ALL
+   :default: INHERIT
    :type: STRING
 
    Specify Event Reporting Level (ERL). LIBRA does not prescribe a given
@@ -402,7 +366,8 @@ Knobs For Configuring Builds
    - ``NONE`` - All event reporting compiled out.
 
    - ``INHERIT`` - Event reporting configuration should be inherited from a
-     parent project which exposes it.
+     parent project which exposes it. This is the default because it prevents
+     cluttering compiler commands with #defines for projects which don't use it.
 
 .. cmake:variable:: LIBRA_ERL_EXPORT
 
@@ -424,10 +389,27 @@ Knobs For Configuring Builds
 
    - ``NONE``
 
-   - ``GEN`` - Input stage
+   - ``GEN`` - Input stage. Generally, you would do something like::
+
+       cmake -DLIBRA_PGO=GEN ..
+       make
+       ./bin/my_application  # Run with representative workload
+
+
+     If you're using clang, you would then have to do something like::
+
+       llvm-profdata merge -o default.profdata default*.profraw
 
    - ``USE`` - Final stage (after executing the ``GEN`` build to get
-     profiling info).
+     profiling info and running)::
+
+       cmake -DLIBRA_PGO=USE ..
+       make
+
+     The optimized binary in will be tuned based on the runtime behavior
+     observed in when running with PGO instrumentation compiled in.
+
+Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 
 
 .. cmake:variable:: LIBRA_VALGRIND_COMPAT
@@ -443,7 +425,8 @@ Knobs For Configuring Builds
    :default: NO
    :type: BOOL
 
-   Enable Link-Time Optimization.
+   Enable Link-Time Optimization (LTO), also known as Interprocedural
+   optimization (IPO). Compiler-independent.
 
    .. versionchanged:: 0.8.3
       This is automatically enabled by ``LIBRA_FORTIFY != NONE``.
@@ -458,21 +441,25 @@ Knobs For Configuring Builds
    use. You would only turn this off for bare-metal builds (e.g.,
    bootstraps). Valid values are:
 
-   - ``NONE`` - Don't use the stdlib at all. Defines ``__nostdlib__``.
+   - ``NONE`` - Don't use the stdlib at all. Defines ``__nostdlib__`` macro for
+     all source files.
 
    - ``CXX`` - Use libc++, if the compiler supports it.
 
-   - ``STDCXX`` - Use libstdc++, if the compiler supports itn.
+   - ``STDCXX`` - Use libstdc++, if the compiler supports it.
 
-.. cmake:variable:: LIBRA_NO_DEBUG_INFO
+.. cmake:variable:: LIBRA_DEBUG_INFO
 
-   :default: NO
+   :default: YES
    :type: BOOL
 
-   Disable generation of debug symbols *independent* of whatever the default is
+   Enable generation of debug symbols *independent* of whatever the default is
    with a given cmake build type.
 
    .. versionadded:: 0.8.4
+
+   .. versionchanged:: 0.9.36 Renamed to ``LIBRA_DEBUG_INFO``, and default to
+                       on.
 
 .. cmake:variable:: LIBRA_NATIVE_OPT
 
@@ -485,13 +472,19 @@ Knobs For Configuring Builds
 
    .. versionadded:: 0.9.15
 
-.. cmake:variable:: LIBRA_UNSAFE_OPT
+.. cmake:variable:: LIBRA_USE_COMPDB
 
    :default: NO
    :type: BOOL
 
-   Enable compiler optimizations which are considered "unsafe"; that is, can
-   change numerical results. Most of these pertain to relaxing floating point
-   rigor. Tread carefully!!!
+  Tell LIBRA that all analysis tools should use a compilation database, rather
+  than the default of extracting the necessary includes, #defines, etc. from the
+  target itself. See :ref:`usage/analysis` for more details about this decision.
 
-   .. versionadded:: 0.9.15
+  For best results, if you are using any of the clang-based analysis targets,
+  set the compiler to clang and then set :cmake:variable:`LIBRA_USE_COMPDB`. If
+  you are using e.g., gcc as the compiler, clang-based analysis may still work,
+  but generate some spurious warnings about a compilation database not being
+  found/used.
+
+   .. versionadded:: 0.9.36

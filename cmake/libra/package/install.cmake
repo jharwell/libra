@@ -170,9 +170,6 @@ function(libra_register_extra_configs_for_install)
         foreach(REL_FILE ${DIR_CMAKE_FILES})
           get_filename_component(REL_DIR "${REL_FILE}" DIRECTORY)
           if(REL_DIR)
-            message(
-              "DEST:     ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${REL_DIR}"
-            )
             install(
               FILES "${ITEM}/${REL_FILE}"
               DESTINATION

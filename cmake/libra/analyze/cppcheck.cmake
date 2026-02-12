@@ -30,24 +30,11 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
     set(LIBRA_CPPCHECK_EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT}")
   endif()
 
-  # cppcheck doesn't work well with using a compilation database with header
-  # only libraries, so we extract the necessary includes, defs, etc., directly
-  # from the target itself in that case by default; the user can override this
-  # and force it if they want to.
-  if(DEFINED LIBRA_USE_COMPDB)
-    set(USE_DATABASE ${LIBRA_USE_COMPDB})
+  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
+  if(NOT LIBRA_USE_COMPDB)
+    set(USE_DATABASE NO)
   else()
-    set(USE_DATABASE YES)
-
-    if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
-      set(USE_DATABASE NO)
-    else()
-      if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
-         OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
-        set(USE_DATABASE NO)
-      endif()
-
-    endif()
+    set(USE_DATABASE ${LIBRA_USE_COMPDB})
   endif()
 
   get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
@@ -61,7 +48,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
         ${cppcheck_EXECUTABLE}
         --project=${PROJECT_BINARY_DIR}/compile_commands.json
         --enable=warning,style,performance,portability --verbose
-        --check-level=exhaustive --std=${LIBRA_CXX_STANDARD} --inline-suppr
+        --check-level=exhaustive --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
         "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
         "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
         "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1
@@ -86,7 +73,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
           "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
           "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
           --enable=warning,style,performance,portability --verbose
-          --std=${LIBRA_CXX_STANDARD} --inline-suppr
+          --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
           "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
           "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
           "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1 ${file}

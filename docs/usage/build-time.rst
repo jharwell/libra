@@ -8,6 +8,41 @@ This page details LIBRA usage and actions when *after* you've invoked CMake on
 the cmdline (see :ref:`usage/configure-time`), and the build system has been
 generated.
 
+.. plantuml::
+
+   !theme cerulean-outline
+
+   skinparam DefaultFontSize 14
+   skinparam defaultTextAlignment center
+   skinparam TitleFontSize 24
+   skinparam SequenceMessageAlignment center
+   skinparam DefaultFontColor #black
+   skinparam TitleFontColor #black
+   skinparam ParticipantFontColor #black
+
+   title LIBRA Build Targets
+
+   skinparam componentStyle rectangle
+
+   component "Build" as Build
+   component "Test" as Test
+   component "Analyze" as Analyze
+   component "Format" as Format
+   component "Coverage" as Coverage
+   component "Docs" as Docs
+   component "Package" as Package
+
+   component "LIBRA" as Libra
+
+   Libra --> Build
+   Libra --> Test
+   Libra --> Analyze
+   Libra --> Format
+   Libra --> Coverage
+   Libra --> Docs
+   Libra --> Package
+
+
 .. NOTE:: All examples assume the CMake generator is ``Unix Makefiles``, and
           therefore all targets can be built with ``make``; adjust as needed if
           you use a different generator.
@@ -15,6 +50,38 @@ generated.
 - :ref:`usage/build-time/build`
 
 - :ref:`usage/build-time/sw-eng`
+
+Quick Reference
+===============
+
+Common Workflows
+----------------
+
+**Build and run tests**::
+
+    make build-and-test
+
+**Generate code coverage (GNU/gcov format)**::
+
+    make all-tests
+    make test
+    make gcovr-report  # or gcovr-check for threshold checking
+
+**Generate code coverage (LLVM/Clang format)**::
+
+    make all-tests
+    make test
+    make llvm-coverage  # Generates HTML + summary
+
+**Run static analysis**::
+
+    make analyze  # All analyzers
+    make analyze-clang-tidy  # Just clang-tidy
+
+**Auto-fix code style**::
+
+    make format  # All formatters
+    make fix-clang-tidy  # Auto-fix clang-tidy warnings
 
 .. _usage/build-time/build:
 
@@ -166,7 +233,7 @@ Actions For Supporting SW Engineering
        - ``fix-clang-tidy`` - Runs ``clang-tidy`` as a checker, but also passing
          the ``--fix`` argument.
 
-       - ``fix-clang-check`` - Runs ``clang-checkg`` as a checker, but also
+       - ``fix-clang-check`` - Runs ``clang-check`` as a checker, but also
          passing the ``--fixit`` argument.
 
          .. versionadded:: 0.8.12
@@ -198,44 +265,171 @@ Actions For Supporting SW Engineering
 
        Requires :cmake:variable:`LIBRA_DRIVER` is  ``SELF``.
 
-   * - ``precoverage-info``
+   * - ``lcov-preinfo``
 
-     - Run ``lcov`` to generate a baseline code coverage info (0%) for the
-       entire project to eventually generate an *absolute* code coverage report
-       after executing the project. That is, this target is used as part of a
-       sequence like so::
+     - Capture baseline code coverage info (0%) for the entire project before
+       running any tests. This is the first step in generating an *absolute*
+       coverage report. See ``lcov-report`` for the full workflow.
 
-         make                     # Build in coverage info into project
-         make all-tests           # Build in coverage info into tests
-         make precoverage-info    # Set baseline coverage info for ENTIRE project
-         make test                # Populate coverage for executed parts of project
-         make coverage-report     # Build ABSOLUTE coverage report for all files
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true with GNU format.
 
-       An *absolute* code coverage report uses the baseline info and the #
-       lines/functions executed in all files. If there are files which have no
-       functions executed, then they **WILL** be included in the results. This
-       may or may not be desirable; if it is not, then don't call this target
-       before running the project, and you'll get a relative report instead.
+   * - ``lcov-report``
 
-       Requires :cmake:variable:`LIBRA_TESTS` is true.
+     - Generate an HTML code coverage report using lcov/genhtml. This produces
+       an **absolute** coverage report, meaning:
 
-   * - ``coverage-report``
+       - All source files are included in the report.
+       - Files with 0% coverage are shown (not hidden).
+       - Useful for seeing what hasn't been tested at all.
 
-     - Run ``lcov`` to generate a code coverage report (presumably from the
-       results of running unit tests, though that does not have to be the
-       case). That is::
+       Typical workflow::
+
+         cmake -DCMAKE_BUILD_TYPE=Debug -DLIBRA_CODE_COV=ON ..
+         make                     # Build project with coverage
+         make all-tests           # Build tests with coverage
+         make lcov-preinfo        # Capture baseline (0% coverage)
+         make test                # Run tests to generate coverage data
+         make lcov-report         # Generate HTML report
+
+       Opens ``coverage/index.html`` when complete.
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true with GNU format.
+
+   * - ``gcovr-report``
+
+     - Generate an HTML code coverage report using gcovr. This produces
+       a **relative** coverage report, meaning:
+
+       - Only files with >0% coverage are included.
+       - Untested files are excluded from the report.
+       - Coverage percentages are higher but less comprehensive.
+
+       Typical workflow::
+
+         cmake -DCMAKE_BUILD_TYPE=Debug -DLIBRA_CODE_COV=ON ..
+         make                 # Build project with coverage
+         make all-tests       # Build tests with coverage
+         make test            # Run tests to generate coverage data
+         make gcovr-report    # Generate HTML report (relative)
+
+       Use ``lcov-report`` if you want to see all files including untested ones.
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true with GNU format.
+
+   * - ``gcovr-check``
+
+     - Run ``gcovr`` to check code coverage (presumably from the results of
+       running unit tests, though that does not have to be the case). That is::
 
          make                 # Build in coverage info into project
          make all-tests       # Build in coverage info into tests
          make test            # Populate coverage for executed parts of project
-         make coverage-report # Build RELATIVE report for files had some execution
+         make gcovr-check     # Check coverage against configured thresholds
 
 
-       Not that this is a *relative* code coverage report. That is, #
-       lines/functions executed out of the total # lines/functions in all files
-       which have at least one function executed. If there are files which have
-       no functions executed, then they will not be included in the results,
-       skewing reporting coverage. This may or may not be desirable. See
-       ``precoverage-report`` if it is undesirable.
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true, and that code coverage
+       instrumentation is generated in the GNU format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info. Thresholds are set
+       via:
 
-       Requires :cmake:variable:`LIBRA_TESTS` is true.
+       - :cmake:variable:`LIBRA_GCOVR_LINES_THRESH`
+       - :cmake:variable:`LIBRA_GCOVR_FUNCTIONS_THRESH`
+       - :cmake:variable:`LIBRA_GCOVR_BRANCHES_THRESH`
+       - :cmake:variable:`LIBRA_GCOVR_DECISIONS_THRESH`
+
+   * - ``llvm-profdata``
+
+     - Merge raw LLVM profile data (``.profraw`` files) into a single
+       ``.profdata`` file for consumption by other llvm-cov targets. This
+       target runs automatically as a dependency of other LLVM coverage targets,
+       but can be run manually::
+
+         make test            # Generate .profraw files
+         make llvm-profdata   # Merge into coverage.profdata
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true with LLVM/native
+       format.
+       .. WARNING:: When using LLVM/Clang native coverage format, the
+          ``llvm-profdata`` merge command requires that ``.profraw`` files exist
+          in :cmake:variable:`PROJECT_BINARY_DIR`.  Ensure you run test binaries
+          from the build directory root, not from subdirectories, to ensure
+          profile data is generated in the correct location.
+
+   * - ``llvm-summary``
+
+     - Run ``llvm-cov`` to output code coverage (presumably from the results of
+       running unit tests, though that does not have to be the case) to the
+       terminal. That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make llvm-summary    # Build RELATIVE report for files had some execution
+
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-show``
+
+     - Run ``llvm-cov`` to output detailed code coverage (presumably from the
+       results of running unit tests, though that does not have to be the case)
+       to the terminal. Basically, the same as the HTML output, but in the
+       terminal. That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make llvm-show       # Build RELATIVE report for files had some execution
+
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-report``
+
+     - Run ``llvm-cov`` to output detailed code coverage (presumably from the
+       results of running unit tests, though that does not have to be the case)
+       in a browsable HTML blob. That is::
+
+         make                 # Build in coverage info into project
+         make all-tests       # Build in coverage info into tests
+         make test            # Populate coverage for executed parts of project
+         make llvm-report     # Build RELATIVE report for files had some execution
+
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-export-lcov``
+
+     - Run ``llvm-cov`` to export code coverage (presumably from the
+       results of running unit tests, though that does not have to be the case)
+       to lcov format for further processing. That is::
+
+         make                  # Build in coverage info into project
+         make all-tests        # Build in coverage info into tests
+         make test             # Populate coverage for executed parts of project
+         make llvm-export-lcov # Export
+
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.
+
+   * - ``llvm-coverage``
+
+     - Run ``llvm-report`` and ``llvm-summary`` in sequence. That is::
+
+         make                  # Build in coverage info into project
+         make all-tests        # Build in coverage info into tests
+         make test             # Populate coverage for executed parts of project
+         make llvm-coverage    # Generate HTML and text reports
+
+
+       Requires :cmake:variable:`LIBRA_CODE_COV` is true, and that code coverage
+       instrumentation is generated in the LLVM format; see
+       :cmake:variable:`LIBRA_CODE_COV_NATIVE` for more info.

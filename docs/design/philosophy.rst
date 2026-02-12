@@ -86,8 +86,8 @@ Low Floor, High Ceiling
 LIBRA was designed to be "low floor, high ceiling", meaning that:
 
 - It can be pretty much dropped into any project meeting the
-  :ref:`requirements<startup/req>` and requiresi minimal to no effort to start
-  using.
+  :ref:`requirements<startup/config/structure>` and requires minimal to no
+  effort to start using.
 
 - It provides configurability for almost *every* single thing it does, so that
   users can tweak for a wide range of use cases, from building software for
@@ -100,6 +100,11 @@ This is also why LIBRA can be used as a standalone framework capable of handling
 cmake builds and packaging, OR as a cmake middleware / sister framework to
 a package manager like conan, where it then only is responsible for things
 related to building and analyzing the code.
+
+One important consequence of this is that LIBRA minimizes its use of cmake cache
+variables, preferring to use regular variables as much as possible, so that *if*
+something is set on the cmdline at configure time, it is actually effective
+(principle of least surprise).
 
 Automate Everything
 ===================

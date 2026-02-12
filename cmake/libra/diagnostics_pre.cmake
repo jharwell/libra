@@ -219,13 +219,10 @@ function(libra_config_summary)
       LIBRA_NO_CCACHE
       LIBRA_BUILD_PROF
       LIBRA_NATIVE_OPT
-      LIBRA_UNSAFE_OPT
       LIBRA_OPT_LEVEL
       LIBRA_OPT_OPTIONS
-      LIBRA_NO_DEBUG_INFO
+      LIBRA_DEBUG_INFO
       LIBRA_TESTS
-      LIBRA_MT
-      LIBRA_MP
       LIBRA_PGO
       LIBRA_CODE_COV
       LIBRA_DOCS
@@ -324,17 +321,14 @@ function(libra_config_summary)
     STATUS
       "Build tests...........................: ${ColorBold}${EMIT_LIBRA_TESTS}${ColorReset} [LIBRA_TESTS] (${MAKE_NAME} {all-tests,unit-tests,integration-tests,build-and-test) "
   )
-  message(
-    STATUS
-      "Enable multithread+openmp.............: ${ColorBold}${EMIT_LIBRA_MT}${ColorReset} [LIBRA_MT]"
-  )
+
   message(
     STATUS
       "PGO...................................: ${ColorBold}${EMIT_LIBRA_PGO}${ColorReset} [LIBRA_PGO={NONE,GEN,USE}]"
   )
   message(
     STATUS
-      "Code coverage instrumentation.........: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {lcov-{preinfo,report}, gcovr-{report,check}})"
+      "Code coverage instrumentation.........: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {lcov-{preinfo,report}, gcovr-{report,check}, llvm-{summary,show,report-coverage,export-lcov}})"
   )
   message(
     STATUS
@@ -347,15 +341,11 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Unsafe optimization options...........: ${ColorBold}${EMIT_LIBRA_UNSAFE_OPT}${ColorReset} [LIBRA_UNSAFE_OPT]"
-  )
-  message(
-    STATUS
       "Active optimization options...........: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
   )
   message(
     STATUS
-      "Disable debug info....................: ${ColorBold}${EMIT_LIBRA_NO_DEBUG_INFO}${ColorReset} [LIBRA_NO_DEBUG_INFO]"
+      "Debug info.............................: ${ColorBold}${EMIT_LIBRA_DEBUG_INFO}${ColorReset} [LIBRA_DEBUG_INFO]"
   )
   message(
     STATUS
@@ -399,7 +389,7 @@ function(libra_config_summary)
   )
   message(
     STATUS
-      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,CFI,GOT,FORMAT,ALL}]"
+      "Fortify build.........................: ${ColorBold}${EMIT_LIBRA_FORTIFY}${ColorReset} [LIBRA_FORTIFY={NONE,STACK,SOURCE,ALL}]"
   )
   message(
     STATUS
@@ -438,21 +428,20 @@ endfunction()
   Populate a source file template with build and git information.
 
   Use build information from LIBRA and your project to populate a source file
-  template. LIBRA automatically adds the generated file to the provided list of
-  source files (``SRC``) which will ultimately be compiled for the project. This
-  is useful for printing information when your library loads or application
-  starts as a sanity check during debugging to help ensure that you are running
-  what you think you are.
+  template. LIBRA automatically adds the generated file to the list of files for
+  the main :cmake:variable:`PROJECT_NAME` target. This is useful for printing
+  information when your library loads or application starts as a sanity check
+  during debugging to help ensure that you are running what you think you
+  are. Must be called *after* the :cmake:variable:`PROJECT_NAME` target is
+  defined.
+
+  :param TARGET: The target the the configured source file should be added to.
 
   :param INFILE: The input template file. Should contain CMake variable
    references like ``@LIBRA_GIT_REV@`` that will be replaced with actual values.
 
   :param OUTFILE: The output file path where the configured file will be
-   written.  This file is automatically added to ``SRC``.
-
-  :param SRC: An existing list of source files for compilation to which
-   ``OUTFILE`` should be appended. This is the *name* of the variable, not its
-   contents (i.e., pass ``MY_SOURCES`` not ``${MY_SOURCES}``).
+   written.
 
   **Available Variables for Template:**
 
@@ -461,9 +450,9 @@ endfunction()
   - ``LIBRA_GIT_REV`` - Git SHA of the current tip. Result of
     ``git log --pretty=format:%H -n 1``.
 
-  - ``LIBRA_GIT_DIFF`` - Indicates if the build is "dirty" (contains local changes
-    not in git). Result of ``git diff --quiet --exit-code || echo +``. Will be
-    ``+`` if dirty, empty otherwise.
+  - ``LIBRA_GIT_DIFF`` - Indicates if the build is "dirty" (contains local
+    changes not in git). Result of ``git diff --quiet --exit-code || echo
+    +``. Will be ``+`` if dirty, empty otherwise.
 
   - ``LIBRA_GIT_TAG`` - The current git tag for the git rev, if any. Result of
     ``git describe --exact-match --tags``.
@@ -471,10 +460,10 @@ endfunction()
   - ``LIBRA_GIT_BRANCH`` - The current git branch, if any. Result of
     ``git rev-parse --abbrev-ref HEAD``.
 
-  - ``LIBRA_C_FLAGS_BUILD`` - The configured C compiler flags relevant for building
-    (excludes diagnostic flags like ``-W*``).
+  - ``LIBRA_TARGET_FLAGS_COMPILE`` - The configured compiler flags relevant
+    for building (excludes diagnostic flags like ``-W*``).
 
-  - ``LIBRA_CXX_FLAGS_BUILD`` - The configured C++ compiler flags relevant for
+  - ``LIBRA_TARGET_FLAGS_LINK`` - The configured linker flags relevant for
     building (excludes diagnostic flags like ``-W*``).
 
   You can also use any standard CMake variables (e.g., ``CMAKE_C_FLAGS_RELEASE``,
@@ -487,12 +476,12 @@ endfunction()
     # In CMakeLists.txt
     set(MY_SOURCES src/main.cpp src/foo.cpp)
 
-    libra_configure_source_file(
-      ${PROJECT_SOURCE_DIR}/src/version.cpp.in
-      ${CMAKE_BINARY_DIR}/version.cpp
-      MY_SOURCES)
+    libra_add_executable(${PROJECT_NAME} ${MY_SOURCES})
 
-    libra_add_executable(myapp ${MY_SOURCES})
+    libra_configure_source_file(
+      ${PROJECT_NAME}
+      ${PROJECT_SOURCE_DIR}/src/version.cpp.in
+      ${CMAKE_BINARY_DIR}/version.cpp)
 
   .. code-block:: cpp
 
@@ -506,13 +495,13 @@ endfunction()
       std::cout << "Build Type: @CMAKE_BUILD_TYPE@" << std::endl;
     }
 
-  .. note::
+  .. NOTE::
      If your code is not in a git repository, all git-related fields will be
      stubbed out with ``N/A`` and will not be very useful. A warning will be
      emitted during configuration.
 
 ]]
-function(libra_configure_source_file INFILE OUTFILE SRC)
+function(libra_configure_source_file TARGET INFILE OUTFILE)
   # Validate arguments
   if(NOT INFILE)
     libra_message(FATAL_ERROR "libra_configure_source_file: INFILE is required")
@@ -523,11 +512,6 @@ function(libra_configure_source_file INFILE OUTFILE SRC)
                   "libra_configure_source_file: OUTFILE is required")
   endif()
 
-  if(NOT SRC)
-    libra_message(FATAL_ERROR
-                  "libra_configure_source_file: SRC variable name is required")
-  endif()
-
   # Check input file exists
   if(NOT EXISTS "${INFILE}")
     libra_message(
@@ -535,71 +519,17 @@ function(libra_configure_source_file INFILE OUTFILE SRC)
       "libra_configure_source_file: Input file does not exist: ${INFILE}")
   endif()
 
-  # Extract git information
-  execute_process(
-    COMMAND git log --pretty=format:%H -n 1
-    OUTPUT_VARIABLE LIBRA_GIT_REV
-    ERROR_QUIET)
-
-  # Check whether we got any revision (which isn't always the case, e.g. when
-  # someone downloaded a zip file from Github instead of a checkout)
-  if("${LIBRA_GIT_REV}" STREQUAL "")
-    libra_message(
-      WARNING
-      "libra_configure_source_file: Not in a git repository - stubbing version information\n"
-      "  Git-related variables will be set to 'N/A'")
-    set(LIBRA_GIT_REV "N/A")
-    set(LIBRA_GIT_DIFF "")
-    set(LIBRA_GIT_TAG "N/A")
-    set(LIBRA_GIT_BRANCH "N/A")
-  else()
-    execute_process(COMMAND bash -c "git diff --quiet --exit-code || echo +"
-                    OUTPUT_VARIABLE LIBRA_GIT_DIFF)
-    execute_process(
-      COMMAND git describe --exact-match --tags
-      OUTPUT_VARIABLE LIBRA_GIT_TAG
-      ERROR_QUIET)
-    execute_process(COMMAND git rev-parse --abbrev-ref HEAD
-                    OUTPUT_VARIABLE LIBRA_GIT_BRANCH)
-
-    string(STRIP "${LIBRA_GIT_REV}" LIBRA_GIT_REV)
-    string(STRIP "${LIBRA_GIT_DIFF}" LIBRA_GIT_DIFF)
-    string(STRIP "${LIBRA_GIT_TAG}" LIBRA_GIT_TAG)
-    string(STRIP "${LIBRA_GIT_BRANCH}" LIBRA_GIT_BRANCH)
+  if(NOT "${INFILE}" IN_LIST LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC)
+    list(APPEND LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC "${INFILE}")
+    set(LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC
+        "${LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC}"
+        CACHE INTERNAL "")
   endif()
 
-  string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
-
-  # Filter out flags which don't affect the build at all (diagnostics)
-  set(LIBRA_C_FLAGS_BUILD ${CMAKE_C_FLAGS_${BUILD_TYPE_UPPER}})
-  separate_arguments(LIBRA_C_FLAGS_BUILD NATIVE_COMMAND
-                     "${LIBRA_C_FLAGS_BUILD}")
-  list(
-    FILTER
-    LIBRA_C_FLAGS_BUILD
-    INCLUDE
-    REGEX
-    "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
-
-  set(LIBRA_CXX_FLAGS_BUILD ${CMAKE_CXX_FLAGS_${BUILD_TYPE_UPPER}})
-  separate_arguments(LIBRA_CXX_FLAGS_BUILD NATIVE_COMMAND
-                     "${LIBRA_CXX_FLAGS_BUILD}")
-  list(
-    FILTER
-    LIBRA_CXX_FLAGS_BUILD
-    INCLUDE
-    REGEX
-    "${LIBRA_BUILD_FLAGS_FILTER_REGEX}")
-
-  # Write the file
-  configure_file(${INFILE} ${OUTFILE})
-
-  # Make sure we compile the file by adding to whatever list of source files was
-  # provided.
-  list(APPEND ${SRC} ${OUTFILE})
-  set(${SRC}
-      ${${SRC}}
-      PARENT_SCOPE)
-
-  libra_message(STATUS "Configured source file: ${INFILE} -> ${OUTFILE}")
+  if(NOT "${OUTFILE}" IN_LIST LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST)
+    list(APPEND LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST "${OUTFILE}")
+    set(LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST
+        "${LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST}"
+        CACHE INTERNAL "")
+  endif()
 endfunction()

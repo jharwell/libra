@@ -28,7 +28,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
-include(libra/diagnostics)
+include(libra/diagnostics_pre)
 
 # Set policies
 include(libra/policies)
@@ -37,7 +37,6 @@ include(libra/policies)
 # Project Cmdline Configuration
 # ##############################################################################
 option(LIBRA_TESTS "Build tests." OFF)
-option(LIBRA_MT "Enable multithreaded+openmp code." OFF)
 option(LIBRA_CODE_COV "Compile with code coverage instrumentation" OFF)
 option(LIBRA_DOCS "Enable documentation build" OFF)
 option(
@@ -47,11 +46,10 @@ option(
 option(LIBRA_ANALYSIS "Enable static analysis checkers" OFF)
 option(LIBRA_SUMMARY "Show a configuration summary" OFF)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
-option(LIBRA_UNSAFE_OPT "Enable unsafe optimization options" OFF)
 option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
-option(LIBRA_NO_DEBUG_INFO
-       "Disable inclusion of debug info, independent of build type" OFF)
+option(LIBRA_DEBUG_INFO
+       "Enable inclusion of debug info, independent of build type" ON)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
@@ -60,6 +58,11 @@ option(LIBRA_GLOBAL_C_STANDARD "Should LIBRA set the C standard globally?" OFF)
 option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
+option(LIBRA_CODE_COV_NATIVE
+       "Should code coverage be emitted in the compiler's native format??" YES)
+
+# 2026-02-02 [JRH]: All of these are cache variables, because option() does not
+# support non-boolean things.
 
 set(LIBRA_DRIVER
     "SELF"
@@ -71,8 +74,9 @@ set(LIBRA_PGO
 set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 
 set(LIBRA_FPC
-    "RETURN"
-    CACHE STRING "{RETURN,ABORT,NONE} Function Predcondition Checking (FPC)")
+    "INHERIT"
+    CACHE STRING
+          "{RETURN,ABORT,NONE,INHERIT} Function Predcondition Checking (FPC)")
 set_property(
   CACHE LIBRA_FPC
   PROPERTY STRINGS
@@ -82,19 +86,24 @@ set_property(
            INHERIT)
 
 set(LIBRA_ERL
-    "ALL"
-    CACHE STRING
-          "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL} Set the logging level")
+    "INHERIT"
+    CACHE
+      STRING
+      "{NONE, ERROR, WARN, INFO, DEBUG, TRACE, ALL, INHERIT} Set the logging level"
+)
 
 set(LIBRA_FORTIFY
     "NONE"
-    CACHE
-      STRING
-      "{NONE, STACK, SOURCE, CFI, GOT, FORMAT, LIBCXX_FAST, LIBCXX_EXTENSIVE,LIBCXX_DEBUG,ALL"
-)
-set(LIBRA_TARGETS
-    ${PROJECT_NAME}
-    CACHE INTERNAL "List of target to apply LIBRA magic to")
+    CACHE STRING "{NONE, STACK, SOURCE, ALL")
+set(LIBRA_TARGETS CACHE INTERNAL "List of target to apply LIBRA magic to")
+
+set(LIBRA_CONFIGURED_SOURCE_FILES_SRC
+    CACHE INTERNAL
+          "List of source files to configure and add to ${PROJECT_NAME}")
+
+set(LIBRA_CONFIGURED_SOURCE_FILES_DEST
+    CACHE INTERNAL
+          "List of dest files for configured source files for ${PROJECT_NAME}")
 
 set_property(
   CACHE LIBRA_FORTIFY
@@ -273,9 +282,8 @@ endif()
 include(libra/compile/compiler)
 include(libra/compile/build-types)
 
-if(LIBRA_OPT_REPORT)
-  include(libra/compile/reporting)
-endif()
+# Must be after compile options are populated
+include(libra/diagnostics_post)
 
 # ##############################################################################
 # Code Checking/Analysis Options

@@ -14,6 +14,13 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
     set(JOB_ARGS --fixit)
   endif()
 
+  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
+  if(NOT LIBRA_USE_COMPDB)
+    set(USE_DATABASE NO)
+  else()
+    set(USE_DATABASE ${LIBRA_USE_COMPDB})
+  endif()
+
   add_custom_target(${CHECK_TARGET})
 
   # To get this to work with bleeding edge libraries, we have to tell clang to
@@ -28,15 +35,28 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
     # names, hence the replacements.
     string(REPLACE "/" "_" file_target "${file}")
     string(REPLACE "." "_" file_target "${file_target}")
-
-    add_custom_target(
-      ${CHECK_TARGET}-${file_target}
-      COMMAND
-        ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
-        --extra-arg=-std=${LIBRA_CXX_STANDARD}
-        --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT "Running ${clang_check_NAME} with compdb on ${file}, JOB=${JOB}")
+    if(USE_DATABASE)
+      add_custom_target(
+        ${CHECK_TARGET}-${file_target}
+        COMMAND
+          ${clang_check_EXECUTABLE} ${file} -analyze
+          --extra-arg=-std=c++${LIBRA_CXX_STANDARD}
+          --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror -p
+          ${PROJECT_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running ${clang_check_NAME} with compdb on ${file}, JOB=${JOB}"
+      )
+    else()
+      add_custom_target(
+        ${CHECK_TARGET}-${file_target}
+        COMMAND
+          ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
+          --extra-arg=-std=c++${LIBRA_CXX_STANDARD}
+          --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT
+          "Running ${clang_check_NAME} without compdb on ${file}, JOB=${JOB}")
+    endif()
     add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})
   endforeach()
 

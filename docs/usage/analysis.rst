@@ -6,13 +6,12 @@ Static Analysis
 
 LIBRA attempts to make static analysis as easy and automated as possible; in
 most cases, you should not have to do *anything* to get analysis working other
-than to enable it via :cmake:variable:`LIBRA_ANALYSIS`.
-
-LIBRA attempts to detect the languages enabled for your cmake project, and sets
-the source files to pass to the analysis targets appropriately. This allows for
-inclusion of analysis tools which could be C/C++ only, and have them not cause
-errors when used of a project of an incompatible type. You should never have to
-set :cmake:variable:`LIBRA_ANALYSIS_LANGUAGE` directly to avoid warnings/errors.
+than to enable it via :cmake:variable:`LIBRA_ANALYSIS`.  LIBRA attempts to
+detect the languages enabled for your cmake project, and sets the source files
+to pass to the analysis targets appropriately. This allows for inclusion of
+analysis tools which could be C/C++ only, and have them not cause errors when
+used of a project of an incompatible type. You should never have to set
+:cmake:variable:`LIBRA_ANALYSIS_LANGUAGE` directly to avoid warnings/errors.
 
 LIBRA supports the following analysis tools; more may be added in the future:
 
@@ -27,30 +26,24 @@ LIBRA supports the following analysis tools; more may be added in the future:
 
 Some of these tools have additional configuration variables--see
 :ref:`usage/project-local/variables` for options.  All of these tools *can* run
-with compilation database (and generally work better with them), but can also
-work without *IF* you give it the correct #defines, includes, etc. LIBRA works
-as follows when autogenerating static analysis targets:
+with compilation database, but can also work without *IF* you give them the
+correct #defines, includes, and language standard. LIBRA does *not* use a
+compilation database with any of the above tools that support it, for the
+following reasons:
 
-.. list-table::
-   :header-rows: 1
+- clang-xx and cppcheck don't work well with using a compilation database with
+  header only libraries without anything to compile (e.g., those without
+  tests). We could assume that all header-only libs have tests, so it's safe to
+  unconditionally use a compdb by default, but that's not guaranteed.
 
-   * - Target type
+- If the compiler is something other than clang, there may be flags in the
+  compdb that clang doesn't understand and will error out on if clang-based
+  analysis is run.
 
-     - LIBRA action
-
-   * - Shared library
-
-     - Use compdb if it exists, otherwise obtain {defs, includes, etc.} from
-       target directly.
-
-   * - Static library
-
-     - Use compdb if it exists, otherwise obtain {defs, includes, etc.} from
-       target directly.
-
-   * - Interface library
-
-     - Obtain {defs, includes, etc.} from target directly.
+This can be overriden with :cmake:variable:`LIBRA_USE_COMPDB` if desired. You
+may need to do this if there are ``-f`` compiler options that your code needs to
+compile correctly, since only #defines, includes, and language standard are
+extracted from each target.
 
 clang-tidy
 ==========
