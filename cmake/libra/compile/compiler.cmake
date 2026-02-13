@@ -45,8 +45,7 @@ set(CMAKE_C_FLAGS_RELEASE
 set(LIBRA_PGO_MODES NONE GEN USE)
 
 if(NOT ${LIBRA_PGO} IN_LIST LIBRA_PGO_MODES)
-  libra_message(FATAL_ERROR
-                "Bad PGO specification '${LIBRA_PGO}'. Must be {NONE,GEN,USE}.")
+  libra_error("Bad PGO specification '${LIBRA_PGO}'. Must be {NONE,GEN,USE}.")
 endif()
 
 # ##############################################################################
@@ -90,8 +89,7 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
 endif()
 
 if(NOT _SUPPORTED_COMPILER)
-  libra_message(
-    FATAL_ERROR
+  libra_error(
     "C/C++ compiler ${CMAKE_C_COMPILER_ID}/${CMAKE_CXX_COMPILER_ID} not supported"
   )
 endif()
@@ -112,8 +110,7 @@ macro(_gen_fpc_defs DEFS)
   elseif("${LIBRA_FPC}" MATCHES "INHERIT")
 
   else()
-    libra_message(
-      FATAL_ERROR "Bad Function Precondition Checking (FPC) specification
+    libra_error("Bad Function Precondition Checking (FPC) specification
     '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN,INHERIT}")
   endif()
 endmacro()
@@ -138,8 +135,7 @@ macro(_gen_erl_defs DEFS)
   elseif("${LIBRA_ERL}" MATCHES "INHERIT")
 
   else()
-    libra_message(
-      FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
+    libra_error("Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
     Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE,INHERIT}")
   endif()
 

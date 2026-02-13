@@ -12,7 +12,7 @@ include(libra/messaging)
 # check if Doxygen is installed
 find_package(Doxygen)
 
-function(libra_apidoc_configure_doxygen)
+function(_libra_apidoc_configure_doxygen)
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in")
     if(DOXYGEN_FOUND)
       # set input and output files
@@ -54,7 +54,7 @@ function(libra_apidoc_configure_doxygen)
   endif()
 endfunction()
 
-function(libra_apidoc_register_clang CHECK_TARGET)
+function(_libra_apidoc_register_clang CHECK_TARGET)
   add_custom_target(${CHECK_TARGET})
 
   set(INCLUDES $<TARGET_PROPERTY:${PROJECT_NAME},INCLUDE_DIRECTORIES>)

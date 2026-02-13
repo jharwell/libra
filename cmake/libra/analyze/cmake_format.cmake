@@ -39,7 +39,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the cmake-format formatter
 # ##############################################################################
-function(libra_register_formatter_cmake_format)
+function(_libra_register_formatter_cmake_format)
   if(NOT cmake_format_EXECUTABLE)
     return()
   endif()
@@ -56,7 +56,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the cmake-format checker
 # ##############################################################################
-function(libra_register_checker_cmake_format)
+function(_libra_register_checker_cmake_format)
   if(NOT cmake_format_EXECUTABLE)
     return()
   endif()
@@ -73,7 +73,7 @@ endfunction()
 # ##############################################################################
 # Enable or disable cmake_format for auto-formatting/checking for the project
 # ##############################################################################
-function(libra_toggle_cmake_format request)
+function(_libra_toggle_cmake_format request)
   if(NOT request)
     libra_message(STATUS "Disabling cmake-format by request")
     set(cmake_format_EXECUTABLE)

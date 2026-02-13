@@ -38,7 +38,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang-format formatter
 # ##############################################################################
-function(libra_register_formatter_clang_format)
+function(_libra_register_formatter_clang_format)
   if(NOT clang_format_EXECUTABLE)
     return()
   endif()
@@ -55,7 +55,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang-format checker
 # ##############################################################################
-function(libra_register_checker_clang_format)
+function(_libra_register_checker_clang_format)
   if(NOT clang_format_EXECUTABLE)
     return()
   endif()
@@ -73,7 +73,7 @@ endfunction()
 # ##############################################################################
 # Enable or disable clang-format for auto-formatting/checking for the project
 # ##############################################################################
-function(libra_toggle_clang_format request)
+function(_libra_toggle_clang_format request)
   if(NOT request)
     libra_message(STATUS "Disabling clang-format formatter by request")
     set(clang_format_EXECUTABLE)

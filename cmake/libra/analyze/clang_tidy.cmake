@@ -144,7 +144,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_tidy checker
 # ##############################################################################
-function(libra_register_checker_clang_tidy TARGET)
+function(_libra_register_checker_clang_tidy TARGET)
   if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
@@ -161,7 +161,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_tidy fixer
 # ##############################################################################
-function(libra_register_fixer_clang_tidy TARGET)
+function(_libra_register_fixer_clang_tidy TARGET)
   if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
@@ -177,7 +177,7 @@ endfunction()
 # ##############################################################################
 # Enable or disable clang-tidy checking for the project
 # ##############################################################################
-function(libra_toggle_clang_tidy request)
+function(_libra_toggle_clang_tidy request)
   if(NOT request)
     libra_message(STATUS "Disabling clang-tidy by request")
     set(clang_tidy_EXECUTABLE)

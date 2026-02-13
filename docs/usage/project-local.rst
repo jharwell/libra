@@ -26,22 +26,7 @@ predefined things in LIBRA to make your life easier:
 Target Declaration Wrappers
 ===========================
 
-.. cmake:command:: libra_add_library
-
-   Thin wrapper around :cmake:command:`add_library()` which forwards all
-   arguments to the built in function, and adds the target name to
-   :cmake:variable:`LIBRA_TARGETS`. You don't *have* to use this function, but
-   if you don't then much of the LIBRA magic w.r.t. compilers/compilation can
-   only be applied to the :cmake:variable:`PROJECT_NAME` target.
-
-
-.. cmake:command:: libra_add_executable
-
-   Thin wrapper around :cmake:command:`add_executable()` which forwards all
-   arguments to the built in function, and adds the target name to
-   :cmake:variable:`LIBRA_TARGETS`. You don't *have* to use this function, but
-   if you don't then much of the LIBRA magic w.r.t. compilers/compilation can
-   only be applied to the :cmake:variable:`PROJECT_NAME` target.
+.. cmake-module:: ../../cmake/libra/utils.cmake
 
 .. _usage/project-local/variables:
 

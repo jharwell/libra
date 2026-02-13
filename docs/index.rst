@@ -57,7 +57,7 @@ LIBRA injects standardized targets into your build system (Ninja/Make):
 
 * ``make analyze``: Run the full suite of configured static analyzers.
 * ``make format``: Apply project-wide formatting via Clang-Format.
-* ``make docs``: Generate API documentation (Doxygen/Sphinx).
+* ``make apidoc``: Generate API documentation (Doxygen).
 * ``make coverage``: Generate HTML/XML coverage reports (LCOV/Gcovr).
 
 

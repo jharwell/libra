@@ -18,6 +18,9 @@ include(libra/messaging)
   detects license type, configures package metadata, and sets up format-specific
   options.
 
+  This is a MACRO (not function) intentionally so that all CPACK_* variables
+  propagate to parent scope as required by CPack.
+
   To use, ``include(libra/package/deploy.cmake)``.
 
 
@@ -130,8 +133,7 @@ macro(
 )
   # Validate required arguments
   if(ARGC LESS 6)
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "libra_configure_cpack: Requires 6 arguments: GENERATORS SUMMARY DESCRIPTION VENDOR HOMEPAGE CONTACT\n"
       "  Usage: libra_configure_cpack(<generators> <summary> <description> <vendor> <homepage> <contact>)"
     )
@@ -141,8 +143,7 @@ macro(
   if(NOT DEFINED PROJECT_VERSION_MAJOR
      OR NOT DEFINED PROJECT_VERSION_MINOR
      OR NOT DEFINED PROJECT_VERSION_PATCH)
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "libra_configure_cpack: PROJECT_VERSION variables not set\n"
       "  Set version in project() command: project(${PROJECT_NAME} VERSION x.y.z)"
     )
@@ -152,9 +153,8 @@ macro(
   string(REPLACE ";" "|" VALID_GENERATORS_REGEX "DEB|RPM|TGZ|ZIP|STGZ|TBZ2|TXZ")
   foreach(GENERATOR ${GENERATORS})
     if(NOT "${GENERATOR}" MATCHES "^(${VALID_GENERATORS_REGEX})$")
-      libra_message(
-        FATAL_ERROR "libra_configure_cpack: Invalid GENERATOR '${GENERATOR}'\n"
-        "  Valid options: DEB, RPM, TGZ, ZIP, STGZ, TBZ2, TXZ")
+      libra_error("libra_configure_cpack: Invalid GENERATOR '${GENERATOR}'\n"
+                  "  Valid options: DEB, RPM, TGZ, ZIP, STGZ, TBZ2, TXZ")
     endif()
   endforeach()
 

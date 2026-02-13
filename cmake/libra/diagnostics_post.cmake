@@ -352,8 +352,7 @@ foreach(TARGET ${LIBRA_TARGETS})
   list(LENGTH LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
 
   if(NOT N_SRC EQUAL N_DEST)
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "Configured file list length mismatch! SRC=${N_SRC}, DEST=${N_DEST}")
   endif()
 

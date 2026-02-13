@@ -92,7 +92,7 @@ endfunction()
 # ##############################################################################
 # Register all sources from the target with the cppcheck checker
 # ##############################################################################
-function(libra_register_checker_cppcheck TARGET)
+function(_libra_register_checker_cppcheck TARGET)
   if(NOT cppcheck_EXECUTABLE)
     return()
   endif()
@@ -104,7 +104,7 @@ endfunction()
 # ##############################################################################
 # Enable or disable cppcheck checking for a project
 # ##############################################################################
-function(libra_toggle_checker_cppcheck request)
+function(_libra_toggle_checker_cppcheck request)
   if(NOT request)
     libra_message(STATUS "Disabling cppcheck checker by request")
     set(cppcheck_EXECUTABLE)

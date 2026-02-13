@@ -12,7 +12,7 @@ enable_testing()
 
 find_program(BATS_EXECUTABLE bats)
 
-if(BATS_EXECUTABLE)
+if(NOT BATS_EXECUTABLE)
   message(STATUS "Found BATS: ${BATS_EXECUTABLE}")
 
   # Discover all .bats files
@@ -47,31 +47,36 @@ else()
 endif()
 
 # ##############################################################################
-# CMake Package Tests
+# CMake Function Tests
 # ##############################################################################
+enable_testing()
 
-# Each function test is a separate CMake project
-add_subdirectory(test1_package_configure_exports)
-add_subdirectory(test2_package_register_target)
-add_subdirectory(test3_package_register_headers)
-add_subdirectory(test4_package_register_copyright)
-add_subdirectory(test5_package_register_extra_configs)
-add_subdirectory(test6_package_requested_components)
+add_test(NAME libra.sample_basic
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_basic -B
+                 ${CMAKE_BINARY_DIR}/sample_basic)
 
-# ##############################################################################
-# Test Organization
-# ##############################################################################
+add_test(NAME libra.sample_keywords
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_keywords
+                 -B ${CMAKE_BINARY_DIR}/sample_keywords)
 
-# Print test summary
-message(STATUS "")
-message(STATUS "Test Summary:")
-message(STATUS "  BATS tests: ${CMAKE_MATCH_COUNT} files")
-message(STATUS "  Legacy shell tests: 19 features")
-message(STATUS "  Package tests: 6 subdirectories")
-message(STATUS "")
-message(STATUS "Run tests with:")
-message(STATUS "  ctest                    # All tests")
-message(STATUS "  ctest -L bats           # BATS tests only")
-message(STATUS "  ctest -L optimization   # Optimization tests")
-message(STATUS "  ctest -R LIBRA_FPC      # Specific feature")
-message(STATUS "")
+add_test(NAME libra.sample_export
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_export -B
+                 ${CMAKE_BINARY_DIR}/sample_export)
+
+add_test(NAME libra.sample_consumer
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_consumer
+                 -B ${CMAKE_BINARY_DIR}/sample_consumer)
+
+add_test(
+  NAME libra.error.missing_name
+  COMMAND
+    ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_errors/missing_name -B
+    ${CMAKE_BINARY_DIR}/err_missing_name)
+set_tests_properties(libra.error.missing_name PROPERTIES WILL_FAIL TRUE)
+
+add_test(
+  NAME libra.error.bad_target
+  COMMAND
+    ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_errors/bad_target -B
+    ${CMAKE_BINARY_DIR}/err_bad_target)
+set_tests_properties(libra.error.bad_target PROPERTIES WILL_FAIL TRUE)

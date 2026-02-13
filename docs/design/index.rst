@@ -7,4 +7,5 @@
 
    conan.rst
    philosophy.rst
+   compilers.rst
    customizing.rst

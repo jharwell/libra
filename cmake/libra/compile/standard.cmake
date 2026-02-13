@@ -44,8 +44,7 @@ if(CMAKE_C_COMPILER_LOADED)
         endif()
       endforeach()
       if(NOT LIBRA_C_STANDARD)
-        libra_message(
-          FATAL_ERROR
+        libra_error(
           "Could not find supported C std: tried ${LIBRA_C_STD_CANDIDATES}")
       endif()
     endif()
@@ -74,8 +73,7 @@ if(CMAKE_CXX_COMPILER_LOADED)
         endif()
       endforeach()
       if(NOT LIBRA_CXX_STANDARD)
-        libra_message(
-          FATAL_ERROR
+        libra_error(
           "Could not find supported C++ std: tried ${LIBRA_CXX_STD_CANDIDATES}")
       endif()
     endif()

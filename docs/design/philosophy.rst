@@ -15,16 +15,16 @@ Using cmake Globbing
 ====================
 
 The general consensus is that globbing source files=bad in
-cmake, for some very valid reasons, list below along with my experience in why
+cmake, for some very valid reasons, listed below along with my experience in why
 the each reason isn't a dealbreaker for using globbing.
 
-#. Using globs can result in non-deterministic builds: the same cmake project
+#. **Using globs can result in non-deterministic builds: the same cmake project
    might produce different results depending on the state of the filesystem. If
    new  files are added to the globbed directory, the build process might not
-   detect these changes, resulting in inconsistent builds.
+   detect these changes, resulting in inconsistent builds.**
 
-   However, the *benefit* of not having to modify CMakeLists.txt
-   every. single. time. you add/remove files outweighs the potential pitfalls:
+   - If your filesystem is behaving oddly, then you probably have bigger
+     problems than just CMake.
 
    - Since cmake is re-run when you add a file anyway, remembering to re-run
      manually after adding/removing files is not THAT terrible.
@@ -36,9 +36,9 @@ the each reason isn't a dealbreaker for using globbing.
      globbing for developers, not in CI/CD, which is what most teams use as a
      source of ground truth for "is this build broken/does this feature work".
 
-#. When you use globbing, CMake cannot accurately track dependencies on the
+#. **When you use globbing, CMake cannot accurately track dependencies on the
    globbed files. This can lead to build failures if a globbed file is modified,
-   but CMake doesn't rebuild the dependent targets.
+   but CMake doesn't rebuild the dependent targets.**
 
    This is strictly true, but if you get build failures resulting from globbing,
    99% of the time you can resolve them by just re-running cmake manually to
@@ -49,19 +49,20 @@ the each reason isn't a dealbreaker for using globbing.
    dynamic library load. I have never personally seen bad functionality make
    it into a build as a result of globbing.
 
-#. Performance overhead: Globbing can introduce performance overhead, especially
-   in large projects. CMake has to perform the globbing operation every time it
-   generates the build files, which can slow down the build process.
+#. **Performance overhead: Globbing can introduce performance overhead,
+   especially in large projects. CMake has to perform the globbing operation
+   every time it generates the build files, which can slow down the build
+   process.**
 
    100% true. BUT, it only matters at truly large scales (> 100,000 files); at
    less than that, I have never really noticed a difference. Plus, if you have a
    giant project with tens of thousands of source files, you probably need to
    break it up anyway.
 
-#. Readability and maintainability: Globbing can make CMake projects less
+#. **Readability and maintainability: Globbing can make CMake projects less
    readable and maintainable. Explicitly listing source files makes it clear
    which files are part of the build, making it easier to understand the project
-   structure and modify it in the future.
+   structure and modify it in the future.**
 
    Readability/maintainability are in the eye of the beholder. Projects which
    have dozens of CMakeLists.txt in dozens of different directories, each of
@@ -94,17 +95,10 @@ LIBRA was designed to be "low floor, high ceiling", meaning that:
   embedded environments, to optimizing code for supercomputing clusters.
 
 This is why *everything* in LIBRA is thoroughly documented, and great effort is
-put into various guides and howtos.
-
-This is also why LIBRA can be used as a standalone framework capable of handling
-cmake builds and packaging, OR as a cmake middleware / sister framework to
-a package manager like conan, where it then only is responsible for things
-related to building and analyzing the code.
-
-One important consequence of this is that LIBRA minimizes its use of cmake cache
-variables, preferring to use regular variables as much as possible, so that *if*
-something is set on the cmdline at configure time, it is actually effective
-(principle of least surprise).
+put into various guides and howtos.  This is also why LIBRA can be used as a
+standalone framework capable of handling cmake builds and packaging, OR as a
+cmake middleware / sister framework to a package manager like conan, where it
+then only is responsible for things related to building and analyzing the code.
 
 Automate Everything
 ===================

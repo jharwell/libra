@@ -288,7 +288,7 @@ include(libra/diagnostics_post)
 # ##############################################################################
 # Code Checking/Analysis Options
 # ##############################################################################
-function(libra_calculate_srcs SOURCE RET)
+function(_libra_calculate_srcs SOURCE RET)
   # Prefer C++ over C if a project enables both languages.
   if(CMAKE_CXX_COMPILER_LOADED)
     set(LIBRA_CODE_LANGUAGE CXX)
@@ -328,8 +328,7 @@ function(libra_calculate_srcs SOURCE RET)
           PARENT_SCOPE)
     endif()
   else()
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "Bad language '${LIBRA_CODE_LANGUAGE}' for project: must be {C,CXX}")
   endif()
 endfunction()
@@ -337,7 +336,7 @@ endfunction()
 if(${LIBRA_ANALYSIS})
   include(libra/analyze/analyze)
 
-  libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
+  _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
   # Should not be needed, but just for safety
   if("${LIBRA_DRIVER}" MATCHES "CONAN")
     list(
@@ -349,26 +348,26 @@ if(${LIBRA_ANALYSIS})
   endif()
 
   # Multi-funtion tools
-  libra_toggle_clang_tidy(ON)
-  libra_toggle_clang_format(ON)
-  libra_toggle_cmake_format(ON)
-  libra_toggle_clang_check(ON)
+  _libra_toggle_clang_tidy(ON)
+  _libra_toggle_clang_format(ON)
+  _libra_toggle_cmake_format(ON)
+  _libra_toggle_clang_check(ON)
 
   # Handy checking tools
   libra_message(STATUS "Enabling analysis tools: checkers")
-  libra_toggle_checker_cppcheck(ON)
-  libra_register_code_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
+  _libra_toggle_checker_cppcheck(ON)
+  _libra_register_code_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
 
-  libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
+  _libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
 
   # Handy formatting tools
   libra_message(STATUS "Enabling analysis tools: formatters")
-  libra_register_code_formatters(${${PROJECT_NAME}_ANALYSIS_SRC})
-  libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
+  _libra_register_code_formatters(${${PROJECT_NAME}_ANALYSIS_SRC})
+  _libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
 
   # Handy fixing tools
   libra_message(STATUS "Enabling analysis tools: fixers")
-  libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
+  _libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
 
 endif()
 
@@ -394,12 +393,12 @@ if(LIBRA_DOCS)
       "\.conan2")
   endif()
 
-  libra_apidoc_configure_doxygen()
+  _libra_apidoc_configure_doxygen()
   libra_toggle_clang(ON)
 
   # Handy checking tools
   libra_message(STATUS "Enabling apidoc tools: checkers")
-  libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
+  _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
 endif()
 
 # ##############################################################################
@@ -414,8 +413,22 @@ endif()
 
 if(LIBRA_CODE_COV)
   include(libra/test/coverage)
-  libra_coverage_register_lcov()
-  libra_coverage_register_gcovr()
+
+  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                 MATCHES "Clang")
+    if(LIBRA_CODE_COV_NATIVE)
+      _libra_coverage_register_llvm()
+    else()
+      _libra_coverage_register_lcov()
+      _libra_coverage_register_gcovr()
+    endif()
+  elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                   MATCHES "GNU")
+    _libra_coverage_register_lcov()
+    _libra_coverage_register_gcovr()
+  else()
+    libra_error("Unsupported compiler for coverage")
+  endif()
 endif()
 
 # ##############################################################################

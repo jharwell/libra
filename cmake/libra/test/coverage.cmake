@@ -56,7 +56,7 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
     libra_message(STATUS "Using GCC coverage for GNU format: ${GCOV_TOOL}")
 
   else()
-    libra_message(FATAL_ERROR
+    libra_error(
                   "Unsupported compiler for coverage: ${CMAKE_CXX_COMPILER_ID}")
   endif()
 endfunction()
@@ -134,7 +134,7 @@ endfunction()
 # ##############################################################################
 # LCOV Coverage (GCC-compatible format)
 # ##############################################################################
-function(libra_coverage_register_lcov)
+function(_libra_coverage_register_lcov)
   find_program(LCOV_EXECUTABLE NAMES lcov REQUIRED)
   find_program(GENHTML_EXECUTABLE NAMES genhtml REQUIRED)
 
@@ -198,7 +198,7 @@ endfunction()
 # ##############################################################################
 # GCOVR Coverage (GCC-compatible format with gcovr)
 # ##############################################################################
-function(libra_coverage_register_gcovr)
+function(_libra_coverage_register_gcovr)
   _libra_detect_gcov_tool(GCOV_TOOL)
 
   libra_message(STATUS "Using gcovr=${GCOV_TOOL}")
@@ -249,10 +249,10 @@ endfunction()
 # ##############################################################################
 # LLVM-COV Coverage (Native Clang source-based coverage)
 # ##############################################################################
-function(libra_coverage_register_llvm)
+function(_libra_coverage_register_llvm)
   if(NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES
                                                  "Clang"))
-    libra_message(FATAL_ERROR "llvm-cov coverage requires clang compiler")
+    libra_error( "llvm-cov coverage requires clang compiler")
   endif()
 
   _libra_detect_llvm_tools(LLVM_COV LLVM_PROFDATA)
@@ -345,19 +345,3 @@ function(libra_coverage_register_llvm)
     COMMENT "Generating complete LLVM coverage report")
   libra_message(STATUS "Created LLVM coverage targets")
 endfunction()
-
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
-                                               MATCHES "Clang")
-  if(LIBRA_CODE_COV_NATIVE)
-    libra_coverage_register_llvm()
-  else()
-    libra_coverage_register_lcov()
-    libra_coverage_register_gcovr()
-  endif()
-elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
-                                                 MATCHES "GNU")
-  libra_coverage_register_lcov()
-  libra_coverage_register_gcovr()
-else()
-  libra_message(FATAL_ERROR "Unsupported compiler for coverage")
-endif()

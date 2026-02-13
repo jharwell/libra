@@ -189,8 +189,7 @@ elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(LIBRA_OPT_LEVEL -O3)
   endif()
 else()
-  libra_message(
-    FATAL_ERROR
+  libra_error(
     "clang compiler plugin is only configured for {Debug, Release} builds")
 endif()
 

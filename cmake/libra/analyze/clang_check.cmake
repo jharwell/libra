@@ -66,7 +66,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_check checker
 # ##############################################################################
-function(libra_register_checker_clang_check TARGET)
+function(_libra_register_checker_clang_check TARGET)
   if(NOT clang_check_EXECUTABLE)
     return()
   endif()
@@ -84,7 +84,7 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_check fixer
 # ##############################################################################
-function(libra_register_fixer_clang_check TARGET)
+function(_libra_register_fixer_clang_check TARGET)
   if(NOT clang_check_EXECUTABLE)
     return()
   endif()
@@ -101,7 +101,7 @@ endfunction()
 # ##############################################################################
 # Enable or disable clang-check fixing for the project
 # ##############################################################################
-function(libra_toggle_clang_check request)
+function(_libra_toggle_clang_check request)
   if(NOT request)
     libra_message(STATUS "Disabling clang-check by request")
     set(clang_check_EXECUTABLE)

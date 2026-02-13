@@ -11,64 +11,64 @@ include(libra/analyze/cmake_format)
 include(libra/messaging)
 
 # Function to register a target for enabled code checkers
-function(libra_register_code_checkers TARGET)
+function(_libra_register_code_checkers TARGET)
   if("${ARGN}" STREQUAL "")
-    libra_message(FATAL_ERROR "No source files passed--misconfiguration?")
+    libra_error( "No source files passed--misconfiguration?")
   endif()
 
   add_custom_target(analyze)
 
   set_target_properties(analyze PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-  libra_register_checker_cppcheck(${TARGET} ${ARGN})
-  libra_register_checker_clang_tidy(${TARGET} ${ARGN})
-  libra_register_checker_clang_check(${TARGET} ${ARGN})
-  libra_register_checker_clang_format(${ARGN})
+  _libra_register_checker_cppcheck(${TARGET} ${ARGN})
+  _libra_register_checker_clang_tidy(${TARGET} ${ARGN})
+  _libra_register_checker_clang_check(${TARGET} ${ARGN})
+  _libra_register_checker_clang_format(${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated formatters
-function(libra_register_code_formatters)
+function(_libra_register_code_formatters)
   if("${ARGN}" STREQUAL "")
-    libra_message(FATAL_ERROR "No source files passed--misconfiguration?")
+    libra_error( "No source files passed--misconfiguration?")
   endif()
 
   add_custom_target(format)
 
   set_target_properties(format PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-  libra_register_formatter_clang_format(${ARGN})
+  _libra_register_formatter_clang_format(${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated formatters for non-code
 # things.
-function(libra_register_cmake_checkers)
+function(_libra_register_cmake_checkers)
   if("${ARGN}" STREQUAL "")
-    libra_message(FATAL_ERROR "No CMake files passed--misconfiguration?")
+    libra_error( "No CMake files passed--misconfiguration?")
   endif()
 
-  libra_register_checker_cmake_format(${ARGN})
+  _libra_register_checker_cmake_format(${ARGN})
 endfunction()
 
 # Function to register a target for checking format for non-code things.
-function(libra_register_cmake_formatters)
+function(_libra_register_cmake_formatters)
   if("${ARGN}" STREQUAL "")
-    libra_message(FATAL_ERROR "No CMake files passed--misconfiguration?")
+    libra_error( "No CMake files passed--misconfiguration?")
   endif()
 
-  libra_register_formatter_cmake_format(${ARGN})
+  _libra_register_formatter_cmake_format(${ARGN})
 endfunction()
 
 # Function to register a target for enabled automated fixers
-function(libra_register_code_fixers TARGET)
+function(_libra_register_code_fixers TARGET)
   if("${ARGN}" STREQUAL "")
-    libra_message(FATAL_ERROR "No source files passed--misconfiguration?")
+    libra_error( "No source files passed--misconfiguration?")
   endif()
 
   add_custom_target(fix)
 
   set_target_properties(fix PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-  libra_register_fixer_clang_tidy(${TARGET} ${ARGN})
-  libra_register_fixer_clang_check(${TARGET} ${ARGN})
+  _libra_register_fixer_clang_tidy(${TARGET} ${ARGN})
+  _libra_register_fixer_clang_check(${TARGET} ${ARGN})
 endfunction()
 
 function(analyze_clang_extract_args_from_target TARGET RET)

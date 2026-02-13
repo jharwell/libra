@@ -504,18 +504,16 @@ endfunction()
 function(libra_configure_source_file TARGET INFILE OUTFILE)
   # Validate arguments
   if(NOT INFILE)
-    libra_message(FATAL_ERROR "libra_configure_source_file: INFILE is required")
+    libra_error("libra_configure_source_file: INFILE is required")
   endif()
 
   if(NOT OUTFILE)
-    libra_message(FATAL_ERROR
-                  "libra_configure_source_file: OUTFILE is required")
+    libra_error("libra_configure_source_file: OUTFILE is required")
   endif()
 
   # Check input file exists
   if(NOT EXISTS "${INFILE}")
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "libra_configure_source_file: Input file does not exist: ${INFILE}")
   endif()
 
