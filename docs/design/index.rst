@@ -9,3 +9,4 @@
    philosophy.rst
    compilers.rst
    customizing.rst
+   cli.rst

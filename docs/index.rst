@@ -7,27 +7,31 @@ LIBRA (Luigi Build Reusable Automation)
 =======================================
 
 LIBRA is a reusable build framework for C/C++ projects built on top of CMake.
-It transforms the build process from manual scripting into a **declarative workflow**,
-providing compiler abstraction and near-zero boilerplate configuration.
-
-.. IMPORTANT::
-   **Core Goal:** To make building complex C++ projects as simple as
-   declaring intent (e.g., "I want a library with coverage") rather than
-   writing imperative CMake logic.
+It transforms the build process from manual scripting into a **declarative
+workflow**, providing compiler abstraction and near-zero boilerplate
+configuration. Its core goal: To make building complex C++ projects as simple as
+declaring intent (e.g., "I want a library with coverage") rather than writing
+imperative CMake logic.
 
 Who Should Use LIBRA
 ====================
 
-* **Platform Engineers** looking to standardize build quality across multiple repositories.
-* **C++ Developers** who want to focus on code rather than debugging ``.cmake`` modules.
-* **Teams** requiring consistent "push-button" integration for Sanitizers, Static Analysis, and Documentation.
+* **Platform Engineers** looking to standardize build quality across multiple
+  repositories.
+* **C++ Developers** who want to focus on code rather than debugging ``.cmake``
+  modules.
+* **Teams** requiring consistent "push-button" integration for Sanitizers,
+  Static Analysis, and Documentation.
 
 Design Philosophy
 =================
 
-* **Convention over Configuration:** Standardized project layouts mean zero setup for new repos.
-* **Declarative Intent:** Focus on *what* to build (e.g., ``libra_add_library()``), not *how* to set compiler flags.
-* **Toolchain Agnostic:** A single configuration should work across GCC, Clang, and Intel LLVM without ``if(MSVC)`` blocks.
+* **Convention over Configuration:** Standardized project layouts mean zero
+  setup for new repos.
+* **Declarative Intent:** Focus on *what* to build (e.g.,
+  :cmake:command:`libra_add_library()`), not *how* to set compiler flags.
+* **Toolchain Agnostic:** A single configuration should work across GCC, Clang,
+  and Intel LLVM without ``if(MSVC)`` blocks.
 
 
 
