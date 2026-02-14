@@ -85,3 +85,31 @@ setup() {
     run grep "LIBRA_FPC=LIBRA_FPC_ABORT" "$build_info"
     [ "$status" -eq 0 ]
 }
+
+@test "FPC: Cache variable persists across reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_FPC=ABORT)
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC" "ABORT"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC" "ABORT"
+    [ "$status" -eq 0 ]
+}
+
+@test "FPC: Can change value on reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_FPC=ABORT)
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC" "ABORT"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_FPC=RETURN --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC" "RETURN"
+    [ "$status" -eq 0 ]
+}

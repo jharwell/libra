@@ -60,11 +60,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
   # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
-  if(NOT LIBRA_USE_COMPDB)
-    set(USE_DATABASE NO)
-  else()
-    set(USE_DATABASE ${LIBRA_USE_COMPDB})
-  endif()
+  set(USE_DATABASE ${LIBRA_USE_COMPDB})
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 

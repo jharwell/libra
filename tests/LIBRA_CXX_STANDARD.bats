@@ -91,3 +91,31 @@ setup() {
 
     assert_standard_equals "$test_dir" "cxx" "17"
 }
+
+@test "CXX_STANDARD: Cache variable persists across reconfiguration" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    run cache_value_equals "$test_dir" "LIBRA_CXX_STANDARD" "17"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_CXX_STANDARD" "17"
+    [ "$status" -eq 0 ]
+}
+
+@test "CXX_STANDARD: Can change value on reconfiguration" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    run cache_value_equals "$test_dir" "LIBRA_CXX_STANDARD" "17"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_CXX_STANDARD=14 --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_CXX_STANDARD" "14"
+    [ "$status" -eq 0 ]
+}

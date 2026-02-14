@@ -1,17 +1,8 @@
 #
-# Copyright (c) 2026 Boon Logic, Inc.
+# Copyright 2026 John Harwell, All rights reserved.
 #
-# The software provided is the sole and exclusive property of EpiSys Science,
-# Inc. The user shall use the software only in support of the agreed upon
-# experimental purpose only and shall preserve and protect the software from
-# disclosure to any person or persons, other than employees, consultants, and
-# contracted staff of the corporation with a need to know, through an exercise
-# of care equivalent to the degree of care it uses to preserve and protect its
-# own intellectual property. Unauthorized use of the software is prohibited
-# without written consent.
+# SPDX-License Identifier: MIT
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
 function(assert_true VAR)
   if(NOT ${VAR})
     message(FATAL_ERROR "Assertion failed: ${VAR} is false")

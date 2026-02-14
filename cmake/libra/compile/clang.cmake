@@ -20,9 +20,9 @@ include(libra/compile/standard)
 If enabled: ``-g2``. If disabled: ``-g0``.
 ]]
 if(LIBRA_DEBUG_INFO)
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
+  set(_LIBRA_DEBUG_INFO_OPTIONS "-g2")
 else()
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
+  set(_LIBRA_DEBUG_INFO_OPTIONS "-g0")
 endif()
 
 # ##############################################################################
@@ -67,7 +67,7 @@ else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
 endif()
 
-set(LIBRA_C_DIAG_OPTIONS)
+set(_LIBRA_C_DIAG_OPTIONS)
 foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
@@ -76,14 +76,14 @@ foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
 
   # A project can be C/C++ only
   if(CMAKE_C_COMPILER_LOADED)
-    check_c_compiler_flag(${flag} LIBRA_C_COMPILER_SUPPORTS_${flag})
+    check_c_compiler_flag(${flag} _LIBRA_C_COMPILER_SUPPORTS_${flag})
   endif()
-  if(LIBRA_C_COMPILER_SUPPORTS_${flag})
-    list(APPEND LIBRA_C_DIAG_OPTIONS ${flag})
+  if(_LIBRA_C_COMPILER_SUPPORTS_${flag})
+    list(APPEND _LIBRA_C_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
-set(LIBRA_CXX_DIAG_OPTIONS)
+set(_LIBRA_CXX_DIAG_OPTIONS)
 foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
@@ -93,11 +93,11 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # A project can be C/C++ only
   if(CMAKE_CXX_COMPILER_LOADED)
     check_cxx_compiler_flag(${flag}
-                            LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+                            _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
-    list(APPEND LIBRA_CXX_DIAG_OPTIONS ${flag})
+  if(_LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+    list(APPEND _LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
@@ -110,9 +110,9 @@ endforeach()
 If enabled: ``-ftime-trace``.
 ]]
 if(LIBRA_BUILD_PROF)
-  set(LIBRA_BUILD_PROF_OPTIONS "-ftime-trace")
+  set(_LIBRA_BUILD_PROF_OPTIONS "-ftime-trace")
 else()
-  set(LIBRA_BUILD_PROF_OPTIONS)
+  set(_LIBRA_BUILD_PROF_OPTIONS)
 endif()
 
 # ##############################################################################
@@ -127,12 +127,8 @@ If SOURCE: ``-D_FORTIFY_SOURCE=2``.
 
 If FORMAT: ``-Wformat-security -Werror=format=2``.
 ]]
-set(LIBRA_FORTIFY_OPTIONS)
-set(LIBRA_FORTIFY_MATCH NO)
-
-if(NOT DEFINED LIBRA_FORTIFY)
-  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
-endif()
+set(_LIBRA_FORTIFY_OPTIONS)
+set(_LIBRA_FORTIFY_MATCH NO)
 
 if(NOT LIBRA_FORTIFY MATCHES "NONE")
   set(LIBRA_LTO ON)
@@ -140,32 +136,32 @@ endif()
 
 # -fstack-protector-{strong,all} are also options which could be swapped
 # in/added eventually.
-set(LIBRA_FORTIFY_STACK -fstack-protector)
-set(LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
-set(LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format-security)
+set(_LIBRA_FORTIFY_STACK -fstack-protector)
+set(_LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+set(_LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format-security)
 
 if("${LIBRA_FORTIFY}" MATCHES "STACK")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_STACK}")
+  set(_LIBRA_FORTIFY_MATCH YES)
+  set(_LIBRA_FORTIFY_OPTIONS "${_LIBRA_FORTIFY_STACK}")
 endif()
 
 if("${LIBRA_FORTIFY}" MATCHES "SOURCE")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_SOURCE}")
+  set(_LIBRA_FORTIFY_MATCH YES)
+  set(_LIBRA_FORTIFY_OPTIONS "${_LIBRA_FORTIFY_SOURCE}")
 endif()
 
 if("${LIBRA_FORTIFY}" MATCHES "FORMAT")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS "${LIBRA_FORTIFY_FORMAT}")
+  set(_LIBRA_FORTIFY_MATCH YES)
+  set(_LIBRA_FORTIFY_OPTIONS "${_LIBRA_FORTIFY_FORMAT}")
 endif()
 
 if("${LIBRA_FORTIFY}" MATCHES "ALL")
-  set(LIBRA_FORTIFY_MATCH YES)
-  set(LIBRA_FORTIFY_OPTIONS ${LIBRA_FORTIFY_STACK} ${LIBRA_FORTIFY_SOURCE}
-                            ${LIBRA_FORTIFY_FORMAT})
+  set(_LIBRA_FORTIFY_MATCH YES)
+  set(_LIBRA_FORTIFY_OPTIONS ${_LIBRA_FORTIFY_STACK} ${_LIBRA_FORTIFY_SOURCE}
+                             ${_LIBRA_FORTIFY_FORMAT})
 endif()
 
-if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
+if(NOT ${_LIBRA_FORTIFY_MATCH} AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
   libra_message(
     WARNING "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset \
 of {STACK,SOURCE,FORMAT,ALL} or set to NONE for clang")
@@ -194,7 +190,7 @@ else()
 endif()
 
 if(LIBRA_NATIVE_OPT)
-  list(APPEND LIBRA_OPT_OPTIONS -march=native -mtune=native)
+  list(APPEND _LIBRA_OPT_OPTIONS -march=native -mtune=native)
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
@@ -260,45 +256,41 @@ set(UBSAN_OPTIONS
     -fsanitize=nullability)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread)
 
-if(NOT LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
-
-set(LIBRA_SAN_COMPILE_OPTIONS)
-set(LIBRA_SAN_LINK_OPTIONS)
-set(LIBRA_SAN_MATCH NO)
+set(_LIBRA_SAN_COMPILE_OPTIONS)
+set(_LIBRA_SAN_LINK_OPTIONS)
+set(_LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
 endif()
 
-if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
+if(NOT ${_LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
   libra_message(WARNING "Bad LIBRA_SAN setting ${LIBRA_SAN}: Must be subset of
 {MSAN,ASAN,SSAN,UBSAN,TSAN} or set to NONE")
 endif()
@@ -316,13 +308,13 @@ If USE: ``-fprofile-use``.
 ]]
 
 if("${LIBRA_PGO}" MATCHES "GEN")
-  set(LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
-  set(LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
 endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
-  set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
-  set(LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
+  set(_LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
+  set(_LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################
@@ -348,16 +340,16 @@ files which are compatible with ``gcovr``, and therefore with the various
 
 if(LIBRA_CODE_COV)
   if(LIBRA_CODE_COV_NATIVE)
-    set(LIBRA_CODE_COV_COMPILE_OPTIONS -fprofile-instr-generate
-                                       -fcoverage-mapping -fno-inline)
-    set(LIBRA_CODE_COV_LINK_OPTIONS -fprofile-instr-generate)
+    set(_LIBRA_CODE_COV_COMPILE_OPTIONS -fprofile-instr-generate
+                                        -fcoverage-mapping -fno-inline)
+    set(_LIBRA_CODE_COV_LINK_OPTIONS -fprofile-instr-generate)
     libra_message(
       STATUS "Clang will generate code coverage instrumentation in LLVM format")
   else()
     libra_message(
       STATUS "Clang will generate code coverage instrumentation in GNU format")
-    set(LIBRA_CODE_COV_COMPILE_OPTIONS --coverage)
-    set(LIBRA_CODE_COV_LINK_OPTIONS --coverage)
+    set(_LIBRA_CODE_COV_COMPILE_OPTIONS --coverage)
+    set(_LIBRA_CODE_COV_LINK_OPTIONS --coverage)
   endif()
 endif()
 
@@ -371,7 +363,7 @@ If enabled: ``-mno-sse3`` to compiler.
 ]]
 
 if(LIBRA_VALGRIND_COMPAT)
-  set(LIBRA_VALGRIND_COMPAT_OPTIONS "-mno-sse3")
+  set(_LIBRA_VALGRIND_COMPAT_OPTIONS "-mno-sse3")
 endif()
 
 # ##############################################################################
@@ -390,24 +382,24 @@ if(NOT LIBRA_STDLIB)
   set(LIBRA_STDLIB ${LIBRA_STDLIB_DEFAULT})
 endif()
 
-set(LIBRA_STDLIB_LINK_OPTIONS)
-set(LIBRA_STDLIB_MATCH NO)
+set(_LIBRA_STDLIB_LINK_OPTIONS)
+set(_LIBRA_STDLIB_MATCH NO)
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  set(LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
-  set(LIBRA_STDLIB_MATCH YES)
+  set(_LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_STDLIB_MATCH YES)
 elseif("${LIBRA_STDLIB}" MATCHES "STDCXX")
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
-  set(LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
-  set(LIBRA_STDLIB_MATCH YES)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 elseif("${LIBRA_STDLIB}" MATCHES "CXX")
-  set(LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
-  set(LIBRA_STDLIB_MATCH YES)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 endif()
 
-if(NOT ${LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
+if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
     WARNING
     "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of {NONE,STDCXX,CXX}"
@@ -424,11 +416,11 @@ If enabled: ``-Rpass=.* -Rpass-missed=.* -Rpass-analysis=.* -fsave-optimization-
 
 ]]
 if(LIBRA_OPT_REPORT)
-  set(LIBRA_OPT_REPORT_COMPILE_OPTIONS
+  set(_LIBRA_OPT_REPORT_COMPILE_OPTIONS
       -Rpass=.* -Rpass-missed=.* -Rpass-analysis=.* -fsave-optimization-record)
   if(LIBRA_LTO)
-    set(LIBRA_OPT_REPORT_LINK_OPTIONS -Rpass=.* -Rpass-missed=.*
-                                      -Rpass-analysis=.*)
+    set(_LIBRA_OPT_REPORT_LINK_OPTIONS -Rpass=.* -Rpass-missed=.*
+                                       -Rpass-analysis=.*)
   endif()
 endif()
 
@@ -437,6 +429,6 @@ endif()
 #
 # * No warnings, since they have no effect on the build
 # ##############################################################################
-set(LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W")
+set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W")
 # Regex intentionally matches nothing
-set(LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")
+set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")

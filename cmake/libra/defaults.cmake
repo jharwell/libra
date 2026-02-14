@@ -1,18 +1,8 @@
-# The Episci License
 #
-# Copyright (c) 2025 EpiSys Science, Inc.
+# Copyright 2026 John Harwell, All rights reserved.
 #
-# The software provided is the sole and exclusive property of EpiSys Science,
-# Inc. The user shall use the software only in support of the agreed upon
-# experimental purpose only and shall preserve and protect the software from
-# disclosure to any person or persons, other than employees, consultants, and
-# contracted staff of the corporation with a need to know, through an exercise
-# of care equivalent to the degree of care it uses to preserve and protect its
-# own intellectual property. Unauthorized use of the software is prohibited
-# without written consent.
+# SPDX-License Identifier: MIT
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
 
 set(LIBRA_SAN_DEFAULT "NONE")
 set(LIBRA_FORTIFY_DEFAULT "NONE")

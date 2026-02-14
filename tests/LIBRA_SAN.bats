@@ -527,3 +527,33 @@ assert_san_flag_present() {
     assert_compile_flag_absent "$test_dir" "c" "-fsanitize=thread"
     assert_compile_flag_absent "$test_dir" "c" "-fstack-protector-all"
 }
+
+@test "SAN: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
+
+    run cache_value_equals "$test_dir" "LIBRA_SAN" "ASAN"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_SAN" "ASAN"
+    [ "$status" -eq 0 ]
+}
+
+@test "SAN: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
+
+    run cache_value_equals "$test_dir" "LIBRA_SAN" "ASAN"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_SAN=UBSAN --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_SAN" "UBSAN"
+    [ "$status" -eq 0 ]
+}

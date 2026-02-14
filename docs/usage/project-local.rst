@@ -26,7 +26,7 @@ predefined things in LIBRA to make your life easier:
 Target Declaration Wrappers
 ===========================
 
-.. cmake-module:: ../../cmake/libra/utils.cmake
+.. cmake-module:: ../../cmake/libra/targets.cmake
 
 .. _usage/project-local/variables:
 
@@ -34,14 +34,21 @@ Variables
 =========
 
 The variables listed in this section are generally for configuring various LIBRA
-features, and therefore are intended to be set via
-``project-local.cmake``. However, many of the cmdline interface variables
-detailed in :ref:`usage/configure-time` can be set permanently in
-``project-local.cmake`` too, but not all of them. Exceptions are:
+features on a per-project basis, and be stable for the duration of the
+project. However, they are NOT defined as cache variables because (a) they don't
+*need* to be, and (b) so the user doesn't need to remember to ``set(VAR "value"
+CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
 
-- :cmake:variable:`LIBRA_DEPS_PREFIX`
-- :cmake:variable:`LIBRA_C_STANDARD`
-- :cmake:variable:`LIBRA_CXX_STANDARD`
+.. NOTE:: Many of the cmdline interface variables detailed in
+   :ref:`usage/configure-time` can be set permanently in ``project-local.cmake``
+   too, but not all of them. Exceptions are:
+
+   - :cmake:variable:`LIBRA_DEPS_PREFIX`
+   - :cmake:variable:`LIBRA_C_STANDARD`
+   - :cmake:variable:`LIBRA_CXX_STANDARD`
+
+   If you do set any, you will need to add ``CACHE FORCE`` when setting or
+   things may break it subtle ways.
 
 .. cmake:variable:: LIBRA_ANALYSIS_LANGUAGE
 
@@ -153,12 +160,73 @@ detailed in :ref:`usage/configure-time` can be set permanently in
    ``-itest``; a valid integration test would then be, e.g.,
    ``tests/thing-itest.cpp``.
 
+.. cmake:variable:: LIBRA_REGRESSION_TEST_MATCHER
+
+   The common suffix before the ``.cpp`` that all regression tests under
+   ``tests/`` will have so LIBRA can glob them. If not specified, defaults to
+   ``-rtest``; a valid integration test would then be, e.g.,
+   ``tests/thing-rtest.cpp``.
+
 .. cmake:variable:: LIBRA_TEST_HARNESS_MATCHER
 
    The common suffix before the ``{.cpp,.hpp}`` that all test harness files
    tests under ``tests/`` will have so LIBRA can glob them. If not specified,
    defaults to ``_test``; valid test harness would then be, e.g.,
    ``tests/thing_test{.cpp,.hpp}``.
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered unit tests be included in the ``test`` target to run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered integration tests be included in the ``test`` target to
+   run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered regression tests be included in the ``test`` target to run?
+
+.. cmake:variable:: LIBRA_GCOVR_LINES_THRESH
+
+   :default: 95
+   :type: STRING
+
+   Threshold for line coverage under which the ``gcovr-check`` target will
+   return non-zero.
+
+.. cmake:variable:: LIBRA_GCOVR_FUNCTIONS_THRESH
+
+   :default: 60
+   :type: STRING
+
+   Threshold for functions coverage under which the ``gcovr-check`` target will
+   return non-zero.
+
+.. cmake:variable:: LIBRA_GCOVR_BRANCHES_THRESH
+
+   :default: 50
+   :type: STRING
+
+   Threshold for branches coverage under which the ``gcovr-check`` target
+   will return non-zero.
+
+.. cmake:variable:: LIBRA_GCOVR_DECISIONS_THRESH
+
+   :default: 50
+   :type: STRING
+
+   Threshold for decisions coverage under which the ``gcovr-check`` target will
+   return non-zero.
 
 .. cmake:variable:: ${PROJECT_NAME}_C_SRC
 

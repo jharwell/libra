@@ -1,5 +1,5 @@
 @startuml
-title LIBRA Architecture: Configure-Time vs. Build-Time
+title LIBRA Architecture And Flow
 
 ' Style Settings
 !theme cerulean-outline
@@ -25,7 +25,7 @@ skinparam nodesep 20
 skinparam ranksep 40
 
 ' This "invisible" group forces the internal packages to respect the same vertical axis
-node "LIBRA Flow" as Flow #transparent;line:transparent {
+node Flow #transparent;line:transparent;text:transparent {
 
     package "Configure-Time (CMake Phase)" as ConfigPhase {
         component "Your CMakeLists.txt" as CMake
@@ -36,8 +36,8 @@ node "LIBRA Flow" as Flow #transparent;line:transparent {
         package "Logic & Discovery" {
             component "Compiler Config\n(GCC, Clang, Intel)" as CompilerCfg
             component "Target Discovery" as TargetCfg
-            component "Test Registration\n(GTest, Catch2)" as TestCfg
-            component "Tool Registration\n(Clang-Tidy, Doxygen)" as ToolCfg
+            component "Test Registration\n (unit, integration,\nregression)" as TestCfg
+            component "Tool Registration\n(Clang-Tidy,cppcheck,\nDoxygen,...)" as ToolCfg
         }
 
         CMake -> FindPkg
@@ -49,18 +49,16 @@ node "LIBRA Flow" as Flow #transparent;line:transparent {
         Core --> ToolCfg
     }
 
-    ' The "Center Spine" connector
-    ConfigPhase -[hidden]down- BuildPhase
 
     package "Build-Time (Generator Phase)" as BuildPhase {
-        component "Standard CMake Generators\n(Makefiles, Ninja, etc.)" as Gen
+        component "Standard CMake Generators\n(Makefiles, Ninja, ...)" as Gen
 
         package "Generated Targets" {
             component "Build Binary\n(.exe, .so)" as Build
             component "Test Suite\n(CTest)" as Test
-            component "Static Analysis\n(Clang-Tidy)" as Analyze
-            component "Documentation\n(Doxygen)" as Docs
-            component "Coverage\n(LCOV)" as Coverage
+            component "Static Analysis\n(Clang-Tidy,cppcheck,...)" as Analyze
+            component "Documentation\n(Doxygen,...)" as Docs
+            component "Coverage\n(LCOV,GCOV,...)" as Coverage
         }
 
         Build -down-> Gen
@@ -69,6 +67,8 @@ node "LIBRA Flow" as Flow #transparent;line:transparent {
         Coverage -down-> Gen
         Docs -down-> Gen
     }
+        ' The "Center Spine" connector
+        ConfigPhase -[hidden]down- BuildPhase
 }
 
 ' Cross-Phase Relationships (using the 'thickness' of 4 dashes to keep it vertical)

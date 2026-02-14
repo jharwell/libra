@@ -300,3 +300,33 @@ assert_cov_flag_present() {
     assert_target_absent "$test_dir" "lcov-report"
     assert_target_absent "$test_dir" "gcovr-report"
 }
+
+@test "CODE_COV: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "CODE_COV: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_CODE_COV=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "OFF"
+    [ "$status" -eq 0 ]
+}

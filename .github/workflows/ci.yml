@@ -1,10 +1,20 @@
 name: Build and test
 
+# Run:
+#
+# - Every month.  Scheduling helps keep drift/issues with updates
+#   to runners at bay.
+# - On pushes.
+#
 on:
   push:
-    branches:
-      - master
-      - devel
+    paths:
+      - "cmake/**"
+      - ".github/**"
+
+  schedule:
+    - cron: '0 0 1 * *'
+
 
 concurrency:
   group: "build-and-test"
@@ -70,7 +80,7 @@ jobs:
             TAG_MESSAGE="Development release ${TAG_VERSION}"
             git tag ${TAG_VERSION} -m "${TAG_MESSAGE}" -f
             git push -o ci.skip origin ${TAG_VERSION} -f
-          else
+          elif [ "${{ github.ref }}" = "refs/heads/master" ]; then
             TAG_VERSION=${PACKAGE_VERSION}
             TAG_MESSAGE="Release ${TAG_VERSION}"
             git tag ${TAG_VERSION} -m "${TAG_MESSAGE}"

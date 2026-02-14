@@ -29,6 +29,8 @@ include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
 include(libra/diagnostics_pre)
+include(libra/targets)
+include(libra/defaults)
 
 # Set policies
 include(libra/policies)
@@ -54,12 +56,11 @@ option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
 option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally?" OFF)
-option(LIBRA_GLOBAL_C_STANDARD "Should LIBRA set the C standard globally?" OFF)
-option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
 option(LIBRA_CODE_COV_NATIVE
-       "Should code coverage be emitted in the compiler's native format??" YES)
+       "Should code coverage be emitted in the compiler's native format?" YES)
+option(LIBRA_USE_COMPDB "Should analysis tools use a compilation database?" NO)
 
 # 2026-02-02 [JRH]: All of these are cache variables, because option() does not
 # support non-boolean things.
@@ -71,19 +72,11 @@ set(LIBRA_DRIVER
 set(LIBRA_PGO
     "NONE"
     CACHE STRING "{NONE,GEN,USE} Compiler PGO generation/use ")
-set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 
 set(LIBRA_FPC
     "INHERIT"
     CACHE STRING
           "{RETURN,ABORT,NONE,INHERIT} Function Predcondition Checking (FPC)")
-set_property(
-  CACHE LIBRA_FPC
-  PROPERTY STRINGS
-           RETURN
-           ABORT
-           NONE
-           INHERIT)
 
 set(LIBRA_ERL
     "INHERIT"
@@ -93,40 +86,24 @@ set(LIBRA_ERL
 )
 
 set(LIBRA_FORTIFY
-    "NONE"
+    ${LIBRA_FORTIFY_DEFAULT}
     CACHE STRING "{NONE, STACK, SOURCE, ALL")
-set(LIBRA_TARGETS CACHE INTERNAL "List of target to apply LIBRA magic to")
+set(LIBRA_SAN
+    ${LIBRA_SAN_DEFAULT}
+    CACHE STRING "{NONE,MSAN,ASAN,SSAN,UBSAN,TSAN")
+set(LIBRA_STDLIB
+    ${LIBRA_STDLIB_DEFAULT}
+    CACHE STRING "{NONE, CXX, STDCXX")
 
-set(LIBRA_CONFIGURED_SOURCE_FILES_SRC
+set(_LIBRA_TARGETS CACHE STRING "List of target to apply LIBRA magic to")
+
+set(_LIBRA_CONFIGURED_SOURCE_FILES_SRC
     CACHE INTERNAL
           "List of source files to configure and add to ${PROJECT_NAME}")
 
-set(LIBRA_CONFIGURED_SOURCE_FILES_DEST
+set(_LIBRA_CONFIGURED_SOURCE_FILES_DEST
     CACHE INTERNAL
           "List of dest files for configured source files for ${PROJECT_NAME}")
-
-set_property(
-  CACHE LIBRA_FORTIFY
-  PROPERTY STRINGS NONE STACK
-  SOURCE CFI
-         GOT
-         FORMAT
-         LIBCXX_FAST
-         LIBCXX_EXTENSIVE
-         LIBCXX_DEBUG
-         ALL)
-
-set_property(
-  CACHE LIBRA_ERL
-  PROPERTY STRINGS
-           NONE
-           ERROR
-           WARN
-           INFO
-           DEBUG
-           TRACE
-           ALL
-           INHERIT)
 
 # ##############################################################################
 # Conan Configuration
@@ -195,20 +172,25 @@ else()
     if(CMAKE_CROSSCOMPILING)
       set(CMAKE_INSTALL_PREFIX
           ${CMAKE_INSTALL_PREFIX}/${CMAKE_SYSTEM_PROCESSOR})
-      set(LIBRA_DEPS_PREFIX $ENV{HOME}/.local/${CMAKE_SYSTEM_PROCESSOR}/system)
+      set(LIBRA_DEPS_PREFIX
+          $ENV{HOME}/.local/${CMAKE_SYSTEM_PROCESSOR}/system
+          CACHE STRING "The install prefix for deps of this project")
+
     else()
-      set(LIBRA_DEPS_PREFIX $ENV{HOME}/.local/system)
+      set(LIBRA_DEPS_PREFIX
+          $ENV{HOME}/.local/system
+          CACHE STRING "The install prefix for deps of this project")
     endif()
   endif()
 
-  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  set(_LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(_LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(_LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBRA_LIBRARY_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${LIBRA_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${_LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_LIBRA_LIBRARY_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_LIBRA_RUNTIME_OUTPUT_DIRECTORY})
 
 # ##############################################################################
 # Source Definitions
@@ -382,7 +364,7 @@ if(LIBRA_DOCS)
   add_custom_target(apidoc-check)
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-  libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
+  _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
   # Should not be needed, but just for safety
   if("${LIBRA_DRIVER}" MATCHES "CONAN")
     list(
@@ -435,7 +417,7 @@ endif()
 # Config Summary
 # ##############################################################################
 if(${LIBRA_SUMMARY})
-  if(NOT ${LIBRA_SHOWED_SUMMARY})
+  if(NOT ${_LIBRA_SHOWED_SUMMARY})
     libra_config_summary()
   endif()
 else()
