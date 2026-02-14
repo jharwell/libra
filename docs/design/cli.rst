@@ -182,14 +182,14 @@ Behavior:
 
 Options::
 
-- --profile=<name> - Use configuration profile (dev/ci/release/performance/debug)
-- --compiler=<gcc|clang|intel> - Force specific compiler
-- --jobs=<N>, -j<N> - Parallel build jobs (default: auto-detect CPU cores)
-- --clean - Clean before building
-- --reconfigure - Force CMake reconfiguration
-- --target=<name> - Build specific target (repeatable)
-- --install - Build and install to prefix
-- --prefix=<path> - Override install prefix
+  --profile=<name> - Use configuration profile (dev/ci/release/performance/debug)
+  --compiler=<gcc|clang|intel> - Force specific compiler
+  --jobs=<N>, -j<N> - Parallel build jobs (default: auto-detect CPU cores)
+  --clean - Clean before building
+  --reconfigure - Force CMake reconfiguration
+  --target=<name> - Build specific target (repeatable)
+  --install - Build and install to prefix
+  --prefix=<path> - Override install prefix
 
 Common Presets::
 

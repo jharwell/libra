@@ -50,30 +50,34 @@ Configure Time (Setup Logic)
 ----------------------------
 During the ``cmake ..`` phase, LIBRA automates the heavy lifting:
 
-* **Security & Hardening:** Automatic injection of stack protectors, fortify-source, and control-flow integrity flags.
-* **Quality Gates:** Seamless setup for **Clang-Tidy**, **Cppcheck**, and custom linters.
-* **Dependency Orchestration:** Smart globbing for source discovery that respects build-system boundaries.
-* **Environment Discovery:** Automatic detection and registration of tests and source files.
+* **Security & Hardening:** Automatic injection of stack protectors,
+  fortify-source, etc.
+* **Quality Gates:** Seamless setup for **clang-tidy**, **cppcheck**, and custom
+  linters, and various sanitizers.
+* **Dependency Orchestration:** Smart globbing for source discovery that
+  respects build-system boundaries.
+* **Environment Discovery:** Automatic detection and registration of tests and
+  source files.
 
 Build Time (Execution Targets)
 ------------------------------
-LIBRA injects standardized targets into your build system (Ninja/Make):
+LIBRA injects standardized targets into your build system. E.g., for GNU make:
 
 * ``make analyze``: Run the full suite of configured static analyzers.
-* ``make format``: Apply project-wide formatting via Clang-Format.
+* ``make format``: Apply project-wide formatting via clang-Format, cmake-format.
 * ``make apidoc``: Generate API documentation (Doxygen).
-* ``make coverage``: Generate HTML/XML coverage reports (LCOV/Gcovr).
-
 
 
 Integration Modes
 =================
 
-LIBRA scales with your project's complexity. Choose the mode that fits your infrastructure:
+LIBRA scales with your project's complexity. Choose the mode that fits your
+infrastructure:
 
-1. **Conan Middleware (Recommended):** The most robust path. LIBRA acts as a Conan build helper.
-2. **Standard CMake Package:** Integrated via ``find_package(libra)``.
-3. **In-Situ (Submodule):** Drop LIBRA directly into your source tree.
+#. **Conan Middleware (Recommended):** The most robust path. LIBRA acts as a
+   Conan build helper.
+#. **Standard CMake Package:** Integrated via ``find_package(libra)``.
+#. **In-Situ (Submodule):** Drop LIBRA directly into your source tree.
 
 ----
 

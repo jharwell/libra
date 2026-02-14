@@ -31,11 +31,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
   endif()
 
   # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
-  if(NOT LIBRA_USE_COMPDB)
-    set(USE_DATABASE NO)
-  else()
-    set(USE_DATABASE ${LIBRA_USE_COMPDB})
-  endif()
+  set(USE_DATABASE ${LIBRA_USE_COMPDB})
 
   get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
 

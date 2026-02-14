@@ -62,3 +62,37 @@ setup() {
     run consumer_has_define "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "c++"
     [ "$status" -eq 0 ]
 }
+
+@test "FPC_EXPORT: Cache variable persists across reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_TEST_FPC_EXPORT=ON \
+        -DLIBRA_FPC_EXPORT=ON \
+        -DLIBRA_FPC=ABORT)
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "FPC_EXPORT: Can change value on reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_TEST_FPC_EXPORT=ON \
+        -DLIBRA_FPC_EXPORT=ON \
+        -DLIBRA_FPC=ABORT)
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_FPC_EXPORT=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "OFF"
+    [ "$status" -eq 0 ]
+}

@@ -13,7 +13,7 @@ include(libra/messaging)
 # Function to register a target for enabled code checkers
 function(_libra_register_code_checkers TARGET)
   if("${ARGN}" STREQUAL "")
-    libra_error( "No source files passed--misconfiguration?")
+    libra_error("No source files passed--misconfiguration?")
   endif()
 
   add_custom_target(analyze)
@@ -28,7 +28,7 @@ endfunction()
 # Function to register a target for enabled automated formatters
 function(_libra_register_code_formatters)
   if("${ARGN}" STREQUAL "")
-    libra_error( "No source files passed--misconfiguration?")
+    libra_error("No source files passed--misconfiguration?")
   endif()
 
   add_custom_target(format)
@@ -42,7 +42,7 @@ endfunction()
 # things.
 function(_libra_register_cmake_checkers)
   if("${ARGN}" STREQUAL "")
-    libra_error( "No CMake files passed--misconfiguration?")
+    libra_error("No CMake files passed--misconfiguration?")
   endif()
 
   _libra_register_checker_cmake_format(${ARGN})
@@ -51,7 +51,7 @@ endfunction()
 # Function to register a target for checking format for non-code things.
 function(_libra_register_cmake_formatters)
   if("${ARGN}" STREQUAL "")
-    libra_error( "No CMake files passed--misconfiguration?")
+    libra_error("No CMake files passed--misconfiguration?")
   endif()
 
   _libra_register_formatter_cmake_format(${ARGN})
@@ -60,7 +60,7 @@ endfunction()
 # Function to register a target for enabled automated fixers
 function(_libra_register_code_fixers TARGET)
   if("${ARGN}" STREQUAL "")
-    libra_error( "No source files passed--misconfiguration?")
+    libra_error("No source files passed--misconfiguration?")
   endif()
 
   add_custom_target(fix)
@@ -81,7 +81,7 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
   get_target_property(TARGET_TYPE ${TARGET} TYPE)
 
-  if(NOT LIBRA_USE_COMPDB)
+  if(NOT ${LIBRA_USE_COMPDB})
     set(USE_DATABASE NO)
     if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY")
       set(USE_DATABASE NO)

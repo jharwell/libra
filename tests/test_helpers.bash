@@ -144,11 +144,11 @@ run_libra_cmake_test() {
     # Run cmake
     cd "$test_dir"
 
-    run cmake "${cmake_args[@]}" # &> /dev/null
+    run cmake "${cmake_args[@]}"  &> /dev/null
     [ "$status" -eq 0 ] || return 1
 
     # Run make
-    run make # &> /dev/null
+    run make &> /dev/null
     [ "$status" -eq 0 ] || return 1
 
     # Return to original directory and output test dir path

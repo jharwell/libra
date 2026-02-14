@@ -1,10 +1,20 @@
 name: Build and test
 
+# Run:
+#
+# - Every month.  Scheduling helps keep drift/issues with updates
+#   to runners at bay.
+# - On pushes.
+#
 on:
   push:
-    branches:
-      - master
-      - devel
+    paths:
+      - "cmake/**"
+      - ".github/**"
+
+  schedule:
+    - cron: '0 0 1 * *'
+
 
 concurrency:
   group: "build-and-test"

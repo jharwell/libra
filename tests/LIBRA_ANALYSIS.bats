@@ -192,3 +192,32 @@ setup() {
     # Default is typically OFF
     assert_target_absent "$test_dir" "analyze"
 }
+
+@test "ANALYSIS: Cache variable persists across reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ANALYSIS=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "ON"
+    [ "$status" -eq 0 ]
+
+    # Reconfigure without specifying LIBRA_ANALYSIS - should keep cached value
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "ANALYSIS: Can change value on reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ANALYSIS=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_ANALYSIS=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "OFF"
+    [ "$status" -eq 0 ]
+}

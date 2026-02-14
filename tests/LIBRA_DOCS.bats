@@ -59,3 +59,31 @@ setup() {
     # Default is typically OFF, so targets should be absent
     assert_target_absent "$test_dir" "apidoc"
 }
+
+@test "DOCS: Cache variable persists across reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_DOCS=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_DOCS" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_DOCS" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "DOCS: Can change value on reconfiguration" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_DOCS=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_DOCS" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_DOCS=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_DOCS" "OFF"
+    [ "$status" -eq 0 ]
+}

@@ -209,3 +209,33 @@ setup() {
     assert_compile_flag_absent "$test_dir" "c" "-march=native"
     assert_compile_flag_absent "$test_dir" "c" "-mtune=native"
 }
+
+@test "NATIVE_OPT: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_NATIVE_OPT=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_NATIVE_OPT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_NATIVE_OPT" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "NATIVE_OPT: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_NATIVE_OPT=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_NATIVE_OPT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_NATIVE_OPT=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_NATIVE_OPT" "OFF"
+    [ "$status" -eq 0 ]
+}

@@ -160,3 +160,33 @@ setup() {
     run has_lto_flag "$test_dir"
     [ "$status" -ne 0 ]
 }
+
+@test "LTO: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_LTO" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_LTO" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "LTO: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_LTO" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_LTO=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_LTO" "OFF"
+    [ "$status" -eq 0 ]
+}
