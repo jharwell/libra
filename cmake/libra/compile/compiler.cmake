@@ -42,9 +42,9 @@ set(CMAKE_C_FLAGS_RELEASE
 # ##############################################################################
 # Profile-Guided Optimization (PGO)
 # ##############################################################################
-set(LIBRA_PGO_MODES NONE GEN USE)
+set(_LIBRA_PGO_MODES NONE GEN USE)
 
-if(NOT ${LIBRA_PGO} IN_LIST LIBRA_PGO_MODES)
+if(NOT ${LIBRA_PGO} IN_LIST _LIBRA_PGO_MODES)
   libra_error("Bad PGO specification '${LIBRA_PGO}'. Must be {NONE,GEN,USE}.")
 endif()
 
@@ -141,32 +141,32 @@ macro(_gen_erl_defs DEFS)
 
 endmacro()
 
-set(LIBRA_PUBLIC_DEFS)
-set(LIBRA_PRIVATE_DEFS)
+set(_LIBRA_PUBLIC_DEFS)
+set(_LIBRA_PRIVATE_DEFS)
 
 if(LIBRA_FPC_EXPORT)
-  _gen_fpc_defs(LIBRA_PUBLIC_DEFS)
+  _gen_fpc_defs(_LIBRA_PUBLIC_DEFS)
 else()
-  _gen_fpc_defs(LIBRA_PRIVATE_DEFS)
+  _gen_fpc_defs(_LIBRA_PRIVATE_DEFS)
 endif()
 
 if(LIBRA_ERL_EXPORT)
-  _gen_erl_defs(LIBRA_PUBLIC_DEFS)
+  _gen_erl_defs(_LIBRA_PUBLIC_DEFS)
 else()
-  _gen_erl_defs(LIBRA_PRIVATE_DEFS)
+  _gen_erl_defs(_LIBRA_PRIVATE_DEFS)
 endif()
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  list(APPEND LIBRA_PUBLIC_DEFS -D__nostdlib__)
+  list(APPEND _LIBRA_PUBLIC_DEFS -D__nostdlib__)
 endif()
 
-set(LIBRA_PRIVATE_DEV_DEFS ${LIBRA_PRIVATE_DEFS})
-set(LIBRA_PUBLIC_DEV_DEFS ${LIBRA_PUBLIC_DEFS})
-set(LIBRA_PRIVATE_OPT_DEFS ${LIBRA_PRIVATE_DEFS})
-set(LIBRA_PUBLIC_OPT_DEFS ${LIBRA_PUBLIC_DEFS})
+set(_LIBRA_PRIVATE_DEV_DEFS ${_LIBRA_PRIVATE_DEFS})
+set(_LIBRA_PUBLIC_DEV_DEFS ${_LIBRA_PUBLIC_DEFS})
+set(_LIBRA_PRIVATE_OPT_DEFS ${_LIBRA_PRIVATE_DEFS})
+set(_LIBRA_PUBLIC_OPT_DEFS ${_LIBRA_PUBLIC_DEFS})
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  list(APPEND LIBRA_PRIVATE_OPT_DEFS -DNDEBUG)
+  list(APPEND _LIBRA_PRIVATE_OPT_DEFS -DNDEBUG)
 endif()
 
 libra_message(STATUS "Configuring compiler diagnostics")

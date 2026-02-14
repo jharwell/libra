@@ -19,9 +19,9 @@ include(libra/defaults)
   If enabled: ``-g2``. If disabled: ``-g0``.
 ]]
 if(LIBRA_DEBUG_INFO)
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
+  set(_LIBRA_DEBUG_INFO_OPTIONS "-g2")
 else()
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
+  set(_LIBRA_DEBUG_INFO_OPTIONS "-g0")
 endif()
 
 # cmake-format: off
@@ -78,7 +78,7 @@ else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
 endif()
 
-set(LIBRA_C_DIAG_OPTIONS)
+set(_LIBRA_C_DIAG_OPTIONS)
 foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
@@ -88,15 +88,15 @@ foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # A project can be C/C++ only
   if(CMAKE_C_COMPILER_LOADED)
     check_c_compiler_flag(${flag}
-                          LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
+                          _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
-    list(APPEND LIBRA_C_DIAG_OPTIONS ${flag})
+  if(_LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
+    list(APPEND _LIBRA_C_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
-set(LIBRA_CXX_DIAG_OPTIONS)
+set(_LIBRA_CXX_DIAG_OPTIONS)
 foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
@@ -106,11 +106,11 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # A project can be C/C++ only
   if(CMAKE_CXX_COMPILER_LOADED)
     check_cxx_compiler_flag(${flag}
-                            LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+                            _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
-    list(APPEND LIBRA_CXX_DIAG_OPTIONS ${flag})
+  if(_LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+    list(APPEND _LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
@@ -136,7 +136,7 @@ endif()
 If enabled: ``-xHost``.
 ]]
 if(LIBRA_NATIVE_OPT)
-  list(APPEND LIBRA_OPT_OPTIONS -xHost)
+  list(APPEND _LIBRA_OPT_OPTIONS -xHost)
 endif()
 
 # ##############################################################################
@@ -190,41 +190,41 @@ if(NOT LIBRA_SAN)
   set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
 endif()
 
-set(LIBRA_SAN_COMPILE_OPTIONS)
-set(LIBRA_SAN_LINK_OPTIONS)
-set(LIBRA_SAN_MATCH NO)
+set(_LIBRA_SAN_COMPILE_OPTIONS)
+set(_LIBRA_SAN_LINK_OPTIONS)
+set(_LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
 endif()
 
-if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
+if(NOT ${_LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
   libra_message(WARNING "Bad LIBRA_SAN setting ${LIBRA_SAN}: Must be subset of \
 {MSAN,ASAN,SSAN,UBSAN,TSAN} or set to NONE")
 endif()
@@ -245,13 +245,13 @@ ready for prime time yet.
 ]]
 
 if("${LIBRA_PGO}" MATCHES "GEN")
-  set(LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
-  set(LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
 endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
-  set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
-  set(LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
+  set(_LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
+  set(_LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################
@@ -272,21 +272,21 @@ if(NOT LIBRA_STDLIB)
   set(LIBRA_STDLIB ${LIBRA_STDLIB_DEFAULT})
 endif()
 
-set(LIBRA_STDLIB_LINK_OPTIONS)
-set(LIBRA_STDLIB_MATCH NO)
+set(_LIBRA_STDLIB_LINK_OPTIONS)
+set(_LIBRA_STDLIB_MATCH NO)
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  set(LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
 elseif("${LIBRA_STDLIB}" MATCHES "STDCXX")
-  set(LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
 elseif("${LIBRA_STDLIB}" MATCHES "CXX")
-  set(LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
 endif()
 
-if(NOT ${LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
+if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
     WARNING "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of
 {NONE,STDCXX,CXX}")
@@ -302,9 +302,9 @@ If enabled: ``-qopt-report=3 -qopt-report-phase=all`` at compile.
 
 ]]
 if(LIBRA_OPT_REPORT)
-  set(LIBRA_OPT_REPORT_COMPILE_OPTIONS -qopt-report=3 -qopt-report-phase=all)
+  set(_LIBRA_OPT_REPORT_COMPILE_OPTIONS -qopt-report=3 -qopt-report-phase=all)
   if(LIBRA_LTO)
-    set(LIBRA_OPT_REPORT_LINK_OPTIONS -qopt-report=3 -qopt-report-phase=all)
+    set(_LIBRA_OPT_REPORT_LINK_OPTIONS -qopt-report=3 -qopt-report-phase=all)
   endif()
 endif()
 
@@ -313,5 +313,5 @@ endif()
 #
 # * No warnings, since they have no effect on the build
 # ##############################################################################
-set(LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-w")
-set(LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "^q")
+set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-w")
+set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "^q")

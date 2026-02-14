@@ -5,6 +5,7 @@
 .. toctree::
    :maxdepth: 1
 
+   api.rst
    conan.rst
    philosophy.rst
    compilers.rst

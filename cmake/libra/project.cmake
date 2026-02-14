@@ -201,14 +201,14 @@ else()
     endif()
   endif()
 
-  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  set(_LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(_LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set(_LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBRA_LIBRARY_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${LIBRA_RUNTIME_OUTPUT_DIRECTORY})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${_LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_LIBRA_LIBRARY_OUTPUT_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_LIBRA_RUNTIME_OUTPUT_DIRECTORY})
 
 # ##############################################################################
 # Source Definitions
@@ -382,7 +382,7 @@ if(LIBRA_DOCS)
   add_custom_target(apidoc-check)
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-  libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
+  _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
   # Should not be needed, but just for safety
   if("${LIBRA_DRIVER}" MATCHES "CONAN")
     list(
@@ -435,7 +435,7 @@ endif()
 # Config Summary
 # ##############################################################################
 if(${LIBRA_SUMMARY})
-  if(NOT ${LIBRA_SHOWED_SUMMARY})
+  if(NOT ${_LIBRA_SHOWED_SUMMARY})
     libra_config_summary()
   endif()
 else()

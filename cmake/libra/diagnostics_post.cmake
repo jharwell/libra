@@ -323,12 +323,12 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   endif()
 
   extract_and_filter_flags(
-    "${RAW_FLAGS_COMPILE}" "${LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX}"
+    "${RAW_FLAGS_COMPILE}" "${_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX}"
     ${TARGET} FILTERED_FLAGS_COMPILE)
 
   set(FILTERED_FLAGS_LINK)
   extract_and_filter_flags(
-    "${RAW_FLAGS_LINK}" "${LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX}" ${TARGET}
+    "${RAW_FLAGS_LINK}" "${_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX}" ${TARGET}
     FILTERED_FLAGS_LINK)
 
   # Have to join with ' '; a list joined with ';' is (apparently) not valid in a
@@ -348,8 +348,8 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
 endfunction()
 
 foreach(TARGET ${LIBRA_TARGETS})
-  list(LENGTH LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC N_SRC)
-  list(LENGTH LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
+  list(LENGTH _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC N_SRC)
+  list(LENGTH _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
 
   if(NOT N_SRC EQUAL N_DEST)
     libra_error(
@@ -360,8 +360,8 @@ foreach(TARGET ${LIBRA_TARGETS})
     math(EXPR N_SRC "${N_SRC} - 1")
 
     foreach(i RANGE ${N_SRC})
-      list(GET LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC ${i} INFILE)
-      list(GET LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST ${i} OUTFILE)
+      list(GET _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC ${i} INFILE)
+      list(GET _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST ${i} OUTFILE)
       _libra_configure_source_file_post("${TARGET}" "${INFILE}" "${OUTFILE}")
     endforeach()
   endif()

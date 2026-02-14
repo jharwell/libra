@@ -224,8 +224,7 @@ which describe how these knobs are realized for each supported compiler.
 
    - ``make regression-tests`` (regression tests only)
 
-   - ``make tests`` (all tests)
-
+   - ``make all-tests`` (all tests)
 
 .. _usage/configure-time/builds:
 
