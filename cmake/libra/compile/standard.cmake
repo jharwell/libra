@@ -70,8 +70,7 @@ function(_libra_configure_standard TARGET)
         PROPERTIES C_STANDARD ${LIBRA_C_STANDARD}
                    C_STANDARD_REQUIRED ON
                    C_EXTENSIONS ON)
-      libra_message(STATUS
-                    "Configured ${TARGET} to C standard=${LIBRA_C_STANDARD}")
+      libra_message(STATUS "Configured ${TARGET} to C${LIBRA_C_STANDARD}")
     endif()
   else()
     set(LIBRA_C_STANDARD
@@ -115,8 +114,7 @@ function(_libra_configure_standard TARGET)
         PROPERTIES CXX_STANDARD ${LIBRA_CXX_STANDARD}
                    CXX_STANDARD_REQUIRED ON
                    CXX_EXTENSIONS ON)
-      libra_message(
-        STATUS "Configured ${TARGET} to C++ standard=${LIBRA_CXX_STANDARD}")
+      libra_message(STATUS "Configured ${TARGET} to C++${LIBRA_CXX_STANDARD}")
 
     else()
       libra_error("${TARGET} is not a target?")

@@ -86,6 +86,12 @@ Low Floor, High Ceiling
 
 LIBRA was designed to be "low floor, high ceiling", meaning that:
 
+- It works out-of-the-box as much as possible with any repo or dependency chain
+  of repos meeting the minimum requirements. For a dependency chain, that means
+  building all dependent repos in ``Release`` mode by default, and allowing the
+  user to specify the build type they want for the root of the chain, if any. In
+  other words, the Principle of Least Surprise at work.
+
 - It can be pretty much dropped into any project meeting the
   :ref:`requirements<startup/config/structure>` and requires minimal to no
   effort to start using.

@@ -7,6 +7,12 @@ Configure-Time Actions
 This page details LIBRA usage and actions when you invoke CMake on the
 cmdline. It is coupled to, but distinct from, :ref:`usage/project-local`.
 
+Build Type Selection
+====================
+
+LIBRA supports whatever build types :cmake:variable:`CMAKE_BUILD_TYPE`
+supports. If you don't specify one, you get a ``Release`` build. See
+:ref:`design/philosophy` for details about this design decision.
 
 Target Configuration
 ====================

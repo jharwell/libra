@@ -249,8 +249,9 @@ include(${CMAKE_SOURCE_DIR}/cmake/project-local.cmake)
 # Build/Compiler Configuration
 # ##############################################################################
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "Release")
 endif()
+libra_message(STATUS "Configuring for ${CMAKE_BUILD_TYPE} build")
 
 # Must be before build types to populate options
 include(libra/compile/compiler)

@@ -245,9 +245,9 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 
   # Without turning off these warnings we get a bunch of spurious warnings about
   # the attributes, even though they are already present.
-  target_link_options(
-    ${PROJECT_NAME}
-    PUBLIC
+  list(
+    APPEND
+    _LIBRA_OPT_OPTIONS
     -Wno-suggest-attribute=pure
     -Wno-suggest-attribute=const
     -Wno-suggest-attribute=cold)
