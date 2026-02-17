@@ -280,7 +280,8 @@ Knobs For Configuring Builds
 
    :type: CACHE STRING
 
-   Respects :cmake:variable:`CMAKE_C_STANDARD`, if set/overridden.
+   Respects :cmake:variable:`CMAKE_C_STANDARD`, if set/overridden. Note that
+   ``C_EXTENSIONS ON`` is set for the configured version as well.
 
    .. versionadded:: 0.8.4
 
@@ -291,7 +292,8 @@ Knobs For Configuring Builds
 
    :type: CACHE STRING
 
-   Respects :cmake:variable:`CMAKE_CXX_STANDARD`, if set/overridden.
+   Respects :cmake:variable:`CMAKE_CXX_STANDARD`, if set/overridden.  Note that
+   ``CXX_EXTENSIONS ON`` is set for the configured version as well.
 
    .. versionadded:: 0.8.4
 

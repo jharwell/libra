@@ -43,7 +43,6 @@ function(libra_add_library)
 
   if(NOT ${NAME} IN_LIST _LIBRA_TARGETS)
     list(APPEND _LIBRA_TARGETS ${NAME})
-    _libra_configure_standard(${NAME})
 
     set(_LIBRA_TARGETS
         "${_LIBRA_TARGETS}"
@@ -52,6 +51,7 @@ function(libra_add_library)
 
   endif()
   add_library(${NAME} ${_rest})
+  _libra_configure_standard(${NAME})
 endfunction()
 
 #[[.rst:
@@ -88,16 +88,18 @@ function(libra_add_executable)
     list(REMOVE_AT _rest 0)
   endif()
 
+  set(configure_std NO)
   if(NOT ${NAME} IN_LIST _LIBRA_TARGETS)
-    _libra_configure_standard(${NAME})
     list(APPEND _LIBRA_TARGETS ${NAME})
     set(_LIBRA_TARGETS
         "${_LIBRA_TARGETS}"
         CACHE INTERNAL "")
     libra_message(STATUS "Added executable target ${NAME}")
+    set(configure_std YES)
 
   endif()
   add_executable(${NAME} ${_rest})
+  _libra_configure_standard(${NAME})
 endfunction()
 
 function(libra_get_targets OUT_VAR)

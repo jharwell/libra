@@ -212,8 +212,6 @@ function(libra_config_summary)
       CMAKE_CXX_COMPILER
       LIBRA_C_STANDARD
       LIBRA_CXX_STANDARD
-      LIBRA_GLOBAL_C_STANDARD
-      LIBRA_GLOBAL_CXX_STANDARD
       LIBRA_GLOBAL_C_FLAGS
       LIBRA_GLOBAL_CXX_FLAGS
       LIBRA_NO_CCACHE
@@ -297,14 +295,6 @@ function(libra_config_summary)
   message(
     STATUS
       "C++ std...............................: ${ColorBold}${EMIT_LIBRA_CXX_STANDARD}${ColorReset} [CMAKE_CXX_STANDARD]"
-  )
-  message(
-    STATUS
-      "Global C std..........................: ${ColorBold}${EMIT_LIBRA_GLOBAL_C_STANDARD}${ColorReset} [LIBRA_GLOBAL_C_STANDARD]"
-  )
-  message(
-    STATUS
-      "Global C++ std........................: ${ColorBold}${EMIT_LIBRA_GLOBAL_CXX_STANDARD}${ColorReset} [LIBRA_GLOBAL_CXX_STANDARD]"
   )
   message(
     STATUS

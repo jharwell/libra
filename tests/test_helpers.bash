@@ -156,6 +156,36 @@ run_libra_cmake_test() {
     echo "$test_dir"
 }
 
+
+# Reconfigure an existing build dir without --fresh
+# Usage: reconfigure_libra_test TEST_DIR LANG [CMAKE_OPTIONS...]
+# Returns: 0 on success, 1 on failure
+reconfigure_libra_test() {
+    local test_dir="$1"
+    local lang="$2"
+    shift 2
+    local cmake_options=("$@")
+    local lang_upper=$(echo "$lang" | tr '[:lower:]' '[:upper:]')
+    local compiler=$(get_compiler "$COMPILER_TYPE" "$lang")
+
+    local cmake_args=(
+        "$BATS_TEST_DIRNAME/sample_build_info"
+        -DLIBRA_TEST_LANGUAGE="$lang_upper"
+        --log-level="$LOGLEVEL"
+    )
+
+    if [ "$lang" = "c" ]; then
+        cmake_args+=(-DCMAKE_C_COMPILER="$compiler")
+    else
+        cmake_args+=(-DCMAKE_CXX_COMPILER="$compiler")
+    fi
+
+    cmake_args+=("${cmake_options[@]}")
+
+    cd "$test_dir"
+    cmake "${cmake_args[@]}" &> /dev/null
+}
+
 ################################################################################
 # File Verification Utilities
 ################################################################################
@@ -251,6 +281,35 @@ has_link_flag() {
 
     local flags=$(get_link_flags "$test_dir" "$lang")
     echo "$flags" | grep -q -- "$flag"
+}
+
+
+# Check if a flag is present in compile_commands.json
+# Usage: has_compile_command_flag TEST_DIR FLAG
+has_compile_command_flag() {
+    local test_dir="$1"
+    local flag="$2"
+
+    if [ ! -f "$test_dir/compile_commands.json" ]; then
+        echo "ERROR: compile_commands.json not found in $test_dir" >&2
+        return 1
+    fi
+
+    grep -q -- "$flag" "$test_dir/compile_commands.json"
+}
+
+# Assert that a flag appears in compile_commands.json
+# Usage: assert_compile_command_flag_present TEST_DIR FLAG
+assert_compile_command_flag_present() {
+    run has_compile_command_flag "$1" "$2"
+    [ "$status" -eq 0 ]
+}
+
+# Assert that a flag does NOT appear in compile_commands.json
+# Usage: assert_compile_command_flag_absent TEST_DIR FLAG
+assert_compile_command_flag_absent() {
+    run has_compile_command_flag "$1" "$2"
+    [ "$status" -ne 0 ]
 }
 
 # Check if a define is present in build info

@@ -119,3 +119,93 @@ setup() {
     run cache_value_equals "$test_dir" "LIBRA_CXX_STANDARD" "14"
     [ "$status" -eq 0 ]
 }
+
+@test "CXX_STANDARD: -std= flag present in compile_commands.json" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    [ -f "$test_dir/compile_commands.json" ]
+    grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+}
+
+@test "CXX_STANDARD: -std= flag present after reconfiguration (no --fresh)" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+
+    # Reconfigure WITHOUT --fresh
+    run reconfigure_libra_test "$test_dir" "cxx"
+    [ "$status" -eq 0 ]
+
+    # Flag must still be present
+    grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+}
+
+@test "CXX_STANDARD: -std= flag updates after changing standard on reconfigure" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+
+    # Reconfigure with a different standard
+    run reconfigure_libra_test "$test_dir" "cxx" -DLIBRA_CXX_STANDARD=20
+    [ "$status" -eq 0 ]
+
+    # Old flag must be gone, new flag must be present
+    ! grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+    grep -q -- '-std=gnu++20' "$test_dir/compile_commands.json"
+}
+
+@test "CXX_STANDARD: build succeeds after reconfiguration (no --fresh)" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    # Reconfigure without --fresh
+    run reconfigure_libra_test "$test_dir" "cxx"
+    [ "$status" -eq 0 ]
+
+    # Build must succeed
+    cd "$test_dir"
+    run make
+    [ "$status" -eq 0 ]
+}
+
+@test "CXX_STANDARD: build succeeds after changing standard on reconfigure" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    # Reconfigure with a different standard
+    run reconfigure_libra_test "$test_dir" "cxx" -DLIBRA_CXX_STANDARD=20
+    [ "$status" -eq 0 ]
+
+    # Build must succeed with new standard
+    cd "$test_dir"
+    run make
+    [ "$status" -eq 0 ]
+}
+
+@test "CXX_STANDARD: multiple reconfigures preserve -std= flag" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CXX_STANDARD=17)
+
+    grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+
+    # Reconfigure 3 times without --fresh
+    for i in 1 2 3; do
+        run reconfigure_libra_test "$test_dir" "cxx"
+        [ "$status" -eq 0 ]
+    done
+
+    # Flag must still be present after repeated reconfigures
+    grep -q -- '-std=gnu++17' "$test_dir/compile_commands.json"
+}
+
+@test "CXX_STANDARD: CMAKE_CXX_STANDARD override persists in compile_commands after reconfigure" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_CXX_STANDARD=14 \
+        -DCMAKE_CXX_STANDARD=20)
+
+    grep -q -- '-std=gnu++20' "$test_dir/compile_commands.json"
+
+    # Reconfigure without --fresh (CMAKE_CXX_STANDARD stays in cache)
+    run reconfigure_libra_test "$test_dir" "cxx"
+    [ "$status" -eq 0 ]
+
+    # The override standard should still be in compile commands
+    grep -q -- '-std=gnu++20' "$test_dir/compile_commands.json"
+}

@@ -34,16 +34,34 @@ jobs:
           cmake ..
           ctest --output-on-failure -j $(nproc)
 
+  install-test:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-02-09
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run LIBRA install
+        shell: bash
+        run: |
+          mkdir -p build && cd build
+          cmake ..
+          make install
+
   docs:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/pages.yml
-    needs: [smoke-tests]
+    needs:
+      - smoke-tests
+      - install-test
     secrets: inherit
 
   create-conan-pkg:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    needs: [smoke-tests]
+    needs:
+      - smoke-tests
+      - install-test
+
     steps:
       - uses: actions/checkout@v3
       - name: Create package

@@ -18,12 +18,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT LIBRA_NO_CCACHE)
   # Configure CCache if available
-  find_program(CCACHE_FOUND ccache)
+  find_program(CCACHE_EXECUTABLE ccache)
 
-  if(CCACHE_FOUND)
-    libra_message(STATUS "Using ccache")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  if(CCACHE_EXECUTABLE)
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_EXECUTABLE})
+    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_EXECUTABLE})
+    libra_message(STATUS "Using ccache=${CCACHE_EXECUTABLE}")
   else()
     libra_message(STATUS "Not using ccache [disabled=notfound]")
   endif()
