@@ -103,3 +103,33 @@ setup() {
 
     assert_compile_flag_absent "$test_dir" "c" "-mno-sse3"
 }
+
+@test "VALGRIND_COMPAT: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_VALGRIND_COMPAT=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_VALGRIND_COMPAT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_VALGRIND_COMPAT" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "VALGRIND_COMPAT: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_VALGRIND_COMPAT=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_VALGRIND_COMPAT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_VALGRIND_COMPAT=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_VALGRIND_COMPAT" "OFF"
+    [ "$status" -eq 0 ]
+}

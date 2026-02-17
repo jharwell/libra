@@ -168,10 +168,6 @@ set(_LIBRA_FORTIFY_MATCH NO)
 
 set(LIBRA_FORTIFY_DEFAULT "NONE")
 
-if(NOT LIBRA_FORTIFY)
-  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
-endif()
-
 if(NOT LIBRA_FORTIFY MATCHES "NONE")
   set(LIBRA_LTO ON)
 endif()
@@ -340,10 +336,6 @@ set(UBSAN_OPTIONS
     -fsanitize-recover=all)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread
                  -fsanitize-recover=all)
-
-if(NOT LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
 
 set(_LIBRA_SAN_COMPILE_OPTIONS)
 set(_LIBRA_SAN_LINK_OPTIONS)

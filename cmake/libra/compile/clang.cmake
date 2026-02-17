@@ -130,10 +130,6 @@ If FORMAT: ``-Wformat-security -Werror=format=2``.
 set(_LIBRA_FORTIFY_OPTIONS)
 set(_LIBRA_FORTIFY_MATCH NO)
 
-if(NOT DEFINED LIBRA_FORTIFY)
-  set(LIBRA_FORTIFY ${LIBRA_FORTIFY_DEFAULT})
-endif()
-
 if(NOT LIBRA_FORTIFY MATCHES "NONE")
   set(LIBRA_LTO ON)
 endif()
@@ -259,10 +255,6 @@ set(UBSAN_OPTIONS
     -fsanitize=local-bounds
     -fsanitize=nullability)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread)
-
-if(NOT LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
 
 set(_LIBRA_SAN_COMPILE_OPTIONS)
 set(_LIBRA_SAN_LINK_OPTIONS)

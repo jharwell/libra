@@ -347,7 +347,7 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   libra_message(STATUS "Configured source file: ${INFILE} -> ${OUTFILE}")
 endfunction()
 
-foreach(TARGET ${LIBRA_TARGETS})
+foreach(TARGET ${_LIBRA_TARGETS})
   list(LENGTH _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC N_SRC)
   list(LENGTH _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
 

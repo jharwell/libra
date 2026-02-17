@@ -9,14 +9,12 @@ enable_testing()
 # ##############################################################################
 # BATS Tests (New Framework)
 # ##############################################################################
-
 find_program(BATS_EXECUTABLE bats)
 
-if(NOT BATS_EXECUTABLE)
+if(BATS_EXECUTABLE)
   message(STATUS "Found BATS: ${BATS_EXECUTABLE}")
 
   # Discover all .bats files
-  message("${CMAKE_CURRENT_LIST_DIR}")
   file(GLOB BATS_TEST_FILES "${CMAKE_CURRENT_LIST_DIR}/*.bats")
 
   foreach(bats_file ${BATS_TEST_FILES})

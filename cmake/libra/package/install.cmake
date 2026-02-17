@@ -64,10 +64,6 @@ function(libra_configure_exports)
     libra_error("libra_configure_exports: TARGET missing")
   endif()
 
-  if(NOT TARGET ${ARG_TARGET})
-    libra_error("libra_configure_exports: Target '${ARG_TARGET}' not found")
-  endif()
-
   set(TARGET ${ARG_TARGET})
 
   include(CMakePackageConfigHelpers)

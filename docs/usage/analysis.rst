@@ -11,7 +11,9 @@ detect the languages enabled for your cmake project, and sets the source files
 to pass to the analysis targets appropriately. This allows for inclusion of
 analysis tools which could be C/C++ only, and have them not cause errors when
 used of a project of an incompatible type. You should never have to set
-:cmake:variable:`LIBRA_ANALYSIS_LANGUAGE` directly to avoid warnings/errors.
+:cmake:variable:`LIBRA_ANALYSIS_LANGUAGE` directly to avoid warnings/errors.  An
+individual target is created for each auto-registered source file, giving you
+per-file warnings/errors, just like during compilation.
 
 LIBRA supports the following analysis tools; more may be added in the future:
 
@@ -44,6 +46,7 @@ This can be overriden with :cmake:variable:`LIBRA_USE_COMPDB` if desired. You
 may need to do this if there are ``-f`` compiler options that your code needs to
 compile correctly, since only #defines, includes, and language standard are
 extracted from each target.
+
 
 clang-tidy
 ==========

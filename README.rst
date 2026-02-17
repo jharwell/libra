@@ -1,60 +1,87 @@
 .. SPDX-License-Identifier: MIT
 
-=======================================
-LIBRA: Luigi Build Reusable Automation
-=======================================
+.. |logo| image:: docs/figures/libra-logo2-text.png
+   :height: 120px
+   :alt: LIBRA Logo
 
 .. |docs| image:: https://img.shields.io/badge/docs-github.io-blue
    :target: https://jharwell.github.io/libra
    :alt: Documentation
 
-.. |build| image:: https://github.com/jharwell/libra/actions/workflows/pages.yml/badge.svg?branch=master
-   :target: https://jharwell.github.io/libra
-   :alt: Build
+.. |CI| image:: https://github.com/jharwell/libra/actions/workflows/ci.yml/badge.svg?branch=master
 
-.. |license| image:: https://img.shields.io/badge/License-MIT-yellow.svg
-   :target: https://opensource.org/licenses/MIT
-   :alt: License: MIT
+.. |license| image:: https://img.shields.io/github/license/jharwell/libra
 
-|docs| |build| |license|
+.. |platform| image:: https://img.shields.io/badge/platform-linux%20%7C%20macos-lightgrey
+   :alt: Platform
 
-LIBRA is a **declarative build orchestration framework** for C/C++ projects.
-Built on top of CMake, it eliminates repetitive boilerplate by replacing
-imperative scripting with convention-based automation.
+.. |cmake| image:: https://img.shields.io/badge/cmake-%3E%3D3.31-blue
+   :alt: CMake
 
-* **Zero-Boilerplate:** Define your project in 5 lines of CMake.
-* **Hardened by Default:** Automatic security flags and sanitizers.
+.. |compiler| image:: https://img.shields.io/badge/compilers-gcc%20%7C%20clang%20%7C%20intel-blue
+   :alt: Compilers
+
+.. |version| image:: https://img.shields.io/github/v/tag/jharwell/libra
+   :target: https://github.com/jharwell/libra/releases
+   :alt: Latest Github tag
+
++--------+-----------------------------------+
+| |logo| | |docs| |CI| |license| |version|   |
+|        +-----------------------------------+
+|        | |cmake| |compiler| |platform|     |
++--------+-----------------------------------+
+
+=======================================
+Luigi Build Reusable Automation (LIBRA)
+=======================================
+
+LIBRA is a declarative CMake framework that standardizes compiler flags,
+testing, analysis, and packaging for C/C++ projects with near-zero
+configuration.
+
+* **Near-Zero Boilerplate:** Define your project in just a few lines of CMake.
+* **Secure by Default:** Automatic hardening flags and sanitizers.
 * **Unified Tooling:** One interface for GCC, Clang, and Intel compilers.
-* **Quality Built-in:** Native targets for Coverage, Analysis, and Docs.
+* **Quality Tooling Built-In:** Native targets for coverage, analysis, and docs.
+
+Keywords: CMake framework, C/C++ build automation, sanitizers, coverage,
+static analysis, reproducible builds
+
+How LIBRA Works
+===============
+
+LIBRA is a collection of CMake modules that:
+
+#. Define opinionated, best-practice defaults
+#. Auto-discover sources and tests
+#. Generate standard quality targets
+
+You still write CMake, but far less of it; LIBRA layers on top of CMake.  *It
+does not replace your build system.*
 
 Why Use LIBRA?
 ==============
 
-**You should use LIBRA if:**
-
-* You maintain multiple C/C++ projects with similar build needs
-* You work with multiple compilers (GNU/Clang/Intel) and want consistency
-* You're tired of copy-pasting CMake boilerplate between repositories
-* You need reproducible builds with best-practice compiler flags
-* You want automated test discovery without maintaining file lists
-* You frequently switch between debug builds (sanitizers) and release builds (optimization)
-* Your team has varying CMake expertise levels and you want to standardize
+* You maintain multiple C/C++ projects with similar build needs.
+* You want consistent builds across compilers.
+* You are tired of copy-pasting CMake boilerplate.
+* You need reproducible builds with modern defaults.
+* You want tests and quality tooling with minimal effort.
 
 Why Not Use LIBRA?
-===================
+==================
 
-**You should NOT use LIBRA if:**
+LIBRA prioritizes consistency and automation over maximal flexibility. You may
+want to choose a different approach if:
 
-* You use build systems other than CMake (Bazel, Meson, autotools)
-* You need Windows/MSVC support (LIBRA targets Linux/Unix)
-* You have exotic/unsupported compilers (ARM, proprietary toolchains)
-* Your project has non-standard directory structures LIBRA can't accommodate
-* You have strict organizational "no globbing" policies
-* You have a single project with a custom, hand-tuned build system you're happy with
-* You require fine-grained per-file compiler flag control
+* You use non-CMake build systems.
+* You require Windows/MSVC.
+* You depend on exotic or unsupported toolchains.
+* You need per-file compiler flag micromanagement.
 
 Quick Example
 =============
+
 
 **Before LIBRA (Standard CMake):**
 
@@ -72,10 +99,11 @@ Quick Example
 
 .. code-block:: cmake
 
-   # CMakeLists.txt (3 lines)
-   cmake_minimum_required(VERSION 3.17)
+   # CMakeLists.txt (4 lines)
+   cmake_minimum_required(VERSION 3.31)
    find_package(libra REQUIRED)
    project(myproj CXX)
+   include(libra/project)
 
 .. code-block:: cmake
 
@@ -87,143 +115,24 @@ Quick Example
 
 .. code-block:: bash
 
-   cmake -B build -DLIBRA_TESTS=ON -DLIBRA_CODE_COV=ON
-   make -C build build-and-test gcovr-report
-   # Tests run + coverage report generated
+   cmake -B build -DLIBRA_TESTS=ON -DLIBRA_CODE_COV=ON -DLIBRA_DOCS=ON
+   make -C build analyze                     # Run all static analysis tools
+   make -C build build-and-test gcovr-report # Tests run + coverage report generated
+   make -C build apidoc                      # Build API documentation
+   make -C build format                      # Format all source files
 
-.. note::
+Key Features And Architecture
+=============================
 
-   ``libra_add_executable()`` applies LIBRA's compiler flags, analysis targets,
-   and quality gates to your target. Use it instead of ``add_executable()`` for
-   LIBRA-managed builds. Standard CMake commands still work, but won't receive
-   LIBRA features automatically.
+* Unified compiler abstraction
+* Sanitizers (ASAN, UBSAN, TSAN, MSAN, SSAN)
+* Static analysis (clang-check, clang-tidy, cppcheck)
+* Coverage (gcovr, llvm-cov)
+* Profile-guided optimization (PGO)
+* Automatic source file and test discovery and registration
+* Robust compiler warnings
 
-Technical Comparison
-====================
-
-Standard CMake is imperative (*how*); LIBRA is declarative (*what*).
-
-.. list-table::
-   :header-rows: 1
-
-   * - Feature
-     - Standard CMake
-     - LIBRA
-
-   * - Sanitizers
-     - 10+ lines of compiler if/else
-     - ``set(LIBRA_SAN "ASAN")``
-
-   * - Static Analysis
-     - Manual ``find_program`` + setup
-     - ``set(LIBRA_ANALYSIS ON)``
-
-   * - Source/test Discovery
-     - Manual file listing
-     - Automated via globbing
-
-Key Features
-============
-
-**Unified Compiler Interface**
-   Consistent variables across GCC, Clang, Intel compilers.
-   ``LIBRA_SAN=ASAN`` works identically on all three.
-   No more ``if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")`` boilerplate.
-
-**Quality Tools Built-In**
-   Code coverage: lcov, gcovr, llvm-cov (one command: ``make gcovr-report``).
-   Static analysis: cppcheck, clang-tidy, clang-check.
-   Sanitizers: ASAN, UBSAN, TSAN, MSAN with simple flags.
-   Profile-guided optimization (PGO) workflow automation.
-
-**Test Automation**
-   Auto-discovery of ``*-utest.cpp`` and ``*-itest.cpp`` files.
-   No manual test registration in CMakeLists.txt.
-   Single command: ``make build-and-test``.
-
-**Zero-Config Defaults**
-   Source files in ``src/`` automatically compiled.
-   Tests in ``tests/`` automatically discovered.
-   Headers in ``include/`` automatically exported.
-
-Compiler Support Matrix
-========================
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 20 20 20
-
-   * - Feature
-     - GNU
-     - Clang
-     - Intel
-   * - Optimization levels (``-O0`` to ``-O3``, ``-Os``)
-     - Yes
-     - Yes
-     - Yes
-   * - Native CPU tuning (``-march=native``)
-     - Yes
-     - Yes
-     - Yes
-   * - Link-time optimization (LTO)
-     - Yes
-     - Yes
-     - Yes
-   * - Sanitizers (ASAN, UBSAN, TSAN, MSAN)
-     - Yes
-     - Yes
-     - Yes
-   * - Profile-guided optimization (PGO)
-     - Yes
-     - Yes
-     - Yes
-   * - Code coverage (gcov/llvm-cov)
-     - Yes
-     - Yes
-     - No
-   * - Security hardening
-     - Yes
-     - Yes
-     - No
-   * - Build profiling
-     - Yes
-     - Yes
-     - No
-
-See `Compiler Support Details <https://jharwell.github.io/libra/usage/compilers.html>`_
-for complete flag mappings.
-
-Requirements
-============
-
-**Platform:**
-  Linux/Unix (Ubuntu 20.04+, RHEL 8+, macOS with Homebrew)
-
-  Windows/MSVC is **NOT supported**. Use WSL for Windows development.
-
-**Build Tools:**
-  CMake >= 3.31
-
-**Compilers:**
-  GCC/g++ >= 9, Clang/clang++ >= 17, or Intel icx/icpx >= 2024.1
-
-**Optional Tools:**
-  lcov >= 1.14, gcovr >= 5.0, llvm-cov (bundled with Clang),
-  cppcheck >= 2.0, clang-tidy, doxygen, graphviz
-
-Architecture Overview
-=====================
-
-LIBRA layers on top of standard CMake. It does not replace your build system;
-it orchestrates it.
-
-.. figure:: https://raw.githubusercontent.com/jharwell/libra/master/docs/figures/arch.png
-   :alt: LIBRA Architecture Diagram
-
-Project Structure
-=================
-
-A typical LIBRA-enabled project::
+All of the above comes "for free" with a project layout like this::
 
    my_project/
    ├── CMakeLists.txt              # Minimal: find_package + project()
@@ -234,30 +143,55 @@ A typical LIBRA-enabled project::
    ├── tests/                      # Auto-discovered tests (*-{u,i,r}test.{c,cpp})
    └── build/                      # Build artifacts (git-ignored)
 
-Full Documentation
-==================
+At a high level, LIBRA works like this:
 
-Detailed guides and API references are available at
-`jharwell.github.io/libra <https://jharwell.github.io/libra/>`_.
+.. figure:: docs/figures/arch.png
 
-* `Quick Start Guide <https://jharwell.github.io/libra/startup/quickstart.html>`_
-* `Configuration Reference <https://jharwell.github.io/libra/usage/configure-time.html>`_
-* `Build Time Actions <https://jharwell.github.io/libra/usage/build-time.html>`_
-* `Compiler Support Details <https://jharwell.github.io/libra/usage/compilers.html>`_
-* `Static Analysis <https://jharwell.github.io/libra/usage/analysis.html>`_
-* `Design Philosophy <https://jharwell.github.io/libra/design/philosophy.html>`_
-
-License
-=======
-
-MIT License - see LICENSE file for details.
-
-Contributing
+Installation
 ============
 
-Contributions welcome! When adding features:
+**Option A: Install system-wide**
 
-1. Add CMake configuration to appropriate file in ``cmake/libra/``
-2. Add BATS tests to ``tests/LIBRA_<FEATURE>.bats``
-3. Update documentation in ``docs/``
-4. Ensure tests pass: ``bats tests/LIBRA_<FEATURE>.bats``
+.. code-block:: bash
+
+   git clone https://github.com/jharwell/libra
+   cmake -S libra -B build
+   cmake --build build --target install
+
+**Option B: FetchContent**
+
+.. code-block:: cmake
+
+   include(FetchContent)
+   FetchContent_Declare(
+     libra
+     GIT_REPOSITORY https://github.com/jharwell/libra.git
+   )
+   FetchContent_MakeAvailable(libra)
+
+FAQ
+===
+
+**Does LIBRA replace CMake?**
+No. LIBRA is a layer on top of CMake that adds conventions and automation.
+
+**Can I mix LIBRA and plain CMake targets?**
+Yes. Only targets created with ``libra_*`` macros receive LIBRA features.
+
+**Is globbing mandatory?**
+No. You may override discovery with explicit source lists.
+
+**Does LIBRA enforce its project layout?**
+LIBRA assumes conventional layouts by default, but most paths are configurable.
+
+**Can I disable individual features?**
+Yes. All major features (sanitizers, coverage, analysis, docs) are opt-in.
+
+Requirements
+============
+
+Platform: Linux/Unix, macOS
+
+Build Tools: CMake >= 3.31
+
+Compilers: GCC >= 9, Clang >= 17, Intel >= 2024.1

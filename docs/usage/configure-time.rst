@@ -12,11 +12,11 @@ Target Configuration
 ====================
 
 LIBRA will apply all of its magic (compile options, analysis config, etc.) to
-all targets in :cmake:variable:`LIBRA_TARGETS`. By default, this contains only
-the :cmake:variable:`PROJECT_NAME` target (i.e., the target has the same name as the
-project--Principle of Least Surprise). If you want to include multiple targets
-it is recommended to use :cmake:command:`libra_add_library()`,
-:cmake:command:`libra_add_executable()`, to have LIBRA handle multiple targets.
+all targets registered with:
+
+- :cmake:command:`libra_add_library()`
+- :cmake:command:`libra_add_executable()`
+
 You can also use :cmake:variable:`LIBRA_GLOBAL_C_FLAGS`,
 :cmake:variable:`LIBRA_GLOBAL_CXX_FLAGS` to apply compiler configuration to all
 targets, though this will affect ALL Cmake targets, which is generally a bad
@@ -75,20 +75,21 @@ Knobs For Configuring LIBRA/CMake
 .. cmake:variable:: LIBRA_DEPS_PREFIX
 
    :default: $HOME/.local/system
-   :type: STRING
+   :type: CACHE STRING
 
    The location where cmake should search for other locally installed libraries
    (e.g., ``$HOME/.local``). VERY useful to separate out 3rd party headers which
    you want to suppress all warnings for by treating them as system headers when
-   you can't/don't want to install things as root.
+   you can't/don't want to install things as root, or wrap in ``#pragma GCC
+   system_header`` headers.
 
-   Only available if ``LIBRA_DRIVER=SELF``. Cannot be set in
-   ``project-local.cmake``.
+   Only available if :cmake:variable:`LIBRA_DRIVER` is ``SELF``. Cannot be set
+   in ``project-local.cmake``.
 
 .. cmake:variable:: LIBRA_DRIVER
 
    :default: SELF
-   :type: STRING
+   :type: CACHE STRING
 
    The *primary* user-visible driver to LIBRA, if any. Possible values are:
 
@@ -103,7 +104,7 @@ Knobs For Configuring LIBRA/CMake
 .. cmake:variable:: LIBRA_SUMMARY
 
    :default: YES
-   :type: BOOL
+   :type: CACHE BOOL
 
    Show a configuration summary after the configuration step finishes.
 
@@ -118,14 +119,14 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_DOCS
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Enable documentation build via ``make apidoc``.
 
 .. cmake:variable:: LIBRA_CODE_COV
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Build in runtime code-coverage instrumentation for report generation and
    coverage checking. See :ref:`usage/build-time/sw-eng` for specifics.
@@ -133,7 +134,7 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_CODE_COV_NATIVE
 
    :default: YES
-   :type: BOOL
+   :type: CACHE BOOL
 
    Direct compilers to build in coverage instrumentation in their "native"
    format. E.g., clang will using LLVM format, and GCC will use GNU
@@ -143,7 +144,7 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_SAN
 
    :default: NONE
-   :type: STRING
+   :type: CACHE STRING
 
    Build in runtime checking of code using any compiler. When passed, the
    value should be a comma-separated list of sanitizer groups to enable:
@@ -170,7 +171,7 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_ANALYSIS
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Enable static analysis targets for checkers, formatters, etc. See
    :ref:`usage/build-time` for the targets enabled (assuming the necessary
@@ -179,7 +180,7 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_OPT_REPORT
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Enable compiler-generated reports for optimizations performed, as well as
    suggestions for further optimizations.
@@ -187,7 +188,7 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_FORTIFY
 
    :default: NONE. Any non-None value also sets ``LIBRA_LTO=YES``.
-   :type: STRING
+   :type: CACHE STRING
 
    Build in compiler support/runtime checking of code for heightened
    security. Which options get passed to compiler/linker AND which groups are
@@ -214,7 +215,7 @@ which describe how these knobs are realized for each supported compiler.
 .. cmake:variable:: LIBRA_TESTS
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Enable building of tests via:
 
@@ -234,7 +235,7 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_FPC
 
    :default: INHERIT
-   :type: STRING
+   :type: CACHE STRING
 
    Enable Function Precondition Checking (FPC): checking function
    parameters/global state before executing a function, for functions which
@@ -265,7 +266,7 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_FPC_EXPORT
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Make :cmake:variable:`LIBRA_FPC` visible to downstream projects; it is
    private by default. This allows you to create an arbitrary dependency graph
@@ -275,31 +276,47 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_C_STANDARD
 
    :default: Autodetected to the latest C standard supported by
-             :cmake:variable:`CMAKE_C_COMPILER`. Respects
-             :cmake:variable:`CMAKE_C_STANDARD`, if set/overridden.
+             :cmake:variable:`CMAKE_C_COMPILER`.
 
-   :type: STRING
+   :type: CACHE STRING
+
+   Respects :cmake:variable:`CMAKE_C_STANDARD`, if set/overridden.
 
    .. versionadded:: 0.8.4
 
 .. cmake:variable:: LIBRA_CXX_STANDARD
 
    :default: Autodetected to the latest C++ standard supported by
-             :cmake:variable:`CMAKE_CXX_COMPILER`. Respects
-             :cmake:variable:`CMAKE_CXX_STANDARD`, if set/overridden.
+             :cmake:variable:`CMAKE_CXX_COMPILER`.
 
-   :type: STRING
+   :type: CACHE STRING
+
+   Respects :cmake:variable:`CMAKE_CXX_STANDARD`, if set/overridden.
 
    .. versionadded:: 0.8.4
 
 .. cmake:variable:: LIBRA_GLOBAL_C_FLAGS
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Specify that the total set of C flags (diagnostic, sanitizer, optimization,
-   defines, etc.) which are automatically set for :cmake:variable:`PROJECT_NAME`
-   should be applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
+   defines, etc.) which are automatically set for registered targets should be
+   applied globally via ``CMAKE_C_FLAGS_<build type>`` to all C files.
+
+   Use with care, as applying said flags to external dependencies built
+   alongside your code can cause a cascade of unintended errors. That said, for
+   well-behaved dependencies, this can be a nice way of ensuring uniformity of
+   build options when building from source.
+
+.. cmake:variable:: LIBRA_GLOBAL_CXX_FLAGS
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Specify that the total set of C++ flags (diagnostic, sanitizer, optimization,
+   defines, etc.) which are automatically set for registered targets should be
+   applied globally via ``CMAKE_CXX_FLAGS_<build type>`` to all C++ files.
 
    Use with care, as applying said flags to external dependencies built
    alongside your code can cause a cascade of unintended errors. That said, for
@@ -308,33 +325,10 @@ Knobs For Configuring Builds
 
    .. versionchanged:: 0.9.14
 
-      When disabled, the ``target_compile_options()`` and
-      ``target_compile_definitions()`` set by LIBRA are PRIVATE not PUBLIC.
-
-.. cmake:variable:: LIBRA_GLOBAL_CXX_FLAGS
-
-   :default: NO
-   :type: BOOL
-
-   Specify that the total set of C++ flags (diagnostic, sanitizer,
-   optimization, defines, etc.) which are automatically set for
-   :cmake:variable:`PROJECT_NAME` should be applied globally via
-   ``CMAKE_CXX_FLAGS_<build type>`` to all C++ files.
-
-   Use with care, as applying said flags to external dependencies built
-   alongside your code can cause a cascade of unintended errors. That
-   said, for well-behaved dependencies, this can be a nice way of
-   ensuring uniformity of build options when building from source.
-
-   .. versionchanged:: 0.9.14
-
-      When disabled, the ``target_compile_options()`` and
-      ``target_compile_definitions()`` set by LIBRA are PRIVATE, not PUBLIC.
-
 .. cmake:variable:: LIBRA_ERL
 
    :default: INHERIT
-   :type: STRING
+   :type: CACHE STRING
 
    Specify Event Reporting Level (ERL). LIBRA does not prescribe a given
    event reporting framework (e.g., log4ccx, log4c, spdlog) which must be
@@ -371,7 +365,7 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_ERL_EXPORT
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Make :cmake:variable:`LIBRA_ERL` visible to downstream projects; it is
    private by default. This allows you to create an arbitrary dependency graph
@@ -381,7 +375,7 @@ Knobs For Configuring Builds
 .. cmake:variable:: LIBRA_PGO
 
    :default: NONE
-   :type: STRING
+   :type: CACHE STRING
 
    Generate a PGO build for the selected compiler, if supported. Possible values
    for this option are:
@@ -414,7 +408,7 @@ Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 .. cmake:variable:: LIBRA_VALGRIND_COMPAT
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Disable compiler instructions in 64-bit code so that programs will run under
    valgrind reliably.
@@ -434,7 +428,7 @@ Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 .. cmake:variable:: LIBRA_STDLIB
 
    :default: UNDEFINED; use compiler built-in default.
-   :type: STRING
+   :type: CACHE STRING
 
    Enable using the standard library and/or select *which* standard library to
    use. You would only turn this off for bare-metal builds (e.g.,
@@ -450,7 +444,7 @@ Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 .. cmake:variable:: LIBRA_DEBUG_INFO
 
    :default: YES
-   :type: BOOL
+   :type: CACHE BOOL
 
    Enable generation of debug symbols *independent* of whatever the default is
    with a given cmake build type.
@@ -463,7 +457,7 @@ Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 .. cmake:variable:: LIBRA_NATIVE_OPT
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
    Enable compiler optimizations native to the current machine. This will likely
    make code compiled in this way *only* runnable on the current machine. Not
@@ -474,7 +468,7 @@ Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
 .. cmake:variable:: LIBRA_USE_COMPDB
 
    :default: NO
-   :type: BOOL
+   :type: CACHE BOOL
 
   Tell LIBRA that all analysis tools should use a compilation database, rather
   than the default of extracting the necessary includes, #defines, etc. from the

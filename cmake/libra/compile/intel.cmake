@@ -186,10 +186,6 @@ set(SSAN_OPTIONS -fno-omit-frame-pointer -fstack-protector-all
 set(UBSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=undefined)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread)
 
-if(NOT LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
-
 set(_LIBRA_SAN_COMPILE_OPTIONS)
 set(_LIBRA_SAN_LINK_OPTIONS)
 set(_LIBRA_SAN_MATCH NO)

@@ -374,3 +374,33 @@ assert_pgo_flag_present() {
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-generate"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-use"
 }
+
+@test "PGO: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_PGO=GEN)
+
+    run cache_value_equals "$test_dir" "LIBRA_PGO" "GEN"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_PGO" "GEN"
+    [ "$status" -eq 0 ]
+}
+
+@test "PGO: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_PGO=GEN)
+
+    run cache_value_equals "$test_dir" "LIBRA_PGO" "GEN"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_PGO=USE --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_PGO" "USE"
+    [ "$status" -eq 0 ]
+}

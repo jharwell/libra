@@ -50,7 +50,7 @@ get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
 # CMAKE_INTERPROCEDURAL_OPTIMIZATION in the per-compiler .cmake files only
 # affects targets created AFTER that, and since that stuff is currently included
 # AFTER project-local.cmake, it has no effect.
-foreach(target ${LIBRA_TARGETS})
+foreach(target ${_LIBRA_TARGETS})
   if(LIBRA_LTO)
     set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION
                                                TRUE)
@@ -71,14 +71,14 @@ endforeach()
 # Application To Specific Targets
 # ##############################################################################
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  foreach(target ${LIBRA_TARGETS})
+  foreach(target ${_LIBRA_TARGETS})
     target_compile_definitions(${target} PRIVATE ${_LIBRA_PRIVATE_DEV_DEFS})
     target_compile_definitions(${target} PUBLIC ${_LIBRA_PUBLIC_DEV_DEFS})
   endforeach()
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  foreach(target ${LIBRA_TARGETS})
+  foreach(target ${_LIBRA_TARGETS})
     target_compile_definitions(${target} PRIVATE ${_LIBRA_PRIVATE_OPT_DEFS})
     target_compile_definitions(${target} PUBLIC ${_LIBRA_PUBLIC_OPT_DEFS})
     target_compile_options(${target} PRIVATE ${_LIBRA_OPT_OPTIONS})

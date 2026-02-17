@@ -159,3 +159,33 @@ setup() {
 
     assert_compile_flag_present "$test_dir" "c" "-g2"
 }
+
+@test "DEBUG_INFO: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_DEBUG_INFO=OFF)
+
+    run cache_value_equals "$test_dir" "LIBRA_DEBUG_INFO" "OFF"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_DEBUG_INFO" "OFF"
+    [ "$status" -eq 0 ]
+}
+
+@test "DEBUG_INFO: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_DEBUG_INFO=OFF)
+
+    run cache_value_equals "$test_dir" "LIBRA_DEBUG_INFO" "OFF"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_DEBUG_INFO=ON --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_DEBUG_INFO" "ON"
+    [ "$status" -eq 0 ]
+}

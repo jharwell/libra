@@ -132,8 +132,11 @@ if not os.path.exists("/tmp/plantuml.jar"):
 html_theme_options = {
     'display_version': True,
     'navigation_depth': 4,
-    'collapse_navigation': False
+    'collapse_navigation': False,
+    'logo_only': True
 }
+
+html_logo = "figures/libra-logo2-text.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
