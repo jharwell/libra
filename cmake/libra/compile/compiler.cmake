@@ -31,14 +31,6 @@ else()
   libra_message(STATUS "Disabling ccache by request")
 endif()
 
-# Remove default optimization flags for release
-set(CMAKE_CXX_FLAGS_RELEASE
-    ""
-    CACHE STRING "Flags used by the C++ compiler for release builds." FORCE)
-set(CMAKE_C_FLAGS_RELEASE
-    ""
-    CACHE STRING "Flags used by the C compiler for release builds." FORCE)
-#
 # ##############################################################################
 # Profile-Guided Optimization (PGO)
 # ##############################################################################
@@ -158,15 +150,6 @@ endif()
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
   list(APPEND _LIBRA_PUBLIC_DEFS -D__nostdlib__)
-endif()
-
-set(_LIBRA_PRIVATE_DEV_DEFS ${_LIBRA_PRIVATE_DEFS})
-set(_LIBRA_PUBLIC_DEV_DEFS ${_LIBRA_PUBLIC_DEFS})
-set(_LIBRA_PRIVATE_OPT_DEFS ${_LIBRA_PRIVATE_DEFS})
-set(_LIBRA_PUBLIC_OPT_DEFS ${_LIBRA_PUBLIC_DEFS})
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  list(APPEND _LIBRA_PRIVATE_OPT_DEFS -DNDEBUG)
 endif()
 
 libra_message(STATUS "Configuring compiler diagnostics")

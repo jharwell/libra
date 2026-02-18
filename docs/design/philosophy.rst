@@ -79,6 +79,93 @@ the each reason isn't a dealbreaker for using globbing.
    SAME update in multiple repos because we needed to tweak some aspect of how
    we built some of our projects.
 
+.. _design/philosophy/build-types:
+
+Build Types
+===========
+
+CMake provides the following build types:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Build type
+     - Compiler flags
+
+   * - Debug
+     - ``-O0 -g``
+
+   * - Release
+     - ``-O3 -DNDEBUG``
+
+   * - RelWithDebInfo
+     - ``-O2 -DNDEBUG -g``
+
+   * - MinSizeRel
+     - ``-Os -DNDEBUG``
+
+
+These build types cover a very large number of common use cases. E.g.:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Activity
+     - Build properties desired
+     - Maps to?
+
+   * - Initial development
+     - No optimizations, all assert()s enabled, debugging information included.
+     - ``Debug``.
+
+   * - Late stage debugging
+     - Max optimizations, assert()s could be compiled in/out, as
+       needed. Debugging information included for debugger usage.
+     - No direct match. ``Release`` maximizes optimizations via ``-O3``, but
+       also compiles out all assertions and doesn't include debug
+       info. ``RelWithDebInfo`` usually has ``-O2``, includes debug info, but
+       compiles out assert()S. However, when either of these is used in tandem
+       with a well-designed logging system, this is usually not a problem;
+       wrapped assert()s can still fire and emit a message, even if execution
+       continues.
+
+   * - Release to customer
+     - Max optimizations, no assert()s, or debug information.
+     - Yes - ``Release``.
+
+Thus, LIBRA does not define any custom build types, preferring to not add
+additional complexity when it does not provide strong benefit.
+
+Link Time Optimizations
+-----------------------
+
+An important consequence of this is that because CMake does not define default
+linker flags for each build type, it relies on compiler behavior to generate
+link-time optimizations of the appropriate level, if they are enabled. E.g., the
+GCC manpage says:
+
+.. code-block:: bash
+
+   If you do not specify an optimization level option -O at link time, then GCC
+   uses the highest optimization level used when compiling the object files.
+
+So *maybe* if you pass ``-O3`` to a source file you get that for the LTO level,
+but again maybe not:
+
+.. code-block:: bash
+
+  To use the link-time optimizer, -flto and optimization options should be
+  specified at compile time and during the final link.  It is recommended that
+  you compile all the files participating in the same link with the same options
+  and also specify those options at link time.
+
+
+Further complicating the picture, clang/intel compilers give you ``-O2`` if LTO
+is enabled, for a release build compiled with ``-O3``. So, following the
+principle of least surprise, LIBRA copies the compile-time optimization level
+associated with a given build type to the link options for all registered
+targets. This is apparently a historical oversight in CMake's design.
+
 .. _design/philosophy/floor-ceiling:
 
 Low Floor, High Ceiling

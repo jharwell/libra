@@ -50,8 +50,6 @@ option(LIBRA_SUMMARY "Show a configuration summary" OFF)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
-option(LIBRA_DEBUG_INFO
-       "Enable inclusion of debug info, independent of build type" ON)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)

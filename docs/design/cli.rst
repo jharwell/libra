@@ -537,12 +537,10 @@ Project-level config: `.libra.toml`::
   [profiles.dev]
   LIBRA_TESTS = "ON"
   LIBRA_SAN = "ASAN+UBSAN"
-  LIBRA_OPT_LEVEL = "-O0"
 
   [profiles.release]
   LIBRA_LTO = "ON"
   LIBRA_NATIVE_OPT = "ON"
-  LIBRA_OPT_LEVEL = "-O3"
 
   [ci]
   upload_coverage = "codecov"

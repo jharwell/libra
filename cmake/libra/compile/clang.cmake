@@ -12,20 +12,6 @@ include(libra/defaults)
 include(libra/compile/standard)
 
 # ##############################################################################
-# Debugging Options
-# ##############################################################################
-#[[.rst:
-.. cmake:variable:: LIBRA_DEBUG_INFO_CLANG
-
-If enabled: ``-g2``. If disabled: ``-g0``.
-]]
-if(LIBRA_DEBUG_INFO)
-  set(_LIBRA_DEBUG_INFO_OPTIONS "-g2")
-else()
-  set(_LIBRA_DEBUG_INFO_OPTIONS "-g0")
-endif()
-
-# ##############################################################################
 # Diagnostic Options
 # ##############################################################################
 set(LIBRA_BASE_DIAG_CANDIDATES
@@ -170,34 +156,30 @@ endif()
 # ##############################################################################
 # Optimization Options
 # ##############################################################################
-#[[.rst:
-.. cmake:variable:: LIBRA_OPT_LEVEL_CLANG
-
-Set to ``-O0`` on Debug builds and ``-O3`` on release builds, unless overriden.
-]]
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O0)
-  endif()
-
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O3)
-  endif()
-else()
-  libra_error(
-    "clang compiler plugin is only configured for {Debug, Release} builds")
-endif()
-
 if(LIBRA_NATIVE_OPT)
   list(APPEND _LIBRA_OPT_OPTIONS -march=native -mtune=native)
 endif()
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  # For handling lto with static libraries on MSI
-  set(CMAKE_AR "llvm-ar")
-  set(CMAKE_NM "llvm-nm")
-  set(CMAKE_RANLIB "llvm-ranlib")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
+                                               "RelWithDebInfo")
+  # Setting these prevents issues with static linking when using LTO
+  find_program(AR_EXECUTABLE llvm-ar)
+  if(AR_EXECUTABLE)
+    set(CMAKE_AR ${AR_EXECUTABLE})
+    libra_message(STATUS "Using llvm-ar=${AR_EXECUTABLE}")
+  endif()
+
+  find_program(NM_EXECUTABLE llvm-nm)
+  if(NM_EXECUTABLE)
+    set(CMAKE_NM ${NM_EXECUTABLE})
+    libra_message(STATUS "Using llvm-nm=${NM_EXECUTABLE}")
+  endif()
+
+  find_program(RANLIB_EXECUTABLE llvm-ranlib)
+  if(RANLIB_EXECUTABLE)
+    set(CMAKE_RANLIB ${RANLIB_EXECUTABLE})
+    libra_message(STATUS "Using llvm-ranlib=${RANLIB_EXECUTABLE}")
+  endif()
 endif()
 
 # ##############################################################################
@@ -427,8 +409,10 @@ endif()
 # ##############################################################################
 # Filtering build flags for versioning
 #
-# * No warnings, since they have no effect on the build
+# * No warnings
+# * No -fdiagnostics-XX options
+# * No -fcomment-XX options
 # ##############################################################################
-set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W")
+set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W|diagnostics|comment")
 # Regex intentionally matches nothing
 set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")

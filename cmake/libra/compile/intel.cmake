@@ -11,48 +11,40 @@ include(libra/compile/standard)
 include(libra/defaults)
 
 # ##############################################################################
-# Debugging Options
-# ##############################################################################
-#[[.rst:
-.. cmake:variable:: LIBRA_DEBUG_INFO_INTEL
-
-  If enabled: ``-g2``. If disabled: ``-g0``.
-]]
-if(LIBRA_DEBUG_INFO)
-  set(_LIBRA_DEBUG_INFO_OPTIONS "-g2")
-else()
-  set(_LIBRA_DEBUG_INFO_OPTIONS "-g0")
-endif()
-
-# cmake-format: off
-# ##############################################################################
 # Diagnostic Options
-#
-# 2259 - warnings about converting uint16_t to uint8_t losing precision
-# 10382 - Telling me what option xHost was setting
-# 2015 - One of the effective C++ warnings for always using // for comments
-# 2012 - Another effective C++ warnings for not using #defines
-# 11071 - Warnings about inlines not being honored
-# 1476- Tail padding of a base class
-# 1505 - Size of class affected by tail padding
-# 383 - Value copied to temporary; reference to temporary used
-# 411 - Class/struct defines no constructor to initialize member
-# 3180 - Warnings about unknown OpenMP pragmas
-# 177,869,593 - Unused variable/parameters
 # ##############################################################################
-# cmake-format: on
-
 set(LIBRA_BASE_DIAG_CANDIDATES
-    -w5
     -Wabi
-    -Winline
     -Wshadow
     -Wremarks
     -Wcomment
-    -wd10382
-    -wd177
-    -wd869
-    -wd593)
+    -Wall
+    -Wintrinsic-promote
+    -Wdeprecated
+    -Wformat
+    -Wunknown-pragmas
+    -Wrecommended-option
+    -Wreorder
+    -Wshadow
+    -Wunitialized
+    -Wextra-tokens
+    -Weverything
+    -fdiagnostics-color=always
+    -Wno-reserved-id-macro
+    -Wno-padded
+    -Wno-packed
+    -Wno-gnu-zero-variadic-macro-arguments
+    -Wno-language-extension-token
+    -Wno-gnu-statement-expression
+    -Wshorten-64-to-32
+    -Wno-cast-align
+    -Wno-weak-vtables
+    -Wno-documentation
+    -Wno-extra-semi-stmt
+    -Wno-extra-semi
+    -Wno-global-constructors
+    -Wno-exit-time-destructors
+    -fcomment-block-commands=internal,endinternal)
 
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
@@ -65,14 +57,11 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
   set(LIBRA_CXX_DIAG_CANDIDATES
       ${LIBRA_BASE_DIAG_CANDIDATES}
+      -fdiagnostics-show-template-tree
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
       -Weffc++
-      -wd2015
-      -wd2012
-      -wd11071
-      -wd1476
-      -wd1505
-      -wd383
-      -wd411)
+      -Wno-c99-extensions)
 
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
@@ -115,21 +104,8 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
 endforeach()
 
 # ##############################################################################
-# Optimization Options                                                         #
+# Optimization Options
 # ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O0)
-  endif()
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O3)
-  endif()
-else()
-  libra_error(
-    "Intel compiler plugin is only configured for {Debug, Release} builds")
-endif()
-
 #[[.rst:
 .. cmake:variable:: LIBRA_NATIVE_OPT_INTEL
 
@@ -307,7 +283,10 @@ endif()
 # ##############################################################################
 # Filtering build flags for versioning
 #
-# * No warnings, since they have no effect on the build
+# * No warnings
+# * No -fdiagnostics-XX options
+# * No -fcomment-XX options
 # ##############################################################################
-set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-w")
-set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "^q")
+set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^--W|diagnostics|comment")
+# Regex intentionally matches nothing
+set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")

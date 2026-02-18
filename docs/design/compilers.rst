@@ -58,11 +58,6 @@ are pure to get the docs to link unambiguously and are not present in the code.
      - clang/clang++
      - icx/icpx
 
-   * - :cmake:variable:`LIBRA_DEBUG_INFO`
-     - Yes
-     - Yes
-     - Yes
-
    * - :cmake:variable:`LIBRA_BUILD_PROF`
      - Yes
      - Yes
@@ -72,11 +67,6 @@ are pure to get the docs to link unambiguously and are not present in the code.
      - Yes
      - Yes
      - No
-
-   * - :cmake:variable:`LIBRA_OPT_LEVEL`
-     - Yes
-     - Yes
-     - Yes
 
    * - :cmake:variable:`LIBRA_NATIVE_OPT`
      - Yes

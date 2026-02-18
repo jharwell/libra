@@ -322,6 +322,19 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
     list(APPEND RAW_FLAGS_LINK ${LINK_OPTIONS})
   endif()
 
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" build_type_upper)
+
+  # Include the build flags you get with the selected cmake build type
+  list(APPEND RAW_FLAGS_COMPILE ${CMAKE_CXX_FLAGS_${build_type_upper}})
+  list(APPEND RAW_FLAGS_COMPILE ${CMAKE_C_FLAGS_${build_type_upper}})
+
+  # Include the build flags you get when using cmake's builtin IPO capability If
+  # a target has both C/C++ code, any duplicates will be removed below.
+  list(APPEND RAW_FLAGS_COMPILE ${CMAKE_CXX_COMPILE_OPTIONS_IPO})
+  list(APPEND RAW_FLAGS_LINK ${CMAKE_CXX_LINK_OPTIONS_IPO})
+  list(APPEND RAW_FLAGS_COMPILE ${CMAKE_C_COMPILE_OPTIONS_IPO})
+  list(APPEND RAW_FLAGS_LINK ${CMAKE_C_LINK_OPTIONS_IPO})
+
   extract_and_filter_flags(
     "${RAW_FLAGS_COMPILE}" "${_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX}"
     ${TARGET} FILTERED_FLAGS_COMPILE)

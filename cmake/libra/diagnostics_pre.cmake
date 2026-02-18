@@ -217,9 +217,6 @@ function(libra_config_summary)
       LIBRA_NO_CCACHE
       LIBRA_BUILD_PROF
       LIBRA_NATIVE_OPT
-      LIBRA_OPT_LEVEL
-      LIBRA_OPT_OPTIONS
-      LIBRA_DEBUG_INFO
       LIBRA_TESTS
       LIBRA_PGO
       LIBRA_CODE_COV
@@ -320,23 +317,12 @@ function(libra_config_summary)
     STATUS
       "Code coverage instrumentation.........: ${ColorBold}${EMIT_LIBRA_CODE_COV}${ColorReset} [LIBRA_CODE_COV] (${MAKE_NAME} {lcov-{preinfo,report}, gcovr-{report,check}, llvm-{summary,show,report-coverage,export-lcov}})"
   )
-  message(
-    STATUS
-      "Optimization level override...........: ${ColorBold}${EMIT_LIBRA_OPT_LEVEL}${ColorReset} [LIBRA_OPT_LEVEL]"
-  )
 
   message(
     STATUS
       "Native optimization options...........: ${ColorBold}${EMIT_LIBRA_NATIVE_OPT}${ColorReset} [LIBRA_NATIVE_OPT]"
   )
-  message(
-    STATUS
-      "Active optimization options...........: ${ColorBold}${EMIT_LIBRA_OPT_OPTIONS}${ColorReset} [LIBRA_OPT_OPTIONS]"
-  )
-  message(
-    STATUS
-      "Debug info.............................: ${ColorBold}${EMIT_LIBRA_DEBUG_INFO}${ColorReset} [LIBRA_DEBUG_INFO]"
-  )
+
   message(
     STATUS
       "Disable ccache........................: ${ColorBold}${EMIT_LIBRA_NO_CCACHE}${ColorReset} [LIBRA_NO_CCACHE]"

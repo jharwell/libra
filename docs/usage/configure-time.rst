@@ -233,6 +233,16 @@ which describe how these knobs are realized for each supported compiler.
 
    - ``make all-tests`` (all tests)
 
+.. cmake:variable:: LIBRA_NO_CCACHE
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Enable usage of ``ccache`` if it is found. 99% of the time you want this to
+   help speed up builds. However, if you are doing build profiling via
+   :cmake:variable:`LIBRA_BUILD_PROF`, then you would want to disable ``ccache``
+   to get accurate results.
+
 .. _usage/configure-time/builds:
 
 Knobs For Configuring Builds
@@ -448,19 +458,6 @@ Requires :cmake:variable:`LIBRA_PGO` to be set to ``GEN`` or ``USE``.
    - ``CXX`` - Use libc++, if the compiler supports it.
 
    - ``STDCXX`` - Use libstdc++, if the compiler supports it.
-
-.. cmake:variable:: LIBRA_DEBUG_INFO
-
-   :default: YES
-   :type: CACHE BOOL
-
-   Enable generation of debug symbols *independent* of whatever the default is
-   with a given cmake build type.
-
-   .. versionadded:: 0.8.4
-
-   .. versionchanged:: 0.9.36 Renamed to ``LIBRA_DEBUG_INFO``, and default to
-                       on.
 
 .. cmake:variable:: LIBRA_NATIVE_OPT
 

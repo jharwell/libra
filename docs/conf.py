@@ -116,14 +116,14 @@ cmake_doc_dirs = ["../cmake"]
 #
 html_theme = "sphinx_rtd_theme"
 
-plantuml = "java -jar /tmp/plantuml.jar"
-plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
+# plantuml = "java -jar /tmp/plantuml.jar"
+# plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
 
-if not os.path.exists("/tmp/plantuml.jar"):
-    print("DOCS: Downloading latest plantuml...")
-    response = requests.get(plantuml_url)
-    with open("/tmp/plantuml.jar", "wb") as file:
-        file.write(response.content)
+# if not os.path.exists("/tmp/plantuml.jar"):
+#     print("DOCS: Downloading latest plantuml...")
+#     response = requests.get(plantuml_url)
+#     with open("/tmp/plantuml.jar", "wb") as file:
+#         file.write(response.content)
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

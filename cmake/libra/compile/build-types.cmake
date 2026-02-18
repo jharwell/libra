@@ -13,8 +13,7 @@
 # Common Bits
 # ##############################################################################
 set(_LIBRA_COMMON_COMPILE_OPTIONS
-    ${LIBRA_OPT_LEVEL}
-    ${_LIBRA_DEBUG_INFO_OPTIONS}
+    ${_LIBRA_OPT_OPTIONS}
     ${_LIBRA_BUILD_PROF_OPTIONS}
     ${_LIBRA_FORTIFY_OPTIONS}
     ${_LIBRA_PGO_GEN_COMPILE_OPTIONS}
@@ -32,7 +31,6 @@ set(_LIBRA_CXX_COMPILE_OPTIONS
     ${_LIBRA_CXX_REPORT_OPTIONS} ${_LIBRA_CXX_STDLIB_COMPILE_OPTIONS})
 
 set(_LIBRA_COMMON_LINK_OPTIONS
-    ${LIBRA_OPT_LEVEL}
     ${_LIBRA_PGO_GEN_LINK_OPTIONS}
     ${_LIBRA_PGO_USE_LINK_OPTIONS}
     ${_LIBRA_SAN_LINK_OPTIONS}
@@ -64,46 +62,69 @@ foreach(target ${_LIBRA_TARGETS})
                       $<$<LINK_LANGUAGE:C>:${_LIBRA_C_LINK_OPTIONS}>)
   target_link_options(${target} PUBLIC
                       $<$<LINK_LANGUAGE:CXX>:${_LIBRA_CXX_LINK_OPTIONS}>)
+  target_compile_definitions(${target} PRIVATE ${_LIBRA_PRIVATE_DEFS})
+  target_compile_definitions(${target} PUBLIC ${_LIBRA_PUBLIC_DEFS})
 
+  # 2026-02-18 [JRH]: CMake doesn't set the link-time optimization level by
+  # build type the same way it does for compile-time optimization level. This
+  # only matters for IPO, and we want to maximize effectiveness. We do this in
+  # general for consistency.
+  #
+  # We don't modify the CMAKE_C_FLAGS_XX or CMAKE_CXX_FLAGS_XX variables because
+  # that's a global change, and changes the definition of those built-in build
+  # types, which others may rely on.
+  get_target_property(lang ${target} LINKER_LANGUAGE)
+
+  set(opt_genex "")
+  foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+    string(REGEX MATCH "-O[0-9sgz]?" opt_flag
+                 "${CMAKE_${lang}_FLAGS_${config}}")
+    if(opt_flag)
+      string(APPEND opt_genex "$<$<CONFIG:${config}>:${opt_flag}>")
+    endif()
+  endforeach()
+  if(opt_genex)
+    target_link_options({target} PRIVATE ${opt_genex})
+  endif()
 endforeach()
-
-# ##############################################################################
-# Application To Specific Targets
-# ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  foreach(target ${_LIBRA_TARGETS})
-    target_compile_definitions(${target} PRIVATE ${_LIBRA_PRIVATE_DEV_DEFS})
-    target_compile_definitions(${target} PUBLIC ${_LIBRA_PUBLIC_DEV_DEFS})
-  endforeach()
-endif()
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  foreach(target ${_LIBRA_TARGETS})
-    target_compile_definitions(${target} PRIVATE ${_LIBRA_PRIVATE_OPT_DEFS})
-    target_compile_definitions(${target} PUBLIC ${_LIBRA_PUBLIC_OPT_DEFS})
-    target_compile_options(${target} PRIVATE ${_LIBRA_OPT_OPTIONS})
-  endforeach()
-endif()
 
 # ##############################################################################
 # Global Application
 # ##############################################################################
 if(LIBRA_GLOBAL_C_FLAGS AND "C" IN_LIST LANGUAGES_LIST)
   add_compile_options(
-    "$<$<CONFIG:Release>:${_LIBRA_C_COMPILE_OPTIONS} ${_LIBRA_OPT_OPTIONS} ${_LIBRA_PUBLIC_OPT_DEFS} ${_LIBRA_PRIVATE_OPT_DEFS}>"
+    "$<$<CONFIG:Release>:${_LIBRA_C_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
   )
   add_compile_options(
-    "$<$<CONFIG:Debug>:${_LIBRA_C_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEV_DEFS} ${_LIBRA_PRIVATE_DEV_DEFS}>"
+    "$<$<CONFIG:Debug>:${_LIBRA_C_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
   )
   add_link_options(${_LIBRA_C_LINK_OPTIONS})
+
+  set(opt_genex "")
+  foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+    string(REGEX MATCH "-O[0-9sgz]?" opt_flag "${CMAKE_C_FLAGS_${config}}")
+    if(opt_flag)
+      string(APPEND opt_genex "$<$<CONFIG:${config}>:${opt_flag}>")
+    endif()
+  endforeach()
+  if(opt_genex)
+    add_link_options(${opt_genex})
+  endif()
 endif()
 
 if(_LIBRA_GLOBAL_CXX_FLAGS)
+  add_compile_options("$<$<CONFIG:Release>:${_LIBRA_CXX_COMPILE_OPTIONS}>")
   add_compile_options(
-    "$<$<CONFIG:Release>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_OPT_OPTIONS} ${_LIBRA_PUBLIC_OPT_DEFS} ${_LIBRA_PRIVATE_OPT_DEFS}>"
-  )
-  add_compile_options(
-    "$<$<CONFIG:Debug>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEV_DEFS} ${_LIBRA_PRIVATE_DEV_DEFS}>"
+    "$<$<CONFIG:Debug>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
   )
   add_link_options(${_LIBRA_CXX_LINK_OPTIONS})
+  foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+    string(REGEX MATCH "-O[0-9sgz]?" opt_flag "${CMAKE_CXX_FLAGS_${config}}")
+    if(opt_flag)
+      string(APPEND opt_genex "$<$<CONFIG:${config}>:${opt_flag}>")
+    endif()
+  endforeach()
+  if(opt_genex)
+    add_link_options(${opt_genex})
+  endif()
 endif()
