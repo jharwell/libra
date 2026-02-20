@@ -26,7 +26,6 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wrecommended-option
     -Wreorder
     -Wshadow
-    -Wunitialized
     -Wextra-tokens
     -Weverything
     -fdiagnostics-color=always
@@ -60,7 +59,6 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
       -fdiagnostics-show-template-tree
       -Wno-c++98-compat
       -Wno-c++98-compat-pedantic
-      -Weffc++
       -Wno-c99-extensions)
 
 else()

@@ -156,13 +156,3 @@ libra_message(STATUS "Configuring compiler diagnostics")
 # set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
 get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
-
-# Only warn about mismatch if both languages are enabled
-if("C" IN_LIST languages AND "CXX" IN_LIST languages)
-  if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "${CMAKE_C_COMPILER_ID}")
-    libra_message(
-      WARNING
-      "Mixing compiler families: C=${CMAKE_C_COMPILER_ID}, CXX=${CMAKE_CXX_COMPILER_ID}"
-    )
-  endif()
-endif()

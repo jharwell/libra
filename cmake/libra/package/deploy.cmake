@@ -83,7 +83,8 @@ include(libra/messaging)
 
   **Expected Files:**
 
-  The function automatically searches for these files in ``CMAKE_SOURCE_DIR``:
+  The function automatically searches for these files in
+  ``CMAKE_CURRENT_SOURCE_DIR``:
 
   - ``LICENSE*`` - License file (used for package and license detection)
   - ``README*`` - README file
@@ -159,8 +160,8 @@ macro(
   endforeach()
 
   # Find common package files
-  file(GLOB LICENSE "${CMAKE_SOURCE_DIR}/LICENSE*")
-  file(GLOB README "${CMAKE_SOURCE_DIR}/README*")
+  file(GLOB LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE*")
+  file(GLOB README "${CMAKE_CURRENT_SOURCE_DIR}/README*")
 
   if(NOT LICENSE)
     libra_message(
