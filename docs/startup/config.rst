@@ -86,7 +86,7 @@ diagnostic coverage.
    - Incorrect: ``gcc`` + ``clang++``, ``icx`` + ``g++``
 
    Mixing compiler vendors can cause subtle ABI incompatibilities and linking
-   errors.  LIBRA will warn if it detects a mismatch during configuration.
+   errors.
 
 Why Not Windows?
 ----------------

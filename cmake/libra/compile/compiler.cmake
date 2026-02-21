@@ -12,17 +12,19 @@ include(libra/defaults)
 # ##############################################################################
 # Configure CFLAGS and whatnot for different C/C++ compilers.
 # ##############################################################################
-# Project options
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 if(NOT LIBRA_NO_CCACHE)
   # Configure CCache if available
   find_program(CCACHE_EXECUTABLE ccache)
 
   if(CCACHE_EXECUTABLE)
-    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_EXECUTABLE})
-    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_EXECUTABLE})
+    # 2026-02-20 [JRH]: You can't set CMAKE_{C,CXX}_COMPILER_LAUNCHER set,
+    # because for those to work they have to be set BEFORE project(), and this
+    # file is included after that. Also, using those launcher variables can
+    # result in the LINKER_LANGUAGE not being correctly detected in some cases,
+    # so this is a much better way of doing it.
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_EXECUTABLE})
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_EXECUTABLE})
+
     libra_message(STATUS "Using ccache=${CCACHE_EXECUTABLE}")
   else()
     libra_message(STATUS "Not using ccache [disabled=notfound]")

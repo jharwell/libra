@@ -329,11 +329,15 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   list(APPEND RAW_FLAGS_COMPILE ${CMAKE_C_FLAGS_${build_type_upper}})
 
   # Include the build flags you get when using cmake's builtin IPO capability If
-  # a target has both C/C++ code, any duplicates will be removed below.
-  list(APPEND RAW_FLAGS_COMPILE ${CMAKE_CXX_COMPILE_OPTIONS_IPO})
-  list(APPEND RAW_FLAGS_LINK ${CMAKE_CXX_LINK_OPTIONS_IPO})
-  list(APPEND RAW_FLAGS_COMPILE ${CMAKE_C_COMPILE_OPTIONS_IPO})
-  list(APPEND RAW_FLAGS_LINK ${CMAKE_C_LINK_OPTIONS_IPO})
+  # a target has both C/C++ code, any duplicates will be removed below. You
+  # can't include these unconditionally, because (I've learned) these variables
+  # are non-empty even with IPO is not enabled.
+  if(LIBRA_LTO)
+    list(APPEND RAW_FLAGS_COMPILE ${CMAKE_CXX_COMPILE_OPTIONS_IPO})
+    list(APPEND RAW_FLAGS_LINK ${CMAKE_CXX_LINK_OPTIONS_IPO})
+    list(APPEND RAW_FLAGS_COMPILE ${CMAKE_C_COMPILE_OPTIONS_IPO})
+    list(APPEND RAW_FLAGS_LINK ${CMAKE_C_LINK_OPTIONS_IPO})
+  endif()
 
   extract_and_filter_flags(
     "${RAW_FLAGS_COMPILE}" "${_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX}"

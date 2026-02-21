@@ -33,7 +33,7 @@ function(libra_add_library)
 
     set(NAME ${ARG_NAME})
     set(_rest ${ARG_UNPARSED_ARGUMENTS})
-
+    message("DIAG: add_library(${NAME} ${_rest})")
     # Positional form: <name> ...
   else()
     set(NAME ${ARGV0})

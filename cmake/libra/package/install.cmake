@@ -447,9 +447,9 @@ function(libra_register_target_for_install TARGET)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}
     NAMESPACE ${TARGET}::)
 
-  libra_message(STATUS
-                "Registered target for install: ${TARGET} (${TARGET_TYPE})")
-  libra_message(STATUS "  Libraries -> ${CMAKE_INSTALL_LIBDIR}")
+  libra_message(STATUS "Registered target for install: ${TARGET}")
+  libra_message(
+    STATUS "  Libraries -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   libra_message(STATUS "  Headers -> ${CMAKE_INSTALL_PREFIX}/include")
   libra_message(
     STATUS

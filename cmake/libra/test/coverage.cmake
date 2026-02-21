@@ -56,8 +56,7 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
     libra_message(STATUS "Using GCC coverage for GNU format: ${GCOV_TOOL}")
 
   else()
-    libra_error(
-                  "Unsupported compiler for coverage: ${CMAKE_CXX_COMPILER_ID}")
+    libra_error("Unsupported compiler for coverage: ${CMAKE_CXX_COMPILER_ID}")
   endif()
 endfunction()
 
@@ -114,7 +113,7 @@ function(_libra_get_test_executables OUTPUT_VAR)
   endmacro()
 
   set(all_targets "")
-  get_all_targets_recursive(all_targets ${CMAKE_SOURCE_DIR})
+  get_all_targets_recursive(all_targets ${CMAKE_CURRENT_SOURCE_DIR})
 
   # Filter for test executables
   foreach(target ${all_targets})
@@ -252,7 +251,7 @@ endfunction()
 function(_libra_coverage_register_llvm)
   if(NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES
                                                  "Clang"))
-    libra_error( "llvm-cov coverage requires clang compiler")
+    libra_error("llvm-cov coverage requires clang compiler")
   endif()
 
   _libra_detect_llvm_tools(LLVM_COV LLVM_PROFDATA)

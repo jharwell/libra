@@ -437,13 +437,17 @@ endfunction()
     ``git rev-parse --abbrev-ref HEAD``.
 
   - ``LIBRA_TARGET_FLAGS_COMPILE`` - The configured compiler flags relevant
-    for building (excludes diagnostic flags like ``-W*``).
+    for building (excludes diagnostic flags like ``-W``).
 
   - ``LIBRA_TARGET_FLAGS_LINK`` - The configured linker flags relevant for
-    building (excludes diagnostic flags like ``-W*``).
+    building (excludes diagnostic flags like ``-W``). Note that IPO related
+    flags for GCC/clang do *not* appear here, because CMake relies on the
+    compiler driver to inject those into actual compiler commands during the
+    final link if the compiler sees that IPO is active at compile time. This is
+    not true for the Intel compilers.
 
-  You can also use any standard CMake variables (e.g., ``CMAKE_C_FLAGS_RELEASE``,
-  ``PROJECT_VERSION``, ``CMAKE_BUILD_TYPE``, etc.).
+  You can also use any standard CMake variables (e.g.,
+  ``CMAKE_C_FLAGS_RELEASE``, ``PROJECT_VERSION``, ``CMAKE_BUILD_TYPE``, etc.).
 
   **Example:**
 

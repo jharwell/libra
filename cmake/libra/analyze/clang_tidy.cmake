@@ -113,8 +113,8 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
           ${CHECK_TARGET}-${CATEGORY}-${file_target}
           COMMAND
             ${clang_tidy_EXECUTABLE}
-            --header-filter=${CMAKE_SOURCE_DIR}/include/* ${HEADER_EXCLUDES}
-            --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+            --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/*
+            ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
             ${EXTRACTED_ARGS} ${JOB_ARGS}
             --extra-arg=--std=c++${LIBRA_CXX_STANDARD}

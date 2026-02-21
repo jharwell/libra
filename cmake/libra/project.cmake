@@ -193,11 +193,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_LIBRA_RUNTIME_OUTPUT_DIRECTORY})
 # ##############################################################################
 # Source Definitions
 # ##############################################################################
-# Project name is set via CMAKE_SOURCE_DIR to get the name of the directory that
-# LIBRA is used in, not the name of the directory where LIBRA resides (which can
-# be anywhere).
+# Project name is set via CMAKE_CURRENT_SOURCE_DIR to get the name of the
+# directory that LIBRA is used in, not the name of the directory where LIBRA
+# resides (which can be anywhere).
 if(NOT "${${PROJECT_NAME}_DIR}")
-  set(${PROJECT_NAME}_DIR ${CMAKE_SOURCE_DIR})
+  set(${PROJECT_NAME}_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 set(${PROJECT_NAME}_SRC_PATH ${${PROJECT_NAME}_DIR}/src)
@@ -238,10 +238,8 @@ set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
 # ##############################################################################
 # Target Definitions
 # ##############################################################################
-# Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
-# located in under cmake/project-local.cmake in the root of whatever
-# directory/repo is using LIBRA.
-include(${CMAKE_SOURCE_DIR}/cmake/project-local.cmake)
+# Add project-local config.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/project-local.cmake)
 
 # ##############################################################################
 # Build/Compiler Configuration

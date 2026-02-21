@@ -84,7 +84,7 @@ foreach(target ${_LIBRA_TARGETS})
     endif()
   endforeach()
   if(opt_genex)
-    target_link_options({target} PRIVATE ${opt_genex})
+    target_link_options(${target} PRIVATE ${opt_genex})
   endif()
 endforeach()
 

@@ -12,9 +12,7 @@ Before starting, ensure your system meets the :ref:`startup/config`.
 1. Choose Your Integration
 ===========================
 
-Select the integration method that matches your workflow.
-
-**Which integration method should you choose?**
+Select the integration method that matches your workflow:
 
 .. list-table::
    :header-rows: 1
@@ -28,9 +26,14 @@ Select the integration method that matches your workflow.
      - Multi-repo organizations, complex dependencies
      - You already use Conan, or manage 5+ related projects
 
+   * - **CMake Package Manager**
+     - Multi-repo builds without Conan
+     - You want all dependency management to be handled within CMake
+
    * - **CMake Package**
      - System-wide or shared team installation
      - Multiple developers sharing one LIBRA installation
+
 
    * - **In Situ (Submodule)**
      - Quick prototyping, standalone repos, CI/CD simplicity
@@ -57,9 +60,48 @@ Select the integration method that matches your workflow.
          find_package(libra REQUIRED)  # Conan makes package available
          project(my_project CXX)
 
+   .. group-tab:: CMake Package Manager (CPM)
+
+      Best for managing dependencies from with CMake and decent multi-repo
+      scaling.
+
+      **Step A: Create CMakeLists.txt**
+
+      .. code-block:: cmake
+
+         cmake_minimum_required(VERSION 3.31)
+
+         project(my_project CXX)
+         file(DOWNLOAD
+              https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.2/CPM.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
+         set(CPM_SOURCE_CACHE
+             $ENV{HOME}/.cache/CPM
+             CACHE PATH "CPM source cache")
+
+         # We want CPM to prefer local packages if they exist. This allows
+         # seamless mixing of local and remote repos when doing local
+         # development.
+         set(CPM_USE_LOCAL_PACKAGES ON)
+         include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
+
+         cpmaddpackage(
+           NAME
+           libra
+           GIT_REPOSITORY
+           https://github.com/jharwell/libra.git)
+
+         # Make LIBRA CMake code available
+         list(APPEND CMAKE_MODULE_PATH ${libra_SOURCE_DIR}/cmake)
+         include(libra/project)
+
    .. group-tab:: CMake Package
 
-      Best for standard system-wide or prefix-based installs.
+      Best for standard system-wide or prefix-based installs. Requires LIBRA to
+      be installed to either a system prefix or the same
+      :cmake:variable:`CMAKE_INSTALL_PREFIX` used by consuming projects for it
+      to be available via :cmake:command:`find_package()` without modifying
+      search paths.
 
       **Step A: Install LIBRA**
 
@@ -93,8 +135,8 @@ Select the integration method that matches your workflow.
 2. Configure Your Project
 ==========================
 
-LIBRA expects your logic to live in ``cmake/project-local.cmake``. This keeps your
-root ``CMakeLists.txt`` clean and portable.
+LIBRA expects your logic to live in ``cmake/project-local.cmake``. This keeps
+your root ``CMakeLists.txt`` clean and portable.
 
 **Create cmake/project-local.cmake:**
 
@@ -110,15 +152,16 @@ root ``CMakeLists.txt`` clean and portable.
 
 .. note::
 
-   **What is** ``libra_add_executable()`` **?**
+   **What is** :cmake:command:`libra_add_executable()` **?**
 
    This function wraps CMake's ``add_executable()`` and automatically applies
    LIBRA's compiler flags, analysis targets, and quality gates. You can still
    use standard CMake commands like ``add_executable()`` and ``add_library()``,
    but they won't receive LIBRA features unless you manually apply them.
 
-   For LIBRA-managed builds, always prefer ``libra_add_executable()`` and
-   ``libra_add_library()``.
+   For LIBRA-managed builds, always prefer
+   :cmake:command:`libra_add_executable()` and
+   :cmake:command:`libra_add_library()`.
 
 3. Build & Run
 ==============
@@ -234,26 +277,29 @@ Now that you have a working LIBRA project:
 Troubleshooting
 ===============
 
-**"CMake Error: Could not find package libra"** Ensure you've installed LIBRA or
-set ``CMAKE_PREFIX_PATH`` to point to the install location. For Conan, verify
-``conan install`` completed successfully.
+**"CMake Error: Could not find package libra"**
+ Ensure you've installed LIBRA or set ``CMAKE_PREFIX_PATH`` to point to the
+ install location. For Conan, verify ``conan install`` completed successfully.
 
-**"No targets to build"** Create ``cmake/project-local.cmake`` with at least one
-``libra_add_executable()`` or ``libra_add_library()`` call.
+**"No targets to build"**
+ Create ``cmake/project-local.cmake`` with at least one
+ ``libra_add_executable()`` or ``libra_add_library()`` call.
 
-**"Tests not discovered"** Ensure test files are named ``*-utest.cpp``,
-``*-itest.cpp``, or ``*-rtest.cpp`` and live in ``tests/``. Verify
-``LIBRA_TESTS=ON`` was set during configuration.
+**"Tests not discovered"**
+ Ensure test files are named ``*-utest.cpp``,
+ ``*-itest.cpp``, or ``*-rtest.cpp`` and live in ``tests/``. Verify
+ ``LIBRA_TESTS=ON`` was set during configuration.
 
-**"Globbing not finding my files"** LIBRA expects sources in ``src/``, headers
-in ``include/``, tests in ``tests/``.  If your structure differs, either
-reorganize or disable globbing and list files manually in
-``project-local.cmake``.
+**"Globbing not finding my files"**
+ LIBRA expects sources in ``src/``, headers in ``include/``, tests in
+ ``tests/``.  If your structure differs, either reorganize or disable globbing
+ and list files manually in ``project-local.cmake``.
 
-**"make: *** No rule to make target 'build-and-test'"** Ensure
-``LIBRA_TESTS=ON`` was set during cmake configuration. This target only exists
-when tests are enabled.
+**"make: *** No rule to make target 'build-and-test'"**
+ Ensure ``LIBRA_TESTS=ON`` was set during cmake configuration. This target only
+ exists when tests are enabled.
 
-**"Compiler version not supported"** LIBRA requires GCC >= 9, Clang >= 17, or
-Intel >= 2024.1. Check your compiler version with ``gcc --version``, ``clang
---version``, or ``icx --version``.
+**"Compiler version not supported"**
+ LIBRA requires GCC >= 9, Clang >= 17, or
+ Intel >= 2024.1. Check your compiler version with ``gcc --version``, ``clang
+ --version``, or ``icx --version``.

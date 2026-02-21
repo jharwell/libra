@@ -311,7 +311,8 @@ If enabled and :cmake:variable:`LIBRA_CODE_COV_NATIVE` is true:
 coverage format, and enables processing with LLVM tools and the various
 ``llvm-`` targets. Because of the nature of llvm-profdata merging, *all*
 executables which have been defined as targets in
-:cmake:variable:`CMAKE_SOURCE_DIR` (recursively) are included for merging.
+:cmake:variable:`CMAKE_CURRENT_SOURCE_DIR` (recursively) are included for
+merging.
 
 If enabled and :cmake:variable:`LIBRA_CODE_COV_NATIVE` is false: ``--coverage
 -fno-inline`` to compiler, ``--coverage`` to linker. This makes clang emit .gcno

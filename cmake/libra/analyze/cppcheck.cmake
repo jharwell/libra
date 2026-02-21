@@ -35,6 +35,11 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
 
   get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
 
+  # This may be required
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND LIBRA_CPPCHECK_EXTRA_ARGS -D__linux__)
+  endif()
+
   # If a compilation database is used, cppcheck doesn't let you check a specific
   # file.
   if(USE_DATABASE)
