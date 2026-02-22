@@ -7,6 +7,19 @@
 #
 
 ################################################################################
+# Stable path anchor
+#
+# LIBRA_TESTS_DIR always points to the tests/ directory regardless of where
+# the currently-running .bats file lives (top-level tests/ or suites/).
+# It is derived from the location of this file itself (BASH_SOURCE[0]).
+################################################################################
+LIBRA_TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export LIBRA_TESTS_DIR
+
+# LIBRA repository root: one level above tests/
+LIBRA_SOURCE_ROOT_DEFAULT="$(cd "${LIBRA_TESTS_DIR}/.." && pwd)"
+
+################################################################################
 # Compiler Configuration
 ################################################################################
 
@@ -42,16 +55,127 @@ setup_libra_test() {
     export LANGUAGE="${LANGUAGE:-both}"
     export LOGLEVEL="${LOGLEVEL:-STATUS}"
 
+    # Consumption mode: one of in_situ | add_subdirectory | installed_package | cpm | conan
+    export LIBRA_CONSUME_MODE="${LIBRA_CONSUME_MODE:-in_situ}"
+
+    # Allow callers to override the repo root; default to auto-detected value
+    export LIBRA_SOURCE_ROOT="${LIBRA_SOURCE_ROOT:-$LIBRA_SOURCE_ROOT_DEFAULT}"
+
     # Create unique test directory in BATS temp space
     export TEST_BUILD_DIR="$BATS_TEST_TMPDIR/build"
     mkdir -p "$TEST_BUILD_DIR"
+
+    # Run mode-specific one-time setup
+    case "$LIBRA_CONSUME_MODE" in
+        in_situ)           ;;  # nothing extra needed
+        add_subdirectory)  ;;  # nothing extra needed - source root already set
+        installed_package) _libra_setup_installed_package ;;
+        cpm)               _libra_setup_cpm ;;
+        conan)             _libra_setup_conan ;;
+        *)
+            echo "ERROR: Unknown LIBRA_CONSUME_MODE: $LIBRA_CONSUME_MODE" >&2
+            return 1
+            ;;
+    esac
 }
 
-# Teardown function (optional, BATS handles cleanup)
-teardown_libra_test() {
-    # BATS automatically cleans up BATS_TEST_TMPDIR
-    # Add custom cleanup here if needed
-    :
+################################################################################
+# Consumption Mode: One-time setup helpers
+#
+# Each function is called from setup_libra_test() for the matching mode.
+# They use BATS_RUN_TMPDIR (shared across all tests in a single `bats` run)
+# so expensive operations (cmake install, conan create) happen at most once.
+################################################################################
+
+# installed_package mode: build and install LIBRA into a shared prefix once.
+# Sets LIBRA_INSTALL_PREFIX.
+_libra_setup_installed_package() {
+    export LIBRA_INSTALL_PREFIX="${BATS_RUN_TMPDIR}/libra_install"
+    local stamp="${LIBRA_INSTALL_PREFIX}/.installed"
+    local build_dir="${BATS_RUN_TMPDIR}/libra_install_build"
+
+    # Idempotent: skip if already done in this bats invocation
+    [[ -f "$stamp" ]] && return 0
+
+    mkdir -p "$build_dir"
+    cmake -S "$LIBRA_SOURCE_ROOT" \
+          -B "$build_dir" \
+          -DCMAKE_INSTALL_PREFIX="$LIBRA_INSTALL_PREFIX" \
+          --log-level=ERROR \
+        || { echo "ERROR: cmake configure failed for installed_package setup" >&2; return 1; }
+
+    cmake --install "$build_dir" \
+        || { echo "ERROR: cmake install failed for installed_package setup" >&2; return 1; }
+
+    touch "$stamp"
+}
+
+# cpm mode: resolve the path to the vendored CPM.cmake.
+# Sets LIBRA_CPM_CMAKE.
+_libra_setup_cpm() {
+    export LIBRA_CPM_CMAKE="${LIBRA_TESTS_DIR}/consume/cpm/CPM.cmake"
+    if [[ ! -f "$LIBRA_CPM_CMAKE" ]]; then
+        echo "ERROR: CPM.cmake not found at $LIBRA_CPM_CMAKE" >&2
+        return 1
+    fi
+}
+
+# conan mode: run `conan create` once to populate the local cache.
+# Sets LIBRA_CONAN_VERSION.
+_libra_setup_conan() {
+    skip_if_conan_missing
+
+    # Read version from the file written by run_suite_conan.sh.
+    # Fall back to environment variable for cases where the suite runner
+    # set it directly (e.g. single-file invocation without -j).
+    local version_file="${TMPDIR:-/tmp}/libra_conan_version"
+    if [[ -z "${LIBRA_CONAN_VERSION:-}" ]]; then
+        if [[ -f "$version_file" ]]; then
+            LIBRA_CONAN_VERSION="$(cat "$version_file")"
+            export LIBRA_CONAN_VERSION
+        else
+            echo "ERROR: LIBRA_CONAN_VERSION not set and $version_file not found" \
+                 "- was run_suite_conan.sh used?" >&2
+            return 1
+        fi
+    fi
+}
+
+################################################################################
+# Consumption Mode: cmake argument injection
+#
+# Returns (via echo) the list of -D flags that run_libra_cmake_test() and
+# reconfigure_libra_test() must pass to cmake for the active mode.
+################################################################################
+_consume_mode_cmake_args() {
+    case "$LIBRA_CONSUME_MODE" in
+        in_situ)
+            # Pass source root so libra_consume.cmake can use it even in in_situ
+            echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}"
+            ;;
+        add_subdirectory)
+            echo "-DLIBRA_CONSUME_MODE=add_subdirectory"
+            echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}"
+            ;;
+        installed_package)
+            echo "-DLIBRA_CONSUME_MODE=installed_package"
+            echo "-DCMAKE_PREFIX_PATH=${LIBRA_INSTALL_PREFIX}"
+            ;;
+        cpm)
+            echo "-DLIBRA_CONSUME_MODE=cpm"
+            echo "-DLIBRA_CPM_CMAKE=${LIBRA_CPM_CMAKE}"
+            echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}"
+            ;;
+        conan)
+            # Signal the mode; the toolchain path is injected separately in
+            # run_libra_cmake_test/reconfigure_libra_test where test_dir is
+            # in scope, since CMAKE_TOOLCHAIN_FILE must include the per-test
+            # build directory path.
+            echo "-DLIBRA_CONSUME_MODE=conan"
+            echo "-DLIBRA_CONAN_VERSION=${LIBRA_CONAN_VERSION}"
+            ;;
+        # Unknown modes are caught in setup_libra_test; nothing to do here
+    esac
 }
 
 ################################################################################
@@ -92,6 +216,14 @@ skip_if_compiler_missing() {
     fi
 }
 
+# Skip test if conan is not installed or not on PATH
+# Usage: skip_if_conan_missing
+skip_if_conan_missing() {
+    if ! command -v conan &>/dev/null; then
+        skip "conan not found on PATH - install conan to run conan consumption tests"
+    fi
+}
+
 # Validate compiler type
 # Usage: validate_compiler_type COMPILER_TYPE
 validate_compiler_type() {
@@ -124,7 +256,7 @@ run_libra_cmake_test() {
 
     # Build cmake arguments
     local cmake_args=(
-        "$BATS_TEST_DIRNAME/sample_build_info"
+        "$LIBRA_TESTS_DIR/sample_build_info"
         -DCMAKE_INSTALL_PREFIX="$test_dir/install"
         -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
         -DLIBRA_TEST_LANGUAGE="$lang_upper"
@@ -138,18 +270,65 @@ run_libra_cmake_test() {
         cmake_args+=(-DCMAKE_CXX_COMPILER="$compiler")
     fi
 
+    # Inject consumption-mode wiring (-D flags for the active LIBRA_CONSUME_MODE)
+    local _mode_args
+    while IFS= read -r _flag; do
+        [[ -n "$_flag" ]] && cmake_args+=("$_flag")
+    done < <(_consume_mode_cmake_args)
+
+    # For conan mode: run `conan install` to generate conan_toolchain.cmake
+    # in the build dir before cmake runs.
+    # We use --requires rather than pointing at the source tree -- the latter
+    # treats LIBRA's conanfile.py as a consumer recipe and tries to install
+    # *its* dependencies (including tool_requires like cmake) rather than
+    # installing libra itself.
+    if [[ "${LIBRA_CONSUME_MODE:-in_situ}" == "conan" ]]; then
+        mkdir -p "$test_dir/conan"
+
+        # Write a throwaway consumer conanfile into the per-test dir so conan
+        # has no reason to touch the source tree. CMakeUserPresets.json will
+        # be written here alongside it, isolated per test.
+        cat > "$test_dir/conanfile.txt" << EOF
+[requires]
+libra/${LIBRA_CONAN_VERSION}
+
+[generators]
+CMakeToolchain
+EOF
+
+        conan install "$test_dir/conanfile.txt" \
+              --output-folder="$test_dir/conan" \
+              -s build_type="${CMAKE_BUILD_TYPE:-Debug}" \
+              --build=missing
+        cmake_args+=("-DCMAKE_TOOLCHAIN_FILE=$test_dir/conan/conan_toolchain.cmake")
+        cmake_args+=("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$test_dir/bin")
+    fi
+
     # Add user-provided cmake options
     cmake_args+=("${cmake_options[@]}")
+
+    echo "DEBUG: test_dir exists=$([ -d "$test_dir" ] && echo yes || echo no) path=$test_dir" >&3
 
     # Run cmake
     cd "$test_dir"
 
-    run cmake "${cmake_args[@]}"  &> /dev/null
-    [ "$status" -eq 0 ] || return 1
+    run cmake "${cmake_args[@]}" > "$test_dir/cmake.log" 2>&1
+    echo "DEBUG cmake exit=$? log=$test_dir/cmake.log" >&3
+    cat "$test_dir/cmake.log" >&3
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: cmake failed with status $status" >&3
+        echo "$output" >&3
+        return 1
+    fi
 
-    # Run make
-    run make &> /dev/null
-    [ "$status" -eq 0 ] || return 1
+    run make > "$test_dir/make.log" 2>&1
+    echo "DEBUG make exit=$? log=$test_dir/make.log" >&3
+    cat "$test_dir/make.log" >&3
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: make failed with status $status" >&3
+        echo "$output" >&3
+        return 1
+    fi
 
     # Return to original directory and output test dir path
     cd - > /dev/null
@@ -169,7 +348,7 @@ reconfigure_libra_test() {
     local compiler=$(get_compiler "$COMPILER_TYPE" "$lang")
 
     local cmake_args=(
-        "$BATS_TEST_DIRNAME/sample_build_info"
+        "$LIBRA_TESTS_DIR/sample_build_info"
         -DLIBRA_TEST_LANGUAGE="$lang_upper"
         --log-level="$LOGLEVEL"
     )
@@ -178,6 +357,25 @@ reconfigure_libra_test() {
         cmake_args+=(-DCMAKE_C_COMPILER="$compiler")
     else
         cmake_args+=(-DCMAKE_CXX_COMPILER="$compiler")
+    fi
+
+    # Inject consumption-mode wiring so reconfiguration stays consistent
+    local _mode_args
+    while IFS= read -r _flag; do
+        [[ -n "$_flag" ]] && cmake_args+=("$_flag")
+    done < <(_consume_mode_cmake_args)
+
+    # conan install is idempotent; re-run to refresh the toolchain if needed
+    if [[ "${LIBRA_CONSUME_MODE:-in_situ}" == "conan" ]]; then
+        mkdir -p "$test_dir/conan"
+        conan install \
+              --requires="libra/${LIBRA_CONAN_VERSION}" \
+              --output-folder="$test_dir/conan" \
+              --generator=CMakeToolchain \
+              -s build_type="${CMAKE_BUILD_TYPE:-Debug}" \
+              --build=missing \
+            &>/dev/null
+        cmake_args+=("-DCMAKE_TOOLCHAIN_FILE=$test_dir/conan/conan_toolchain.cmake")
     fi
 
     cmake_args+=("${cmake_options[@]}")

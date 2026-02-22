@@ -100,6 +100,7 @@ function(enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
 
   # Define the test executable
   add_executable(${PROJECT_NAME}-${test_name} EXCLUDE_FROM_ALL ${t})
+  _libra_configure_standard(${PROJECT_NAME}-${test_name})
   set_target_properties(${PROJECT_NAME}-${test_name} PROPERTIES LINKER_LANGUAGE
                                                                 CXX)
 
@@ -125,7 +126,7 @@ function(enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   # Add the test executable to CTest
   if(INCLUDE_IN_CTEST)
     add_test(${test_name}
-             ${LIBRA_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}-${test_name})
+             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}-${test_name})
   endif()
 
   # Add to global umbrella target
@@ -148,6 +149,8 @@ function(configure_test_harness)
                                               MATCHES "YES")
     add_library(${PROJECT_NAME}-c-harness STATIC EXCLUDE_FROM_ALL
                 ${LIBRA_c_test_harness})
+    _libra_configure_standard(${PROJECT_NAME}-c-harness)
+
     set_target_properties(${PROJECT_NAME}-c-harness PROPERTIES LINKER_LANGUAGE
                                                                C)
     # Harness might depend on headers under <repo root>/tests
@@ -164,6 +167,8 @@ function(configure_test_harness)
                                                 MATCHES "YES")
     add_library(${PROJECT_NAME}-cxx-harness STATIC EXCLUDE_FROM_ALL
                 ${LIBRA_cxx_test_harness})
+    _libra_configure_standard(${PROJECT_NAME}-cxx-harness)
+
     set_target_properties(${PROJECT_NAME}-cxx-harness PROPERTIES LINKER_LANGUAGE
                                                                  CXX)
 

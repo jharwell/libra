@@ -8,7 +8,9 @@
    :target: https://jharwell.github.io/libra
    :alt: Documentation
 
-.. |CI| image:: https://github.com/jharwell/libra/actions/workflows/ci.yml/badge.svg?branch=master
+.. |ci-master| image:: https://github.com/jharwell/libra/actions/workflows/ci.yml/badge.svg?branch=master
+
+.. |ci-devel| image:: https://github.com/jharwell/libra/actions/workflows/ci.yml/badge.svg?branch=devel
 
 .. |license| image:: https://img.shields.io/github/license/jharwell/libra
 
@@ -21,15 +23,24 @@
 .. |compiler| image:: https://img.shields.io/badge/compilers-gcc%20%7C%20clang%20%7C%20intel-blue
    :alt: Compilers
 
-.. |version| image:: https://img.shields.io/github/v/tag/jharwell/libra
+.. |version-master| image:: https://img.shields.io/github/v/tag/jharwell/libra?&label=master
    :target: https://github.com/jharwell/libra/releases
-   :alt: Latest Github tag
+   :alt: Latest release tag
 
-+--------+-----------------------------------+
-| |logo| | |docs| |CI| |license| |version|   |
-|        +-----------------------------------+
-|        | |cmake| |compiler| |platform|     |
-+--------+-----------------------------------+
+.. |version-devel| image:: https://img.shields.io/github/v/tag/jharwell/libra?include_prereleases&label=devel
+   :target: https://github.com/jharwell/libra/releases
+   :alt: Latest devel tag
+
++--------+-----------------------------------+----------------------------------+
+|        |Usage                              | |docs| |cmake|                   |
+|        |                                   | |compiler| |platform|            |
+|        +-----------------------------------+----------------------------------+
+|        |Release                            | |ci-master| |version-master|     |
+| |logo| +-----------------------------------+----------------------------------+
+|        |Development                        | |ci-devel| |version-devel|       |
+|        +-----------------------------------+----------------------------------+
+|        | Miscellaneous                     | |license|                        |
++--------+-----------------------------------+----------------------------------+
 
 =======================================
 Luigi Build Reusable Automation (LIBRA)
@@ -150,26 +161,14 @@ At a high level, LIBRA works like this:
 Installation
 ============
 
-**Option A: Install system-wide**
+**Option A: Install via conan**
 
 .. code-block:: bash
 
    git clone https://github.com/jharwell/libra
-   cmake -S libra -B build
-   cmake --build build --target install
+   conan create .
 
-**Option B: FetchContent**
-
-.. code-block:: cmake
-
-   include(FetchContent)
-   FetchContent_Declare(
-     libra
-     GIT_REPOSITORY https://github.com/jharwell/libra.git
-   )
-   FetchContent_MakeAvailable(libra)
-
-**Option C: CPM (Cmake Package Manager)**
+**Option B: CPM (Cmake Package Manager)**
 
 .. code-block:: cmake
 
@@ -185,6 +184,20 @@ Installation
      libra
      GIT_REPOSITORY
      https://github.com/jharwell/libra.git)
+
+**Option C: Install system-wide**
+
+.. code-block:: bash
+
+   git clone https://github.com/jharwell/libra
+   cmake -S libra -B build
+   cmake --build build --target install
+
+**Option D: git submodule**
+
+.. code-block:: cmake
+
+   git submodule add libra clone https://github.com/jharwell/libra
 
 FAQ
 ===

@@ -23,7 +23,7 @@ class LIBRAConan(ConanFile):
 
     def set_version(self):
         self.version = subprocess.run(
-            ("grep LIBRA_VERSION cmake/libra/version.cmake |"
+            (f"grep LIBRA_VERSION {self.recipe_folder}/cmake/libra/version.cmake |"
              "grep -Eo [0-9]+.[0-9]+.[0-9]+"),
             shell=True,
             check=True,
@@ -31,7 +31,7 @@ class LIBRAConan(ConanFile):
         ).stdout.decode().strip("\n")
 
     def build_requirements(self):
-        self.tool_requires("cmake/3.30.0")
+        self.tool_requires("cmake/3.31.0")
 
     def package(self):
         # Copy everything EXCEPT packaging-related things. Even though LIBRA

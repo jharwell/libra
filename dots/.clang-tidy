@@ -199,9 +199,9 @@ CheckOptions:
   cppcoreguidelines-use-default-member-init.IgnoreMacros: 'true'
   cppcoreguidelines-use-default-member-init.UseAssignment: 'false'
   google-readability-braces-around-statements.ShortStatementLines: '1'
-  google-readability-function-size.BranchThreshold: 10
+  google-readability-function-size.BranchThreshold: 20
   google-readability-function-size.LineThreshold: 100
-  google-readability-function-size.NestingThreshold: 5
+  google-readability-function-size.NestingThreshold: 8
   google-readability-function-size.ParameterThreshold: 5
   google-readability-function-size.StatementThreshold: '800'
   google-readability-function-size.VariableThreshold: 15
@@ -395,7 +395,7 @@ CheckOptions:
   readability-enum-initial-value.AllowExplicitSequentialInitialValues: 'true'
   readability-enum-initial-value.AllowExplicitZeroFirstInitialValue: 'true'
   readability-function-cognitive-complexity.DescribeBasicIncrements: 'true'
-  readability-function-cognitive-complexity.IgnoreMacros: 'false'
+  readability-function-cognitive-complexity.IgnoreMacros: 'true'
   readability-function-cognitive-complexity.Threshold: '25'
   readability-function-size.BranchThreshold: 10
   readability-function-size.LineThreshold: 100
@@ -422,7 +422,7 @@ CheckOptions:
   readability-identifier-naming.ClassMemberPrefix: 'm_'
   readability-identifier-naming.ClassMethodCase: 'lower_case'
   readability-identifier-naming.ConstantMemberCase: 'lower_case'
-  readability-identifier-naming.ConstantMemberPrefix: 'm_'
+  readability-identifier-naming.ConstantMemberPrefix: 'mc_'
   readability-identifier-naming.ConstantParameterCase: 'lower_case'
   readability-identifier-naming.ConstantPointerParameterCase: 'lower_case'
   readability-identifier-naming.ConstexprFunctionCase: 'lower_case'

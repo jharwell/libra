@@ -8,6 +8,9 @@ This page details LIBRA usage and actions when *after* you've invoked CMake on
 the cmdline (see :ref:`usage/configure-time`), and the build system has been
 generated.
 
+.. NOTE:: All build targets are only defined by LIBRA for the top-level CMake
+          ``project()``. All dependent projects are unaffected.
+
 .. plantuml::
 
    !theme cerulean-outline

@@ -49,6 +49,20 @@ get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
 # affects targets created AFTER that, and since that stuff is currently included
 # AFTER project-local.cmake, it has no effect.
 foreach(target ${_LIBRA_TARGETS})
+  if(NOT TARGET ${target})
+    continue()
+  endif()
+  get_target_property(_imported ${target} IMPORTED)
+  get_target_property(_target_dir ${target} SOURCE_DIR)
+
+  if(_imported OR NOT _target_dir MATCHES "^${CMAKE_CURRENT_SOURCE_DIR}")
+    libra_message(
+      STATUS
+      "Skipping ${target} for build type configuration - not owned by ${PROJECT_NAME}"
+    )
+    continue()
+  endif()
+
   if(LIBRA_LTO)
     set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION
                                                TRUE)

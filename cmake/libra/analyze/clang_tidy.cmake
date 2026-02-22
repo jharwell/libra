@@ -88,11 +88,11 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
       get_filename_component(EXT ${file} EXT)
       set(DISABLE_INCLUDE_CLEANER)
       if("${EXT}" STREQUAL ".cpp")
-        set(DISABLE_INCLUDE_CLEANER --checks=-misc-include-cleaner)
+        set(LIBRA_CLANG_TIDY_CONFIG_CHECKS
+            "${LIBRA_CLANG_TIDY_CONFIG_CHECKS},-misc-include-cleaner")
       endif()
 
       if(USE_DATABASE)
-        message("USE DATABASE")
         add_custom_target(
           ${CHECK_TARGET}-${CATEGORY}-${file_target}
           COMMAND
@@ -102,8 +102,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
             ${JOB_ARGS} --extra-arg=--std=c++${LIBRA_CXX_STANDARD}
             --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
-            ${PROJECT_BINARY_DIR} ${DISABLE_INCLUDE_CLEANER}
-            ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+            ${PROJECT_BINARY_DIR} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMENT
             "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
@@ -119,7 +118,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             ${EXTRACTED_ARGS} ${JOB_ARGS}
             --extra-arg=--std=c++${LIBRA_CXX_STANDARD}
             --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
-            --quiet ${DISABLE_INCLUDE_CLEANER} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+            --quiet ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
             "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"
             "$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>"
             "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"

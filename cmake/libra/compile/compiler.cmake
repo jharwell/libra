@@ -3,14 +3,13 @@
 #
 # SPDX-License Identifier:  MIT
 #
-# ##############################################################################
-# Custom messaging
-# ##############################################################################
 include(libra/messaging)
 include(libra/defaults)
 
+set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
+
 # ##############################################################################
-# Configure CFLAGS and whatnot for different C/C++ compilers.
+# ccache
 # ##############################################################################
 if(NOT LIBRA_NO_CCACHE)
   # Configure CCache if available
@@ -153,8 +152,3 @@ endif()
 if("${LIBRA_STDLIB}" MATCHES "NONE")
   list(APPEND _LIBRA_PUBLIC_DEFS -D__nostdlib__)
 endif()
-
-libra_message(STATUS "Configuring compiler diagnostics")
-# set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
-
-get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)

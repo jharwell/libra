@@ -364,9 +364,23 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   libra_message(STATUS "Configured source file: ${INFILE} -> ${OUTFILE}")
 endfunction()
 
-foreach(TARGET ${_LIBRA_TARGETS})
-  list(LENGTH _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC N_SRC)
-  list(LENGTH _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
+foreach(target ${_LIBRA_TARGETS})
+  if(NOT TARGET ${target})
+    continue()
+  endif()
+  get_target_property(_imported ${target} IMPORTED)
+  get_target_property(_target_dir ${target} SOURCE_DIR)
+
+  if(_imported OR NOT _target_dir MATCHES "^${CMAKE_CURRENT_SOURCE_DIR}")
+    libra_message(
+      STATUS
+      "Skipping ${target} for source file configuration - not owned by ${PROJECT_NAME}"
+    )
+    continue()
+  endif()
+
+  list(LENGTH _LIBRA_${target}_CONFIGURED_SOURCE_FILES_SRC N_SRC)
+  list(LENGTH _LIBRA_${target}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
 
   if(NOT N_SRC EQUAL N_DEST)
     libra_error(
@@ -377,9 +391,10 @@ foreach(TARGET ${_LIBRA_TARGETS})
     math(EXPR N_SRC "${N_SRC} - 1")
 
     foreach(i RANGE ${N_SRC})
-      list(GET _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC ${i} INFILE)
-      list(GET _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST ${i} OUTFILE)
-      _libra_configure_source_file_post("${TARGET}" "${INFILE}" "${OUTFILE}")
+      list(GET _LIBRA_${target}_CONFIGURED_SOURCE_FILES_SRC ${i} INFILE)
+      list(GET _LIBRA_${target}_CONFIGURED_SOURCE_FILES_DEST ${i} OUTFILE)
+
+      _libra_configure_source_file_post("${target}" "${INFILE}" "${OUTFILE}")
     endforeach()
   endif()
 endforeach()

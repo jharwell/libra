@@ -226,7 +226,8 @@ macro(
   # DEB-specific settings
   # ============================================================================
   if("${GENERATORS}" MATCHES "DEB")
-    libra_message(STATUS "Configuring DEB package generator")
+    libra_message(STATUS
+                  "Configuring DEB package generator for ${PROJECT_NAME}")
 
     # Use default naming (includes architecture)
     set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
@@ -268,7 +269,8 @@ macro(
   # RPM-specific settings
   # ============================================================================
   if("${GENERATORS}" MATCHES "RPM")
-    libra_message(STATUS "Configuring RPM package generator")
+    libra_message(STATUS
+                  "Configuring RPM package generator for ${PROJECT_NAME}")
 
     # Use default naming (includes version, release, architecture)
     set(CPACK_RPM_FILE_NAME RPM-DEFAULT)

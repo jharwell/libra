@@ -17,21 +17,21 @@ per-file warnings/errors, just like during compilation.
 
 LIBRA supports the following analysis tools; more may be added in the future:
 
-- cppcheck - ``--inline-suppr`` is unconditionally passed.
-
-- clang-check - No unusual baked-in cmdline args.
-
-- clang-format - No unusual baked-in cmdline args.
-
-- clang-tidy - ``--header-filter`` is set to ``<repo>/include/*``, so errors
-  from headers outside of there will not be shown.
+- `cppcheck`_
+- `clang-check`_
+- `clang-format`_
+- `clang-tidy`_
 
 Some of these tools have additional configuration variables--see
-:ref:`usage/project-local/variables` for options.  All of these tools *can* run
-with compilation database, but can also work without *IF* you give them the
-correct #defines, includes, and language standard. LIBRA does *not* use a
-compilation database with any of the above tools that support it, for the
-following reasons:
+:ref:`usage/project-local/variables` for options.
+
+Use of Compilation Database
+===========================
+
+All of these tools *can* run with compilation database, but can also work
+without *IF* you give them the correct #defines, includes, and language
+standard. LIBRA does *not* use a compilation database with any of the above
+tools that support it, for the following reasons:
 
 - clang-xx and cppcheck don't work well with using a compilation database with
   header only libraries without anything to compile (e.g., those without
@@ -47,34 +47,59 @@ may need to do this if there are ``-f`` compiler options that your code needs to
 compile correctly, since only #defines, includes, and language standard are
 extracted from each target.
 
+A Note on Best Practices
+========================
+
+Static analysis is generally a rather contested topic, in terms of *what* should
+be analyzed/checked for a given project. LIBRA tries to be as general as
+possible, and enables maximum warnings per-tool which are not noisy. E.g., it
+disables warnings specific to the Fuschia project, because most of those are,
+well, Fuschia-specific. You can of course override this, either by supply your
+own tool configuration files, or using one of the LIBRA configuration variables.
+
+Things get even more contested when it comes to coding style (e.g., clang-format
+usage). LIBRA does not pretend that the config files it ships with are the
+pinnacle of C/C++ style and best practices for all use cases and all projects;
+but they are a reasonable set, and it has to ship with something. Pull
+requests/suggestions are always welcome.
+
+Tool Specifics
+==============
+
+cppcheck
+--------
+
+``--inline-suppr`` is unconditionally passed.
+
+clang-check
+-----------
+
+No unusual baked-in cmdline args.
+
+clang-format
+------------
+
+No unusual baked-in cmdline args. The baked-in config file generally follows
+Google style.
 
 clang-tidy
-==========
+----------
 
-Targets are created for each category of checks:
+``--header-filter`` is set to ``<repo>/include/*``, so errors from headers
+outside of there will not be shown. Targets are created for each category of
+checks:
 
 - abseil
-
 - cppcoreguidelines
-
 - readability
-
 - hicpp
-
 - bugprone
-
 - cert
-
 - performance
-
 - portability
-
 - concurrency
-
 - modernize
-
 - misc
-
 - google
 
 Because some warnings are enabled by default in each category, in order to ONLY

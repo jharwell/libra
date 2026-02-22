@@ -160,22 +160,29 @@ assert_cov_flag_present() {
 
     # Verify flags
     assert_cov_flag_present "$test_dir" "cxx" "-fprofile-arcs"
+    assert_compile_flag_present "$test_dir" "cxx" "-ftest-coverage"
+    assert_compile_flag_present "$test_dir" "cxx" "-fno-inline"
+    assert_compile_flag_present "$test_dir" "cxx" "-fprofile-update=atomic"
 
     # Verify targets exist
     assert_target_exists "$test_dir" "lcov-preinfo"
+    assert_target_exists "$test_dir" "lcov-report"
     assert_target_exists "$test_dir" "gcovr-report"
+    assert_target_exists "$test_dir" "gcovr-check"
 
     # Run the binary to generate coverage data
     run "$test_dir/bin/sample_build_info"
     [ "$status" -eq 0 ]
 
     # Run coverage targets to verify they work
+    # Run coverage targets to verify they work
     cd "$test_dir"
-    for target in lcov-preinfo gcovr-report; do
+    for target in lcov-preinfo lcov-report gcovr-report gcovr-check; do
+        # Run binary again before each target
         run "$test_dir/bin/sample_build_info"
         [ "$status" -eq 0 ]
 
-        run make "$target"
+        echo "make $target output: $output" >&3
         [ "$status" -eq 0 ]
     done
 }
@@ -223,9 +230,14 @@ assert_cov_flag_present() {
 
     # Verify flags
     assert_cov_flag_present "$test_dir" "cxx" "-fprofile-instr-generate"
+    assert_compile_flag_present "$test_dir" "cxx" "-fcoverage-mapping"
+    assert_compile_flag_present "$test_dir" "cxx" "-fno-inline"
 
     # Verify LLVM targets exist
     assert_target_exists "$test_dir" "llvm-summary"
+    assert_target_exists "$test_dir" "llvm-report"
+    assert_target_exists "$test_dir" "llvm-show"
+    assert_target_exists "$test_dir" "llvm-export-lcov"
     assert_target_exists "$test_dir" "llvm-coverage"
 
     # Run the binary to generate coverage data
@@ -234,7 +246,7 @@ assert_cov_flag_present() {
 
     # Run coverage targets to verify they work
     cd "$test_dir"
-    for target in llvm-summary llvm-coverage; do
+    for target in llvm-summary llvm-report llvm-show llvm-export-lcov llvm-coverage; do
         run "$test_dir/bin/sample_build_info"
         [ "$status" -eq 0 ]
 
@@ -257,15 +269,21 @@ assert_cov_flag_present() {
 
     # Non-native clang creates GNU targets
     assert_target_exists "$test_dir" "lcov-preinfo"
+    assert_target_exists "$test_dir" "lcov-report"
     assert_target_exists "$test_dir" "gcovr-report"
+    assert_target_exists "$test_dir" "gcovr-check"
 
     # Non-native means no LLVM-specific targets
     assert_target_absent "$test_dir" "llvm-summary"
+    assert_target_absent "$test_dir" "llvm-report"
+    assert_target_absent "$test_dir" "llvm-show"
+    assert_target_absent "$test_dir" "llvm-export-lcov"
     assert_target_absent "$test_dir" "llvm-coverage"
 
-    # Shell script comment: "Don't try to run the targets--they won't work for clang
-    # because it detects its coverage tool differently."
-    # So we only verify targets exist, not that they execute successfully
+    # Shell script comment: "Don't try to run the targets--they won't
+    # work for clang because it detects its coverage tool
+    # differently."  So we only verify targets exist, not that they
+    # execute successfully
 }
 
 @test "CODE_COV: Clang/C++ non-native ON - verify GNU format" {

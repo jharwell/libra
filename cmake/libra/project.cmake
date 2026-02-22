@@ -155,10 +155,6 @@ if("${LIBRA_DRIVER}" MATCHES "CONAN")
     set(LIBRA_TESTS OFF)
   endif()
 
-  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 else()
   include(libra/package/components)
   include(libra/package/install)
@@ -181,14 +177,15 @@ else()
     endif()
   endif()
 
-  set(_LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(_LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(_LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${_LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_LIBRA_LIBRARY_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_LIBRA_RUNTIME_OUTPUT_DIRECTORY})
+# We do this even under conan, because a conan-specific flat layout is
+# unnecessary — conan doesn't care where the build outputs land, it only cares
+# about the install layout (what goes where after cmake --install). The build
+# output directory is purely a developer convenience.
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ##############################################################################
 # Source Definitions
@@ -247,7 +244,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/project-local.cmake)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif()
-libra_message(STATUS "Configuring for ${CMAKE_BUILD_TYPE} build")
+libra_message(STATUS
+              "Configuring ${PROJECT_NAME} for ${CMAKE_BUILD_TYPE} build")
 
 # Must be before build types to populate options
 include(libra/compile/compiler)
@@ -305,41 +303,43 @@ function(_libra_calculate_srcs SOURCE RET)
 endfunction()
 
 if(${LIBRA_ANALYSIS})
-  include(libra/analyze/analyze)
+  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+    include(libra/analyze/analyze)
 
-  _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
-  # Should not be needed, but just for safety
-  if("${LIBRA_DRIVER}" MATCHES "CONAN")
-    list(
-      FILTER
-      ${PROJECT_NAME}_ANALYSIS_SRC
-      EXCLUDE
-      REGEX
-      "\.conan2")
+    _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
+    # Should not be needed, but just for safety
+    if("${LIBRA_DRIVER}" MATCHES "CONAN")
+      list(
+        FILTER
+        ${PROJECT_NAME}_ANALYSIS_SRC
+        EXCLUDE
+        REGEX
+        "\.conan2")
+    endif()
+
+    # Multi-funtion tools
+    _libra_toggle_clang_tidy(ON)
+    _libra_toggle_clang_format(ON)
+    _libra_toggle_cmake_format(ON)
+    _libra_toggle_clang_check(ON)
+
+    # Handy checking tools
+    libra_message(STATUS "Enabling analysis tools: checkers")
+    _libra_toggle_checker_cppcheck(ON)
+    _libra_register_code_checkers(${PROJECT_NAME}
+                                  ${${PROJECT_NAME}_ANALYSIS_SRC})
+
+    _libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
+
+    # Handy formatting tools
+    libra_message(STATUS "Enabling analysis tools: formatters")
+    _libra_register_code_formatters(${${PROJECT_NAME}_ANALYSIS_SRC})
+    _libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
+
+    # Handy fixing tools
+    libra_message(STATUS "Enabling analysis tools: fixers")
+    _libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
   endif()
-
-  # Multi-funtion tools
-  _libra_toggle_clang_tidy(ON)
-  _libra_toggle_clang_format(ON)
-  _libra_toggle_cmake_format(ON)
-  _libra_toggle_clang_check(ON)
-
-  # Handy checking tools
-  libra_message(STATUS "Enabling analysis tools: checkers")
-  _libra_toggle_checker_cppcheck(ON)
-  _libra_register_code_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
-
-  _libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
-
-  # Handy formatting tools
-  libra_message(STATUS "Enabling analysis tools: formatters")
-  _libra_register_code_formatters(${${PROJECT_NAME}_ANALYSIS_SRC})
-  _libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
-
-  # Handy fixing tools
-  libra_message(STATUS "Enabling analysis tools: fixers")
-  _libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
-
 endif()
 
 # ##############################################################################
@@ -348,28 +348,31 @@ endif()
 # Put this AFTER sourcing the project-local.cmake to enable disabling
 # documentation builds for projects that don't have docs.
 if(LIBRA_DOCS)
-  include(libra/apidoc)
+  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+    include(libra/apidoc)
 
-  add_custom_target(apidoc-check)
-  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+    add_custom_target(apidoc-check)
+    set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
+                                                     1)
 
-  _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
-  # Should not be needed, but just for safety
-  if("${LIBRA_DRIVER}" MATCHES "CONAN")
-    list(
-      FILTER
-      ${PROJECT_NAME}_DOCS_SRC
-      EXCLUDE
-      REGEX
-      "\.conan2")
+    _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
+    # Should not be needed, but just for safety
+    if("${LIBRA_DRIVER}" MATCHES "CONAN")
+      list(
+        FILTER
+        ${PROJECT_NAME}_DOCS_SRC
+        EXCLUDE
+        REGEX
+        "\.conan2")
+    endif()
+
+    _libra_apidoc_configure_doxygen()
+    libra_toggle_clang(ON)
+
+    # Handy checking tools
+    libra_message(STATUS "Enabling apidoc tools: checkers")
+    _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
   endif()
-
-  _libra_apidoc_configure_doxygen()
-  libra_toggle_clang(ON)
-
-  # Handy checking tools
-  libra_message(STATUS "Enabling apidoc tools: checkers")
-  _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
 endif()
 
 # ##############################################################################
@@ -379,26 +382,31 @@ endif()
 # (presumably) by running some tests. Fits better here than in analyze/.
 # ##############################################################################
 if(LIBRA_TESTS)
-  include(libra/test/testing)
+  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+    include(libra/test/testing)
+  endif()
 endif()
 
 if(LIBRA_CODE_COV)
-  include(libra/test/coverage)
+  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
 
-  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
-                                                 MATCHES "Clang")
-    if(LIBRA_CODE_COV_NATIVE)
-      _libra_coverage_register_llvm()
-    else()
+    include(libra/test/coverage)
+
+    if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                   MATCHES "Clang")
+      if(LIBRA_CODE_COV_NATIVE)
+        _libra_coverage_register_llvm()
+      else()
+        _libra_coverage_register_lcov()
+        _libra_coverage_register_gcovr()
+      endif()
+    elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                     MATCHES "GNU")
       _libra_coverage_register_lcov()
       _libra_coverage_register_gcovr()
+    else()
+      libra_error("Unsupported compiler for coverage")
     endif()
-  elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
-                                                   MATCHES "GNU")
-    _libra_coverage_register_lcov()
-    _libra_coverage_register_gcovr()
-  else()
-    libra_error("Unsupported compiler for coverage")
   endif()
 endif()
 
@@ -412,7 +420,7 @@ if(${LIBRA_SUMMARY})
 else()
   libra_message(
     STATUS
-    "Configuration complete. To see a detailed configuration summary, re-run with -DLIBRA_SUMMARY=YES."
+    "Configuration complete for ${PROJECT_NAME}. To see a detailed configuration summary, re-run with -DLIBRA_SUMMARY=YES."
   )
 
 endif()

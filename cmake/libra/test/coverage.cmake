@@ -20,18 +20,22 @@ set(CMAKE_C_OUTPUT_EXTENSION_REPLACE ON)
 function(_libra_detect_gcov_tool OUTPUT_VAR)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES
                                               "Clang")
-    # Extract Clang version
-    if(CMAKE_CXX_COMPILER)
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                      OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+
+    # Use whichever compiler IS actually clang for version detection
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+      set(_detect_compiler ${CMAKE_C_COMPILER})
     else()
-      execute_process(COMMAND ${CMAKE_C_COMPILER} --version
-                      OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+      set(_detect_compiler ${CMAKE_CXX_COMPILER})
     endif()
-    string(REGEX MATCH "clang version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
+
+    execute_process(
+      COMMAND ${_detect_compiler} --version
+      OUTPUT_VARIABLE _clang_stdout
+      ERROR_VARIABLE _clang_stderr)
+    set(CLANG_VERSION_OUTPUT "${_clang_stdout}${_clang_stderr}")
+    string(REGEX MATCH "version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
     set(CLANG_MAJOR ${CMAKE_MATCH_1})
 
-    # Try versioned llvm-cov first, fall back to unversioned
     find_program(LLVM_COV NAMES llvm-cov-${CLANG_MAJOR} llvm-cov REQUIRED)
     set(${OUTPUT_VAR}
         "${LLVM_COV} gcov"
@@ -40,12 +44,13 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
 
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES
                                                 "GNU")
-    if(CMAKE_CXX_COMPILER)
-      get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
-    else()
+    # Use whichever compiler IS actually GNU
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU")
       get_filename_component(COMPILER_NAME ${CMAKE_C_COMPILER} NAME)
+    else()
+      get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
     endif()
-    # Extract GCC version from compiler name (e.g., gcc-13 -> gcov-13)
+
     string(REPLACE "g++" "gcov" GCOV_NAME ${COMPILER_NAME})
     string(REPLACE "gcc" "gcov" GCOV_NAME ${GCOV_NAME})
 
@@ -62,22 +67,22 @@ endfunction()
 
 # Detect llvm-cov and llvm-profdata for native Clang coverage
 function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
-  # Extract Clang version
-  if(CMAKE_CXX_COMPILER)
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+  # Use whichever compiler IS actually clang for version detection
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(_detect_compiler ${CMAKE_C_COMPILER})
   else()
-    execute_process(COMMAND ${CMAKE_C_COMPILER} --version
-                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+    set(_detect_compiler ${CMAKE_CXX_COMPILER})
   endif()
 
-  string(REGEX MATCH "clang version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
+  execute_process(
+    COMMAND ${_detect_compiler} --version
+    OUTPUT_VARIABLE _clang_stdout
+    ERROR_VARIABLE _clang_stderr)
+  set(CLANG_VERSION_OUTPUT "${_clang_stdout}${_clang_stderr}")
+  string(REGEX MATCH "version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
   set(CLANG_MAJOR ${CMAKE_MATCH_1})
 
-  # Find llvm-cov
   find_program(LLVM_COV_TOOL NAMES llvm-cov-${CLANG_MAJOR} llvm-cov REQUIRED)
-
-  # Find llvm-profdata
   find_program(LLVM_PROFDATA_TOOL NAMES llvm-profdata-${CLANG_MAJOR}
                                         llvm-profdata REQUIRED)
 
@@ -142,12 +147,15 @@ function(_libra_coverage_register_lcov)
   libra_message(STATUS "Using lcov=${LCOV_EXECUTABLE}")
   libra_message(STATUS "Using genhtml=${GENHTML_EXECUTABLE}")
 
-  # Common lcov flags
+  # 2026-02-23 [JRH]: The geninfo_intermediate=on is required to get things to
+  # work with newer versions of lcov/gcov/gcovr.
   set(LCOV_COMMON_FLAGS
       --gcov-tool
       ${GCOV_TOOL}
       --rc
       branch_coverage=1
+      --rc
+      geninfo_intermediate=1
       --directory
       ${PROJECT_BINARY_DIR}
       --quiet)

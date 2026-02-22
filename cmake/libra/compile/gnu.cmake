@@ -15,11 +15,11 @@ include(libra/defaults)
 # ##############################################################################
 set(LIBRA_BASE_DIAG_CANDIDATES
     -fdiagnostics-color=always
-    -fdiagnostics-all-candidates
     -W
     -Wall
     -Wextra
-    -Wconversion
+    # 2026-02-23 [JRH]: This one is usually more noise than it's worth
+    # -Wconversion
     -Wcast-align
     -Wcast-qual
     -Wdisabled-optimization
@@ -70,6 +70,7 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   set(LIBRA_CXX_DIAG_CANDIDATES
       ${LIBRA_BASE_DIAG_CANDIDATES}
       -Weffc++
+      -fdiagnostics-all-candidates
       -Wunused-macros
       -Wsuggest-override
       -Wstrict-null-sentinel
