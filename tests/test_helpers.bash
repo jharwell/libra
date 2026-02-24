@@ -307,28 +307,28 @@ EOF
     # Add user-provided cmake options
     cmake_args+=("${cmake_options[@]}")
 
-    echo "DEBUG: test_dir exists=$([ -d "$test_dir" ] && echo yes || echo no) path=$test_dir" >&3
-
     # Run cmake
     cd "$test_dir"
 
-    run cmake "${cmake_args[@]}" > "$test_dir/cmake.log" 2>&1
-    echo "DEBUG cmake exit=$? log=$test_dir/cmake.log" >&3
-    cat "$test_dir/cmake.log" >&3
+    run cmake "${cmake_args[@]}"
     if [ "$status" -ne 0 ]; then
         echo "DEBUG: cmake failed with status $status" >&3
         echo "$output" >&3
         return 1
     fi
+    # Echo unconditionally on success to make debugging odd things in
+    # CI quicker.
+    echo "$output" >&3
 
-    run make > "$test_dir/make.log" 2>&1
-    echo "DEBUG make exit=$? log=$test_dir/make.log" >&3
-    cat "$test_dir/make.log" >&3
+    run make
     if [ "$status" -ne 0 ]; then
         echo "DEBUG: make failed with status $status" >&3
         echo "$output" >&3
         return 1
     fi
+    # Echo unconditionally on success to make debugging odd things in
+    # CI quicker.
+    echo "$output" >&3
 
     # Return to original directory and output test dir path
     cd - > /dev/null

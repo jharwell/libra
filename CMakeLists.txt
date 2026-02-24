@@ -11,10 +11,21 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 include(cmake/libra/version.cmake)
 
-project(
-  libra
-  VERSION ${LIBRA_VERSION}
-  LANGUAGES C CXX)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  # Top-level/when LIBRA itself is being installed: need a language for
+  # GNUInstallDirs architecture detection
+  project(
+    libra
+    VERSION ${LIBRA_VERSION}
+    LANGUAGES C)
+else()
+  # Consumed downstream: no language detection needed or wanted since LIBRA is
+  # already installed and is pure cmake.
+  project(
+    libra
+    VERSION ${LIBRA_VERSION}
+    LANGUAGES NONE)
+endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/install.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/deploy.cmake)

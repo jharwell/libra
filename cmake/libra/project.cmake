@@ -156,10 +156,12 @@ if("${LIBRA_DRIVER}" MATCHES "CONAN")
   endif()
 
 else()
-  include(libra/package/components)
-  include(libra/package/install)
-  include(libra/package/deploy)
-  include(libra/package/uninstall)
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    include(libra/package/components)
+    include(libra/package/install)
+    include(libra/package/deploy)
+    include(libra/package/uninstall)
+  endif()
 
   # Conan handles this too via the conan cache
   if(NOT DEFINED LIBRA_DEPS_PREFIX)
@@ -303,7 +305,7 @@ function(_libra_calculate_srcs SOURCE RET)
 endfunction()
 
 if(${LIBRA_ANALYSIS})
-  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(libra/analyze/analyze)
 
     _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
@@ -348,7 +350,7 @@ endif()
 # Put this AFTER sourcing the project-local.cmake to enable disabling
 # documentation builds for projects that don't have docs.
 if(LIBRA_DOCS)
-  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(libra/apidoc)
 
     add_custom_target(apidoc-check)
@@ -382,13 +384,13 @@ endif()
 # (presumably) by running some tests. Fits better here than in analyze/.
 # ##############################################################################
 if(LIBRA_TESTS)
-  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(libra/test/testing)
   endif()
 endif()
 
 if(LIBRA_CODE_COV)
-  if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
     include(libra/test/coverage)
 
