@@ -385,6 +385,89 @@ reconfigure_libra_test() {
 }
 
 ################################################################################
+# CMake Test Runner: Root + Dependency
+#
+# Like run_libra_cmake_test but configures sample_dep_isolation/root instead
+# of sample_build_info.  The root project pulls in sample_dep_isolation/dep
+# via add_subdirectory, giving a two-level LIBRA project tree.
+#
+# Usage: run_libra_cmake_dep_test LANG [CMAKE_OPTIONS...]
+# Returns: Path to build directory (the root build dir)
+################################################################################
+run_libra_cmake_dep_test() {
+    local lang="$1"
+    shift
+    local cmake_options=("$@")
+    local lang_upper=$(echo "$lang" | tr '[:lower:]' '[:upper:]')
+    local compiler=$(get_compiler "$COMPILER_TYPE" "$lang")
+
+    local test_dir
+    test_dir="$(mktemp -d "$TEST_BUILD_DIR/${lang}_XXXXXX")"
+
+    local cmake_args=(
+        "$LIBRA_TESTS_DIR/sample_dep_isolation/root"
+        -DCMAKE_INSTALL_PREFIX="$test_dir/install"
+        -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
+        -DLIBRA_TEST_LANGUAGE="$lang_upper"
+        --log-level="$LOGLEVEL"
+    )
+
+    if [ "$lang" = "c" ]; then
+        cmake_args+=(-DCMAKE_C_COMPILER="$compiler")
+    else
+        cmake_args+=(-DCMAKE_CXX_COMPILER="$compiler")
+    fi
+
+    while IFS= read -r _flag; do
+        [[ -n "$_flag" ]] && cmake_args+=("$_flag")
+    done < <(_consume_mode_cmake_args)
+
+    if [[ "${LIBRA_CONSUME_MODE:-in_situ}" == "conan" ]]; then
+        mkdir -p "$test_dir/conan"
+        cat > "$test_dir/conanfile.txt" << EOF
+[requires]
+libra/${LIBRA_CONAN_VERSION}
+
+[generators]
+CMakeToolchain
+EOF
+        conan install "$test_dir/conanfile.txt" \
+              --output-folder="$test_dir/conan" \
+              -s build_type="${CMAKE_BUILD_TYPE:-Debug}" \
+              --build=missing
+        cmake_args+=("-DCMAKE_TOOLCHAIN_FILE=$test_dir/conan/conan_toolchain.cmake")
+        cmake_args+=("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$test_dir/bin")
+    fi
+
+    cmake_args+=("${cmake_options[@]}")
+
+    pushd "$test_dir" > /dev/null
+
+    run cmake "${cmake_args[@]}"
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: cmake failed with status $status" >&3
+        echo "$output" >&3
+        popd > /dev/null
+        return 1
+    fi
+    # Echo unconditionally on success to make debugging odd things in
+    # CI quicker.
+    echo "$output" >&3
+
+    run make
+    popd > /dev/null
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: make failed with status $status" >&3
+        echo "$output" >&3
+        return 1
+    fi
+    # Echo unconditionally on success to make debugging odd things in
+    # CI quicker.
+    echo "$output" >&3
+    echo "$test_dir"
+}
+
+################################################################################
 # File Verification Utilities
 ################################################################################
 
@@ -446,7 +529,7 @@ get_compile_flags() {
     local lang="$2"
     local build_info=$(get_build_info_file "$test_dir" "$lang")
 
-    grep 'COMPILE_FLAGS = ' "$build_info" | sed 's/.*COMPILE_FLAGS = "\(.*\)";/\1/'
+    grep 'COMPILE_FLAGS' "$build_info" | sed 's/.*COMPILE_FLAGS[[:space:]]*=[[:space:]]*"\(.*\)";/\1/'
 }
 
 # Get link flags from build info
@@ -456,9 +539,8 @@ get_link_flags() {
     local lang="$2"
     local build_info=$(get_build_info_file "$test_dir" "$lang")
 
-    grep 'LINK_FLAGS = ' "$build_info" | sed 's/.*LINK_FLAGS = "\(.*\)";/\1/'
+    grep 'LINK_FLAGS' "$build_info" | sed 's/.*LINK_FLAGS[[:space:]]*=[[:space:]]*"\(.*\)";/\1/'
 }
-
 # Check if a flag is present in compile flags
 # Usage: has_compile_flag TEST_DIR LANG FLAG
 has_compile_flag() {

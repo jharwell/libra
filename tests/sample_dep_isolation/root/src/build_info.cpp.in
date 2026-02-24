@@ -1,0 +1,14 @@
+//
+// Copyright 2026 John Harwell, All rights reserved.
+//
+// SPDX-License-Identifier: MIT
+//
+
+namespace build_info {
+
+constexpr const char* CXX_STANDARD  = "@LIBRA_CXX_STANDARD@";
+constexpr const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
+constexpr const char* LINK_FLAGS    = "@LIBRA_TARGET_FLAGS_LINK@";
+constexpr const char* BUILD_TYPE    = "@CMAKE_BUILD_TYPE@";
+
+} // namespace build_info

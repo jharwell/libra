@@ -1,0 +1,10 @@
+/*
+ * Copyright 2026 John Harwell, All rights reserved.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+const char* C_STANDARD    = "@LIBRA_C_STANDARD@";
+const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
+const char* LINK_FLAGS    = "@LIBRA_TARGET_FLAGS_LINK@";
+const char* BUILD_TYPE    = "@CMAKE_BUILD_TYPE@";

@@ -24,6 +24,7 @@ export LIBRA_CONSUME_MODE="add_subdirectory"
 
 exec bats -j $(nproc) "$@" \
     "${TESTS_DIR}/LIBRA_ANALYSIS.bats" \
+    "${TESTS_DIR}/LIBRA_DEP_ISOLATION.bats" \
     "${TESTS_DIR}/LIBRA_BUILD_PROF.bats" \
     "${TESTS_DIR}/LIBRA_CODE_COV.bats" \
     "${TESTS_DIR}/LIBRA_CXX_STANDARD.bats" \

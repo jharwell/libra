@@ -92,8 +92,11 @@ set(LIBRA_SAN
 set(LIBRA_STDLIB
     ${LIBRA_STDLIB_DEFAULT}
     CACHE STRING "{NONE, CXX, STDCXX")
-
-set(_LIBRA_TARGETS CACHE STRING "List of target to apply LIBRA magic to")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(_LIBRA_TARGETS
+      ""
+      CACHE INTERNAL "List of target to apply LIBRA magic to" FORCE)
+endif()
 
 set(_LIBRA_CONFIGURED_SOURCE_FILES_SRC
     CACHE INTERNAL
@@ -251,7 +254,9 @@ libra_message(STATUS
 
 # Must be before build types to populate options
 include(libra/compile/compiler)
-include(libra/compile/build-types)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  include(libra/compile/build-types)
+endif()
 
 # Must be after compile options are populated
 include(libra/diagnostics_post)

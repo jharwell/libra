@@ -21,7 +21,7 @@ TESTS_DIR="$(cd "${SUITE_DIR}/.." && pwd)"
 export LIBRA_CONSUME_MODE="cpm"
 
 exec bats -j $(nproc) "$@" \
-    "${TESTS_DIR}/LIBRA_ANALYSIS.bats" \
+     "${TESTS_DIR}/LIBRA_ANALYSIS.bats" \
     "${TESTS_DIR}/LIBRA_BUILD_PROF.bats" \
     "${TESTS_DIR}/LIBRA_CODE_COV.bats" \
     "${TESTS_DIR}/LIBRA_CXX_STANDARD.bats" \
