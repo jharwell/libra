@@ -43,7 +43,6 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
    :ref:`usage/configure-time` can be set permanently in ``project-local.cmake``
    too, but not all of them. Exceptions are:
 
-   - :cmake:variable:`LIBRA_DEPS_PREFIX`
    - :cmake:variable:`LIBRA_C_STANDARD`
    - :cmake:variable:`LIBRA_CXX_STANDARD`
 
@@ -249,12 +248,16 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
 
 .. _usage/project-local/diagnostics:
 
-Build And Configure-time Diagnostics
-====================================
+Configure-time Utilities
+========================
 
 LIBRA provides a number of functions/macros to simplify the complexity of cmake,
 and answer questions such as "am I really building/running what I think I
 am?". Some useful functions available in ``project-local.cmake`` are:
+
+.. cmake-module:: ../../cmake/libra/compile/version.cmake
+
+.. cmake-module:: ../../cmake/libra/summary.cmake
 
 .. cmake-module:: ../../cmake/libra/diagnostics_pre.cmake
 

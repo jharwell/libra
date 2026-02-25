@@ -30,7 +30,9 @@ include(libra/colorize)
 include(libra/utils)
 include(libra/diagnostics_pre)
 include(libra/targets)
+include(libra/summary)
 include(libra/defaults)
+include(libra/compile/version) # To be available in project-local.cmake
 
 # Set policies
 include(libra/policies)
@@ -165,23 +167,6 @@ else()
     include(libra/package/deploy)
     include(libra/package/uninstall)
   endif()
-
-  # Conan handles this too via the conan cache
-  if(NOT DEFINED LIBRA_DEPS_PREFIX)
-    if(CMAKE_CROSSCOMPILING)
-      set(CMAKE_INSTALL_PREFIX
-          ${CMAKE_INSTALL_PREFIX}/${CMAKE_SYSTEM_PROCESSOR})
-      set(LIBRA_DEPS_PREFIX
-          $ENV{HOME}/.local/${CMAKE_SYSTEM_PROCESSOR}/system
-          CACHE STRING "The install prefix for deps of this project")
-
-    else()
-      set(LIBRA_DEPS_PREFIX
-          $ENV{HOME}/.local/system
-          CACHE STRING "The install prefix for deps of this project")
-    endif()
-  endif()
-
 endif()
 
 # We do this even under conan, because a conan-specific flat layout is

@@ -21,9 +21,6 @@ include(libra/messaging)
   This is a MACRO (not function) intentionally so that all CPACK_* variables
   propagate to parent scope as required by CPack.
 
-  To use, ``include(libra/package/deploy.cmake)``.
-
-
   .. code-block:: cmake
 
     libra_configure_cpack(<GENERATORS>

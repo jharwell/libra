@@ -38,12 +38,6 @@ its internal variable from them:
     - LIBRA_TESTS
 
 
-The following variables are not available (these are package manager-y things
-handled by conan):
-
-- ``LIBRA_DEPS_PREFIX``
-
-
 make Targets
 ============
 

@@ -78,20 +78,6 @@ details about restrictions.
 Knobs For Configuring LIBRA/CMake
 =================================
 
-.. cmake:variable:: LIBRA_DEPS_PREFIX
-
-   :default: $HOME/.local/system
-   :type: CACHE STRING
-
-   The location where cmake should search for other locally installed libraries
-   (e.g., ``$HOME/.local``). VERY useful to separate out 3rd party headers which
-   you want to suppress all warnings for by treating them as system headers when
-   you can't/don't want to install things as root, or wrap in ``#pragma GCC
-   system_header`` headers.
-
-   Only available if :cmake:variable:`LIBRA_DRIVER` is ``SELF``. Cannot be set
-   in ``project-local.cmake``.
-
 .. cmake:variable:: LIBRA_DRIVER
 
    :default: SELF

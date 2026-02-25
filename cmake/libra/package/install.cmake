@@ -18,13 +18,11 @@ include(GNUInstallDirs)
 .. cmake:command:: libra_configure_exports
 
   Configure the exports for a TARGET to be installed at
-  ``${CMAKE_INSTALL_PREFIX}``.
+  :cmake:variable:`CMAKE_INSTALL_PREFIX`.
 
   Enables the installed project to be used with ``find_package()`` by downstream
   projects. This function requires a ``cmake/config.cmake.in`` template file in
   your project root.
-
-  To use, ``include(libra/package/install.cmake)``.
 
   :param TARGET: The target name for which to configure exports. This will be
    used to generate ``<TARGET>-config.cmake`` and must match the name used in
@@ -105,8 +103,6 @@ endfunction()
   project provides reusable CMake functionality that you want downstream
   projects to access. Supports both individual files and directories (processed
   recursively).
-
-  To use, ``include(libra/package/install.cmake)``.
 
   :param TARGET: The target name (used for install destination). Must be a
    target for which :cmake:command:`libra_configure_exports` has already been
@@ -235,13 +231,12 @@ endfunction()
 #[[.rst:
 .. cmake:command:: libra_register_copyright_for_install
 
-  Register a copyright notice file to be installed at CMAKE_INSTALL_DOCDIR.
+  Register a copyright notice file to be installed at
+  :cmake:variable:`CMAKE_INSTALL_DOCDIR`.
 
   The file is automatically renamed to ``copyright`` during installation, which
   is the standard name expected by Debian package tools (``lintian``). This
   function is useful when configuring CPack to generate .deb/.rpm packages.
-
-  To use, ``include(libra/package/install.cmake)``.
 
   :param TARGET: The target name (used for the installation directory path).
 
@@ -307,8 +302,6 @@ endfunction()
   specified directory, preserving the directory structure. These can be from
   your project, a header-only dependency, etc.
 
-  To use, ``include(libra/package/install.cmake)``.
-
   :param DIRECTORY: The directory containing header files to install. Searched
    recursively for ``.hpp`` and ``.h`` files.
 
@@ -373,8 +366,6 @@ endfunction()
   an export file (``<TARGET>-exports.cmake``) that allows downstream projects to
   use the target with ``find_package()``. The target is associated with the
   necessary exports file so child projects can find it.
-
-  To use, ``include(libra/package/install.cmake)``.
 
   :param TARGET: The CMake target to install. Must be a valid library target
    created with :cmake:command:`add_library` or :cmake:command:`add_executable`.
