@@ -5,6 +5,7 @@
 #
 
 include(libra/messaging)
+include(libra/defaults)
 
 set(COVERAGE_DIR ${PROJECT_BINARY_DIR}/coverage)
 file(MAKE_DIRECTORY ${COVERAGE_DIR})
@@ -226,11 +227,15 @@ function(_libra_coverage_register_gcovr)
   set(THRESHOLDS LINES FUNCTIONS BRANCHES DECISIONS)
   foreach(THRESH ${THRESHOLDS})
     if(NOT DEFINED LIBRA_GCOVR_${THRESH}_THRESH)
-      set(LIBRA_GCOVR_${THRESH}_THRESH 0)
+      set(LIBRA_GCOVR_${THRESH}_THRESH
+          ${LIBRA_GCOVR_${THRESH}_THRESH_DEFAULT}
+          CACHE STRING "" FORCE)
     endif()
+    message(
+      "LIBRA_GCOVR_${THRESH}_THRESH ${LIBRA_GCOVR_${THRESH}_THRESH_DEFAULT}")
+
   endforeach()
 
-  # Coverage check target (fails if below thresholds)
   if(NOT TARGET gcovr-check)
     add_custom_target(
       gcovr-check

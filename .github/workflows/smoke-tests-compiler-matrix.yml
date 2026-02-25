@@ -1,0 +1,77 @@
+name: Smoke tests (compiler matrix)
+
+# Reusable workflow called by build-and-test.yml for each consumption mode.
+# Runs the given test suite script against all supported compiler versions.
+#
+# Compiler matrix:
+#   - GNU:   oldest (9) and newest (14) installed versions
+#   - Clang: oldest (14) and newest (19) installed versions
+#   - Intel: single installed version (no versioned suffix needed)
+#
+on:
+  workflow_call:
+    inputs:
+      suite-script:
+        description: >
+          Path to the suite runner script relative to the tests/ directory,
+          e.g. ./suites/run_suite_add_subdirectory.sh
+        required: true
+        type: string
+      suite-args:
+        description: Additional arguments to pass to the suite script
+        required: false
+        type: string
+        default: ""
+      pip-install-conan:
+        description: Install conan via pip before running the suite
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-02-26
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - { family: gnu,   cc: gcc,   cxx: g++,     version: "9"  }
+          - { family: gnu,   cc: gcc,   cxx: g++,     version: "14" }
+          - { family: clang, cc: clang, cxx: clang++, version: "14" }
+          - { family: clang, cc: clang, cxx: clang++, version: "19" }
+          - { family: intel, cc: icx,   cxx: icpx,    version: ""   }
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure compiler
+        shell: bash
+        run: |
+          if [ "${{ matrix.compiler.family }}" != "intel" ]; then
+            update-alternatives --install \
+              /usr/bin/${{ matrix.compiler.cc }} \
+              ${{ matrix.compiler.cc }} \
+              /usr/bin/${{ matrix.compiler.cc }}-${{ matrix.compiler.version }} 100
+            update-alternatives --set ${{ matrix.compiler.cc }} \
+              /usr/bin/${{ matrix.compiler.cc }}-${{ matrix.compiler.version }}
+
+            # CXX: create symlink directly since clang++ is registered as a
+            # slave of clang in the alternatives system and cannot be set
+            # independently, but may not exist as an unversioned binary
+            ln -sf /usr/bin/${{ matrix.compiler.cxx }}-${{ matrix.compiler.version }} \
+              /usr/bin/${{ matrix.compiler.cxx }}
+          fi
+
+      - name: Install conan
+        if: inputs.pip-install-conan
+        shell: bash
+        run: pip3 install conan --break-system-packages
+
+      - name: Run smoke tests
+        shell: bash
+        env:
+          CC: ${{ matrix.compiler.cc }}
+          CXX: ${{ matrix.compiler.cxx }}
+        run: |
+          cd tests && ${{ inputs.suite-script }} ${{ inputs.suite-args }}

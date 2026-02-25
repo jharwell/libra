@@ -114,3 +114,40 @@ function(libra_configure_source_file TARGET INFILE OUTFILE)
         CACHE INTERNAL "")
   endif()
 endfunction()
+
+#[[.rst:
+.. cmake:command:: libra_config_summary_prepare_fields
+
+  Prepare configuration fields for display by adding padding and colorization.
+
+  Given a list of configurable fields in a project as strings, this function
+  defines a set of new variables, one per field, with the prefix ``EMIT_``. The
+  value of each new variable is right-padded with spaces so that any extra
+  content on each line (when the variables are printed to the screen) can be
+  left-aligned.  Additionally, common values like ON/OFF and YES/NO are
+  colorized for easier visual parsing.
+
+  This function is typically used in conjunction with
+  :cmake:command:`libra_config_summary` to create nicely formatted configuration
+  summaries.
+
+  :param FIELDS: List of field names (variable names) to prepare for display.
+   Each field will have a corresponding ``EMIT_<field>`` variable created in the
+   parent scope that contains the padded and colorized value.
+
+  **Colorization Rules:**
+
+  - ``ON``, ``on``, ``YES``, ``yes`` - Displayed in green
+  - ``OFF``, ``off``, ``NO``, ``no`` - Displayed in red
+  - Special strings (``NONE``, ``ALL``, ``CONAN``) - No colorization
+  - Version numbers (``x.y.z`` format) - No colorization
+
+  **Example:**
+
+  .. code-block:: cmake
+
+    set(MY_FIELDS CMAKE_BUILD_TYPE LIBRA_TESTS LIBRA_CODE_COV)
+    libra_config_summary_prepare_fields("${MY_FIELDS}")
+    message(STATUS "Build type: ${EMIT_CMAKE_BUILD_TYPE}")
+    message(STATUS "Tests:      ${EMIT_LIBRA_TESTS}")
+]]

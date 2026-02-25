@@ -30,9 +30,14 @@ include(libra/colorize)
 include(libra/utils)
 include(libra/diagnostics_pre)
 include(libra/targets)
-include(libra/summary)
 include(libra/defaults)
 include(libra/compile/version) # To be available in project-local.cmake
+
+# 2026-02-26 [JRH]: Some of the variables used in here are undefined at this
+# point, but that's OK because libra_config_summary() isn't called until the end
+# of this file. It needs to be here so libra_config_summary_prepare_fields() is
+# available in project-local.cmake.
+include(libra/summary)
 
 # Set policies
 include(libra/policies)
@@ -416,3 +421,8 @@ else()
   )
 
 endif()
+
+get_filename_component(MAKE_NAME ${CMAKE_MAKE_PROGRAM} NAME)
+
+libra_message(STATUS
+              "Run '${MAKE_NAME} help-targets' to see available build targets.")

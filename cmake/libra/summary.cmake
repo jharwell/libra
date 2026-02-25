@@ -10,47 +10,11 @@ set(_LIBRA_SHOWED_SUMMARY NO)
 
 # Column width constants
 set(_LIBRA_SUMMARY_COL_FEATURE 37) # Feature description
-set(_LIBRA_SUMMARY_COL_STATUS 26) # Status/value
+set(_LIBRA_SUMMARY_COL_STATUS 46) # Status/value
 set(_LIBRA_SUMMARY_COL_VARIABLE 33) # [VARIABLE_NAME]
 set(_LIBRA_SUMMARY_COL_TARGET 22) # make target name
 set(_LIBRA_SUMMARY_SEP_WIDTH 80) # inner separator width
 
-#[[.rst:
-.. cmake:command:: libra_config_summary_prepare_fields
-
-  Prepare configuration fields for display by adding padding and colorization.
-
-  Given a list of configurable fields in a project as strings, this function
-  defines a set of new variables, one per field, with the prefix ``EMIT_``. The
-  value of each new variable is right-padded with spaces so that any extra
-  content on each line (when the variables are printed to the screen) can be
-  left-aligned.  Additionally, common values like ON/OFF and YES/NO are
-  colorized for easier visual parsing.
-
-  This function is typically used in conjunction with
-  :cmake:command:`libra_config_summary` to create nicely formatted configuration
-  summaries.
-
-  :param FIELDS: List of field names (variable names) to prepare for display.
-   Each field will have a corresponding ``EMIT_<field>`` variable created in the
-   parent scope that contains the padded and colorized value.
-
-  **Colorization Rules:**
-
-  - ``ON``, ``on``, ``YES``, ``yes`` - Displayed in green
-  - ``OFF``, ``off``, ``NO``, ``no`` - Displayed in red
-  - Special strings (``NONE``, ``ALL``, ``CONAN``) - No colorization
-  - Version numbers (``x.y.z`` format) - No colorization
-
-  **Example:**
-
-  .. code-block:: cmake
-
-    set(MY_FIELDS CMAKE_BUILD_TYPE LIBRA_TESTS LIBRA_CODE_COV)
-    libra_config_summary_prepare_fields("${MY_FIELDS}")
-    message(STATUS "Build type: ${EMIT_CMAKE_BUILD_TYPE}")
-    message(STATUS "Tests:      ${EMIT_LIBRA_TESTS}")
-]]
 function(libra_config_summary_prepare_fields FIELDS)
   if(NOT FIELDS)
     libra_message(WARNING
@@ -159,25 +123,23 @@ endfunction()
      )
 
   :param LABEL: Feature description shown in column 1. Will be truncated/padded
-   to determined column width.
+   to the column width.
 
-  :param STATUS: Name of an EMIT_<X> variable (prepared via
-   :cmake:command:`libra_config_summary_prepare_fields()`) whose value is shown
+  :param STATUS: Name of an ``EMIT_<X>`` variable (prepared via
+   :cmake:command:`libra_config_summary_prepare_fields`) whose value is shown
    in column 2.
 
-  :param VARIABLE: Variable name shown in column 3, e.g. "[MY_OPTION]". Pass ""
-   to leave blank.
+  :param VARIABLE: Variable name shown in column 3, e.g. ``[MY_OPTION]``. Pass
+   ``""`` to leave blank.
 
   **Example:**
 
   .. code-block:: cmake
 
-    # In project-local.cmake, after calling libra_config_summary_prepare_fields
-    # on your own fields:
     set(my_fields MY_BACKEND MY_FEATURE_X)
     libra_config_summary_prepare_fields("${my_fields}")
 
-    libra_config_summary()  # emits LIBRA rows first
+    libra_config_summary()
 
     libra_config_summary_row(
         LABEL    "Backend type........................."
@@ -191,13 +153,12 @@ endfunction()
 
   **Notes:**
 
-  - The ``LABEL`` string should use trailing ``.`` characters to reach the
-    column width (``_LIBRA_SUMMARY_COL_FEATURE`` = 40), matching the style of
-    built-in rows. If shorter, it will be right-padded with spaces
-    automatically. If longer, it will be silently truncated to fit.
-  - The ``STATUS`` argument is the **name** of a variable (not its value), so
-    pass ``EMIT_MY_VAR`` not ``${EMIT_MY_VAR}``. This matches the calling
-    convention of the internal ``_libra_summary_row`` helper.
+  - ``LABEL`` should use trailing ``.`` characters to reach the column width
+    (``_LIBRA_SUMMARY_COL_FEATURE`` = 37), matching the style of built-in rows.
+    Shorter labels are right-padded with spaces automatically; longer labels are
+    truncated to fit.
+  - ``STATUS`` is the **name** of a variable, not its value — pass
+    ``EMIT_MY_VAR``, not ``${EMIT_MY_VAR}``.
   - Call :cmake:command:`libra_config_summary_prepare_fields` on your custom
     fields before calling this function so the ``EMIT_`` variables exist and
     are colorized.
@@ -207,7 +168,6 @@ endfunction()
   - :cmake:command:`libra_config_summary`
   - :cmake:command:`libra_config_summary_prepare_fields`
   - :cmake:command:`libra_config_summary_target_block`
-
 ]]
 function(libra_config_summary_row)
   cmake_parse_arguments(
@@ -224,7 +184,6 @@ function(libra_config_summary_row)
     libra_error("libra_config_summary_row: STATUS is required")
   endif()
 
-  # VARIABLE is optional -- default to empty string
   if(NOT DEFINED ARG_VARIABLE)
     set(ARG_VARIABLE "")
   endif()
@@ -235,18 +194,20 @@ endfunction()
 #[[.rst:
 .. cmake:command:: libra_config_summary_target_block
 
-  Register a block of targets for display in table 2 of
-  :cmake:command:`libra_config_summary`. The purpose is to make it clear which
-  targets will/will not be available at build time and *why*.
+  Register a block of targets for display via the ``help-targets`` make target.
+  The purpose is to make it clear which targets will/will not be available at
+  build time and *why*.
 
-  Appends target/tool pairs to the global ``_LIBRA_SUMMARY_TARGETS`` list which
-  is emitted as a unified table after the main feature table, so all target
-  names are padded to a consistent width across all feature groups
+  Appends target/tool pairs to the global ``_LIBRA_SUMMARY_TARGETS`` cache
+  variable. The accumulated list is emitted as a unified table by the
+  ``help-targets`` target so all target names are padded to a consistent width
+  across all feature groups.
 
-  :param OPTION: ``LIBRA_XX`` option that gates all targets.
+  :param OPTION: ``LIBRA_XX`` option that gates all targets in this block.
 
-  :param TARGETS: Flat list of (target, tool_var) pairs. Pass NONE as tool_var
-   if target is gated only by OPTION.
+  :param TARGETS: Flat list of ``(target, tool_var)`` pairs. Pass ``NONE`` as
+   ``tool_var`` if a target is gated only by ``OPTION`` with no additional tool
+   dependency.
 
   .. code-block:: cmake
 
@@ -266,6 +227,10 @@ endfunction()
              analyze-clang-tidy   clang_tidy_EXECUTABLE
              analyze-cppcheck     cppcheck_EXECUTABLE
      )
+
+  **See Also:**
+
+  - :cmake:command:`libra_config_summary`
 ]]
 function(libra_config_summary_target_block)
   cmake_parse_arguments(
@@ -290,7 +255,6 @@ function(libra_config_summary_target_block)
       set(_cur_target "${_item}")
       set(_toggle OFF)
     else()
-      # Append: target;option;tool_var
       list(
         APPEND
         _LIBRA_SUMMARY_TARGETS
@@ -309,14 +273,16 @@ endfunction()
 #[[.rst:
 .. cmake:command:: libra_config_summary
 
-  Print a comprehensive summary of LIBRA configuration variables to the
-  terminal in three sections:
+  Print a summary of the current LIBRA configuration to the terminal during
+  ``cmake`` configure. Displays the feature table (table 1) only: all LIBRA
+  options with their current values and controlling variable names.
 
-  #. **Feature table** — all LIBRA options with their current values and
-     controlling variable names.
-  #. **Targets table** — all LIBRA make targets with YES/NO status and reason
-     if not available.
-  #. **Variable reference** — valid values for all enumerated LIBRA options.
+  For additional information available after configure:
+
+  - ``make help-targets`` — shows all LIBRA make targets with YES/NO
+    availability status and the reason each unavailable target is disabled.
+  - ``make help-vars``    — shows all enumerated LIBRA option variables with
+    their valid values.
 
   .. note::
      This function only displays the summary once per configure run.
@@ -324,6 +290,7 @@ endfunction()
   **See Also:**
 
   - :cmake:command:`libra_config_summary_prepare_fields`
+  - :cmake:command:`libra_config_summary_row`
   - :cmake:command:`libra_config_summary_target_block`
 ]]
 function(libra_config_summary)
@@ -350,8 +317,6 @@ function(libra_config_summary)
   message("${BoldBlue}                           LIBRA Configuration Summary")
   message("${BoldBlue}${_outer_sep}${ColorReset}")
   message("")
-
-  get_filename_component(MAKE_NAME ${CMAKE_MAKE_PROGRAM} NAME)
 
   set(fields
       LIBRA_VERSION
@@ -389,7 +354,28 @@ function(libra_config_summary)
       LIBRA_LTO
       LIBRA_OPT_REPORT
       LIBRA_STDLIB
-      LIBRA_FORTIFY)
+      LIBRA_FORTIFY
+      LIBRA_USE_COMPDB
+      LIBRA_CPPCHECK_IGNORES
+      LIBRA_CPPCHECK_SUPPRESSIONS
+      LIBRA_CPPCHECK_EXTRA_ARGS
+      LIBRA_CLANG_FORMAT_FILEPATH
+      LIBRA_CLANG_TIDY_FILEPATH
+      LIBRA_CLANG_TIDY_CHECKS_CONFIG
+      LIBRA_C_DIAG_CANDIDATES
+      LIBRA_CXX_DIAG_CANDIDATES
+      LIBRA_TEST_HARNESS_LIBS
+      LIBRA_TEST_HARNESS_PACKAGES
+      LIBRA_UNIT_TEST_MATCHER
+      LIBRA_INTEGRATION_TEST_MATCHER
+      LIBRA_REGRESSION_TEST_MATCHER
+      LIBRA_CTEST_INCLUDE_UNIT_TESTS
+      LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+      LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+      LIBRA_GCOVR_LINES_THRESH
+      LIBRA_GCOVR_FUNCTIONS_THRESH
+      LIBRA_GCOVR_DECISIONS_THRESH
+      LIBRA_GCOVR_BRANCHES_THRESH)
 
   libra_config_summary_prepare_fields("${fields}")
 
@@ -502,10 +488,73 @@ function(libra_config_summary)
                      EMIT_LIBRA_ANALYSIS "[LIBRA_ANALYSIS]")
   _libra_summary_row("Enable optimization reports..........."
                      EMIT_LIBRA_OPT_REPORT "[LIBRA_OPT_REPORT]")
+  _libra_summary_row("Use compilation database.............."
+                     EMIT_LIBRA_USE_COMPDB "[LIBRA_USE_COMPDB]")
 
-  message("${_inner_sep}")
+  message("")
+  if(LIBRA_ANALYSIS)
+    _libra_summary_row("cppcheck ignores......................"
+                       EMIT_LIBRA_CPPCHECK_IGNORES "[LIBRA_CPPCHECK_IGNORES]")
+    _libra_summary_row(
+      "cppcheck suppressions................." EMIT_LIBRA_CPPCHECK_SUPPRESSIONS
+      "[LIBRA_CPPCHECK_SUPPRESSIONS]")
+    _libra_summary_row(
+      "cppcheck extra args..................." EMIT_LIBRA_CPPCHECK_EXTRA_ARGS
+      "[LIBRA_CPPCHECK_EXTRA_ARGS]")
+    _libra_summary_row(
+      "clang-format filepath................." EMIT_LIBRA_CLANG_FORMAT_FILEPATH
+      "[LIBRA_CLANG_FORMAT_FILEPATH]")
+    _libra_summary_row(
+      "clang-tidy filepath..................." EMIT_LIBRA_CLANG_TIDY_FILEPATH
+      "[LIBRA_CLANG_TIDY_FILEPATH]")
+    _libra_summary_row(
+      "clang-tidy checks....................."
+      EMIT_LIBRA_CLANG_TIDY_CHECKS_CONFIG "[LIBRA_CLANG_TIDY_CHECKS_CONFIG]")
+    _libra_summary_row("Test harness libs....................."
+                       EMIT_LIBRA_TEST_HARNESS_LIBS "[LIBRA_TEST_HARNESS_LIBS]")
+  endif()
+  if(LIBRA_TESTS)
+    _libra_summary_row(
+      "Test harness packages................." EMIT_LIBRA_TEST_HARNESS_PACKAGES
+      "[LIBRA_TEST_HARNESS_PACKAGES]")
+    _libra_summary_row("Unit test matcher....................."
+                       EMIT_LIBRA_UNIT_TEST_MATCHER "[LIBRA_UNIT_TEST_MATCHER]")
+    _libra_summary_row(
+      "Integration test matcher.............."
+      EMIT_LIBRA_INTEGRATION_TEST_MATCHER "[LIBRA_INTEGRATION_TEST_MATCHER]")
+    _libra_summary_row(
+      "Regression test matcher..............."
+      EMIT_LIBRA_REGRESSION_TEST_MATCHER "[LIBRA_REGRESSION_TEST_MATCHER]")
+    _libra_summary_row(
+      "CTest include unit tests.............."
+      EMIT_LIBRA_CTEST_INCLUDE_UNIT_TESTS "[LIBRA_CTEST_INCLUDE_UNIT_TESTS]")
+    _libra_summary_row(
+      "CTest include integration tests......."
+      EMIT_LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+      "[LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS]")
+    _libra_summary_row(
+      "CTest include regression tests........"
+      EMIT_LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+      "[LIBRA_CTEST_INCLUDE_REGRESSION_TESTS]")
+  endif()
 
-  # Register all target blocks
+  if(LIBRA_CODE_COV)
+    _libra_summary_row(
+      "gcovr lines threshold................." EMIT_LIBRA_GCOVR_LINES_THRESH
+      "[LIBRA_GCOVR_LINES_THRESH]")
+    _libra_summary_row(
+      "gcovr functions threshold............."
+      EMIT_LIBRA_GCOVR_FUNCTIONS_THRESH "[LIBRA_GCOVR_FUNCTIONS_THRESH]")
+    _libra_summary_row(
+      "gcovr branches threshold.............." EMIT_LIBRA_GCOVR_BRANCHES_THRESH
+      "[LIBRA_GCOVR_BRANCHES_THRESH]")
+    _libra_summary_row(
+      "gcovr decisions threshold............."
+      EMIT_LIBRA_GCOVR_DECISIONS_THRESH "[LIBRA_GCOVR_DECISIONS_THRESH]")
+  endif()
+  message("${BoldBlue}${_outer_sep}${ColorReset}")
+
+  # Register all target blocks for help-targets
   libra_config_summary_target_block(
     OPTION
     LIBRA_TESTS
@@ -586,17 +635,63 @@ function(libra_config_summary)
     fix-clang-check
     clang_check_EXECUTABLE)
 
-  # Emit table 2 (targets) and table 3 (variable reference)
-  _libra_summary_emit_targets()
-  _libra_summary_emit_variable_ref()
-
-  message("")
-  message("${BoldBlue}${_outer_sep}${ColorReset}")
-
   set(_LIBRA_SHOWED_SUMMARY
       YES
       PARENT_SCOPE)
 endfunction()
+
+# Create help-targets build target
+#
+# _LIBRA_SUMMARY_TARGETS is a CMake list (semicolons) and cannot be passed
+# safely as a -D argument on the command line -- the shell splits on semicolons
+# before CMake sees them. Instead, write the list to a small CMake file at
+# configure time and have the script include() it.
+set(_this_script "${CMAKE_CURRENT_LIST_DIR}/summary_help.cmake")
+set(_targets_file "${CMAKE_BINARY_DIR}/libra_summary_targets.cmake")
+
+# Write the target list and all referenced option/tool values into a cmake file
+# at configure time when they are fully resolved. This avoids both the
+# semicolon-in-list -D problem and the load_cache() problem of needing variable
+# names known ahead of time in script mode.
+file(WRITE "${_targets_file}" "set(_LIBRA_SUMMARY_TARGETS)\n")
+set(_tw_i 0)
+list(LENGTH _LIBRA_SUMMARY_TARGETS _tw_len)
+while(_tw_i LESS _tw_len)
+  math(EXPR _tw_i1 "${_tw_i} + 1")
+  math(EXPR _tw_i2 "${_tw_i} + 2")
+  list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i} _tw_name)
+  list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i1} _tw_opt)
+  list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i2} _tw_tool)
+  # Write the triple
+  file(
+    APPEND "${_targets_file}"
+    "list(APPEND _LIBRA_SUMMARY_TARGETS [[${_tw_name}]] [[${_tw_opt}]] [[${_tw_tool}]])\n"
+  )
+  # Write resolved option value
+  if(${_tw_opt})
+    file(APPEND "${_targets_file}" "set([[${_tw_opt}]] ON)\n")
+  else()
+    file(APPEND "${_targets_file}" "set([[${_tw_opt}]] OFF)\n")
+  endif()
+  # Write resolved tool path (empty string if not found)
+  if(NOT _tw_tool STREQUAL "NONE")
+    file(APPEND "${_targets_file}" "set([[${_tw_tool}]] [[${${_tw_tool}}]])\n")
+  endif()
+  math(EXPR _tw_i "${_tw_i} + 3")
+endwhile()
+
+if(NOT TARGET help-targets)
+  add_custom_target(
+    help-targets
+    COMMAND
+      ${CMAKE_COMMAND} -D LIBRA_HELP_MODE=TARGETS -D
+      LIBRA_TARGETS_FILE=${_targets_file} -D
+      _LIBRA_SUMMARY_COL_TARGET=${_LIBRA_SUMMARY_COL_TARGET} -D
+      _LIBRA_SUMMARY_SEP_WIDTH=${_LIBRA_SUMMARY_SEP_WIDTH} -P "${_this_script}"
+    VERBATIM
+    COMMENT "LIBRA target availability"
+    USES_TERMINAL)
+endif()
 
 # ##############################################################################
 # Internal helper: emit one row of table 1 (feature + status + variable)
@@ -626,148 +721,4 @@ function(_libra_summary_row FEATURE_LABEL STATUS_VAR VARIABLE_NAME)
   endif()
 
   message("${_feat} ${_stat} ${_var}")
-endfunction()
-
-# ##############################################################################
-# Internal: emit table 2 (targets)
-# ##############################################################################
-function(_libra_summary_emit_targets)
-  if(NOT _LIBRA_SUMMARY_TARGETS)
-    return()
-  endif()
-
-  # Build separator string
-  set(_sep "")
-  foreach(_i RANGE ${_LIBRA_SUMMARY_SEP_WIDTH})
-    string(APPEND _sep "-")
-  endforeach()
-
-  message("")
-  message("Targets")
-  message("${_sep}")
-
-  # Header
-  set(_th "Target")
-  string(LENGTH "${_th}" _thl)
-  math(EXPR _thpad "${_LIBRA_SUMMARY_COL_TARGET} - ${_thl}")
-  foreach(_s RANGE ${_thpad})
-    string(APPEND _th " ")
-  endforeach()
-  message("${_th}  Status  Reason")
-  message("${_sep}")
-
-  list(LENGTH _LIBRA_SUMMARY_TARGETS _total)
-
-  # Emit rows - pad to fixed column width so status column is always aligned
-  # regardless of color escape sequences in the status value
-  set(_i 0)
-  while(_i LESS _total)
-    list(GET _LIBRA_SUMMARY_TARGETS ${_i} _tname)
-    math(EXPR _oi "${_i} + 1")
-    math(EXPR _ti "${_i} + 2")
-    list(GET _LIBRA_SUMMARY_TARGETS ${_oi} _option)
-    list(GET _LIBRA_SUMMARY_TARGETS ${_ti} _tool_var)
-
-    set(_padded "${_tname}")
-    string(LENGTH "${_tname}" _len)
-    math(EXPR _nsp "${_LIBRA_SUMMARY_COL_TARGET} - ${_len}")
-    if(_nsp GREATER 0)
-      foreach(_s RANGE ${_nsp})
-        string(APPEND _padded " ")
-      endforeach()
-    endif()
-
-    # Determine status and reason
-    if(NOT ${_option})
-      set(_status "${Red}NO ${ColorReset}")
-      set(_reason "${_option}=OFF")
-    elseif(NOT "${_tool_var}" STREQUAL "NONE" AND NOT ${_tool_var})
-      string(REPLACE "_EXECUTABLE" "" _tool_name "${_tool_var}")
-      string(REPLACE "_TOOL" "" _tool_name "${_tool_name}")
-      string(REPLACE "_" "-" _tool_name "${_tool_name}")
-      string(TOLOWER "${_tool_name}" _tool_name)
-      set(_status "${Red}NO ${ColorReset}")
-      set(_reason "${_tool_name} not found")
-    else()
-      set(_status "${Green}YES${ColorReset}")
-      set(_reason "")
-    endif()
-
-    message("${_padded}  ${_status}     ${_reason}")
-    math(EXPR _i "${_i} + 3")
-  endwhile()
-
-  message("${_sep}")
-endfunction()
-
-# ##############################################################################
-# Internal: emit table 3 (variable reference)
-# ##############################################################################
-function(_libra_summary_emit_variable_ref)
-  set(_sep "")
-  foreach(_i RANGE ${_LIBRA_SUMMARY_SEP_WIDTH})
-    string(APPEND _sep "-")
-  endforeach()
-
-  message("")
-  message("Variable Reference")
-  message("${_sep}")
-
-  set(_refs
-      "LIBRA_DRIVER"
-      "SELF|CONAN"
-      "LIBRA_PGO"
-      "NONE|GEN|USE"
-      "LIBRA_FPC"
-      "RETURN|ABORT|NONE|INHERIT"
-      "LIBRA_ERL"
-      "FATAL|ERROR|WARN|INFO|DEBUG|TRACE|ALL|NONE|INHERIT"
-      "LIBRA_SAN"
-      "MSAN|ASAN|SSAN|TSAN"
-      "LIBRA_STDLIB"
-      "NONE|STDCXX|CXX"
-      "LIBRA_FORTIFY"
-      "NONE|STACK|SOURCE|ALL")
-
-  # Compute max key width
-  set(_maxkey 0)
-  set(_i 0)
-  list(LENGTH _refs _total)
-  while(_i LESS _total)
-    list(GET _refs ${_i} _key)
-    string(LENGTH "${_key}" _klen)
-    if(_klen GREATER _maxkey)
-      set(_maxkey ${_klen})
-    endif()
-    math(EXPR _i "${_i} + 2")
-  endwhile()
-
-  # Emit header after _maxkey is known
-  set(_vh "Variable")
-  string(LENGTH "${_vh}" _vhl)
-  math(EXPR _vhpad "${_maxkey} - ${_vhl}")
-  foreach(_s RANGE ${_vhpad})
-    string(APPEND _vh " ")
-  endforeach()
-  message("${_vh}  Valid Values")
-  message("${_sep}")
-
-  set(_i 0)
-  while(_i LESS _total)
-    list(GET _refs ${_i} _key)
-    math(EXPR _vi "${_i} + 1")
-    list(GET _refs ${_vi} _val)
-
-    set(_kpadded "${_key}")
-    string(LENGTH "${_key}" _klen)
-    math(EXPR _kpad "${_maxkey} - ${_klen}")
-    foreach(_s RANGE ${_kpad})
-      string(APPEND _kpadded " ")
-    endforeach()
-
-    message("${_kpadded}  ${_val}")
-    math(EXPR _i "${_i} + 2")
-  endwhile()
-
-  message("${_sep}")
 endfunction()

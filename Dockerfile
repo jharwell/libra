@@ -20,78 +20,60 @@ RUN apt-get update && apt-get install -y wget gpg curl && \
 RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | \
     gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-17 main" > /etc/apt/sources.list.d/llvm-17.list && \
-    echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-18 main" > /etc/apt/sources.list.d/llvm-18.list && \
     echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" > /etc/apt/sources.list.d/llvm-19.list && \
     echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" > /etc/apt/sources.list.d/llvm-20.list && \
     echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble main" > /etc/apt/sources.list.d/llvm-latest.list && \
     apt-get update
 
 ################################################################################
-# Install GCC/G++ versions 9-14
+# Install GCC/G++ versions
 ################################################################################
 RUN apt-get update && apt-get install -y \
     gcc-9 g++-9 \
-    gcc-10 g++-10 \
-    gcc-11 g++-11 \
-    gcc-12 g++-12 \
-    gcc-13 g++-13 \
     gcc-14 g++-14
 
 # Set up alternatives for gcc/g++
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 --slave /usr/bin/g++ g++ /usr/bin/g++-11 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 120 --slave /usr/bin/g++ g++ /usr/bin/g++-12 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 130 --slave /usr/bin/g++ g++ /usr/bin/g++-13 && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 140 --slave /usr/bin/g++ g++ /usr/bin/g++-14
 
 ################################################################################
-# Install Clang/Clang++ versions 17-19
+# Install Clang/Clang++ versions
 ################################################################################
 # Install each version separately to avoid python3-clang conflicts
 # We use --no-install-recommends to skip python bindings
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang-17 \
-    clang++-17 \
-    libc++-17-dev \
-    libc++abi-17-dev \
-    libclang-rt-17-dev \
-    llvm-17 \
-    llvm-17-tools \
-    clang-tidy-17 \
-    clang-format-17 \
-    clang-tools-17
+    clang-14 \
+    clang++-14 \
+    libc++-14-dev \
+    libc++abi-14-dev \
+    libclang-rt-14-dev \
+    llvm-14 \
+    llvm-14-tools \
+    clang-tidy-14 \
+    clang-format-14 \
+    clang-tools-14
 
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang-18 \
-    clang++-18 \
-    libc++-18-dev \
-    libc++abi-18-dev \
-    libclang-rt-18-dev \
-    llvm-18 \
-    llvm-18-tools \
-    clang-tidy-18 \
-    clang-format-18 \
-    clang-tools-18
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get install -y --no-install-recommends \
     clang-19 \
-    clang++-19 \
     libc++-19-dev \
     libc++abi-19-dev \
     libclang-rt-19-dev \
+    libunwind-19 \
+    libunwind-19-dev \
+    libc++1-19 \
+    libc++abi1-19 \
     llvm-19 \
-    llvm-19-tools \
     clang-tidy-19 \
     clang-format-19 \
     clang-tools-19
 
+RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-14 140 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-14 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 190 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-19
 
 ################################################################################
 # Set up Clang alternatives
 ################################################################################
-RUN for ver in 17 18 19; do \
+RUN for ver in 14 19; do \
         clang_lib_base="/usr/lib/llvm-$ver/lib/clang/$ver/lib"; \
         update-alternatives --install /usr/bin/clang clang /usr/bin/clang-$ver 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-$ver; \
         if [ -d "$clang_lib_base/linux" ]; then \

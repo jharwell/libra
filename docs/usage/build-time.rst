@@ -86,6 +86,31 @@ Common Workflows
     make format  # All formatters
     make fix-clang-tidy  # Auto-fix clang-tidy warnings
 
+.. _usage/build-time/help:
+
+Utility Actions
+===============
+
+.. list-table::
+   :widths: 5,95
+   :header-rows: 1
+
+   * - Target
+
+     - Description
+
+   * - ``help-targets``
+
+     - Emit a table of all LIBRA targets, whether or not they are
+       enabled/available, and (more importantly), *why*. E.g., a necessary
+       program was not found, disabled by a ``LIBRA_`` variable.
+
+   * - ``help-vars``
+
+     - Emit the LIBRA variable reference: a table of all ``LIBRA_`` variables
+       (both those that control build target creation, and those that configure
+       other things).
+
 .. _usage/build-time/build:
 
 Actions That Build Things

@@ -318,7 +318,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    echo "$output" >&3
+    # echo "$output" >&3
 
     run make
     if [ "$status" -ne 0 ]; then
@@ -328,7 +328,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    echo "$output" >&3
+    # echo "$output" >&3
 
     # Return to original directory and output test dir path
     cd - > /dev/null
@@ -452,7 +452,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    echo "$output" >&3
+    # echo "$output" >&3
 
     run make
     popd > /dev/null
@@ -463,7 +463,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    echo "$output" >&3
+    # echo "$output" >&3
     echo "$test_dir"
 }
 

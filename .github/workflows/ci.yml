@@ -24,7 +24,7 @@ jobs:
   smoke-tests-cmake:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
+      image: jharwell/ubuntu24.04-libra:2026-02-26
     steps:
       - uses: actions/checkout@v3
       - name: Run smoke tests
@@ -35,56 +35,30 @@ jobs:
           ctest --output-on-failure -j $(nproc)
 
   smoke-tests-add-subdirectory:
-    runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run smoke tests
-        shell: bash
-        run: |
-          clang --version
-          clang++ --version
-          cd tests && ./suites/run_suite_add_subdirectory.sh --no-tempdir-cleanup
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_add_subdirectory.sh
 
   smoke-tests-installed-pkg:
-    runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run smoke tests
-        shell: bash
-        run: |
-          cd tests && ./suites/run_suite_installed_package.sh
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_installed_package.sh
 
   smoke-tests-cpm:
-    runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run smoke tests
-        shell: bash
-        run: |
-          cd tests && ./suites/run_suite_cpm.sh
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_cpm.sh
 
   smoke-tests-conan:
-    runs-on: ubuntu-latest
-    container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run smoke tests
-        shell: bash
-        run: |
-          pip3 install conan --break-system-packages
-          cd tests && ./suites/run_suite_conan.sh
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_conan.sh
+      pip-install-conan: true
 
   self-install-test:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
+      image: jharwell/ubuntu24.04-libra:2026-02-26
     steps:
       - uses: actions/checkout@v3
       - name: Run LIBRA install
@@ -103,7 +77,6 @@ jobs:
       - smoke-tests-conan
       - smoke-tests-installed-pkg
       - self-install-test
-
     secrets: inherit
 
   create-conan-pkg:
@@ -115,7 +88,6 @@ jobs:
       - smoke-tests-conan
       - smoke-tests-installed-pkg
       - self-install-test
-
     steps:
       - uses: actions/checkout@v3
       - name: Create package
@@ -137,7 +109,6 @@ jobs:
       - smoke-tests-conan
       - smoke-tests-installed-pkg
       - self-install-test
-
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
