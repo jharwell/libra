@@ -33,8 +33,12 @@ RUN apt-get update && apt-get install -y \
     gcc-14 g++-14
 
 # Set up alternatives for gcc/g++
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 140 --slave /usr/bin/g++ g++ /usr/bin/g++-14
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 \
+    --slave /usr/bin/g++ g++ /usr/bin/g++-9 \
+    --slave /usr/bin/gcov gcov /usr/bin/gcov-9 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 140 \
+    --slave /usr/bin/g++ g++ /usr/bin/g++-14 \
+    --slave /usr/bin/gcov gcov /usr/bin/gcov-14
 
 ################################################################################
 # Install Clang/Clang++ versions
@@ -67,8 +71,12 @@ RUN apt-get install -y --no-install-recommends \
     clang-format-19 \
     clang-tools-19
 
-RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-14 140 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-14 && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 190 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-19
+RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-14 140 \
+        --slave /usr/bin/clang++ clang++ /usr/bin/clang++-14 \
+        --slave /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-14 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 190 \
+        --slave /usr/bin/clang++ clang++ /usr/bin/clang++-19 \
+        --slave /usr/bin/llvm-profdata llvm-profdata /usr/bin/llvm-profdata-19
 
 ################################################################################
 # Set up Clang alternatives
@@ -150,9 +158,8 @@ RUN pip3 install --break-system-packages \
 ################################################################################
 # Environment Setup
 ################################################################################
-# Add Intel oneAPI environment variables (for default version)
 ENV ONEAPI_ROOT=/opt/intel/oneapi
-ENV PATH="${ONEAPI_ROOT}/compiler/latest/bin:${PATH}"
+ENV PATH="/usr/local/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${ONEAPI_ROOT}/compiler/latest/lib:${LD_LIBRARY_PATH}"
 
 # Cleanup

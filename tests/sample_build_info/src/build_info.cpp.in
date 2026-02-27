@@ -8,11 +8,12 @@
 namespace build_info {
 
 // Build configuration information
-const char* CXX_STANDARD = "@LIBRA_CXX_STANDARD@";
-constexpr const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
-constexpr const char* LINK_FLAGS = "@LIBRA_TARGET_FLAGS_LINK@";
-constexpr const char* GIT_REV = "@LIBRA_GIT_REV@";
-constexpr const char* GIT_BRANCH = "@LIBRA_GIT_BRANCH@";
-constexpr const char* BUILD_TYPE = "@CMAKE_BUILD_TYPE@";
+
+[[maybe_unused]] static const char* CXX_STANDARD = "@LIBRA_CXX_STANDARD@";
+[[maybe_unused]] static constexpr const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
+[[maybe_unused]] static constexpr const char* LINK_FLAGS = "@LIBRA_TARGET_FLAGS_LINK@";
+[[maybe_unused]] static constexpr const char* GIT_REV = "@LIBRA_GIT_REV@";
+[[maybe_unused]] static constexpr const char* GIT_BRANCH = "@LIBRA_GIT_BRANCH@";
+[[maybe_unused]] static constexpr const char* BUILD_TYPE = "@CMAKE_BUILD_TYPE@";
 
 } // namespace build_info

@@ -7,5 +7,5 @@
 //
 
 namespace consumer {
-const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
+[[maybe_unused]] static const char* COMPILE_FLAGS = "@LIBRA_TARGET_FLAGS_COMPILE@";
 }

@@ -24,7 +24,7 @@ jobs:
   smoke-tests-cmake:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-02-26
+      image: jharwell/ubuntu24.04-libra:2026-02-28
     steps:
       - uses: actions/checkout@v3
       - name: Run smoke tests
@@ -58,7 +58,7 @@ jobs:
   self-install-test:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-02-26
+      image: jharwell/ubuntu24.04-libra:2026-02-28
     steps:
       - uses: actions/checkout@v3
       - name: Run LIBRA install

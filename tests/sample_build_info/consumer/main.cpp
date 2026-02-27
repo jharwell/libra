@@ -10,7 +10,9 @@
 
 extern "C" const char* lib_stub();
 
-int main() {
-    (void)lib_stub();
-    return 0;
+int main(int argc, char** argv) {
+  (void)argc;
+  (void)argv;
+  (void)lib_stub();
+  return 0;
 }

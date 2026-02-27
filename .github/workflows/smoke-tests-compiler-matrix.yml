@@ -32,36 +32,27 @@ jobs:
   run:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-02-26
+      image: jharwell/ubuntu24.04-libra:2026-02-28
     strategy:
       fail-fast: false
       matrix:
         compiler:
-          - { family: gnu,   cc: gcc,   cxx: g++,     version: "9"  }
-          - { family: gnu,   cc: gcc,   cxx: g++,     version: "14" }
-          - { family: clang, cc: clang, cxx: clang++, version: "14" }
-          - { family: clang, cc: clang, cxx: clang++, version: "19" }
-          - { family: intel, cc: icx,   cxx: icpx,    version: ""   }
+          - gcc: gcc-9
+            gxx: g++-9
+            clang: clang-14
+            clangxx: clang++-14
+          - gcc: gcc-14
+            gxx: g++-14
+            clang: clang-19
+            clangxx: clang++-19
+
     steps:
       - uses: actions/checkout@v3
-
       - name: Configure compiler
         shell: bash
         run: |
-          if [ "${{ matrix.compiler.family }}" != "intel" ]; then
-            update-alternatives --install \
-              /usr/bin/${{ matrix.compiler.cc }} \
-              ${{ matrix.compiler.cc }} \
-              /usr/bin/${{ matrix.compiler.cc }}-${{ matrix.compiler.version }} 100
-            update-alternatives --set ${{ matrix.compiler.cc }} \
-              /usr/bin/${{ matrix.compiler.cc }}-${{ matrix.compiler.version }}
-
-            # CXX: create symlink directly since clang++ is registered as a
-            # slave of clang in the alternatives system and cannot be set
-            # independently, but may not exist as an unversioned binary
-            ln -sf /usr/bin/${{ matrix.compiler.cxx }}-${{ matrix.compiler.version }} \
-              /usr/bin/${{ matrix.compiler.cxx }}
-          fi
+          update-alternatives --set gcc /usr/bin/${{ matrix.compiler.gcc }}
+          update-alternatives --set clang /usr/bin/${{ matrix.compiler.clang }}
 
       - name: Install conan
         if: inputs.pip-install-conan
@@ -70,8 +61,5 @@ jobs:
 
       - name: Run smoke tests
         shell: bash
-        env:
-          CC: ${{ matrix.compiler.cc }}
-          CXX: ${{ matrix.compiler.cxx }}
         run: |
           cd tests && ${{ inputs.suite-script }} ${{ inputs.suite-args }}

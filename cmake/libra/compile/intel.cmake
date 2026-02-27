@@ -258,8 +258,9 @@ endif()
 
 if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
-    WARNING "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of
-{NONE,STDCXX,CXX}")
+    WARNING
+    "Bad LIBRA_STDLIB setting '${LIBRA_STDLIB}': Must be one of {NONE,STDCXX,CXX}"
+  )
 endif()
 
 # ##############################################################################

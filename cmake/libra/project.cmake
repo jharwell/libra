@@ -3,7 +3,7 @@
 # ##############################################################################
 
 # CMake version
-cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
 
 # This will be set when LIBRA is used as a conan backend (we can't test directly
 # for that at this point in the file, because that option isn't defined yet).
@@ -99,6 +99,20 @@ set(LIBRA_SAN
 set(LIBRA_STDLIB
     ${LIBRA_STDLIB_DEFAULT}
     CACHE STRING "{NONE, CXX, STDCXX")
+
+# Unlike the MATCHER variables (which encode naming conventions and belong in
+# project-local.cmake), these control whether tests are registered with CTest
+# and are legitimate per-build knobs — e.g. a CI job that wants to skip slow
+# integration tests can pass -DLIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO.
+set(LIBRA_CTEST_INCLUDE_UNIT_TESTS
+    ${LIBRA_CTEST_INCLUDE_UNIT_TESTS_DEFAULT}
+    CACHE STRING "Register discovered unit tests with CTest (YES/NO)")
+set(LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+    ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS_DEFAULT}
+    CACHE STRING "Register discovered integration tests with CTest (YES/NO)")
+set(LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+    ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS_DEFAULT}
+    CACHE STRING "Register discovered regression tests with CTest (YES/NO)")
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(_LIBRA_TARGETS
       ""

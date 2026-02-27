@@ -231,8 +231,6 @@ function(_libra_coverage_register_gcovr)
           ${LIBRA_GCOVR_${THRESH}_THRESH_DEFAULT}
           CACHE STRING "" FORCE)
     endif()
-    message(
-      "LIBRA_GCOVR_${THRESH}_THRESH ${LIBRA_GCOVR_${THRESH}_THRESH_DEFAULT}")
 
   endforeach()
 

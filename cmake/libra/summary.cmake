@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 # ##############################################################################
-# Summary
+# Public API
 # ##############################################################################
 set(_LIBRA_SHOWED_SUMMARY NO)
 
@@ -14,6 +14,10 @@ set(_LIBRA_SUMMARY_COL_STATUS 46) # Status/value
 set(_LIBRA_SUMMARY_COL_VARIABLE 33) # [VARIABLE_NAME]
 set(_LIBRA_SUMMARY_COL_TARGET 22) # make target name
 set(_LIBRA_SUMMARY_SEP_WIDTH 80) # inner separator width
+
+# ##############################################################################
+# Public API
+# ##############################################################################
 
 function(libra_config_summary_prepare_fields FIELDS)
   if(NOT FIELDS)
@@ -167,7 +171,7 @@ endfunction()
 
   - :cmake:command:`libra_config_summary`
   - :cmake:command:`libra_config_summary_prepare_fields`
-  - :cmake:command:`libra_config_summary_target_block`
+  - :cmake:command:`libra_help_targets_block`
 ]]
 function(libra_config_summary_row)
   cmake_parse_arguments(
@@ -192,85 +196,6 @@ function(libra_config_summary_row)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: libra_config_summary_target_block
-
-  Register a block of targets for display via the ``help-targets`` make target.
-  The purpose is to make it clear which targets will/will not be available at
-  build time and *why*.
-
-  Appends target/tool pairs to the global ``_LIBRA_SUMMARY_TARGETS`` cache
-  variable. The accumulated list is emitted as a unified table by the
-  ``help-targets`` target so all target names are padded to a consistent width
-  across all feature groups.
-
-  :param OPTION: ``LIBRA_XX`` option that gates all targets in this block.
-
-  :param TARGETS: Flat list of ``(target, tool_var)`` pairs. Pass ``NONE`` as
-   ``tool_var`` if a target is gated only by ``OPTION`` with no additional tool
-   dependency.
-
-  .. code-block:: cmake
-
-     libra_config_summary_target_block(
-         OPTION  <variable-name>
-         TARGETS <target> <tool-var> ...
-     )
-
-  **Example:**
-
-  .. code-block:: cmake
-
-     libra_config_summary_target_block(
-         OPTION LIBRA_ANALYSIS
-         TARGETS
-             analyze              NONE
-             analyze-clang-tidy   clang_tidy_EXECUTABLE
-             analyze-cppcheck     cppcheck_EXECUTABLE
-     )
-
-  **See Also:**
-
-  - :cmake:command:`libra_config_summary`
-]]
-function(libra_config_summary_target_block)
-  cmake_parse_arguments(
-    ARG
-    ""
-    "OPTION"
-    "TARGETS"
-    ${ARGN})
-
-  if(NOT ARG_OPTION)
-    libra_error("libra_config_summary_target_block: OPTION is required")
-  endif()
-  if(NOT ARG_TARGETS)
-    libra_error("libra_config_summary_target_block: TARGETS is required")
-  endif()
-
-  # Parse flat (target, tool_var) pairs and append to global accumulator
-  set(_toggle ON)
-  set(_cur_target "")
-  foreach(_item ${ARG_TARGETS})
-    if(_toggle)
-      set(_cur_target "${_item}")
-      set(_toggle OFF)
-    else()
-      list(
-        APPEND
-        _LIBRA_SUMMARY_TARGETS
-        "${_cur_target}"
-        "${ARG_OPTION}"
-        "${_item}")
-      set(_toggle ON)
-    endif()
-  endforeach()
-
-  set(_LIBRA_SUMMARY_TARGETS
-      "${_LIBRA_SUMMARY_TARGETS}"
-      CACHE INTERNAL "")
-endfunction()
-
-#[[.rst:
 .. cmake:command:: libra_config_summary
 
   Print a summary of the current LIBRA configuration to the terminal during
@@ -291,7 +216,7 @@ endfunction()
 
   - :cmake:command:`libra_config_summary_prepare_fields`
   - :cmake:command:`libra_config_summary_row`
-  - :cmake:command:`libra_config_summary_target_block`
+  - :cmake:command:`libra_help_targets_block`
 ]]
 function(libra_config_summary)
   if(_LIBRA_SHOWED_SUMMARY)
@@ -366,6 +291,7 @@ function(libra_config_summary)
       LIBRA_CXX_DIAG_CANDIDATES
       LIBRA_TEST_HARNESS_LIBS
       LIBRA_TEST_HARNESS_PACKAGES
+      LIBRA_TEST_HARNESS_MATCHER
       LIBRA_UNIT_TEST_MATCHER
       LIBRA_INTEGRATION_TEST_MATCHER
       LIBRA_REGRESSION_TEST_MATCHER
@@ -379,7 +305,7 @@ function(libra_config_summary)
 
   libra_config_summary_prepare_fields("${fields}")
 
-  # Table 1 header
+  # Header
   set(_fh "Feature")
   string(LENGTH "${_fh}" _fhl)
   math(EXPR _fhpad "${_LIBRA_SUMMARY_COL_FEATURE} - ${_fhl}")
@@ -510,13 +436,17 @@ function(libra_config_summary)
     _libra_summary_row(
       "clang-tidy checks....................."
       EMIT_LIBRA_CLANG_TIDY_CHECKS_CONFIG "[LIBRA_CLANG_TIDY_CHECKS_CONFIG]")
-    _libra_summary_row("Test harness libs....................."
-                       EMIT_LIBRA_TEST_HARNESS_LIBS "[LIBRA_TEST_HARNESS_LIBS]")
+
   endif()
   if(LIBRA_TESTS)
+    _libra_summary_row("Test harness libs....................."
+                       EMIT_LIBRA_TEST_HARNESS_LIBS "[LIBRA_TEST_HARNESS_LIBS]")
     _libra_summary_row(
       "Test harness packages................." EMIT_LIBRA_TEST_HARNESS_PACKAGES
       "[LIBRA_TEST_HARNESS_PACKAGES]")
+    _libra_summary_row(
+      "Test harness matchere................." EMIT_LIBRA_TEST_HARNESS_MATCHER
+      "[LIBRA_TEST_HARNESS_MATCHER]")
     _libra_summary_row("Unit test matcher....................."
                        EMIT_LIBRA_UNIT_TEST_MATCHER "[LIBRA_UNIT_TEST_MATCHER]")
     _libra_summary_row(
@@ -554,147 +484,13 @@ function(libra_config_summary)
   endif()
   message("${BoldBlue}${_outer_sep}${ColorReset}")
 
-  # Register all target blocks for help-targets
-  libra_config_summary_target_block(
-    OPTION
-    LIBRA_TESTS
-    TARGETS
-    all-tests
-    NONE
-    unit-tests
-    NONE
-    integration-tests
-    NONE
-    build-and-test
-    NONE)
-
-  libra_config_summary_target_block(
-    OPTION
-    LIBRA_DOCS
-    TARGETS
-    apidoc
-    DOXYGEN_EXECUTABLE
-    apidoc-check-clang
-    clang_EXECUTABLE)
-
-  libra_config_summary_target_block(
-    OPTION
-    LIBRA_CODE_COV
-    TARGETS
-    lcov-preinfo
-    LCOV_EXECUTABLE
-    lcov-report
-    LCOV_EXECUTABLE
-    gcovr-report
-    gcovr_EXECUTABLE
-    gcovr-check
-    gcovr_EXECUTABLE
-    llvm-summary
-    LLVM_COV_TOOL
-    llvm-show
-    LLVM_COV_TOOL
-    llvm-report-coverage
-    LLVM_COV_TOOL
-    llvm-export-lcov
-    LLVM_COV_TOOL)
-
-  libra_config_summary_target_block(
-    OPTION
-    LIBRA_ANALYSIS
-    TARGETS
-    analyze
-    NONE
-    analyze-clang-tidy
-    clang_tidy_EXECUTABLE
-    analyze-clang-check
-    clang_check_EXECUTABLE
-    analyze-cppcheck
-    cppcheck_EXECUTABLE
-    analyze-cmake-format
-    cmake_format_EXECUTABLE)
-
-  libra_config_summary_target_block(
-    OPTION
-    LIBRA_ANALYSIS
-    TARGETS
-    format
-    NONE
-    format-clang-format
-    clang_format_EXECUTABLE
-    format-cmake-format
-    cmake_format_EXECUTABLE)
-
-  libra_config_summary_target_block(
-    OPTION
-    LIBRA_ANALYSIS
-    TARGETS
-    fix
-    NONE
-    fix-clang-tidy
-    clang_tidy_EXECUTABLE
-    fix-clang-check
-    clang_check_EXECUTABLE)
-
   set(_LIBRA_SHOWED_SUMMARY
       YES
       PARENT_SCOPE)
 endfunction()
 
-# Create help-targets build target
-#
-# _LIBRA_SUMMARY_TARGETS is a CMake list (semicolons) and cannot be passed
-# safely as a -D argument on the command line -- the shell splits on semicolons
-# before CMake sees them. Instead, write the list to a small CMake file at
-# configure time and have the script include() it.
-set(_this_script "${CMAKE_CURRENT_LIST_DIR}/summary_help.cmake")
-set(_targets_file "${CMAKE_BINARY_DIR}/libra_summary_targets.cmake")
-
-# Write the target list and all referenced option/tool values into a cmake file
-# at configure time when they are fully resolved. This avoids both the
-# semicolon-in-list -D problem and the load_cache() problem of needing variable
-# names known ahead of time in script mode.
-file(WRITE "${_targets_file}" "set(_LIBRA_SUMMARY_TARGETS)\n")
-set(_tw_i 0)
-list(LENGTH _LIBRA_SUMMARY_TARGETS _tw_len)
-while(_tw_i LESS _tw_len)
-  math(EXPR _tw_i1 "${_tw_i} + 1")
-  math(EXPR _tw_i2 "${_tw_i} + 2")
-  list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i} _tw_name)
-  list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i1} _tw_opt)
-  list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i2} _tw_tool)
-  # Write the triple
-  file(
-    APPEND "${_targets_file}"
-    "list(APPEND _LIBRA_SUMMARY_TARGETS [[${_tw_name}]] [[${_tw_opt}]] [[${_tw_tool}]])\n"
-  )
-  # Write resolved option value
-  if(${_tw_opt})
-    file(APPEND "${_targets_file}" "set([[${_tw_opt}]] ON)\n")
-  else()
-    file(APPEND "${_targets_file}" "set([[${_tw_opt}]] OFF)\n")
-  endif()
-  # Write resolved tool path (empty string if not found)
-  if(NOT _tw_tool STREQUAL "NONE")
-    file(APPEND "${_targets_file}" "set([[${_tw_tool}]] [[${${_tw_tool}}]])\n")
-  endif()
-  math(EXPR _tw_i "${_tw_i} + 3")
-endwhile()
-
-if(NOT TARGET help-targets)
-  add_custom_target(
-    help-targets
-    COMMAND
-      ${CMAKE_COMMAND} -D LIBRA_HELP_MODE=TARGETS -D
-      LIBRA_TARGETS_FILE=${_targets_file} -D
-      _LIBRA_SUMMARY_COL_TARGET=${_LIBRA_SUMMARY_COL_TARGET} -D
-      _LIBRA_SUMMARY_SEP_WIDTH=${_LIBRA_SUMMARY_SEP_WIDTH} -P "${_this_script}"
-    VERBATIM
-    COMMENT "LIBRA target availability"
-    USES_TERMINAL)
-endif()
-
 # ##############################################################################
-# Internal helper: emit one row of table 1 (feature + status + variable)
+# Private API
 # ##############################################################################
 function(_libra_summary_row FEATURE_LABEL STATUS_VAR VARIABLE_NAME)
   # Pad feature label to _LIBRA_SUMMARY_COL_FEATURE
@@ -722,3 +518,202 @@ function(_libra_summary_row FEATURE_LABEL STATUS_VAR VARIABLE_NAME)
 
   message("${_feat} ${_stat} ${_var}")
 endfunction()
+
+# Register a block of targets for display via the ``help-targets`` make target.
+# The purpose is to make it clear which targets will/will not be available at
+# build time and *why*.
+#
+# :param OPTION: ``LIBRA_XX`` option that gates all targets in this block.
+#
+# :param TARGETS: Flat list of ``(target, tool_var)`` pairs. Pass ``NONE`` as
+# ``tool_var`` if a target is gated only by ``OPTION`` with no additional tool
+# dependency.
+#
+# .. code-block:: cmake
+#
+# libra_help_targets_block( OPTION  <variable-name> TARGETS <target> <tool-var>
+# ... )
+#
+# **Example:**
+#
+# .. code-block:: cmake
+#
+# libra_help_targets_block( OPTION LIBRA_ANALYSIS TARGETS analyze NONE
+# analyze-clang-tidy   clang_tidy_EXECUTABLE analyze-cppcheck
+# cppcheck_EXECUTABLE )
+#
+function(_libra_help_targets_block)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "OPTION"
+    "TARGETS"
+    ${ARGN})
+
+  if(NOT ARG_OPTION)
+    libra_error("libra_help_targets_block: OPTION is required")
+  endif()
+  if(NOT ARG_TARGETS)
+    libra_error("libra_help_targets_block: TARGETS is required")
+  endif()
+
+  # Parse flat (target, tool_var) pairs and append to global accumulator
+  set(_toggle ON)
+  set(_cur_target "")
+  foreach(_item ${ARG_TARGETS})
+    if(_toggle)
+      set(_cur_target "${_item}")
+      set(_toggle OFF)
+    else()
+      list(
+        APPEND
+        _LIBRA_SUMMARY_TARGETS
+        "${_cur_target}"
+        "${ARG_OPTION}"
+        "${_item}")
+      set(_toggle ON)
+    endif()
+  endforeach()
+
+endfunction()
+
+# Create help-targets build target
+
+function(_libra_create_help_targets)
+  # Register all target blocks for help-targets
+  _libra_help_targets_block(
+    OPTION
+    LIBRA_TESTS
+    TARGETS
+    all-tests
+    NONE
+    unit-tests
+    NONE
+    integration-tests
+    NONE
+    build-and-test
+    NONE)
+
+  _libra_help_targets_block(
+    OPTION
+    LIBRA_DOCS
+    TARGETS
+    apidoc
+    DOXYGEN_EXECUTABLE
+    apidoc-check-clang
+    clang_EXECUTABLE)
+
+  _libra_help_targets_block(
+    OPTION
+    LIBRA_CODE_COV
+    TARGETS
+    lcov-preinfo
+    LCOV_EXECUTABLE
+    lcov-report
+    LCOV_EXECUTABLE
+    gcovr-report
+    gcovr_EXECUTABLE
+    gcovr-check
+    gcovr_EXECUTABLE
+    llvm-summary
+    LLVM_COV_TOOL
+    llvm-show
+    LLVM_COV_TOOL
+    llvm-report-coverage
+    LLVM_COV_TOOL
+    llvm-export-lcov
+    LLVM_COV_TOOL)
+
+  _libra_help_targets_block(
+    OPTION
+    LIBRA_ANALYSIS
+    TARGETS
+    analyze
+    NONE
+    analyze-clang-tidy
+    clang_tidy_EXECUTABLE
+    analyze-clang-check
+    clang_check_EXECUTABLE
+    analyze-cppcheck
+    cppcheck_EXECUTABLE
+    analyze-cmake-format
+    cmake_format_EXECUTABLE)
+
+  _libra_help_targets_block(
+    OPTION
+    LIBRA_ANALYSIS
+    TARGETS
+    format
+    NONE
+    format-clang-format
+    clang_format_EXECUTABLE
+    format-cmake-format
+    cmake_format_EXECUTABLE)
+
+  _libra_help_targets_block(
+    OPTION
+    LIBRA_ANALYSIS
+    TARGETS
+    fix
+    NONE
+    fix-clang-tidy
+    clang_tidy_EXECUTABLE
+    fix-clang-check
+    clang_check_EXECUTABLE)
+
+  # _LIBRA_SUMMARY_TARGETS is a CMake list (semicolons) and cannot be passed
+  # safely as a -D argument on the command line -- the shell splits on
+  # semicolons before CMake sees them. Instead, write the list to a small CMake
+  # file at configure time and have the script include() it.
+  set(_this_script "${CMAKE_CURRENT_LIST_DIR}/summary_help.cmake")
+  set(_targets_file "${CMAKE_BINARY_DIR}/libra_summary_targets.cmake")
+
+  # Write the target list and all referenced option/tool values into a cmake
+  # file at configure time when they are fully resolved. This avoids both the
+  # semicolon-in-list -D problem and the load_cache() problem of needing
+  # variable names known ahead of time in script mode.
+  file(WRITE "${_targets_file}"
+       "set(_LIBRA_SUMMARY_TARGETS ${_LIBRA_SUMMARY_TARGETS})\n")
+  set(_tw_i 0)
+  list(LENGTH _LIBRA_SUMMARY_TARGETS _tw_len)
+  while(_tw_i LESS _tw_len)
+    math(EXPR _tw_i1 "${_tw_i} + 1")
+    math(EXPR _tw_i2 "${_tw_i} + 2")
+    list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i} _tw_name)
+    list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i1} _tw_opt)
+    list(GET _LIBRA_SUMMARY_TARGETS ${_tw_i2} _tw_tool)
+    # Write the triple
+    file(
+      APPEND "${_targets_file}"
+      "list(APPEND _LIBRA_SUMMARY_TARGETS [[${_tw_name}]] [[${_tw_opt}]] [[${_tw_tool}]])\n"
+    )
+    # Write resolved option value
+    if(${_tw_opt})
+      file(APPEND "${_targets_file}" "set([[${_tw_opt}]] ON)\n")
+    else()
+      file(APPEND "${_targets_file}" "set([[${_tw_opt}]] OFF)\n")
+    endif()
+    # Write resolved tool path (empty string if not found)
+    if(NOT _tw_tool STREQUAL "NONE")
+      file(APPEND "${_targets_file}"
+           "set([[${_tw_tool}]] [[${${_tw_tool}}]])\n")
+    endif()
+    math(EXPR _tw_i "${_tw_i} + 3")
+  endwhile()
+
+  if(NOT TARGET help-targets)
+    add_custom_target(
+      help-targets
+      COMMAND
+        ${CMAKE_COMMAND} -D LIBRA_HELP_MODE=TARGETS -D
+        LIBRA_TARGETS_FILE=${_targets_file} -D
+        _LIBRA_SUMMARY_COL_TARGET=${_LIBRA_SUMMARY_COL_TARGET} -D
+        _LIBRA_SUMMARY_SEP_WIDTH=${_LIBRA_SUMMARY_SEP_WIDTH} -P
+        "${_this_script}"
+      VERBATIM
+      COMMENT "LIBRA target availability"
+      USES_TERMINAL)
+  endif()
+endfunction()
+
+_libra_create_help_targets()

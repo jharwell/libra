@@ -138,13 +138,15 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
 
    Defines the link libraries that all tests/test harnesses need to link with,
    if any. Goes hand in hand with
-   :cmake:variable:`LIBRA_TEST_HARNESS_PACKAGES``.
+   :cmake:variable:`LIBRA_TEST_HARNESS_PACKAGES`. Does not apply to interpreted
+   tests.
 
 .. cmake:variable:: LIBRA_TEST_HARNESS_PACKAGES
 
    Defines the packages that contain the libraries that all tests/test harnesses
    need to link with, if any. Goes hand in hand with
-   :cmake:variable:`LIBRA_TEST_HARNESS_LIBS``.
+   :cmake:variable:`LIBRA_TEST_HARNESS_LIBS`. Does not apply to interpreted
+   tests.
 
 .. cmake:variable:: LIBRA_UNIT_TEST_MATCHER
 
@@ -171,7 +173,7 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
    The common suffix before the ``{.cpp,.hpp}`` that all test harness files
    tests under ``tests/`` will have so LIBRA can glob them. If not specified,
    defaults to ``_test``; valid test harness would then be, e.g.,
-   ``tests/thing_test{.cpp,.hpp}``.
+   ``tests/thing_test{.cpp,.hpp}``. Does not apply to interpreted tests.
 
 .. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
 

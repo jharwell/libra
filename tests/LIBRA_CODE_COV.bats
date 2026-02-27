@@ -150,8 +150,8 @@ assert_cov_flag_present() {
         [ "$status" -eq 0 ]
 
         run make "$target"
-        if [ "$status" -eq 0 ]; then
-            echo "$output"
+        if [ "$status" -ne 0 ]; then
+            echo "$output" >& 3
             return 1
         fi
     done

@@ -13,61 +13,59 @@ include(CTest)
 include(libra/messaging)
 include(libra/defaults)
 
+set(_LIBRA_TEST_EXTENSIONS
+    c
+    cpp
+    bats
+    py
+    sh)
 # ##############################################################################
 # Test sources
 # ##############################################################################
 set(${PROJECT_NAME}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-# Convention: Unit tests end with '-utest.c' or '-utest.cpp' unless otherwise
-# specified.
-if(NOT LIBRA_UNIT_TEST_MATCHER)
+# Matcher variables: set in project-local.cmake to encode the project's
+# file-naming convention.  Non-cache: they are a structural property of the
+# project, not a per-build knob.  All guards use if(NOT DEFINED ...) so that
+# any project-local value, including an unusual one, is always respected.
+if(NOT DEFINED LIBRA_UNIT_TEST_MATCHER)
   set(LIBRA_UNIT_TEST_MATCHER ${LIBRA_UNIT_TEST_MATCHER_DEFAULT})
 endif()
 
-if(NOT DEFINED LIBRA_CTEST_INCLUDE_UNIT_TESTS)
-  set(LIBRA_CTEST_INCLUDE_UNIT_TESTS ${LIBRA_CTEST_INCLUDE_UNIT_TESTS_DEFAULT})
-endif()
-
-# Convention: Integration tests end with '-itest.c' or '-itest.cpp' unless
-# otherwise specified
 if(NOT DEFINED LIBRA_INTEGRATION_TEST_MATCHER)
   set(LIBRA_INTEGRATION_TEST_MATCHER ${LIBRA_INTEGRATION_TEST_MATCHER_DEFAULT})
 endif()
 
-if(NOT DEFINED LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS)
-  set(LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
-      ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS_DEFAULT})
-endif()
-
-# Convention: Regression tests end with '-rtest.c' or '-rtest.cpp' unless
-# otherwise specified
 if(NOT DEFINED LIBRA_REGRESSION_TEST_MATCHER)
   set(LIBRA_REGRESSION_TEST_MATCHER ${LIBRA_REGRESSION_TEST_MATCHER_DEFAULT})
 endif()
 
-if(NOT DEFINED LIBRA_CTEST_INCLUDE_REGRESSION_TESTS)
-  set(LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
-      ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS_DEFAULT})
-endif()
-
-# Convention: Test harness bits end with '_test.c' or '_test.cpp' unless
-# otherwise specified.
 if(NOT DEFINED LIBRA_TEST_HARNESS_MATCHER)
   set(LIBRA_TEST_HARNESS_MATCHER ${LIBRA_TEST_HARNESS_MATCHER_DEFAULT})
 endif()
 
-file(GLOB_RECURSE LIBRA_c_utests
-     ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_UNIT_TEST_MATCHER}.c)
-file(GLOB_RECURSE LIBRA_c_itests
-     ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_INTEGRATION_TEST_MATCHER}.c)
-file(GLOB_RECURSE LIBRA_c_rtests
-     ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_REGRESSION_TEST_MATCHER}.c)
-file(GLOB_RECURSE LIBRA_cxx_utests
-     ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_UNIT_TEST_MATCHER}.cpp)
-file(GLOB_RECURSE LIBRA_cxx_itests
-     ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_INTEGRATION_TEST_MATCHER}.cpp)
-file(GLOB_RECURSE LIBRA_cxx_rtests
-     ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_REGRESSION_TEST_MATCHER}.cpp)
+# ##############################################################################
+# Extension classification
+# ##############################################################################
+# Extensions that go through add_executable/linking. Hardcoded for now.
+set(LIBRA_COMPILED_EXTENSIONS c cpp)
+
+# Map interpreted extensions to their interpreter executable.
+set(_LIBRA_INTERPRETER_bats "bats")
+set(_LIBRA_INTERPRETER_py "python3")
+set(_LIBRA_INTERPRETER_sh "bash")
+
+# ##############################################################################
+# Glob for all test sources across all extensions and test types
+# ##############################################################################
+foreach(ext ${_LIBRA_TEST_EXTENSIONS})
+  file(GLOB_RECURSE LIBRA_${ext}_utests
+       ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_UNIT_TEST_MATCHER}.${ext})
+  file(GLOB_RECURSE LIBRA_${ext}_itests
+       ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_INTEGRATION_TEST_MATCHER}.${ext})
+  file(GLOB_RECURSE LIBRA_${ext}_rtests
+       ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_REGRESSION_TEST_MATCHER}.${ext})
+endforeach()
 
 file(GLOB_RECURSE LIBRA_c_test_harness
      ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_TEST_HARNESS_MATCHER}.c
@@ -90,9 +88,9 @@ if(LIBRA_c_test_harness)
 endif()
 
 # ##############################################################################
-# Enable a single test
+# Enable a single compiled test (C/C++)
 # ##############################################################################
-function(enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
+function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   # Tests are named the same thing as their source file, sans extension, in the
   # spirit of the Principle of Least Surprise.
   get_filename_component(test_name ${t} NAME_WE)
@@ -113,7 +111,7 @@ function(enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
                         ${LIBRA_test_harness} ${LIBRA_TEST_HARNESS_LIBS})
 
   # If the project is a C project, then we will probably be casting in the C
-  # way, so turn off the  usual compile warnings about this.
+  # way, so turn off the usual compile warnings about this.
   #
   # This will only work with GCC/clang compilers, but that's OK for now, as I'm
   # not doing anything that requires running unit tests on strange platforms
@@ -127,6 +125,19 @@ function(enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   if(INCLUDE_IN_CTEST)
     add_test(${test_name}
              ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}-${test_name})
+    # Set target properties:
+    #
+    # * Propagate BLESS through to the interpreter if set on the ctest
+    #   invocation
+    #
+    # * Add the {unit,regression,integration} label for more convenient ctest
+    #   usage.
+    #
+    # Derive label from umbrella target name: "unit-tests" -> "unit"
+    string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
+    set_tests_properties(${test_name} PROPERTIES LABELS ${test_label}
+                                                 ENVIRONMENT "BLESS=${BLESS}")
+
   endif()
 
   # Add to global umbrella target
@@ -138,7 +149,78 @@ function(enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
 endfunction()
 
 # ##############################################################################
-# Configure test harness
+# Enable a single interpreted test (BATS, Python, shell, etc.)
+# ##############################################################################
+function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
+  get_filename_component(test_name ${t} NAME_WE)
+  get_filename_component(test_ext ${t} EXT)
+
+  # Strip the leading dot from the extension to get the key
+  string(SUBSTRING ${test_ext} 1 -1 ext_key)
+
+  # Look up the interpreter for this extension
+  if(NOT DEFINED _LIBRA_INTERPRETER_${ext_key})
+    libra_message(
+      WARNING
+      "No interpreter registered for extension '${ext_key}' (file: ${t}) -- skipping"
+    )
+    return()
+  endif()
+
+  find_program(_LIBRA_INTERP_${ext_key}_EXE ${_LIBRA_INTERPRETER_${ext_key}})
+  if(NOT _LIBRA_INTERP_${ext_key}_EXE)
+    string(CONCAT _msg "Interpreter '${_LIBRA_INTERPRETER_${ext_key}}' for "
+                  "extension '${ext_key}' not found -- skipping ${test_name}")
+    libra_message(WARNING "${_msg}")
+    return()
+  endif()
+
+  # Interpreted tests have nothing to compile, so register with ctest directly.
+  if(INCLUDE_IN_CTEST)
+    add_test(
+      NAME ${test_name}
+      COMMAND ${_LIBRA_INTERP_${ext_key}_EXE} ${t}
+      WORKING_DIRECTORY ${${PROJECT_NAME}_TEST_PATH})
+
+    # Set target properties:
+    #
+    # * Propagate BLESS through to the interpreter if set on the ctest
+    #   invocation
+    #
+    # * Add the {unit,regression,integration} label for more convenient ctest
+    #   usage.
+    #
+    # Derive label from umbrella target name: "unit-tests" -> "unit"
+    string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
+    set_tests_properties(${test_name} PROPERTIES LABELS ${test_label}
+                                                 ENVIRONMENT "BLESS=${BLESS}")
+
+  endif()
+
+  # No-op target — named handle for build-and-test only
+  add_custom_target(${PROJECT_NAME}-${test_name})
+
+  # NOT added to umbrella (unit-tests/integration-tests/regression-tests) since
+  # there's nothing to build -- only build-and-test runs them via ctest
+  add_dependencies(build-and-test ${PROJECT_NAME}-${test_name})
+endfunction()
+
+# ##############################################################################
+# Dispatch: compiled vs interpreted
+# ##############################################################################
+function(dispatch_enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
+  get_filename_component(test_ext ${t} EXT)
+  string(SUBSTRING ${test_ext} 1 -1 ext_key)
+
+  if(ext_key IN_LIST LIBRA_COMPILED_EXTENSIONS)
+    enable_single_compiled_test(${t} ${UMBRELLA_TARGET} ${INCLUDE_IN_CTEST})
+  else()
+    enable_single_interpreted_test(${t} ${UMBRELLA_TARGET} ${INCLUDE_IN_CTEST})
+  endif()
+endfunction()
+
+# ##############################################################################
+# Configure test harness (C/C++ only)
 # ##############################################################################
 function(configure_test_harness)
   foreach(pkg ${LIBRA_TEST_HARNESS_PACKAGES})
@@ -181,7 +263,7 @@ function(configure_test_harness)
                           ${LIBRA_TEST_HARNESS_LIBS})
 
     # If the project is a C project, then we will probably be casting in the C
-    # way, so turn off the  usual compile warnings about this.
+    # way, so turn off the usual compile warnings about this.
     #
     # This will only work with GCC/clang compilers, but that's OK for now, as
     # I'm not doing anything that requires running unit tests on strange
@@ -195,7 +277,7 @@ function(configure_test_harness)
 endfunction()
 
 # ##############################################################################
-# Enable all tests
+# Basic test setup
 # ##############################################################################
 configure_test_harness()
 
@@ -216,51 +298,71 @@ add_custom_target(all-tests)
 
 add_dependencies(all-tests unit-tests integration-tests regression-tests)
 
-# Add each unit test in tests/ under the current project one at a time.
-foreach(t ${LIBRA_c_utests} ${LIBRA_cxx_utests})
-  string(FIND ${t} ".#" position)
-  if(NOT "${position}" MATCHES "-1")
-    continue()
+# ##############################################################################
+# Register all tests across all extensions
+# ##############################################################################
+
+# Unit tests
+set(num_utests_total 0)
+foreach(ext ${_LIBRA_TEST_EXTENSIONS})
+  foreach(t ${LIBRA_${ext}_utests})
+    string(FIND ${t} ".#" position)
+    if(NOT "${position}" MATCHES "-1")
+      continue()
+    endif()
+
+    dispatch_enable_single_test(${t} unit-tests
+                                ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
+  endforeach()
+
+  list(LENGTH LIBRA_${ext}_utests num_ext_utests)
+  math(EXPR num_utests_total "${num_utests_total} + ${num_ext_utests}")
+  if(num_ext_utests GREATER 0)
+    libra_message(STATUS "Registered ${num_ext_utests} .${ext} unit tests")
   endif()
-
-  enable_single_test(${t} unit-tests ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
 endforeach()
+libra_message(STATUS "Registered ${num_utests_total} unit tests total")
 
-list(LENGTH LIBRA_c_utests num_c_utests)
-list(LENGTH LIBRA_cxx_utests num_cxx_utests)
-libra_message(STATUS
-              "Registered ${num_c_utests}+${num_cxx_utests} C/C++ unit tests")
+# Integration tests
+set(num_itests_total 0)
+foreach(ext ${_LIBRA_TEST_EXTENSIONS})
+  foreach(t ${LIBRA_${ext}_itests})
+    string(FIND ${t} ".#" position)
+    if(NOT "${position}" MATCHES "-1")
+      continue()
+    endif()
 
-# Add each integration test in tests/ under the current project one at a time.
-foreach(t ${LIBRA_c_itests} ${LIBRA_cxx_itests})
-  string(FIND ${t} ".#" position)
-  if(NOT "${position}" MATCHES "-1")
-    continue()
+    dispatch_enable_single_test(${t} integration-tests
+                                ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
+  endforeach()
+
+  list(LENGTH LIBRA_${ext}_itests num_ext_itests)
+  math(EXPR num_itests_total "${num_itests_total} + ${num_ext_itests}")
+  if(num_ext_itests GREATER 0)
+    libra_message(STATUS
+                  "Registered ${num_ext_itests} .${ext} integration tests")
   endif()
-
-  enable_single_test(${t} integration-tests
-                     ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
 endforeach()
+libra_message(STATUS "Registered ${num_itests_total} integration tests total")
 
-list(LENGTH LIBRA_c_itests num_c_itests)
-list(LENGTH LIBRA_cxx_itests num_cxx_itests)
+# Regression tests
+set(num_rtests_total 0)
+foreach(ext ${_LIBRA_TEST_EXTENSIONS})
+  foreach(t ${LIBRA_${ext}_rtests})
+    string(FIND ${t} ".#" position)
+    if(NOT "${position}" MATCHES "-1")
+      continue()
+    endif()
 
-libra_message(
-  STATUS "Registered ${num_c_itests}+${num_cxx_itests} C/C++ integration tests")
+    dispatch_enable_single_test(${t} regression-tests
+                                ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
+  endforeach()
 
-# Add each regression test in tests/ under the current project one at a time.
-foreach(t ${LIBRA_c_rtests} ${LIBRA_cxx_rtests})
-  string(FIND ${t} ".#" position)
-  if(NOT "${position}" MATCHES "-1")
-    continue()
+  list(LENGTH LIBRA_${ext}_rtests num_ext_rtests)
+  math(EXPR num_rtests_total "${num_rtests_total} + ${num_ext_rtests}")
+  if(num_ext_rtests GREATER 0)
+    libra_message(STATUS
+                  "Registered ${num_ext_rtests} .${ext} regression tests")
   endif()
-
-  enable_single_test(${t} regression-tests
-                     ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
 endforeach()
-
-list(LENGTH LIBRA_c_rtests num_c_rtests)
-list(LENGTH LIBRA_cxx_rtests num_cxx_rtests)
-
-libra_message(
-  STATUS "Registered ${num_c_rtests}+${num_cxx_rtests} C/C++ regression tests")
+libra_message(STATUS "Registered ${num_rtests_total} regression tests total")

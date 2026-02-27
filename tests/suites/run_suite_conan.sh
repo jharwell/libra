@@ -44,7 +44,12 @@ export LIBRA_CONAN_VERSION
 echo "$LIBRA_CONAN_VERSION" > "${TMPDIR:-/tmp}/libra_conan_version"
 
 # Create once before any parallel bats workers start
-conan profile detect 2>/dev/null || true
+conan profile detect --force || true
+
+# Patch detected intel compiler version--this is a known limitation of
+# conan's detection logic
+sed -i 's/compiler.version=2025$/compiler.version=2025.0/' ~/.conan2/profiles/default
+
 conan create "$LIBRA_SOURCE_ROOT" \
       --version "$LIBRA_CONAN_VERSION" \
       -s build_type=Debug \
@@ -72,4 +77,5 @@ exec bats -j $(nproc) "$@" \
     "${TESTS_DIR}/LIBRA_PGO.bats" \
     "${TESTS_DIR}/LIBRA_SAN.bats" \
     "${TESTS_DIR}/LIBRA_STDLIB.bats" \
+    "${TESTS_DIR}/LIBRA_TESTS.bats" \
     "${TESTS_DIR}/LIBRA_VALGRIND_COMPAT.bats"

@@ -4,7 +4,9 @@
 // SPDX-License Identifier: MIT
 //
 
+#ifndef __nostdlib__
 #include <iostream>
+#endif
 
 int main(int, char**) {
   int n     = 14;

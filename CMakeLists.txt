@@ -3,7 +3,7 @@
 #
 # SPDX-License Identifier: MIT
 #
-cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
 
 cmake_policy(SET CMP0177 NEW) # Normalize paths
 

@@ -93,21 +93,30 @@ _libra_setup_installed_package() {
     export LIBRA_INSTALL_PREFIX="${BATS_RUN_TMPDIR}/libra_install"
     local stamp="${LIBRA_INSTALL_PREFIX}/.installed"
     local build_dir="${BATS_RUN_TMPDIR}/libra_install_build"
+    local lockfile="${BATS_RUN_TMPDIR}/libra_install.lock"
 
-    # Idempotent: skip if already done in this bats invocation
-    [[ -f "$stamp" ]] && return 0
+    # Use a file lock to prevent parallel workers from racing
+    (
+        flock -x 200
 
-    mkdir -p "$build_dir"
-    cmake -S "$LIBRA_SOURCE_ROOT" \
-          -B "$build_dir" \
-          -DCMAKE_INSTALL_PREFIX="$LIBRA_INSTALL_PREFIX" \
-          --log-level=ERROR \
-        || { echo "ERROR: cmake configure failed for installed_package setup" >&2; return 1; }
+        # Re-check stamp inside the lock in case another worker just finished
+        [[ -f "$stamp" ]] && exit 0
 
-    cmake --install "$build_dir" \
-        || { echo "ERROR: cmake install failed for installed_package setup" >&2; return 1; }
+        mkdir -p "$build_dir"
+        cmake -S "$LIBRA_SOURCE_ROOT" \
+              -B "$build_dir" \
+              -DCMAKE_INSTALL_PREFIX="$LIBRA_INSTALL_PREFIX" \
+              --log-level=ERROR \
+            || { echo "ERROR: cmake configure failed for installed_package setup" >&2; exit 1; }
 
-    touch "$stamp"
+        cmake --install "$build_dir" \
+            || { echo "ERROR: cmake install failed for installed_package setup" >&2; exit 1; }
+
+        touch "$stamp"
+    ) 200>"$lockfile"
+
+    # Propagate subshell failure
+    return $?
 }
 
 # cpm mode: resolve the path to the vendored CPM.cmake.
@@ -216,11 +225,38 @@ skip_if_compiler_missing() {
     fi
 }
 
+# Skip test if clang version too old (inclusive)
+# Usage: skip_if_clang_older_than VERSION
+skip_if_clang_older_than() {
+    local version="$1"
+    CLANG_VERSION=$(${CXX_COMPILER_EXEC["clang"]} -dumpversion | cut -d. -f1)
+    if [ "$CLANG_VERSION" -le "$version" ]; then
+        skip "clang version $CLANG_VERSION <= $version"
+    fi
+}
+# Skip test if g++ version too old (inclusive)
+# Usage: skip_if_gcc_older_than VERSION
+skip_if_gcc_older_than() {
+    local version="$1"
+    GCC_VERSION=$(${CXX_COMPILER_EXEC["gnu"]} -dumpversion | cut -d. -f1)
+    if [ "$GCC_VERSION" -le "$version" ]; then
+        skip "g++ version $GCC_VERSION <= $version"
+    fi
+}
+
 # Skip test if conan is not installed or not on PATH
 # Usage: skip_if_conan_missing
 skip_if_conan_missing() {
     if ! command -v conan &>/dev/null; then
         skip "conan not found on PATH - install conan to run conan consumption tests"
+    fi
+}
+
+# Skip test if conan is the LIBRA driver
+# Usage: skip_if_conan_driver
+skip_if_conan_driver () {
+    if [ "$LIBRA_CONSUME_MODE" = "conan" ]; then
+        skip "Test not applicable when conan is the driver"
     fi
 }
 
@@ -318,7 +354,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    # echo "$output" >&3
+    [ -n "$GITHUB_ACTIONS" ] && echo "$output" >&3
 
     run make
     if [ "$status" -ne 0 ]; then
@@ -328,7 +364,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    # echo "$output" >&3
+    [ -n "$GITHUB_ACTIONS" ] && echo "$output" >&3
 
     # Return to original directory and output test dir path
     cd - > /dev/null
@@ -452,7 +488,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    # echo "$output" >&3
+    [ -n "$GITHUB_ACTIONS" ] && echo "$output" >&3
 
     run make
     popd > /dev/null
@@ -463,7 +499,7 @@ EOF
     fi
     # Echo unconditionally on success to make debugging odd things in
     # CI quicker.
-    # echo "$output" >&3
+    [ -n "$GITHUB_ACTIONS" ] && echo "$output" >&3
     echo "$test_dir"
 }
 
@@ -737,6 +773,210 @@ assert_standard_equals() {
     local actual=$(get_standard "$test_dir" "$lang")
     echo "$actual|$expected"
     [ "$actual" = "$expected" ]
+}
+
+################################################################################
+# CMake Test Runner: sample_testing
+#
+# Like run_libra_cmake_test but configures sample_testing instead of
+# sample_build_info.  sample_testing is a project that contains real test stub
+# sources under its tests/ subdirectory, allowing LIBRA_TESTS.bats to verify
+# that testing.cmake actually discovers, registers, and labels tests rather
+# than just checking cache values.
+#
+# The project is always C++; LIBRA_TEST_LANGUAGE is not injected.
+#
+# Usage: run_libra_testing_cmake_test [CMAKE_OPTIONS...]
+# Returns: Path to build directory
+################################################################################
+run_libra_testing_cmake_test() {
+    local cmake_options=("$@")
+    local compiler
+    compiler=$(get_compiler "${COMPILER_TYPE:-gnu}" "cxx")
+
+    local test_dir="$TEST_BUILD_DIR/testing_${RANDOM}"
+    mkdir -p "$test_dir"
+
+    local cmake_args=(
+        "$LIBRA_TESTS_DIR/sample_testing"
+        -DCMAKE_INSTALL_PREFIX="$test_dir/install"
+        -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
+        -DCMAKE_CXX_COMPILER="$compiler"
+        --log-level="$LOGLEVEL"
+    )
+
+    local _mode_args
+    while IFS= read -r _flag; do
+        [[ -n "$_flag" ]] && cmake_args+=("$_flag")
+    done < <(_consume_mode_cmake_args)
+
+    if [[ "${LIBRA_CONSUME_MODE:-in_situ}" == "conan" ]]; then
+        mkdir -p "$test_dir/conan"
+        cat > "$test_dir/conanfile.txt" << EOF
+[requires]
+libra/${LIBRA_CONAN_VERSION}
+
+[generators]
+CMakeToolchain
+EOF
+        conan install "$test_dir/conanfile.txt" \
+              --output-folder="$test_dir/conan" \
+              -s build_type="${CMAKE_BUILD_TYPE:-Debug}" \
+              --build=missing
+        cmake_args+=("-DCMAKE_TOOLCHAIN_FILE=$test_dir/conan/conan_toolchain.cmake")
+        cmake_args+=("-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$test_dir/bin")
+    fi
+
+    cmake_args+=("${cmake_options[@]}")
+
+    cd "$test_dir"
+
+    run cmake "${cmake_args[@]}"
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: cmake failed with status $status" >&3
+        echo "$output" >&3
+        cd - > /dev/null
+        return 1
+    fi
+
+    run make
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: make failed with status $status" >&3
+        echo "$output" >&3
+        cd - > /dev/null
+        return 1
+    fi
+
+    cd - > /dev/null
+    echo "$test_dir"
+}
+
+################################################################################
+# Reconfigure helper for sample_testing builds
+#
+# Like reconfigure_libra_test but points at sample_testing instead of
+# sample_build_info.  Must be used when the build directory was originally
+# configured by run_libra_testing_cmake_test, because cmake enforces that the
+# source directory passed on reconfiguration matches the one in the cache.
+#
+# Usage: reconfigure_libra_testing_test TEST_DIR [CMAKE_OPTIONS...]
+# Returns: 0 on success, 1 on failure
+################################################################################
+reconfigure_libra_testing_test() {
+    local test_dir="$1"
+    shift
+    local cmake_options=("$@")
+    local compiler
+    compiler=$(get_compiler "${COMPILER_TYPE:-gnu}" "cxx")
+
+    local cmake_args=(
+        "$LIBRA_TESTS_DIR/sample_testing"
+        --log-level="$LOGLEVEL"
+        -DCMAKE_CXX_COMPILER="$compiler"
+    )
+
+    local _mode_args
+    while IFS= read -r _flag; do
+        [[ -n "$_flag" ]] && cmake_args+=("$_flag")
+    done < <(_consume_mode_cmake_args)
+
+    if [[ "${LIBRA_CONSUME_MODE:-in_situ}" == "conan" ]]; then
+        mkdir -p "$test_dir/conan"
+        conan install \
+              --requires="libra/${LIBRA_CONAN_VERSION}" \
+              --output-folder="$test_dir/conan" \
+              --generator=CMakeToolchain \
+              -s build_type="${CMAKE_BUILD_TYPE:-Debug}" \
+              --build=missing \
+            &>/dev/null
+        cmake_args+=("-DCMAKE_TOOLCHAIN_FILE=$test_dir/conan/conan_toolchain.cmake")
+    fi
+
+    cmake_args+=("${cmake_options[@]}")
+
+    cd "$test_dir"
+    cmake "${cmake_args[@]}" &> /dev/null
+    local rc=$?
+    cd - > /dev/null
+    return $rc
+}
+
+################################################################################
+# CTest Registration Utilities
+#
+# Parse CTestTestfile.cmake (written by cmake during configuration) to verify
+# which tests were registered with CTest and what labels they received.
+#
+# CTestTestfile.cmake format (relevant lines):
+#   add_test(TEST_NAME "/path/to/binary")
+#   set_tests_properties(TEST_NAME PROPERTIES ... LABELS "label" ...)
+################################################################################
+
+# Check whether a test name appears in CTestTestfile.cmake.
+# The file uses the form: add_test(TEST_NAME ...)
+# Usage: ctest_test_registered TEST_DIR TEST_NAME
+# Returns: 0 if registered, 1 if absent
+ctest_test_registered() {
+    local test_dir="$1"
+    local test_name="$2"
+    local ctestfile="$test_dir/CTestTestfile.cmake"
+
+    if [ ! -f "$ctestfile" ]; then
+        return 1
+    fi
+
+    # Match the exact test name — must be followed by a space or closing paren
+    # to avoid partial-name false positives.
+    grep -q "^add_test(${test_name}[ )]" "$ctestfile"
+}
+
+# Check that a test has a given CTest LABELS value.
+# Usage: ctest_test_has_label TEST_DIR TEST_NAME LABEL
+# Returns: 0 if the label is present, 1 otherwise
+ctest_test_has_label() {
+    local test_dir="$1"
+    local test_name="$2"
+    local label="$3"
+    local ctestfile="$test_dir/CTestTestfile.cmake"
+
+    if [ ! -f "$ctestfile" ]; then
+        return 1
+    fi
+
+    # set_tests_properties lines contain both the test name and LABELS "label"
+    grep "set_tests_properties(${test_name} " "$ctestfile" \
+        | grep -q "LABELS \"${label}\""
+}
+
+# Assert that a test is registered with CTest.
+# Usage: assert_ctest_test_registered TEST_DIR TEST_NAME
+assert_ctest_test_registered() {
+    local test_dir="$1"
+    local test_name="$2"
+
+    run ctest_test_registered "$test_dir" "$test_name"
+    [ "$status" -eq 0 ]
+}
+
+# Assert that a test is NOT registered with CTest.
+# Usage: assert_ctest_test_absent TEST_DIR TEST_NAME
+assert_ctest_test_absent() {
+    local test_dir="$1"
+    local test_name="$2"
+
+    run ctest_test_registered "$test_dir" "$test_name"
+    [ "$status" -ne 0 ]
+}
+
+# Assert that a test has a given CTest label.
+# Usage: assert_ctest_test_label TEST_DIR TEST_NAME LABEL
+assert_ctest_test_label() {
+    local test_dir="$1"
+    local test_name="$2"
+    local label="$3"
+
+    run ctest_test_has_label "$test_dir" "$test_name" "$label"
+    [ "$status" -eq 0 ]
 }
 
 ################################################################################

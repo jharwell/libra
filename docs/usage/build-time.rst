@@ -170,8 +170,11 @@ Actions That Build Things
      - Build ``all-tests``, and then run them via ``CTest``.
 
        Requires that :cmake:variable:`LIBRA_TESTS` was passed to cmake during
-       configuration. See :ref:`usage/testing/builtin` for more details about
-       this target.
+       configuration. Note that you can use CMakeUserPresets.json to
+       automatically build things before running tests, obviating the need for
+       this target (see :ref:`usage/testing/builtin`).  But not all projects use
+       presets, hence this target.
+
 
    * - ``all-tests``
 

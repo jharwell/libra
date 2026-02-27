@@ -224,4 +224,4 @@ Platform: Linux/Unix, macOS
 
 Build Tools: CMake >= 3.31
 
-Compilers: GCC >= 9, Clang >= 17, Intel >= 2024.1
+Compilers: GCC >= 9, Clang >= 14, Intel >= 2025.0

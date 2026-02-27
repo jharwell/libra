@@ -22,7 +22,7 @@ TESTS_DIR="$(cd "${SUITE_DIR}/.." && pwd)"
 
 export LIBRA_CONSUME_MODE="installed_package"
 
-exec bats "$@" \
+exec bats -j $(nproc) "$@" \
     "${TESTS_DIR}/LIBRA_ANALYSIS.bats" \
     "${TESTS_DIR}/LIBRA_BUILD_PROF.bats" \
     "${TESTS_DIR}/LIBRA_CODE_COV.bats" \
@@ -39,4 +39,5 @@ exec bats "$@" \
     "${TESTS_DIR}/LIBRA_PGO.bats" \
     "${TESTS_DIR}/LIBRA_SAN.bats" \
     "${TESTS_DIR}/LIBRA_STDLIB.bats" \
+    "${TESTS_DIR}/LIBRA_TESTS.bats" \
     "${TESTS_DIR}/LIBRA_VALGRIND_COMPAT.bats"

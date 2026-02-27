@@ -300,6 +300,6 @@ Troubleshooting
  exists when tests are enabled.
 
 **"Compiler version not supported"**
- LIBRA requires GCC >= 9, Clang >= 17, or
- Intel >= 2024.1. Check your compiler version with ``gcc --version``, ``clang
+ LIBRA requires GCC >= 9, Clang >= 14, or
+ Intel >= 2025.0. Check your compiler version with ``gcc --version``, ``clang
  --version``, or ``icx --version``.

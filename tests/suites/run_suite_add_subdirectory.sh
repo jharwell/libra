@@ -40,4 +40,5 @@ exec bats -j $(nproc) "$@" \
     "${TESTS_DIR}/LIBRA_PGO.bats" \
     "${TESTS_DIR}/LIBRA_SAN.bats" \
     "${TESTS_DIR}/LIBRA_STDLIB.bats" \
+    "${TESTS_DIR}/LIBRA_TESTS.bats" \
     "${TESTS_DIR}/LIBRA_VALGRIND_COMPAT.bats"

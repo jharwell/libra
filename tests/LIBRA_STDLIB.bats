@@ -93,6 +93,7 @@ setup() {
 
 @test "STDLIB: Clang/C++ CXX adds -stdlib=libc++" {
     skip_if_compiler_missing "clang" "cxx"
+    skip_if_clang_older_than 17
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=CXX)
 
@@ -114,6 +115,8 @@ setup() {
 @test "STDLIB: Clang/C++ STDCXX does not add -stdlib=libc++" {
     skip_if_compiler_missing "clang" "cxx"
     COMPILER_TYPE=clang
+    # clang <= 17 doesn't support libc++
+    skip_if_clang_older_than 17
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=STDCXX)
 
     run has_link_flag "$test_dir" "cxx" "-stdlib=libc++"
@@ -123,6 +126,8 @@ setup() {
 @test "STDLIB: Clang/C++ CXX does not add -stdlib=libstdc++" {
     skip_if_compiler_missing "clang" "cxx"
     COMPILER_TYPE=clang
+    # clang <= 17 doesn't support libc++
+    skip_if_clang_older_than 17
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=CXX)
 
     run has_link_flag "$test_dir" "cxx" "-stdlib=libstdc++"
@@ -147,6 +152,8 @@ setup() {
 @test "STDLIB: Can change value on reconfiguration" {
     skip_if_compiler_missing "clang" "cxx"
     COMPILER_TYPE=clang
+    # clang <= 17 doesn't support libc++
+    skip_if_clang_older_than 17
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=CXX)
 
     run cache_value_equals "$test_dir" "LIBRA_STDLIB" "CXX"
