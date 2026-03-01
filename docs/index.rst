@@ -2,9 +2,10 @@
 
 .. _main:
 
-=======================================
-Luigi Build Reusable Automation (LIBRA)
-=======================================
+.. figure:: figures/libra-logo-banner-light.png
+
+Luigi Builds Reusable Automation
+================================
 
 LIBRA is a reusable build framework for C/C++ projects built on top of CMake.
 It transforms the build process from manual scripting into a **declarative
@@ -18,10 +19,10 @@ Who Should Use LIBRA
 
 * **Platform Engineers** looking to standardize build quality across multiple
   repositories.
-* **C++ Developers** who want to focus on code rather than debugging ``.cmake``
-  modules.
-* **Teams** requiring consistent "push-button" integration for Sanitizers,
-  Static Analysis, and Documentation.
+* **C/C++ Developers** who want to focus on code rather than debugging
+  ``.cmake`` modules.
+* **Teams** requiring consistent "push-button" integration for sanitizers,
+  static analysis, and documentation generation.
 
 Design Philosophy
 =================
@@ -32,8 +33,6 @@ Design Philosophy
   :cmake:command:`libra_add_library()`), not *how* to set compiler flags.
 * **Toolchain Agnostic:** A single configuration should work across GCC, Clang,
   and Intel LLVM without ``if(MSVC)`` blocks.
-
-
 
 Architecture Overview
 =====================
@@ -74,10 +73,11 @@ Integration Modes
 LIBRA scales with your project's complexity. Choose the mode that fits your
 infrastructure:
 
-#. **Conan Middleware (Recommended):** The most robust path. LIBRA acts as a
-   Conan build helper.
+#. **Conan Middleware (recommended):** The most robust path. LIBRA acts as a
+   `Conan <https://conan.io>`_ build helper.
+#. **CPM (CMake Package Manager):** Integrated via ``cpmaddpackage()``.
 #. **Standard CMake Package:** Integrated via ``find_package(libra)``.
-#. **In-Situ (Submodule):** Drop LIBRA directly into your source tree.
+#. **In-Situ (submodule):** Drop LIBRA directly into your source tree.
 
 ----
 

@@ -116,14 +116,14 @@ cmake_doc_dirs = ["../cmake"]
 #
 html_theme = "sphinx_rtd_theme"
 
-# plantuml = "java -jar /tmp/plantuml.jar"
-# plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
+plantuml = "java -jar /tmp/plantuml.jar"
+plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
 
-# if not os.path.exists("/tmp/plantuml.jar"):
-#     print("DOCS: Downloading latest plantuml...")
-#     response = requests.get(plantuml_url)
-#     with open("/tmp/plantuml.jar", "wb") as file:
-#         file.write(response.content)
+if not os.path.exists("/tmp/plantuml.jar"):
+    print("DOCS: Downloading latest plantuml...")
+    response = requests.get(plantuml_url)
+    with open("/tmp/plantuml.jar", "wb") as file:
+        file.write(response.content)
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -133,10 +133,10 @@ html_theme_options = {
     'display_version': True,
     'navigation_depth': 4,
     'collapse_navigation': False,
-    'logo_only': True
+    'logo_only': False
 }
 
-html_logo = "figures/libra-logo2-text.png"
+# html_logo = "figures/libra-logo-light.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

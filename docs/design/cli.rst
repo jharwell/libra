@@ -4,561 +4,935 @@
 LIBRA CLI Tool
 ==============
 
-.. DANGER:: This is an in-progress document/spec which may change at any time!
+.. DANGER::
 
-Top-level Interface
-===================
+   This is an in-progress design document which may change at any time.
 
-::
+.. contents:: Table of Contents
+   :depth: 1
+   :local:
 
-  libra <command> [options] [args]
 
-Global Flags (available on all commands)::
+Design Goals
+============
 
-  --verbose, -v - Increase output verbosity (stackable: -vv, -vvv)
-  --quiet, -q - Suppress non-error output
-  --color={auto,always,never} - Control colored output
-  --build-dir=<path> - Override default build directory (default: build/)
-  --json - Output machine-readable JSON (for IDE integration)
-  --dry-run - Show what would happen without executing
-  --help, -h - Show help for command
-  --version - Show libra CLI version and detected LIBRA framework version
+The following goals, ordered by priority, shape every decision in this
+document.
 
-1. Project Initialization
+**Escape hatch first.**
+  A developer must be able to drop the CLI at any point and drive the
+  build with plain ``cmake`` / ``ctest`` / ``cmake --build`` /
+  ``cmake --workflow`` without any manual cleanup or migration step.
+  The CLI must never introduce state that CMake itself cannot read.
+
+**Reduce typing, not control.**
+  The CLI shortens long ``cmake`` invocations. It does not replace CMake
+  or add a layer of indirection between the developer and the build
+  system. When in doubt, pass through to CMake rather than abstract it.
+
+**Minimal inter-invocation state.**
+  The CLI avoids sidecar files and hidden directories.
+  ``CMakeUserPresets.json`` is the only file the CLI ever writes, and
+  only on explicit request. A developer who never runs ``libra preset``
+  can use every other command by passing ``--preset`` explicitly.
+
+**No required onboarding.**
+  ``libra build --preset debug`` must work on a fresh checkout with no
+  prior ``libra`` invocation, as long as ``CMakePresets.json`` or
+  ``CMakeUserPresets.json`` defines a preset named ``debug``.
+
+**No implied default action.**
+  A bare ``libra`` invocation prints help and exits. It does not imply
+  ``libra build``. The typing saving is marginal; the costs — typo
+  swallowing, argument grammar ambiguity — are concrete.
+
+
+Relationship to CMake Presets
+==============================
+
+CMake presets are the persistence and discoverability layer for build
+configuration. ``libra`` wraps them, not the other way around.
+
+The CLI reads presets and, for sequenced operations, invokes them via
+``cmake --workflow``. All other commands are pass-throughs to
+``cmake --build`` or ``ctest``, using a preset name supplied by the
+developer or inferred from CMake's own ``defaultConfigurePreset`` field.
+
+.. code-block:: text
+
+   libra build --preset debug
+   # is exactly equivalent to:
+   cmake --preset debug && cmake --build --preset debug -j$(nproc)
+
+   libra ci --preset ci
+   # is exactly equivalent to:
+   cmake --workflow --preset ci
+
+Because ``cmake --preset``, ``cmake --build --preset``, ``ctest
+--preset``, and ``cmake --workflow --preset`` are always the underlying
+mechanism, switching away from the CLI at any time costs nothing.
+
+Preset resolution order
+------------------------
+
+When ``--preset`` is not given, the CLI resolves a preset as follows:
+
+1. ``--preset=<n>`` on the current invocation.
+2. ``defaultConfigurePreset`` in ``CMakeUserPresets.json``.
+3. ``defaultConfigurePreset`` in ``CMakePresets.json``.
+4. Fail with a clear message if none of the above resolves.
+
+No sidecar file tracks an "active" preset. A developer who wants a
+persistent personal default sets it explicitly via ``libra preset
+default <n>`` (Phase 3), which writes ``defaultConfigurePreset`` into
+``CMakeUserPresets.json`` — a standard CMake field, not a CLI invention.
+
+Why ``CMakePresets.json`` vs. ``CMakeUserPresets.json``
+--------------------------------------------------------
+
+Both files are valid targets for the CLI to write. The distinction
+follows from intent:
+
+``CMakePresets.json``
+  Encodes the project's *supported* configurations. Version-controlled
+  and shared. Written by the CLI only for operations whose output is
+  meant to be committed: ``libra init`` seeding the initial preset
+  hierarchy, or ``libra preset new --project`` promoting a preset to a
+  shared definition.
+
+``CMakeUserPresets.json``
+  Encodes a *developer's local* preferences. ``.gitignore``\d by
+  convention. The default target for ``libra preset new`` and the only
+  file written by Phase 1 or Phase 2.
+
+The guiding rule: *if the result should be committed, it belongs in*
+``CMakePresets.json``; *if it is developer-local, it belongs in*
+``CMakeUserPresets.json``.
+
+
+CMake Workflow Presets
+=======================
+
+CMake workflow presets (preset schema version 6) sequence configure →
+build → test → package in a single invocation::
+
+  cmake --workflow --preset <n>
+
+This is the correct mechanism for any ``libra`` command that runs a
+fixed, multi-phase sequence. The CLI uses it where the sequence is
+predetermined; it falls back to individual ``cmake``/``ctest``
+invocations where the developer needs runtime control.
+
+When workflow presets are used
+-------------------------------
+
+``libra ci``
+  Maps directly to ``cmake --workflow --preset ci``. The CI pipeline
+  is a fixed sequence (configure → build → test) that a workflow preset
+  expresses exactly. ``CMakePresets.json`` ships a ``ci`` workflow
+  preset; the CLI invokes it.
+
+``libra test`` (implicit build)
+  When the preset's build directory does not exist, ``libra test`` must
+  configure and build before testing. If a workflow preset exists with
+  the same name as the configure preset, ``libra test`` uses
+  ``cmake --workflow --preset <n>`` for this cold-start path. If no
+  workflow preset exists, it falls back to sequencing the individual
+  steps itself.
+
+When workflow presets are not used
+-----------------------------------
+
+Workflow presets are rigid: the sequence is fixed at definition time,
+steps cannot be skipped at runtime, and filtering (e.g. ``--type=unit``)
+cannot be expressed in the preset JSON. The CLI therefore sequences
+individual cmake/ctest calls in the following cases:
+
+- ``libra test --type=unit`` — requires a ``-L`` filter passed to
+  ``ctest`` at runtime.
+- ``libra test --stop-on-failure`` — requires a runtime ctest flag.
+- ``libra ci --no-coverage`` — requires selectively omitting a step.
+- Any command where the developer passes ``-- <extra-args>`` to the
+  underlying tool.
+
+In every case, the fallback is explicit ``cmake``/``ctest`` invocations
+that the developer could type themselves — not hidden orchestration
+logic.
+
+Workflow presets in ``CMakePresets.json``
+------------------------------------------
+
+The preset file shipped by ``libra init`` (Phase 3) includes workflow
+presets for the fixed sequences. The CLI depends on these being present
+for ``libra ci``. If they are absent, ``libra ci`` falls back to
+sequencing individual steps and emits a warning suggesting the missing
+workflow preset be added.
+
+.. code-block:: json
+
+   "workflowPresets": [
+     {
+       "name": "ci",
+       "displayName": "CI pipeline",
+       "description": "Configure, build, and test with coverage",
+       "steps": [
+         { "type": "configure", "name": "ci" },
+         { "type": "build",     "name": "ci" },
+         { "type": "test",      "name": "coverage" }
+       ]
+     },
+     {
+       "name": "debug",
+       "displayName": "Debug build and test",
+       "steps": [
+         { "type": "configure", "name": "debug" },
+         { "type": "build",     "name": "debug" },
+         { "type": "test",      "name": "debug" }
+       ]
+     }
+   ]
+
+
+Canonical Preset Hierarchy
+===========================
+
+The following preset hierarchy is derived from real-world LIBRA usage
+and represents what ``libra init`` generates in ``CMakePresets.json``.
+It is documented here because the CLI's design — particularly which
+commands map to which presets — depends on it.
+
+All configure presets inherit from ``base``, which is hidden and sets
+every LIBRA variable to its off/default state. This ensures that every
+preset is fully self-describing and no variable is left to chance.
+
+``base`` (hidden configure preset)
+  Generator: Ninja. Sets all ``LIBRA_*`` variables to their default/off
+  values. Never used directly; always inherited.
+
+  The explicit-off pattern matters: a preset that inherits ``base`` and
+  sets ``LIBRA_SAN=ASAN;UBSAN`` is guaranteed not to have stray
+  sanitizer flags from some other ancestor. Developers reading the
+  preset file know exactly what they are getting.
+
+``debug``
+  ``CMAKE_BUILD_TYPE=Debug``, ``LIBRA_TESTS=ON``. The everyday
+  development preset. Tests are on by default for debug builds because
+  that is the most common iteration loop.
+
+``release``
+  ``CMAKE_BUILD_TYPE=Release``, ``LIBRA_LTO=ON``. Portable optimised
+  build. LTO is on because it is almost always wanted for a release
+  binary and has no portability cost.
+
+``native-release``
+  Inherits ``release``, adds ``LIBRA_NATIVE_OPT=ON``. Separate from
+  ``release`` because a ``native-release`` binary is not portable across
+  CPU microarchitectures and should never be the default release preset
+  for a distributed build. The distinction is meaningful enough to
+  warrant its own preset rather than a flag.
+
+``asan``, ``tsan``, ``msan``
+  Inherit ``debug``, set ``LIBRA_SAN`` to the appropriate value.
+  ``msan`` additionally sets ``LIBRA_STDLIB=CXX`` because MSan requires
+  an instrumented standard library. These are first-class named presets,
+  not transient presets synthesised at runtime by the CLI. Naming them
+  explicitly in ``CMakePresets.json`` means they appear in IDE preset
+  pickers and can be referenced by name with plain ``cmake``.
+
+  These presets are also the reason why Phase 3's ``libra test
+  --sanitizer`` shortcut is syntactic sugar only: a developer who uses
+  sanitizers regularly will simply use ``--preset asan`` directly. The
+  shortcut exists for one-off runs where the developer does not want to
+  remember the preset name.
+
+``coverage``
+  Inherits ``debug``, adds ``LIBRA_CODE_COV=ON``. A dedicated coverage
+  preset is cleaner than adding a flag to the debug preset because
+  coverage instrumentation measurably changes build output (object files
+  are not reusable between coverage and non-coverage builds) and
+  warrants its own build directory.
+
+``ci``
+  Inherits ``debug``, adds ``LIBRA_CODE_COV=ON``. Nearly identical to
+  ``coverage`` in the current preset file. The separation is intentional:
+  ``ci`` may diverge from ``coverage`` over time (e.g. adding
+  ``LIBRA_ANALYSIS=ON`` to CI), and coupling them via inheritance from
+  a common parent would obscure the intent. Note that the current ``ci``
+  preset does *not* enable ``LIBRA_ANALYSIS=ON``; analysis is a separate
+  ``analyze`` preset and a separate step, reflecting that analysis is
+  slow and belongs in a distinct CI job rather than the build-and-test
+  job.
+
+``analyze``
+  Inherits ``debug``, adds ``LIBRA_ANALYSIS=ON`` and
+  ``LIBRA_USE_COMPDB=YES``. The corresponding build preset pins
+  ``"targets": ["analyze"]`` so that ``cmake --build --preset analyze``
+  runs the analysis targets directly without building the full project
+  first. This means ``libra analyze`` is just ``libra build --preset
+  analyze`` — no special analysis command is needed.
+
+``fortify``
+  Inherits ``release``, adds ``LIBRA_FORTIFY=ALL``. A release build
+  with all hardening options (stack protection, ``_FORTIFY_SOURCE``,
+  etc.) enabled. Separate from ``release`` because fortification options
+  affect ABI in some cases and are not universally appropriate.
+
+``valgrind``
+  Inherits ``debug``, adds ``LIBRA_VALGRIND_COMPAT=ON``. A dedicated
+  preset rather than a runtime flag because Valgrind-compatible codegen
+  (disabling SSE/AVX instructions) affects the whole binary and its
+  output is not interchangeable with a normal debug build.
+
+``pgo-gen`` / ``pgo-use``
+  First-class named presets for the two PGO phases. ``pgo-gen`` inherits
+  ``release`` and sets ``LIBRA_PGO=GEN``, ``LIBRA_LTO=OFF`` (LTO
+  interferes with profile generation). ``pgo-use`` inherits ``release``
+  and sets ``LIBRA_PGO=USE``. Having these as named presets means the
+  PGO workflow is fully expressible without the CLI: the developer runs
+  ``cmake --build --preset pgo-gen``, exercises the binary, then runs
+  ``cmake --build --preset pgo-use``. ``libra pgo`` (Phase 3) is
+  orchestration sugar over these two existing presets, not a new
+  mechanism.
+
+``docs``
+  ``CMAKE_BUILD_TYPE=Debug``, ``LIBRA_DOCS=ON``, ``LIBRA_TESTS=OFF``.
+  A dedicated docs preset keeps documentation builds isolated from build
+  artifacts that have different caching properties. The build preset
+  pins ``"targets": ["docs"]``.
+
+Presets not included and why
+-----------------------------
+
+``performance``
+  The earlier design included a ``performance`` seed preset combining
+  ``LIBRA_LTO=ON``, ``LIBRA_NATIVE_OPT=ON``, and ``LIBRA_PGO=GEN``.
+  This conflates three independent concerns: portability (native opt),
+  link-time optimisation, and profile-guided optimisation. The existing
+  ``native-release``, ``pgo-gen``, and ``pgo-use`` presets compose more
+  cleanly. A developer who wants all three can inherit from ``release``
+  and add the relevant variables in a user preset.
+
+``dev``
+  Earlier design iterations used ``dev`` as a friendly alias for the
+  everyday development preset. The existing ``debug`` preset fills this
+  role. Introducing ``dev`` as a synonym adds a name that appears in
+  CMake's own tooling (IDEs, ``cmake --list-presets``) without adding
+  any configuration meaning.
+
+
+Configure-Step Behaviour
 =========================
 
-::
-
-   libra init [project-name]
-
-Purpose: Bootstrap a new LIBRA project with sensible defaults.
-Behavior:
-
-- Creates directory structure (src/, include/, tests/, cmake/)
-- Generates minimal CMakeLists.txt (with find_package(libra))
-- Creates cmake/project-local.cmake with template
-- Initializes git repository (optional)
-- Creates .gitignore with build artifacts
-- Optionally generates CI/CD templates (GitHub Actions, GitLab CI)
-
-Options::
-
-  --language=<c|cxx|both> - Project language (default: cxx)
-  --type=<executable|library|header-only> - Project type
-  --conan - Add Conan integration (generates conanfile.py)
-  --tests - Enable test discovery from start (default: true)
-  --ci=<github|gitlab|jenkins|none> - Generate CI configuration
-  --template=<minimal|full|quality> - Use predefined project template
-
-  minimal: Just sources, no tests/docs
-  full: Sources, tests, docs, analysis
-  quality: Full + strict compiler warnings, sanitizers, coverage
-
-
-  --no-git - Skip git initialization
-
-Interactive Mode:
-If no options provided, prompt user with questionnaire::
-
-  Project name?
-  Language? (C, C++, both)
-  Type? (executable, library, header-only)
-  Enable tests? (y/n)
-  Enable documentation? (y/n)
-  Enable static analysis? (y/n)
-  Generate CI config? (GitHub Actions, GitLab CI, none)
-
-Examples::
-
-  libra init my_project
-  libra init my_lib --type=library --language=cxx --conan
-  libra init --template=quality --ci=github
-
-Possible output::
-
-  ✓ Created project structure
-  ✓ Generated CMakeLists.txt
-  ✓ Generated cmake/project-local.cmake
-  ✓ Initialized git repository
-  ✓ Created .gitignore
-  ✓ Generated .github/workflows/ci.yml
-
-  Next steps:
-    1. cd my_project
-    2. Edit src/main.cpp
-    3. libra build
-    4. libra test
-
-
-2.Configuration Management
-==========================
-
-::
-
-   libra config [action]
-
-Purpose: Manage LIBRA configuration variables without raw CMake commands.
-
-Sub-commands
-------------
-
-::
-
-  libra config list
-
-Show all LIBRA variables and their current values. Options::
-
-  --available - Show all available variables with descriptions
-  --filter=<pattern> - Filter by variable name (glob pattern)
-  --category=<optimization|quality|testing|docs> - Filter by category
-
-::
-
-   libra config set <VAR>=<VALUE>
-
-Set a LIBRA variable for current project
-Supports multiple variables::
-
-  libra config set LIBRA_TESTS=ON LIBRA_SAN=ASAN
-
-Options::
-
-  --profile=<debug|release|relwithdebinfo|minsizerel> - Apply to specific profile
-  --persist - Write to cmake/project-local.cmake (not just current build)
-
-::
-
-   libra config get <VAR>
-
-Show current value of a variable
-
-::
-
-   libra config reset
-
-Reset configuration to defaults. Options::
-
-  --all - Reset everything
-  --profile=<name> - Reset specific profile
-
-::
-
-   libra config profile <name>
-
-Manage configuration profiles (preset collections of variables)
-
-Built-in profiles::
-
-  dev - Fast iteration (no optimization, sanitizers enabled)
-  ci - Continuous integration (coverage, analysis, all tests)
-  release - Production build (optimized, LTO, no debug)
-  performance - Maximum optimization (PGO, native tuning, LTO)
-  debug - Heavy debugging (debug symbols, sanitizers, no optimization)
-
-
-Examples::
-
-  libra config list
-  libra config list --category=quality
-  libra config set LIBRA_CODE_COV=ON LIBRA_TESTS=ON
-  libra config profile dev
-  libra config set LIBRA_SAN="ASAN+UBSAN" --persist
-
-3. Building
-===========
-
-::
-
-   libra build [targets...]
-
-Purpose: Build the project with smart defaults.
-Behavior:
-
-- Automatically configures if not already configured
-- Detects compiler (GCC/Clang/Intel) from environment
-- Builds specified targets or all targets if none specified
-- Shows progress and compiler output
-- Reports timing statistics
-
-Options::
-
-  --profile=<name> - Use configuration profile (dev/ci/release/performance/debug)
-  --compiler=<gcc|clang|intel> - Force specific compiler
-  --jobs=<N>, -j<N> - Parallel build jobs (default: auto-detect CPU cores)
-  --clean - Clean before building
-  --reconfigure - Force CMake reconfiguration
-  --target=<name> - Build specific target (repeatable)
-  --install - Build and install to prefix
-  --prefix=<path> - Override install prefix
-
-Common Presets::
-
-  libra build - Build everything (default configuration)
-  libra build --profile=dev - Fast development build
-  libra build --profile=release - Optimized release build
-  libra build --clean - Clean rebuild
-  libra build my_lib - Build specific target
-
-Examples::
-
-  libra build
-  libra build --profile=release --jobs=8
-  libra build --compiler=clang --clean
-  libra build my_lib my_test --profile=dev
-
-Possible output::
-
-  [1/42] Building CXX object CMakeFiles/my_lib.dir/src/core.cpp.o
-  [2/42] Building CXX object CMakeFiles/my_lib.dir/src/utils.cpp.o
-  ...
-  [42/42] Linking CXX executable bin/my_app
-
-  Build completed in 12.3s
-
-
-4. Testing
-==========
-
-::
-
-   libra test [test-pattern]
-
-Purpose: Run tests with sensible defaults and clear output.
-
-Behavior:
-
-- Automatically builds tests if not already built
-- Runs tests matching pattern (or all if no pattern)
-- Shows pass/fail status per test
-- Reports coverage if enabled
-- Optionally runs under sanitizers/valgrind
-
-Options::
-
-  --filter=<pattern> - Run tests matching pattern (glob or regex)
-  --type=<unit|integration|regression|all> - Filter by test type
-  --coverage - Generate coverage report after tests
-  --sanitizer=<asan|ubsan|tsan|msan> - Run tests under sanitizer
-  --valgrind - Run tests under valgrind
-  --repeat=<N> - Run tests N times (for flaky test detection)
-  --parallel=<N> - Run N tests in parallel (default: auto)
-  --stop-on-failure - Stop at first failure
-  --shuffle - Randomize test execution order
-  --list - List available tests without running
-
-Examples::
-
-  libra test
-  libra test --filter="*math*"
-  libra test --type=unit --coverage
-  libra test --sanitizer=asan --stop-on-failure
-  libra test --list
-
-Possible Output::
-
-  Running 15 tests...
-
-  [PASS] core-utest (0.12s)
-  [PASS] utils-utest (0.08s)
-  [FAIL] network-utest (0.45s)
-    Assertion failed: expected 200, got 404
-
-  Summary: 14 passed, 1 failed, 0 skipped (2.3s total)
-
-  [200~libra test
-  libra test --filter="*math*"
-  libra test --type=unit --coverage
-  libra test --sanitizer=asan --stop-on-failure
-  libra test --list
-
-  Running 15 tests...
-
-  [PASS] core-utest (0.12s)
-  [PASS] utils-utest (0.08s)
-  [FAIL] network-utest (0.45s)
-    Assertion failed: expected 200, got 404
-
-    Summary: 14 passed, 1 failed, 0 skipped (2.3s total)~```**``]
-
-5. libra coverage
+``libra build`` runs the CMake configure step only if the preset's
+build directory does not yet exist. For incremental builds, the CLI
+invokes ``cmake --build --preset <n>`` directly.
+
+This is not a heuristic the CLI maintains independently. CMake's own
+``cmake_check_build_system`` mechanism re-runs the configure step
+automatically whenever configure inputs change (``CMakeLists.txt``
+files, ``*.cmake`` includes, preset JSON files, the cache). The CLI
+does not replicate this logic. Doing so would introduce a second,
+potentially inconsistent definition of "needs reconfiguration."
+
+The only gap CMake's re-run mechanism does not cover is the cold start:
+the build directory does not exist at all. ``libra build`` fills this
+gap with a single directory-existence check.
+
+``--reconfigure`` is provided for cases where the developer knows the
+cache needs rebuilding but CMake's heuristics have not caught up (e.g.
+after changing a compiler via an environment variable).
+
+.. list-table::
+   :widths: 45 55
+   :header-rows: 1
+
+   * - Situation
+     - What ``libra build`` does
+   * - Build directory absent
+     - Runs configure, then build
+   * - Build directory present, inputs unchanged
+     - Runs build only (CMake no-ops the re-run check internally)
+   * - Build directory present, inputs changed
+     - Runs build; CMake internally re-runs configure
+   * - ``--reconfigure`` given
+     - Always runs configure, then build
+   * - ``--clean`` given
+     - Runs build with ``--clean-first``; does not reconfigure
+
+
+Output Verbosity
 =================
 
-::
+``libra`` passes cmake and ctest output through to the terminal
+unchanged by default.
 
-  libra coverage --open
-  libra coverage --format=terminal --threshold=80
-  libra coverage --exclude="*test*" --exclude="*_generated*"
-  libra coverage --upload=codecov  # In CI
+The alternative — a progress-bar model with output buffered and
+replayed on failure — is appropriate for tools like ``cargo`` because
+the Rust compiler emits structured, machine-parseable diagnostics.
+CMake build output is an unstructured mix of CMake status messages,
+generator output (Ninja/Make), compiler stdout and stderr, linker
+output, and custom target output. Selectively intercepting and
+replaying this stream would risk silently discarding warnings on
+successful builds — exactly the signal that matters most for C/C++
+development.
 
-Possible Output::
+Full pass-through also trivially satisfies the escape hatch goal:
+output from ``libra build`` is identical to output from
+``cmake --build --preset <n>``.
 
-  Generating coverage report...
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
 
-  File                    Lines    Functions    Branches
-  ──────────────────────────────────────────────────────
-  src/core.cpp           87.5%       90.0%       82.3%
-  src/utils.cpp          92.1%       95.2%       88.7%
-  src/network.cpp        45.2%       60.0%       38.9%
-  ──────────────────────────────────────────────────────
-  TOTAL                  78.3%       82.1%       73.6%
+   * - Flag
+     - Behaviour
+   * - *(default)*
+     - cmake/ctest stdout and stderr pass through unchanged
+   * - ``--quiet, -q``
+     - cmake/ctest stdout suppressed; stderr passes through; libra
+       emits a single completion line per phase
+   * - ``--verbose, -v``
+     - The cmake/ctest command is printed before execution; stdout and
+       stderr pass through unchanged. Gives the developer the exact
+       command to copy for direct cmake use.
+   * - ``--quiet --verbose``
+     - Command printed; stdout suppressed; stderr passes through
 
-  HTML report: build/coverage/index.html
 
-6. Static Analysis
+Three-Phase Roadmap
+====================
+
+.. list-table::
+   :widths: 10 20 70
+   :header-rows: 1
+
+   * - Phase
+     - Implementation
+     - Scope
+   * - 1
+     - Bash
+     - Thin wrapper: shortens ``cmake``/``ctest``/``cmake --workflow``
+       invocations. No preset management. No new state.
+   * - 2
+     - Rust (parity)
+     - Identical commands and behaviour. Adds ``--json``, ``--dry-run``,
+       shell completions, and better error messages.
+   * - 3
+     - Rust (feature-complete)
+     - Preset management, project scaffolding, PGO orchestration.
+
+Phase 2 is a clean Rust rewrite before new features are added. The
+rationale: Phase 3 requires correct JSON manipulation of preset files,
+which is not tractable in bash without an unacceptable external
+dependency. Rewriting to Rust first gives a stable, tested foundation.
+Phase 1 may be in production use while Phase 3 is still being designed;
+Phase 2 provides a stable binary in the interim.
+
+
+Phase 1 — Bash MVP
 ==================
 
-::
+Scope
+-----
 
-   libra analyze [tool]
+Phase 1 reduces the typing required to invoke CMake and CTest for
+common LIBRA workflows. It writes nothing. ``CMakeUserPresets.json`` is
+not touched by any Phase 1 command.
 
-Purpose: Run static analysis tools with minimal configuration.
+The ``--`` passthrough is the escape hatch for anything the CLI does
+not natively support. Every command forwards arguments after ``--``
+to the underlying cmake/ctest invocation verbatim.
 
-Common Options (all analyzers)::
+Commands
+--------
 
-  --filter=<pattern> - Only analyze matching files
-  --fail-on-error - Exit with error if issues found (CI mode)
-  --json - Output results as JSON
+All commands accept ``--preset=<n>`` and resolve it via the rules
+described in `Preset resolution order`_.
 
-Sub-commands
-------------
-
-::
-
-  libra analyze all - Run all enabled analyzers
-  libra analyze clang-tidy [options]
-
-Options::
-
-  --fix - Auto-fix issues
-  --checks=<list> - Specify check categories
-  --config=<file> - Use custom .clang-tidy config
+``libra build``
+~~~~~~~~~~~~~~~
 
 ::
 
-   libra analyze cppcheck [options]
+   libra build [--preset=<n>] [--jobs=N] [--clean] [--reconfigure]
+               [-- <cmake-build-args>]
 
-Options::
+Cold start (build directory absent)::
 
-  --std=<standard> - C++ standard (c++11/14/17/20/23)
+  cmake --preset <n>
+  cmake --build --preset <n> --parallel <N> [extra-args]
+
+Incremental (build directory present)::
+
+  cmake --build --preset <n> --parallel <N> [--clean-first] [extra-args]
+
+``--jobs`` defaults to ``nproc``. ``--clean`` passes ``--clean-first``
+to the build step only; it does not wipe the build directory.
+
+``libra test``
+~~~~~~~~~~~~~~
 
 ::
 
-   libra analyze clang-check
+   libra test [--preset=<n>] [--type=<unit|integration|regression|all>]
+              [--filter=<regex>] [--stop-on-failure] [--parallel=N]
+              [-- <ctest-args>]
 
-Options::
+If a workflow preset named ``<n>`` exists and no filtering flags are
+given, uses ``cmake --workflow --preset <n>``. Otherwise sequences
+individual steps::
 
-  --fix - Auto-fix issues
+  # if build dir absent:
+  cmake --preset <n>
+  cmake --build --preset <n> --parallel <N>
+
+  # always:
+  ctest --preset <n> [-L <label>] [--tests-regex <filter>]
+        [--stop-on-failure] [--parallel N] [extra-args]
+
+CTest label mapping:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - ``--type``
+     - CTest flag
+   * - ``unit``
+     - ``-L utest``
+   * - ``integration``
+     - ``-L itest``
+   * - ``regression``
+     - ``-L rtest``
+   * - ``all`` (default)
+     - *(no* ``-L`` *flag)*
+
+``libra ci``
+~~~~~~~~~~~~
 
 ::
 
-   libra analyze format [--check]
+   libra ci [--preset=<n>] [-- <cmake-workflow-args>]
 
-Format code with clang-format::
+Preferred expansion (workflow preset present)::
 
-  --check - Only verify formatting, don't change files
+  cmake --workflow --preset <n>
 
+Fallback (no workflow preset for ``<n>``)::
 
-Examples::
+  cmake --preset <n>
+  cmake --build --preset <n> --parallel $(nproc)
+  ctest --preset <n>
 
-  libra analyze all
-  libra analyze clang-tidy --fix
-  libra analyze format --check
-  libra analyze cppcheck --fail-on-error
+Emits a warning on fallback suggesting that a workflow preset be added
+to ``CMakePresets.json``.
 
-7. libra ci
-===========
+Note: ``libra ci`` intentionally has no ``--no-coverage`` or
+``--no-analyze`` flags in Phase 1. Selective step control requires
+runtime orchestration logic that belongs in Phase 3. CI jobs that need
+to skip steps should invoke the individual ``libra build`` / ``libra
+test`` commands explicitly, or use ``cmake --workflow`` directly.
 
-Purpose: One-command CI workflow.Behavior:
+``libra analyze``
+~~~~~~~~~~~~~~~~~
 
-- Configure with CI profile
-- Build with optimizations
-- Run all tests with coverage
-- Run all static analyzers
-- Generate reports
+::
 
-Options::
+   libra analyze [--preset=<n>] [-- <cmake-build-args>]
 
-  --no-coverage - Skip coverage generation
-  --no-analyze - Skip static analysis
-  --upload - Upload reports to services (codecov, etc.)
+Expands to::
 
-Examples::
+  cmake --build --preset analyze [extra-args]
 
-  libra ci
+The ``analyze`` build preset already pins ``"targets": ["analyze"]``,
+so no special target flag is needed. ``--preset`` overrides the default
+only if the user explicitly wants a non-standard analyze preset.
 
-Possible output::
+Emits a clear error if the selected preset's configure cache does not
+contain ``LIBRA_ANALYSIS=ON``.
 
-  CI Mode
-  [1/4] Building... ✓
-  [2/4] Testing... ✓ (45/45 passed)
-  [3/4] Coverage... ✓ (82.1%)
-  [4/4] Analysis... ✓ (3 warnings)
+``libra coverage``
+~~~~~~~~~~~~~~~~~~
 
-  Reports:
-    Coverage: build/coverage/index.html
-    Analysis: build/analysis/report.txt
+::
 
-8. Diagnostics
-==============
+   libra coverage [--preset=<n>] [--open] [-- <cmake-build-args>]
+
+Expands to::
+
+  cmake --build --preset <n> --target <coverage-target> [extra-args]
+
+Where ``<coverage-target>`` is whichever target LIBRA registered for
+the active compiler (``gcovr``, ``lcov``, ``llvm-cov``). Requires
+``LIBRA_CODE_COV=ON`` in the preset's cache. ``--open`` opens the HTML
+report in the system browser.
+
+``libra docs``
+~~~~~~~~~~~~~~
+
+::
+
+   libra docs [--preset=<n>] [-- <cmake-build-args>]
+
+Expands to::
+
+  cmake --build --preset docs [extra-args]
+
+The ``docs`` build preset already pins ``"targets": ["docs"]``.
+
+``libra clean``
+~~~~~~~~~~~~~~~
+
+::
+
+   libra clean [--preset=<n>] [--all]
+
+Default::
+
+  cmake --build --preset <n> --target clean
+
+``--all``: removes the preset's ``binaryDir`` entirely (``rm -rf``).
+
+``libra info``
+~~~~~~~~~~~~~~
+
+::
+
+   libra info [--preset=<n>]
+
+Runs ``cmake --preset <n> -N`` (no-op configure) and pretty-prints the
+resolved ``LIBRA_*`` cache variables alongside ``CMAKE_BUILD_TYPE`` and
+the detected generator.
+
+``libra doctor``
+~~~~~~~~~~~~~~~~
 
 ::
 
    libra doctor
 
-Purpose: Diagnose environment and project issues.
-Behavior::
+Checks availability and minimum versions of: ``cmake``, ``ninja``,
+``gcc``/``g++``, ``clang``/``clang++``, ``lcov``, ``gcovr``,
+``cppcheck``, ``clang-tidy``, ``clang-format``, ``valgrind``.
+Validates that ``CMakeLists.txt`` exists in the current directory.
+No auto-fix in Phase 1.
 
-- Check CMake version
-- Check compiler availability and versions
-- Check optional tools (lcov, cppcheck, etc.)
-- Validate project structure
-- Check for common configuration problems
-- Suggest fixes
-
-Options::
-
-  --fix - Attempt automatic fixes for common issues
-  --verbose - Show detailed diagnostic information
-
-Example::
-
-  libra doctor
-
-Possible Output::
-
-  Checking LIBRA environment...
-
-  ✓ CMake 3.31 (required: >= 3.17)
-  ✓ GCC 13.2 (required: >= 9)
-  ✓ Clang 17.0 (required: >= 17)
-  ✗ Intel icx not found
-  ✓ lcov 1.16 (required: >= 1.14)
-  ✓ gcovr 5.2 (required: >= 5.0)
-  ⚠ cppcheck not found (optional)
-
-  Project structure:
-  ✓ CMakeLists.txt exists
-  ✓ cmake/project-local.cmake exists
-  ✗ src/ directory missing
-    → Run: mkdir src
-
-  2 issues found, 1 fixable with --fix
-
+Global flags (Phase 1)
+-----------------------
 
 ::
 
-   libra info
+   --preset=<n>     Preset name. Resolved via CMake default rules if absent.
+   --verbose, -v    Print the cmake/ctest command before executing it.
+   --quiet, -q      Suppress cmake/ctest stdout; stderr passes through.
+   --help, -h       Show help.
+   --version        Show libra CLI version.
 
-Purpose: Display project configuration and status. Behavior::
+Phase 1 non-goals
+------------------
 
-- Show project name, version, language
-- Show active LIBRA configuration
-- Show detected compiler and tools
-- Show build directory status
-- Show available targets
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
 
-Options::
+   * - Feature
+     - Reason deferred
+   * - Preset creation/deletion/modification
+     - Requires JSON manipulation; deferred to Phase 3
+   * - ``libra init``
+     - Requires template rendering; deferred to Phase 3
+   * - ``libra pgo``
+     - Two-phase orchestration with state between phases; deferred to Phase 3
+   * - ``--json`` / ``--dry-run``
+     - Infrastructure not warranted in bash; Phase 2
+   * - Shell completions
+     - Phase 2
+   * - ``--no-coverage``, ``--no-analyze`` on ``libra ci``
+     - Runtime step control; Phase 3
+   * - Writing ``CMakeUserPresets.json``
+     - No inter-invocation state in Phase 1
 
-  --targets - List all build targets
-  --tests - List all discovered tests
-  --vars - Show all CMake variables
 
-Example::
+Phase 2 — Rust (Parity)
+========================
 
-  libra info
+Goal
+----
 
-Possible output::
+Deliver an identical feature set to Phase 1 in a Rust binary. No new
+user-visible commands. The value is: ``--json`` and ``--dry-run``,
+shell completions, structured error messages, and a foundation that
+Phase 3 can build on without the constraints of bash.
 
-  Project: my_project (v1.2.3)
-  Language: C++
-  Compiler: GCC 13.2
-  Build Type: Release
-  Build Dir: build/
+Commands
+---------
 
-  LIBRA Configuration:
-    LIBRA_TESTS: ON
-    LIBRA_CODE_COV: ON
-    LIBRA_ANALYSIS: ON
-    LIBRA_SAN: ASAN+UBSAN
-    LIBRA_LTO: ON
+All Phase 1 commands with identical semantics. The expansion from
+``libra <command>`` to ``cmake``/``ctest``/``cmake --workflow``
+invocations is unchanged.
 
-  Targets: 4 total
-    Executables: my_app
-    Libraries: my_lib
-    Tests: 15 (unit: 10, integration: 5)
-
-9. Profile-Guided Optimization
-==============================
+Additional global flags
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-   libra pgo
+   --dry-run         Print the cmake/ctest/cmake --workflow commands that
+                     would be run, then exit without executing anything.
+   --json            Emit structured JSON to stdout. Errors are also JSON.
+                     Intended for IDE and tooling integration.
+   --color=auto|always|never
 
-Purpose: Simplified PGO workflow. Behavior:
+Shell completions
+~~~~~~~~~~~~~~~~~
 
-- Phase 1 (generate): Build with instrumentation, run representative workload
-- Phase 2 (use): Rebuild with profile data, optimize
+::
 
-Options::
+   libra completions bash   >> ~/.bash_completion.d/libra
+   libra completions zsh    >> ~/.zfunc/_libra
+   libra completions fish   > ~/.config/fish/completions/libra.fish
 
-  --workload=<command> - Command to run for profile generation
-  --phase=<gen|use|auto> - Manual phase selection (default: auto)
+Generated via ``clap``'s built-in completion infrastructure. Preset
+names are completed from ``CMakePresets.json`` and
+``CMakeUserPresets.json``.
 
-Example::
+``libra doctor`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  # Automatic two-phase build
-  libra pgo --workload="./bin/my_app benchmark.dat"
+Gains ``--fix`` for automatically addressable issues:
 
-  # Manual two-phase
-  libra pgo --phase=gen
-  ./bin/my_app benchmark.dat
-  libra pgo --phase=use
+- Missing ``CMakeUserPresets.json`` (creates a minimal skeleton).
+- Build directory present but CMake cache absent (offers to
+  reconfigure).
 
 
-Possible output::
+Phase 3 — Rust (Feature-Complete)
+===================================
 
-  PGO Phase 1: Building with instrumentation...
-  Running workload: ./bin/my_app benchmark.dat
-  Profile data generated: 42MB
+Goal
+----
 
-  PGO Phase 2: Rebuilding with profile optimization...
-  Build complete. Binary optimized for profiled workload.
+Add the features that require JSON manipulation, template rendering, or
+multi-phase orchestration. ``CMakeUserPresets.json`` and, where
+appropriate, ``CMakePresets.json`` remain the only files written.
 
-10. Configuration
-=================
+Preset JSON schema enforcement
+-------------------------------
 
-Project-level config: `.libra.toml`::
+All reads and writes of preset files are validated against the CMake
+JSON schema (schema version 6). A schema-invalid preset file produces
+a clear, actionable error before any command executes.
 
-  [project]
-  name = "my_project"
-  version = "1.2.3"
-  language = "cxx"
+``libra preset``
+~~~~~~~~~~~~~~~~~
 
-  [profiles.dev]
-  LIBRA_TESTS = "ON"
-  LIBRA_SAN = "ASAN+UBSAN"
+::
 
-  [profiles.release]
-  LIBRA_LTO = "ON"
-  LIBRA_NATIVE_OPT = "ON"
+   libra preset list     [--all]
+   libra preset new      <n> [--from=<seed|name>] [--project]
+   libra preset default  [<n>]
+   libra preset set      <n> VAR=VALUE [VAR=VALUE ...] [--project]
+   libra preset show     <n>
+   libra preset rm       <n> [--force]
+   libra preset validate
 
-  [ci]
-  upload_coverage = "codecov"
-  fail_on_warnings = true
+**``libra preset list``**
+  All presets from both files. Marks the default with ``*``. ``--all``
+  annotates each preset with its source file.
 
-  [testing]
-  default_filter = "*"
-  parallel_jobs = 4
+**``libra preset new <n> [--from=<seed|name>] [--project]``**
+  Creates a configure/build/test preset triple. ``--from`` accepts a
+  built-in seed name or any existing preset name (sets ``"inherits"``).
+  ``--project`` writes to ``CMakePresets.json``. Default target is
+  ``CMakeUserPresets.json``.
 
-User level config `~/.libra/config.toml`::
+  Built-in seeds correspond to the canonical presets described in
+  `Canonical Preset Hierarchy`_. The seed names are the same as the
+  preset names (``debug``, ``release``, ``asan``, ``coverage``, etc.)
+  so that ``libra preset new my-asan --from=asan`` reads naturally.
 
-  [defaults]
-  compiler = "clang"
-  build_dir = "build"
-  jobs = 8
-  color = "auto"
+**``libra preset default [<n>]``**
+  With argument: writes ``"defaultConfigurePreset": "<n>"`` into
+  ``CMakeUserPresets.json``. Without argument: prints the current
+  default and its source file.
 
-  [aliases]
-  # Custom command aliases
-  quick = "build --profile=dev --jobs=16"
-  check = "analyze all && test"
+**``libra preset set <n> VAR=VALUE ...``**
+  Updates ``cacheVariables`` for the named preset. Refuses to modify
+  presets in ``CMakePresets.json`` unless ``--project`` is given, to
+  prevent silently overwriting shared definitions.
+
+**``libra preset show <n>``**
+  Pretty-prints the fully resolved ``cacheVariables`` (including
+  inherited values) in ``KEY=VALUE`` format.
+
+**``libra preset rm <n>``**
+  Removes the configure/build/test triple for the named preset.
+  Refuses to remove the current default without ``--force``.
+
+**``libra preset validate``**
+  Validates both preset files against the CMake JSON schema. Reports
+  errors with file and line context.
+
+``libra init``
+~~~~~~~~~~~~~~
+
+::
+
+   libra init [project-name] [--template=<minimal|full|quality>]
+              [--language=<c|cxx|both>]
+              [--type=<executable|library|header-only>]
+              [--ci=<github|gitlab|none>] [--no-git]
+
+Scaffolds a new project. Seeds ``CMakePresets.json`` with the full
+canonical preset hierarchy described in `Canonical Preset Hierarchy`_,
+plus workflow presets for ``ci`` and ``debug``. Seeds
+``CMakeUserPresets.json`` with a ``defaultConfigurePreset`` pointing to
+``debug``.
+
+Without options, presents an interactive questionnaire. All generated
+files are immediately usable with plain ``cmake --preset`` as well as
+``libra``.
+
+``libra pgo``
+~~~~~~~~~~~~~
+
+::
+
+   libra pgo [--preset=<n>] --workload=<command> [--phase=<gen|use|auto>]
+
+Orchestrates the two-phase PGO workflow over the existing ``pgo-gen``
+and ``pgo-use`` presets (or user-specified equivalents):
+
+1. **gen**: ``cmake --build --preset pgo-gen``, then runs ``--workload``.
+2. **use**: ``cmake --build --preset pgo-use``.
+
+With ``--phase=auto`` (default), both phases run in sequence.
+``--phase=gen`` or ``--phase=use`` runs only that phase. The CLI does
+not create transient presets for PGO: the ``pgo-gen`` and ``pgo-use``
+presets already exist in ``CMakePresets.json`` and are usable with
+plain ``cmake`` independently of the CLI.
+
+``libra ci`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+   libra ci [--preset=<n>] [--no-coverage] [--no-analyze]
+            [--upload=codecov|coveralls]
+
+Phase 3 adds selective step control. When ``--no-coverage`` or
+``--no-analyze`` is given, the CLI cannot use ``cmake --workflow``
+(which does not support step skipping) and instead sequences individual
+cmake/ctest invocations. When no flags are given, ``cmake --workflow
+--preset ci`` remains the preferred expansion.
+
+``libra test`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gains ``--sanitizer=<asan|tsan|msan>`` as syntactic sugar: selects the
+appropriate named sanitizer preset (``asan``, ``tsan``, ``msan``) and
+runs the test sequence against it. Equivalent to ``libra test --preset
+asan``, but more discoverable for one-off runs.
+
+Stability guarantee
+--------------------
+
+Phase 3 declares a stable public interface. The ``--json`` output
+format carries a ``"cliVersion"`` field. Breaking changes to JSON
+schema or command semantics require a major version bump.
+
+
+Phase Comparison
+================
+
+.. list-table::
+   :widths: 44 18 18 20
+   :header-rows: 1
+
+   * - Capability
+     - Phase 1 (Bash)
+     - Phase 2 (Rust parity)
+     - Phase 3 (Rust complete)
+   * - ``libra build``
+     - ✓
+     - ✓
+     - ✓ + ``--target``
+   * - ``libra test``
+     - ✓
+     - ✓
+     - ✓ + ``--sanitizer``
+   * - ``libra ci``
+     - ✓ (workflow only)
+     - ✓ (workflow only)
+     - ✓ + ``--no-coverage``, ``--no-analyze``
+   * - ``libra analyze``
+     - ✓
+     - ✓
+     - ✓
+   * - ``libra coverage``
+     - ✓
+     - ✓
+     - ✓
+   * - ``libra docs``
+     - ✓
+     - ✓
+     - ✓
+   * - ``libra clean``
+     - ✓
+     - ✓
+     - ✓
+   * - ``libra info``
+     - ✓
+     - ✓
+     - ✓
+   * - ``libra doctor``
+     - ✓ (no fix)
+     - ✓ + ``--fix``
+     - ✓ + ``--fix``
+   * - ``cmake --workflow`` as mechanism for ``ci`` / ``test``
+     - ✓
+     - ✓
+     - ✓
+   * - ``--dry-run`` / ``--json``
+     - ✗
+     - ✓
+     - ✓
+   * - Shell completions
+     - ✗
+     - ✓
+     - ✓
+   * - ``libra preset`` (full subcommand tree)
+     - ✗
+     - ✗
+     - ✓
+   * - ``libra init``
+     - ✗
+     - ✗
+     - ✓
+   * - ``libra pgo``
+     - ✗
+     - ✗
+     - ✓
+   * - ``libra ci`` selective step control
+     - ✗
+     - ✗
+     - ✓
+   * - Preset JSON schema validation
+     - ✗
+     - ✗
+     - ✓
+   * - Writes ``CMakeUserPresets.json``
+     - ✗
+     - ✗ (except ``doctor --fix``)
+     - ✓
+   * - Writes ``CMakePresets.json``
+     - ✗
+     - ✗
+     - ✓ (``init``, ``preset new --project``)
+   * - Single binary, zero runtime deps
+     - ✓
+     - ✓
+     - ✓
+   * - Full cmake escape hatch
+     - ✓
+     - ✓
+     - ✓

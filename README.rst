@@ -1,9 +1,5 @@
 .. SPDX-License-Identifier: MIT
 
-.. |logo| image:: docs/figures/libra-logo2-text.png
-   :height: 120px
-   :alt: LIBRA Logo
-
 .. |docs| image:: https://img.shields.io/badge/docs-github.io-blue
    :target: https://jharwell.github.io/libra
    :alt: Documentation
@@ -23,28 +19,32 @@
 .. |compiler| image:: https://img.shields.io/badge/compilers-gcc%20%7C%20clang%20%7C%20intel-blue
    :alt: Compilers
 
-.. |version-master| image:: https://img.shields.io/github/v/tag/jharwell/libra?&label=master
+.. |version-master| image:: https://img.shields.io/github/v/tag/jharwell/libra?filter=!*.beta*&label=master&sort=semver
    :target: https://github.com/jharwell/libra/releases
    :alt: Latest release tag
 
-.. |version-devel| image:: https://img.shields.io/github/v/tag/jharwell/libra?include_prereleases&label=devel
+.. |version-devel| image:: https://img.shields.io/github/v/tag/jharwell/libra?filter=*-*&include_prereleases&label=devel&sort=semver
    :target: https://github.com/jharwell/libra/releases
    :alt: Latest devel tag
 
-+--------+-----------------------------------+----------------------------------+
-|        |Usage                              | |docs| |cmake|                   |
-|        |                                   | |compiler| |platform|            |
-|        +-----------------------------------+----------------------------------+
-|        |Release                            | |ci-master| |version-master|     |
-| |logo| +-----------------------------------+----------------------------------+
-|        |Development                        | |ci-devel| |version-devel|       |
-|        +-----------------------------------+----------------------------------+
-|        | Miscellaneous                     | |license|                        |
-+--------+-----------------------------------+----------------------------------+
+.. figure:: docs/figures/libra-logo-banner-light.png
 
-=======================================
-Luigi Build Reusable Automation (LIBRA)
-=======================================
++-----------------------------------+----------------------------------+
+|Usage                              | |docs| |cmake|                   |
+|                                   | |compiler| |platform|            |
++-----------------------------------+----------------------------------+
+|Release                            | |ci-master| |version-master|     |
++-----------------------------------+----------------------------------+
+|Development                        | |ci-devel| |version-devel|       |
++-----------------------------------+----------------------------------+
+| Miscellaneous                     | |license|                        |
++-----------------------------------+----------------------------------+
+
+
+
+========================================
+Luigi Builds Reusable Automation (LIBRA)
+========================================
 
 LIBRA is a declarative CMake framework that standardizes compiler flags,
 testing, analysis, and packaging for C/C++ projects with near-zero
@@ -149,6 +149,8 @@ All of the above comes "for free" with a project layout like this::
    ├── CMakeLists.txt              # Minimal: find_package + project()
    ├── cmake/
    │   └── project-local.cmake     # Your targets and configuration
+   ├── docs/
+   │   └── Doxyfile.in             # Your API doc configuration
    ├── src/                        # Auto-discovered source files
    ├── include/                    # Auto-discovered headers
    ├── tests/                      # Auto-discovered tests (*-{u,i,r}test.{c,cpp})
@@ -197,7 +199,7 @@ Installation
 
 .. code-block:: cmake
 
-   git submodule add libra clone https://github.com/jharwell/libra
+   git submodule add libra https://github.com/jharwell/libra
 
 FAQ
 ===
@@ -206,7 +208,8 @@ FAQ
 No. LIBRA is a layer on top of CMake that adds conventions and automation.
 
 **Can I mix LIBRA and plain CMake targets?**
-Yes. Only targets created with ``libra_*`` macros receive LIBRA features.
+Yes. Generally speaking, only targets created with ``libra_*`` macros receive
+LIBRA features.
 
 **Is globbing mandatory?**
 No. You may override discovery with explicit source lists.

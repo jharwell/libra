@@ -190,9 +190,11 @@ By following this convention, LIBRA requires zero manual file listing:
    ├── CMakeLists.txt           # Framework entry point (find_package + project)
    ├── cmake/
    │   └── project-local.cmake  # Target definitions (libra_add_*)
-   ├── src/                     # .cpp/.c files (Auto-discovered)
-   ├── include/                 # Public headers (Auto-discovered)
-   ├── tests/                   # *-utest.cpp, *-itest.cpp (Auto-discovered)
+   ├── docs/
+   │   └── Doxyfile.in          # Your API doc configuration (auto-discovered)
+   ├── src/                     # .cpp/.c files (auto-discovered)
+   ├── include/                 # Public headers (auto-discovered)
+   ├── tests/                   # *-utest.cpp, *-itest.cpp (auto-discovered)
    └── build/                   # Build artifacts (git-ignored)
 
 Common Workflows

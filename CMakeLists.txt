@@ -3,9 +3,14 @@
 #
 # SPDX-License Identifier: MIT
 #
+# ##############################################################################
+# Basic Setup
+# ##############################################################################
+
 cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
 
 cmake_policy(SET CMP0177 NEW) # Normalize paths
+option(LIBRA_INSTALL_MAN "Generate and install the libra(1) manpage" ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -42,6 +47,49 @@ libra_register_extra_configs_for_install(
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dots
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/..)
 
+# ##############################################################################
+# CLI
+# ##############################################################################
+if(LIBRA_INSTALL_MAN)
+  find_program(HELP2MAN help2man)
+
+  if(NOT HELP2MAN)
+    message(
+      WARNING
+        "help2man not found: skipping manpage generation. "
+        "Install help2man or set LIBRA_INSTALL_MAN=OFF to suppress this warning."
+    )
+  else()
+    # Step 2: generate libra.1 from libra --help
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/clibra.1
+      COMMAND
+        ${HELP2MAN} --no-info --name="LIBRA CMake automation framework CLI"
+        --manual="LIBRA Manual" --source="LIBRA ${LIBRA_VERSION}"
+        --output=${CMAKE_CURRENT_BINARY_DIR}/clibra.1
+        ${CMAKE_CURRENT_SOURCE_DIR}/cli/clibra.sh
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cli/clibra.sh
+      COMMENT "Generating libra.1 via help2man"
+      VERBATIM)
+
+    add_custom_target(libra-man ALL
+                      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/clibra.1)
+
+    install(
+      FILES ${CMAKE_CURRENT_BINARY_DIR}/clibra.1
+      DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+      COMPONENT man)
+  endif()
+endif()
+
+install(
+  PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/cli/clibra.sh
+  DESTINATION ${CMAKE_INSTALL_BINDIR}
+  COMPONENT runtime)
+
+# ##############################################################################
+# Deployment
+# ##############################################################################
 set(CMAKE_PACKAGE_VERSION "${LIBRA_VERSION}")
 set(LIBRA_DESCRIPTION
     "Reusable CMake build automation, to reduce boilerplate/copy-paste across

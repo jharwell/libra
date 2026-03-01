@@ -286,6 +286,6 @@ endif()
 # * No -fdiagnostics-XX options
 # * No -fcomment-XX options
 # ##############################################################################
-set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^--W|diagnostics|comment")
+set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W|diagnostics|comment")
 # Regex intentionally matches nothing
 set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")
