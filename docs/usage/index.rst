@@ -9,5 +9,6 @@
    build-time.rst
    project-local.rst
    analysis.rst
-   apidoc.rst
+   docs.rst
    testing.rst
+   presets.rst

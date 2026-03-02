@@ -173,8 +173,8 @@ Actions That Build Things
        configuration. Note that you can use CMakeUserPresets.json to
        automatically build things before running tests, obviating the need for
        this target (see :ref:`usage/testing/builtin`).  But not all projects use
-       presets, hence this target.
-
+       presets, hence this target. See :ref:`usage/presets` for how this target
+       interacts with CMake presets.
 
    * - ``all-tests``
 
@@ -287,6 +287,14 @@ Actions For Supporting SW Engineering
 
        Requires :cmake:variable:`LIBRA_DOCS` is true.  For more details see
        :ref:`usage/apidoc/check`.
+
+   * - ``sphinxdoc``
+
+     - Generate documentation with sphinx.  Requires
+       :cmake:variable:`LIBRA_DOCS` is true. If the ``apidoc`` target exists
+       this target will depend on it. The command to invoke sphinx can be set
+       with :cmake:command:`LIBRA_SPHINXDOC_COMMAND`. For more details see
+       :ref:`usage/sphinxdoc`.
 
    * - ``package``
 

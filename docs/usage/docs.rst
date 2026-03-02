@@ -1,29 +1,31 @@
-.. _usage/apidoc:
+.. _usage/docs:
 
-=======================
-API Documentation Tools
-=======================
+===================
+Documentation Tools
+===================
 
-Generating API Documentation
-============================
+LIBRA provides several high-level documentation tools/targets. None of the
+targets depend on the main project, and so can be run in CI prior to the build
+stage, if desired.
 
-LIBRA provides targets for generating the documentation with:
+API Documentation
+=================
 
-- doxgyen
+LIBRA provides targets for generating API documentation with:
 
-.. _usage/apidoc/check:
+- doxgyen (``make apidoc``)
+
+
+.. _usage/docs/apidoc/check:
 
 Checking API Documentation
-==========================
+--------------------------
 
 LIBRA provides tools for checking API documentation with:
 
 - doxygen (``make apidoc-check-doxygen``)
 
 - clang (``make apidoc-check-clang``)
-
-None of these targets depend on the main project, and so can be run in CI prior
-to the build stage, if desired.
 
 .. tabs::
 
@@ -68,3 +70,15 @@ to the build stage, if desired.
           #pragma clang diagnostic pop
 
       The first way is less invasive, and so should be preferred.
+
+.. _usage/docs/project:
+
+Project Documentation
+=====================
+
+LIBRA provides targets for generating HTML project documentation with:
+
+- sphinx (``make sphinxdoc``)
+
+Currently, there is no way use sphinx to generate anything other than project
+HTML documentation with LIBRA.

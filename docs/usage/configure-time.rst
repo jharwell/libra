@@ -113,7 +113,7 @@ which describe how these knobs are realized for each supported compiler.
    :default: NO
    :type: CACHE BOOL
 
-   Enable documentation build via ``make apidoc``.
+   Enable documentation build via ``make apidoc`` and/or ``make sphinxdoc``.
 
 .. cmake:variable:: LIBRA_CODE_COV
 

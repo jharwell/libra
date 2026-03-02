@@ -26,8 +26,8 @@ set(${PROJECT_NAME}_TEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Matcher variables: set in project-local.cmake to encode the project's
 # file-naming convention.  Non-cache: they are a structural property of the
-# project, not a per-build knob.  All guards use if(NOT DEFINED ...) so that
-# any project-local value, including an unusual one, is always respected.
+# project, not a per-build knob.  All guards use if(NOT DEFINED ...) so that any
+# project-local value, including an unusual one, is always respected.
 if(NOT DEFINED LIBRA_UNIT_TEST_MATCHER)
   set(LIBRA_UNIT_TEST_MATCHER ${LIBRA_UNIT_TEST_MATCHER_DEFAULT})
 endif()
@@ -282,7 +282,9 @@ endfunction()
 configure_test_harness()
 
 # Target for building and running all tests
-add_custom_target(build-and-test COMMAND ${CMAKE_CTEST_COMMAND})
+add_custom_target(
+  build-and-test COMMAND ${CMAKE_CTEST_COMMAND} --test-dir
+                         ${CMAKE_CURRENT_BINARY_DIR} --output-on-failure)
 
 # Target for building all unit tests
 add_custom_target(unit-tests)

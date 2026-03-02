@@ -1,5 +1,6 @@
 .. SPDX-License-Identifier: MIT
 
+
 .. |docs| image:: https://img.shields.io/badge/docs-github.io-blue
    :target: https://jharwell.github.io/libra
    :alt: Documentation
@@ -27,7 +28,7 @@
    :target: https://github.com/jharwell/libra/releases
    :alt: Latest devel tag
 
-.. figure:: docs/figures/libra-logo-banner-light.png
+.. figure:: docs/figures/libra-logo-banner-light-text.png
 
 +-----------------------------------+----------------------------------+
 |Usage                              | |docs| |cmake|                   |
@@ -42,9 +43,9 @@
 
 
 
-========================================
-Luigi Builds Reusable Automation (LIBRA)
-========================================
+================================
+Luigi Builds Reusable Automation
+================================
 
 LIBRA is a declarative CMake framework that standardizes compiler flags,
 testing, analysis, and packaging for C/C++ projects with near-zero

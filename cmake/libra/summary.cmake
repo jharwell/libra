@@ -18,7 +18,6 @@ set(_LIBRA_SUMMARY_SEP_WIDTH 80) # inner separator width
 # ##############################################################################
 # Public API
 # ##############################################################################
-
 function(libra_config_summary_prepare_fields FIELDS)
   if(NOT FIELDS)
     libra_message(WARNING
@@ -222,11 +221,6 @@ function(libra_config_summary)
   if(_LIBRA_SHOWED_SUMMARY)
     return()
   endif()
-
-  # Reset target accumulator for this configure run
-  set(_LIBRA_SUMMARY_TARGETS
-      ""
-      CACHE INTERNAL "")
 
   # Build separator strings
   set(_outer_sep "")
@@ -542,7 +536,7 @@ endfunction()
 # analyze-clang-tidy   clang_tidy_EXECUTABLE analyze-cppcheck
 # cppcheck_EXECUTABLE )
 #
-function(_libra_help_targets_block)
+macro(_libra_help_targets_block)
   cmake_parse_arguments(
     ARG
     ""
@@ -560,6 +554,7 @@ function(_libra_help_targets_block)
   # Parse flat (target, tool_var) pairs and append to global accumulator
   set(_toggle ON)
   set(_cur_target "")
+
   foreach(_item ${ARG_TARGETS})
     if(_toggle)
       set(_cur_target "${_item}")
@@ -574,11 +569,9 @@ function(_libra_help_targets_block)
       set(_toggle ON)
     endif()
   endforeach()
-
-endfunction()
+endmacro()
 
 # Create help-targets build target
-
 function(_libra_create_help_targets)
   # Register all target blocks for help-targets
   _libra_help_targets_block(
@@ -600,6 +593,8 @@ function(_libra_create_help_targets)
     TARGETS
     apidoc
     DOXYGEN_EXECUTABLE
+    sphinxdoc
+    LIBRA_SPHINXDOC_COMMAND
     apidoc-check-clang
     clang_EXECUTABLE)
 
@@ -672,8 +667,7 @@ function(_libra_create_help_targets)
   # file at configure time when they are fully resolved. This avoids both the
   # semicolon-in-list -D problem and the load_cache() problem of needing
   # variable names known ahead of time in script mode.
-  file(WRITE "${_targets_file}"
-       "set(_LIBRA_SUMMARY_TARGETS ${_LIBRA_SUMMARY_TARGETS})\n")
+  file(WRITE "${_targets_file}" "set(_LIBRA_SUMMARY_TARGETS)\n")
   set(_tw_i 0)
   list(LENGTH _LIBRA_SUMMARY_TARGETS _tw_len)
   while(_tw_i LESS _tw_len)
@@ -715,5 +709,3 @@ function(_libra_create_help_targets)
       USES_TERMINAL)
   endif()
 endfunction()
-
-_libra_create_help_targets()

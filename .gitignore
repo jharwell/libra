@@ -56,3 +56,8 @@ tests/cmake-pkg/build
 *.prodata
 tests/*.json
 CMakeUserPresets.json
+
+
+# Added by cargo
+
+/target

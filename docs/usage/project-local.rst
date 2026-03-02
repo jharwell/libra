@@ -229,6 +229,13 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
    Threshold for decisions coverage under which the ``gcovr-check`` target will
    return non-zero.
 
+.. cmake:variable:: LIBRA_SPHINXDOC_COMMAND
+
+   :default: ``sphinx-build``
+   :type: STRING
+
+   The command to run sphinx and generate documentation. via ``make sphinxdoc``.
+
 .. cmake:variable:: ${PROJECT_NAME}_C_SRC
 
    Glob containing all C source files.

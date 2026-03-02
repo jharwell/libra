@@ -5,13 +5,6 @@
 # LIBRA_DOCS controls whether documentation targets are created:
 #   - ON: Creates apidoc targets (apidoc, apidoc-check, etc.)
 #   - OFF: No documentation targets created
-#
-# Expected targets when ON:
-#   - apidoc: Generate API documentation with Doxygen
-#   - apidoc-check: Parent target for documentation checks
-#   - apidoc-check-doxygen: Check documentation with Doxygen warnings as errors
-#   - apidoc-check-clang: Check doxygen markup with clang
-#
 
 load test_helpers
 
@@ -23,6 +16,7 @@ setup() {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_DOCS=ON)
 
     # Check all targets in one test
+    assert_target_exists "$test_dir" "sphinxdoc"
     assert_target_exists "$test_dir" "apidoc"
     assert_target_exists "$test_dir" "apidoc-check"
     assert_target_exists "$test_dir" "apidoc-check-doxygen"
@@ -33,6 +27,7 @@ setup() {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_DOCS=OFF)
 
     # Check all targets are absent in one test
+    assert_target_absent "$test_dir" "sphinxdoc"
     assert_target_absent "$test_dir" "apidoc"
     assert_target_absent "$test_dir" "apidoc-check"
     assert_target_absent "$test_dir" "apidoc-check-doxygen"
@@ -43,12 +38,14 @@ setup() {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_DOCS=ON)
 
     assert_target_exists "$test_dir" "apidoc"
+    assert_target_exists "$test_dir" "sphinxdoc"
 }
 
 @test "DOCS: Works with C++ projects when OFF" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_DOCS=OFF)
 
     assert_target_absent "$test_dir" "apidoc"
+    assert_target_absent "$test_dir" "sphinxdoc"
 }
 
 @test "DOCS: Default behavior (no LIBRA_DOCS specified)" {
@@ -58,6 +55,7 @@ setup() {
 
     # Default is typically OFF, so targets should be absent
     assert_target_absent "$test_dir" "apidoc"
+    assert_target_absent "$test_dir" "sphinxdoc"
 }
 
 @test "DOCS: Cache variable persists across reconfiguration" {

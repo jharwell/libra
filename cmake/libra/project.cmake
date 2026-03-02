@@ -383,6 +383,9 @@ if(LIBRA_DOCS)
     # Handy checking tools
     libra_message(STATUS "Enabling apidoc tools: checkers")
     _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
+
+    include(libra/sphinxdoc)
+    _libra_sphinxdoc_configure()
   endif()
 endif()
 
@@ -424,6 +427,8 @@ endif()
 # ##############################################################################
 # Config Summary
 # ##############################################################################
+_libra_create_help_targets()
+
 if(${LIBRA_SUMMARY})
   if(NOT ${_LIBRA_SHOWED_SUMMARY})
     libra_config_summary()
