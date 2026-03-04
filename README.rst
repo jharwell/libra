@@ -151,6 +151,7 @@ All of the above comes "for free" with a project layout like this::
    ├── cmake/
    │   └── project-local.cmake     # Your targets and configuration
    ├── docs/
+   │   ├── conf.py                 # Your sphinx configuration
    │   └── Doxyfile.in             # Your API doc configuration
    ├── src/                        # Auto-discovered source files
    ├── include/                    # Auto-discovered headers

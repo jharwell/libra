@@ -168,6 +168,21 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
    ``-rtest``; a valid integration test would then be, e.g.,
    ``tests/thing-rtest.cpp``.
 
+.. cmake:variable:: LIBRA_NEGATIVE_TEST_INCLUDE_DIRS
+
+   Knob for additional include directories that need to be passed to negative
+   compile tests. ``-I`` is added to each directory by LIBRA. Because these
+   tests do *not* depend on the main target, we can only extract the dirs from
+   the main target itself, *not* from its transitive dependencies. This is a
+   limitation of CMake.
+
+.. cmake:variable:: LIBRA_NEGATIVE_TEST_COMPILE_FLAGS
+
+   Knob for additional compile flags that need to be passed to negative compile
+   tests. Because these tests do *not* depend on the main target, we can only
+   extract the flags, definitions, etc. from the main target itself, *not* from
+   its transitive dependencies. This is a limitation of CMake.
+
 .. cmake:variable:: LIBRA_TEST_HARNESS_MATCHER
 
    The common suffix before the ``{.cpp,.hpp}`` that all test harness files

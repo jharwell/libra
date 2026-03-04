@@ -188,8 +188,9 @@ endif()
 
 if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
   libra_message(
-    WARNING "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset \
-of {STACK,SOURCE,FORMAT,ALL} or set to NONE for gcc")
+    WARNING
+    "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset of {STACK,SOURCE,FORMAT,ALL} or set to NONE for gcc"
+  )
 endif()
 
 # ##############################################################################

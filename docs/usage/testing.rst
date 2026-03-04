@@ -18,7 +18,7 @@ non-compiled tests transparently. Currently tests can be any of the following:
    :header-rows: 1
 
    * - File extension
-     - Interpreter used?
+     - Interpreter used
 
    * - .c
      - N/A
@@ -41,6 +41,106 @@ interpreted tests--it's a C/C++ CMake framework?", and that's a valid
 question. The answer is that it is often more convenient to write tests in other
 languages/using other cmdline tools for {integration,regression} tests (though
 of course that doesn't *have* to be the case).
+
+.. _usage/testing/naming:
+
+Test Naming and Matchers
+========================
+
+LIBRA discovers tests by matching filenames against configurable suffix
+patterns called *matchers*. Each test category has its own matcher variable,
+set in your ``project-local.cmake``. If a variable is not set, LIBRA falls
+back to its built-in default.
+
+.. list-table::
+   :header-rows: 1
+
+   * - CMake variable
+     - Category
+
+   * - ``LIBRA_UNIT_TEST_MATCHER``
+     - Unit tests
+
+   * - ``LIBRA_INTEGRATION_TEST_MATCHER``
+     - Integration tests
+
+   * - ``LIBRA_REGRESSION_TEST_MATCHER``
+     - Regression tests
+
+   * - ``LIBRA_NEGATIVE_TEST_MATCHER``
+     - Negative compile tests (see below)
+
+   * - ``LIBRA_TEST_HARNESS_MATCHER``
+     - Test harness sources (compiled into a shared static library linked into
+       every test binary)
+
+.. _usage/testing/negative:
+
+Negative Compilation Tests
+==========================
+
+Files with the extensions ``.neg.cpp`` or ``.neg.c`` are *negative compile
+tests*: they are expected to **fail** compilation. LIBRA registers each such
+file as a CTest entry that inverts the compiler's exit code, so the test passes
+if and only if the compiler rejects the source.
+
+Naming convention::
+
+  <n>neg.cpp    e.g. er_missing_log_error-utest.neg.cpp
+  <n>.neg.c     e.g. bad_struct-utest.neg.c
+
+The compiler is selected by extension:
+
+- ``.neg.cpp`` uses ``CMAKE_CXX_COMPILER`` with ``-std=c++${LIBRA_CXX_STANDARD}``
+- ``.neg.c``   uses ``CMAKE_C_COMPILER``   with ``-std=c${LIBRA_C_STANDARD}``
+
+**Optional companion** ``.expected`` **file**
+
+If a file ``<n>.expected`` exists alongside the negative test source, its
+contents must appear somewhere in the compiler's stderr output for the test to
+pass. This lets you assert not just that compilation failed, but that it failed
+with the right diagnostic. If no ``.expected`` file is present, only compilation
+failure is asserted::
+
+  er_missing_log_error-utest.neg.cpp   # must fail to compile
+  er_missing_log_error-utest.expected  # e.g. "ER_ERROR was not called"
+
+**Project-local knobs** (both optional, set in ``project-local.cmake``):
+
+- :cmake:variable:`LIBRA_NEGATIVE_TEST_INCLUDE_DIRS` — additional include
+  directories passed to the compiler for negative tests.
+- :camke:variable:`LIBRA_NEGATIVE_TEST_COMPILE_FLAGS` — additional compiler
+  flags (defines, feature flags, etc.) for negative tests.
+
+Because these targets are created by ``add_custom_target()`` which just runs a
+shell command, they cannot depend on ``PROJECT_NAME`` or other targets. This
+means that while we can extract the includes, definitions, etc from
+``PROJECT_NAME``, we can't do that for its transitive dependencies. This is a
+limitation of CMake, as it does not provide a mechanism to walk that closure to
+retrieve properties.
+
+Negative tests participate in the ``negative-tests`` umbrella target and also
+in ``build-and-test``. When registered, they receive both the category label
+(e.g. ``unit``) and the ``negative`` label, so ``ctest -L negative`` selects
+them exclusively.
+
+
+.. _usage/testing/harness:
+
+Test Harness
+============
+
+If any files matching ``LIBRA_TEST_HARNESS_MATCHER`` are found under
+``tests/``, LIBRA compiles them into a static library that is linked into every
+test binary automatically:
+
+- C harness sources (``*.c``, ``*.h``) → ``${PROJECT_NAME}-c-harness``
+- C++ harness sources (``*.cpp``, ``*.hpp``) → ``${PROJECT_NAME}-cxx-harness``
+
+Both harness libraries link against the main project target so that all project
+includes, defines, and transitive dependencies are propagated. For C projects,
+``-Wno-old-style-cast`` and ``-Wno-useless-cast`` are added to the harness
+compile options to silence common C-style cast warnings in test code.
 
 .. _usage/testing/builtin:
 
@@ -66,7 +166,10 @@ Filtering and Running Specific Tests
 Registered tests are grouped into categories, so you can run only a single
 category of tests if you want::
 
-  ctest -L {unit,regression,integration}
+  ctest -L unit
+  ctest -L regression
+  ctest -L integration
+  ctest -L negative
 
 Tests are assigned to these categories based on the type they were registered as
 (e.g., unit, regression). To run a single test by name::
@@ -245,8 +348,8 @@ All public vars (``LIBRA_XX``)are tested, along with:
 - Dependency isolation - all LIBRA magic only applied to root in dependency
   chain, not any children using LIBRA.
 
-Where applicable, tests build a minimal ``sample_build_info`` project, generates
-a ``build_info`` file containing all compile/link flags, verifies that expected
-flags are present or absent, and executes the resulting binary and makefile
+Where applicable, tests build a minimal ``sample_build_info`` project, generate
+a ``build_info`` file containing all compile/link flags, verify that expected
+flags are present or absent, and execute the resulting binary and makefile
 targets. Tests run in parallel with each invocation receiving its own isolated
 temporary build directory to avoid collisions.

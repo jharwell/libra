@@ -13,12 +13,6 @@ include(CTest)
 include(libra/messaging)
 include(libra/defaults)
 
-set(_LIBRA_TEST_EXTENSIONS
-    c
-    cpp
-    bats
-    py
-    sh)
 # ##############################################################################
 # Test sources
 # ##############################################################################
@@ -47,26 +41,69 @@ endif()
 # ##############################################################################
 # Extension classification
 # ##############################################################################
-# Extensions that go through add_executable/linking. Hardcoded for now.
+
+# Extensions compiled into test executables via add_executable/linking.
 set(LIBRA_COMPILED_EXTENSIONS c cpp)
+
+# Extensions run via an interpreter.
+set(_LIBRA_INTERPRETED_EXTENSIONS bats py sh)
 
 # Map interpreted extensions to their interpreter executable.
 set(_LIBRA_INTERPRETER_bats "bats")
 set(_LIBRA_INTERPRETER_py "python3")
 set(_LIBRA_INTERPRETER_sh "bash")
 
+# Negative compile test extensions. Files with these extensions are expected to
+# FAIL compilation and are registered as a fourth test category distinct from
+# unit/integration/regression tests.
+set(_LIBRA_NEGATIVE_EXTENSIONS neg.cpp neg.c)
+
 # ##############################################################################
-# Glob for all test sources across all extensions and test types
+# Glob for all test sources
+#
+# Four categories, each with three types (unit / integration / regression):
+#
+# LIBRA_<ext>_utests / itests / rtests   compiled and interpreted tests
+# LIBRA_neg_utests / neg_itests / neg_rtests  negative compile tests
+#
+# Negative tests are globbed separately (*.neg.cpp, *.neg.c) to populate their
+# own lists. They are naturally excluded from the compiled extension lists
+# because *-utest.cpp does not match *-utest.neg.cpp.
 # ##############################################################################
-foreach(ext ${_LIBRA_TEST_EXTENSIONS})
-  file(GLOB_RECURSE LIBRA_${ext}_utests
+
+# --- Compiled and interpreted extensions -------------------------------------
+foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+  string(REPLACE "." "_" ext_var ${ext})
+  file(GLOB_RECURSE LIBRA_${ext_var}_utests
        ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_UNIT_TEST_MATCHER}.${ext})
-  file(GLOB_RECURSE LIBRA_${ext}_itests
+  file(GLOB_RECURSE LIBRA_${ext_var}_itests
        ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_INTEGRATION_TEST_MATCHER}.${ext})
-  file(GLOB_RECURSE LIBRA_${ext}_rtests
+  file(GLOB_RECURSE LIBRA_${ext_var}_rtests
        ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_REGRESSION_TEST_MATCHER}.${ext})
 endforeach()
 
+# --- Negative compile tests --------------------------------------------------
+
+set(LIBRA_neg_utests "")
+set(LIBRA_neg_itests "")
+set(LIBRA_neg_rtests "")
+
+foreach(neg_ext ${_LIBRA_NEGATIVE_EXTENSIONS})
+  file(GLOB_RECURSE _neg_candidates ${${PROJECT_NAME}_TEST_PATH}/*.${neg_ext})
+
+  foreach(f ${_neg_candidates})
+    get_filename_component(_fname ${f} NAME)
+    if(_fname MATCHES "${LIBRA_UNIT_TEST_MATCHER}\\.${neg_ext}$")
+      list(APPEND LIBRA_neg_utests ${f})
+    elseif(_fname MATCHES "${LIBRA_INTEGRATION_TEST_MATCHER}\\.${neg_ext}$")
+      list(APPEND LIBRA_neg_itests ${f})
+    elseif(_fname MATCHES "${LIBRA_REGRESSION_TEST_MATCHER}\\.${neg_ext}$")
+      list(APPEND LIBRA_neg_rtests ${f})
+    endif()
+  endforeach()
+endforeach()
+
+# --- Test harness sources -----------------------------------------------------
 file(GLOB_RECURSE LIBRA_c_test_harness
      ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_TEST_HARNESS_MATCHER}.c
      ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_TEST_HARNESS_MATCHER}.h)
@@ -206,7 +243,175 @@ function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
 endfunction()
 
 # ##############################################################################
-# Dispatch: compiled vs interpreted
+# Enable a single negative compilation test (.neg.c / .neg.cpp)
+#
+# The source file is expected to FAIL compilation. The custom target invokes the
+# compiler directly and inverts the exit code so that:
+#
+# * compiler rejects the file  → target succeeds → ctest passes
+# * compiler accepts the file → target fails → ctest fails
+#
+# If a companion <name>.expected file exists alongside the source, its contents
+# are treated as a string that must appear somewhere in the compiler's stderr
+# output. This lets tests assert not just that compilation failed, but that it
+# failed with the right message.
+# ##############################################################################
+function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
+  get_filename_component(test_name ${t} NAME_WE)
+  get_filename_component(test_dir ${t} DIRECTORY)
+  get_filename_component(test_file ${t} NAME)
+
+  # ------------------------------------------------------------------
+  # Select compiler and language standard based on file extension.
+  # ------------------------------------------------------------------
+  if(test_file MATCHES "\\.neg\\.cpp$")
+    set(_compiler ${CMAKE_CXX_COMPILER})
+    set(_std_flag "-std=c++${LIBRA_CXX_STANDARD}")
+  else()
+    set(_compiler ${CMAKE_C_COMPILER})
+    set(_std_flag "-std=c${LIBRA_C_STANDARD}")
+  endif()
+
+  # ------------------------------------------------------------------
+  # Collect compiler flags from target properties at configure time.
+  #
+  # Generator expressions cannot be used in file(WRITE) content, so they are
+  # handled explicitly per property type:
+  #
+  # INCLUDE_DIRECTORIES: $<BUILD_INTERFACE:path> -> unwrap to plain path
+  # $<INSTALL_INTERFACE:..> -> drop (not meaningful at build time) any other
+  # $<...>        -> drop
+  #
+  # COMPILE_DEFINITIONS / COMPILE_OPTIONS: any $<...>              -> drop
+  # (warning flags; safe to omit for static_assert / concept tests)
+  #
+  # The source file is NOT added here — passed directly on the command line
+  # (some compilers reject source paths inside @response files).
+  # ------------------------------------------------------------------
+  set(_compile_args)
+
+  get_target_property(_incdirs ${PROJECT_NAME} INCLUDE_DIRECTORIES)
+  if(_incdirs)
+    foreach(d ${_incdirs})
+      if(d MATCHES "^\\$<BUILD_INTERFACE:(.+)>$")
+        string(REGEX REPLACE "^\\$<BUILD_INTERFACE:(.+)>$" "\\1" d "${d}")
+        list(APPEND _compile_args "-I${d}")
+      elseif(NOT d MATCHES "^\\$<")
+        list(APPEND _compile_args "-I${d}")
+      endif()
+      # $<INSTALL_INTERFACE:...> and unknown genexes silently dropped
+    endforeach()
+  endif()
+
+  get_target_property(_opts ${PROJECT_NAME} COMPILE_OPTIONS)
+  if(_opts)
+    foreach(opt ${_opts})
+      if(opt MATCHES "^\\$<" OR opt MATCHES "-W")
+        continue()
+      endif()
+      # Strip trailing > left over from split generator expressions e.g.
+      # "-Wnull-dereference>" -> "-Wnull-dereference"
+      string(REGEX REPLACE ">$" "" opt "${opt}")
+      list(APPEND _compile_args "${opt}")
+    endforeach()
+  endif()
+
+  get_target_property(_opts ${PROJECT_NAME} COMPILE_DEFINITIONS)
+  if(_opts)
+    foreach(opt ${_opts})
+      if(opt MATCHES "^\\$<" OR opt STREQUAL ">")
+        continue()
+      endif()
+      # Strip trailing > left over from split generator expressions
+      string(REGEX REPLACE ">$" "" opt "${opt}")
+      list(APPEND _compile_args -D"${opt}")
+    endforeach()
+  endif()
+
+  # Escape-hatch: transitive deps or supplemental flags not on the target.
+  foreach(d ${LIBRA_NEGATIVE_TEST_INCLUDE_DIRS})
+    list(APPEND _compile_args "-I${d}")
+  endforeach()
+
+  foreach(f ${LIBRA_NEGATIVE_TEST_COMPILE_FLAGS})
+    list(APPEND _compile_args "${f}")
+  endforeach()
+
+  # ------------------------------------------------------------------
+  # Write the response file at configure time via file(WRITE).
+  #
+  # No generator expressions remain in _compile_args at this point so
+  # file(WRITE) is safe. One flag per line; GCC, Clang, and MSVC all support
+  # this @file format natively.
+  #
+  # The std flag and -fsyntax-only are passed directly on the command line to
+  # keep build output readable.
+  # ------------------------------------------------------------------
+  set(_rsp_file "${CMAKE_CURRENT_BINARY_DIR}/${test_name}.rsp")
+  list(JOIN _compile_args "\n" _rsp_content)
+  file(WRITE "${_rsp_file}" "${_rsp_content}\n")
+
+  # ------------------------------------------------------------------
+  # Locate companion .expected file. NAME_WE strips only the final extension
+  # (.cpp / .c), leaving .neg in the stem. Strip it to get the true stem for the
+  # companion lookup.
+  # ------------------------------------------------------------------
+  string(REGEX REPLACE "\\.neg$" "" _stem "${test_name}")
+  set(_expected_file "${test_dir}/${_stem}.expected")
+  set(_expected_fragment "")
+
+  if(EXISTS ${_expected_file})
+    file(READ ${_expected_file} _expected_fragment)
+    string(STRIP "${_expected_fragment}" _expected_fragment)
+  endif()
+
+  # ------------------------------------------------------------------
+  # Shell command that asserts compilation failure.
+  #
+  # Flags come from the response file (@_rsp_file); the std flag, -fsyntax-only,
+  # and source path are passed directly.
+  #
+  # With .expected: assert failure AND that the fragment appears in stderr (tee
+  # keeps the output visible in build logs). Without .expected: assert failure
+  # only, suppress output.
+  # ------------------------------------------------------------------
+  set(_base_cmd "${_compiler} ${_std_flag} -fsyntax-only @${_rsp_file} ${t}")
+
+  if(_expected_fragment)
+    set(_shell_cmd
+        "! ${_base_cmd} 2>&1 | tee /dev/stderr | grep -qF '${_expected_fragment}'"
+    )
+  else()
+    set(_shell_cmd "! ${_base_cmd} 2>/dev/null")
+  endif()
+
+  add_custom_target(
+    ${PROJECT_NAME}-${test_name}
+    COMMAND sh -c "${_shell_cmd}"
+    COMMENT "Negative compile test: ${test_name}"
+    VERBATIM)
+
+  if(INCLUDE_IN_CTEST)
+    add_test(NAME ${test_name}
+             COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target
+                     ${PROJECT_NAME}-${test_name})
+
+    string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
+
+    set_tests_properties(
+      ${test_name}.neg PROPERTIES LABELS "${test_label}" ENVIRONMENT
+                                  "BLESS=${BLESS}")
+  endif()
+
+  # Negative tests participate in the umbrella target so "make unit-tests"
+  # builds and validates them alongside positive tests.
+  add_dependencies(${UMBRELLA_TARGET} ${PROJECT_NAME}-${test_name})
+  add_dependencies(build-and-test ${PROJECT_NAME}-${test_name})
+endfunction()
+
+# ##############################################################################
+# Dispatch: compiled vs interpreted (Negative compile tests are registered
+# directly, never reach this function)
 # ##############################################################################
 function(dispatch_enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   get_filename_component(test_ext ${t} EXT)
@@ -294,20 +499,19 @@ add_custom_target(integration-tests)
 
 # Target for building all regression tests
 add_custom_target(regression-tests)
-
-# Target for building all tests
 add_custom_target(all-tests)
 
 add_dependencies(all-tests unit-tests integration-tests regression-tests)
 
 # ##############################################################################
-# Register all tests across all extensions
+# Register unit tests
 # ##############################################################################
-
 # Unit tests
 set(num_utests_total 0)
-foreach(ext ${_LIBRA_TEST_EXTENSIONS})
-  foreach(t ${LIBRA_${ext}_utests})
+foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+  string(REPLACE "." "_" ext_var ${ext})
+
+  foreach(t ${LIBRA_${ext_var}_utests})
     string(FIND ${t} ".#" position)
     if(NOT "${position}" MATCHES "-1")
       continue()
@@ -317,7 +521,7 @@ foreach(ext ${_LIBRA_TEST_EXTENSIONS})
                                 ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
   endforeach()
 
-  list(LENGTH LIBRA_${ext}_utests num_ext_utests)
+  list(LENGTH LIBRA_${ext_var}_utests num_ext_utests)
   math(EXPR num_utests_total "${num_utests_total} + ${num_ext_utests}")
   if(num_ext_utests GREATER 0)
     libra_message(STATUS "Registered ${num_ext_utests} .${ext} unit tests")
@@ -325,10 +529,14 @@ foreach(ext ${_LIBRA_TEST_EXTENSIONS})
 endforeach()
 libra_message(STATUS "Registered ${num_utests_total} unit tests total")
 
-# Integration tests
+# ##############################################################################
+# Register integration tests
+# ##############################################################################
 set(num_itests_total 0)
-foreach(ext ${_LIBRA_TEST_EXTENSIONS})
-  foreach(t ${LIBRA_${ext}_itests})
+foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+  string(REPLACE "." "_" ext_var ${ext})
+
+  foreach(t ${LIBRA_${ext_var}_itests})
     string(FIND ${t} ".#" position)
     if(NOT "${position}" MATCHES "-1")
       continue()
@@ -338,7 +546,7 @@ foreach(ext ${_LIBRA_TEST_EXTENSIONS})
                                 ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
   endforeach()
 
-  list(LENGTH LIBRA_${ext}_itests num_ext_itests)
+  list(LENGTH LIBRA_${ext_var}_itests num_ext_itests)
   math(EXPR num_itests_total "${num_itests_total} + ${num_ext_itests}")
   if(num_ext_itests GREATER 0)
     libra_message(STATUS
@@ -347,10 +555,14 @@ foreach(ext ${_LIBRA_TEST_EXTENSIONS})
 endforeach()
 libra_message(STATUS "Registered ${num_itests_total} integration tests total")
 
-# Regression tests
+# ##############################################################################
+# Register regression tests
+# ##############################################################################
 set(num_rtests_total 0)
-foreach(ext ${_LIBRA_TEST_EXTENSIONS})
-  foreach(t ${LIBRA_${ext}_rtests})
+foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+  string(REPLACE "." "_" ext_var ${ext})
+
+  foreach(t ${LIBRA_${ext_var}_rtests})
     string(FIND ${t} ".#" position)
     if(NOT "${position}" MATCHES "-1")
       continue()
@@ -360,7 +572,7 @@ foreach(ext ${_LIBRA_TEST_EXTENSIONS})
                                 ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
   endforeach()
 
-  list(LENGTH LIBRA_${ext}_rtests num_ext_rtests)
+  list(LENGTH LIBRA_${ext_var}_rtests num_ext_rtests)
   math(EXPR num_rtests_total "${num_rtests_total} + ${num_ext_rtests}")
   if(num_ext_rtests GREATER 0)
     libra_message(STATUS
@@ -368,3 +580,42 @@ foreach(ext ${_LIBRA_TEST_EXTENSIONS})
   endif()
 endforeach()
 libra_message(STATUS "Registered ${num_rtests_total} regression tests total")
+
+# ##############################################################################
+# Register negative compile tests
+# ##############################################################################
+set(num_negtests_total 0)
+
+foreach(t ${LIBRA_neg_utests})
+  string(FIND ${t} ".#" position)
+  if(NOT "${position}" MATCHES "-1")
+    continue()
+  endif()
+  enable_single_negative_compile_test(${t} unit-tests
+                                      ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
+endforeach()
+
+foreach(t ${LIBRA_neg_itests})
+  string(FIND ${t} ".#" position)
+  if(NOT "${position}" MATCHES "-1")
+    continue()
+  endif()
+  enable_single_negative_compile_test(${t} integration-tests
+                                      ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
+endforeach()
+
+foreach(t ${LIBRA_neg_rtests})
+  string(FIND ${t} ".#" position)
+  if(NOT "${position}" MATCHES "-1")
+    continue()
+  endif()
+  enable_single_negative_compile_test(${t} regression-tests
+                                      ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
+endforeach()
+
+list(LENGTH LIBRA_neg_utests _n_neg_u)
+list(LENGTH LIBRA_neg_itests _n_neg_i)
+list(LENGTH LIBRA_neg_rtests _n_neg_r)
+math(EXPR num_negtests_total "${_n_neg_u} + ${_n_neg_i} + ${_n_neg_r}")
+libra_message(STATUS
+              "Registered ${num_negtests_total} negative compile tests total")

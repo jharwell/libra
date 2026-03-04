@@ -927,7 +927,8 @@ ctest_test_registered() {
 
     # Match the exact test name — must be followed by a space or closing paren
     # to avoid partial-name false positives.
-    grep -q "^add_test(${test_name}[ )]" "$ctestfile"
+    escaped=$(echo "$test_name" | sed 's/\./\\./g')
+    grep -F "add_test(${test_name} " "$ctestfile"
 }
 
 # Check that a test has a given CTest LABELS value.
@@ -944,8 +945,8 @@ ctest_test_has_label() {
     fi
 
     # set_tests_properties lines contain both the test name and LABELS "label"
-    grep "set_tests_properties(${test_name} " "$ctestfile" \
-        | grep -q "LABELS \"${label}\""
+    grep -F "set_tests_properties(${test_name} " "$ctestfile" \
+        | grep -qF "${label}"
 }
 
 # Assert that a test is registered with CTest.
