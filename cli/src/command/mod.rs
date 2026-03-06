@@ -5,8 +5,16 @@
  */
 
 // Imports
+pub mod analyze;
 pub mod build;
+pub mod ci;
+pub mod clean;
+pub mod coverage;
+pub mod docs;
+pub mod doctor;
+pub mod generate;
 pub mod info;
+pub mod test;
 
 // Types
 

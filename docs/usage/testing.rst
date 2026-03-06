@@ -158,6 +158,10 @@ test`` *runs* all built tests, but does not build any tests; adding tests as
 dependencies to this built-in target doesn't work. If you want to build *AND*
 run tests in one shot, do ``make build-and-test``.
 
+.. NOTE:: All tests have their working directory set to
+          :cmake:variable::`CMAKE_SOURCE_DIR`, which is usually the root of the
+          repo.
+
 .. _usage/testing/builtin/filtering:
 
 Filtering and Running Specific Tests

@@ -143,7 +143,10 @@ function(_libra_coverage_register_lcov)
   find_program(LCOV_EXECUTABLE NAMES lcov REQUIRED)
   find_program(GENHTML_EXECUTABLE NAMES genhtml REQUIRED)
 
-  _libra_detect_gcov_tool(GCOV_TOOL)
+  _libra_detect_gcov_tool(LLVM_COV_TOOL)
+  set(LLVM_COV_TOOL
+      ${LLVM_COV_TOOL}
+      PARENT_SCOPE)
 
   libra_message(STATUS "Using lcov=${LCOV_EXECUTABLE}")
   libra_message(STATUS "Using genhtml=${GENHTML_EXECUTABLE}")
@@ -152,7 +155,7 @@ function(_libra_coverage_register_lcov)
   # work with newer versions of lcov/gcov/gcovr.
   set(LCOV_COMMON_FLAGS
       --gcov-tool
-      ${GCOV_TOOL}
+      ${LLVM_COV_TOOL}
       --rc
       branch_coverage=1
       --rc
@@ -207,14 +210,17 @@ endfunction()
 # GCOVR Coverage (GCC-compatible format with gcovr)
 # ##############################################################################
 function(_libra_coverage_register_gcovr)
-  _libra_detect_gcov_tool(GCOV_TOOL)
+  _libra_detect_gcov_tool(gcovr_EXECUTABLE)
 
-  libra_message(STATUS "Using gcovr=${GCOV_TOOL}")
+  libra_message(STATUS "Using gcovr=${gcovr_EXECUTABLE}")
+  set(gcovr_EXECUTABLE
+      ${gcovr_EXECUTABLE}
+      PARENT_SCOPE)
 
   # Base gcovr command
   set(GCOVR_BASE_CMD
       gcovr
-      --gcov-executable=${GCOV_TOOL}
+      --gcov-executable=${gcovr_EXECUTABLE}
       --root=${PROJECT_SOURCE_DIR}
       --object-directory=${PROJECT_BINARY_DIR}
       --decisions

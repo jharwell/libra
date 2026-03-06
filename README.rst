@@ -165,14 +165,19 @@ At a high level, LIBRA works like this:
 Installation
 ============
 
-**Option A: Install via conan**
+There are two ways to consume LIBRA depending on whether you want the
+optional CLI companion tool.
 
-.. code-block:: bash
+Using LIBRA in a C/C++ Project (CMake only)
+--------------------------------------------
 
-   git clone https://github.com/jharwell/libra
-   conan create .
+This is the core use case. No additional tooling is required beyond CMake.
 
-**Option B: CPM (Cmake Package Manager)**
+**Recommended: CPM (CMake Package Manager)**
+
+CPM is the recommended approach for most projects. It requires no
+pre-installation, pins the version in your project, and works
+automatically during configure.
 
 .. code-block:: cmake
 
@@ -189,7 +194,18 @@ Installation
      GIT_REPOSITORY
      https://github.com/jharwell/libra.git)
 
-**Option C: Install system-wide**
+**Alternative: Conan**
+
+If your project already uses Conan for dependency management:
+
+.. code-block:: bash
+
+   git clone https://github.com/jharwell/libra
+   conan create .
+
+**Alternative: System-wide install**
+
+Suitable for teams that manage build tooling centrally:
 
 .. code-block:: bash
 
@@ -197,11 +213,50 @@ Installation
    cmake -S libra -B build
    cmake --build build --target install
 
-**Option D: git submodule**
+**Alternative: git submodule**
 
-.. code-block:: cmake
+If you prefer to vendor dependencies directly in your repository:
 
-   git submodule add libra https://github.com/jharwell/libra
+.. code-block:: bash
+
+   git submodule add https://github.com/jharwell/libra
+
+Using the LIBRA CLI
+--------------------
+
+The LIBRA CLI is a Rust-based companion tool that adds project scaffolding
+and other workflow conveniences on top of the CMake framework. The CLI
+*requires* a compatible LIBRA CMake installation — it locates and
+orchestrates an existing install rather than bundling its own copy.
+
+**Prerequisites:** Install LIBRA via one of the CMake options above, then:
+
+.. code-block:: bash
+
+   cargo install libra-cli
+
+The CLI will detect your LIBRA installation automatically. If none is
+found, it will exit with a clear error indicating which version is required.
+
+.. note::
+
+   If you have not yet set up a LIBRA CMake installation, you can use the
+   ``--bootstrap`` flag to have the CLI install LIBRA into a per-user cache
+   (``~/.local/share/libra``) without affecting any system-wide installs:
+
+   .. code-block:: bash
+
+      libra --bootstrap
+
+**With the CLI installed**, you can scaffold a new project instead of
+copying the Quick Example by hand:
+
+.. code-block:: bash
+
+   libra init my_project
+   cd my_project
+   cmake -B build
+   make -C build
 
 FAQ
 ===
@@ -222,11 +277,31 @@ LIBRA assumes conventional layouts by default, but most paths are configurable.
 **Can I disable individual features?**
 Yes. All major features (sanitizers, coverage, analysis, docs) are opt-in.
 
+**Does the CLI bundle its own copy of LIBRA?**
+No. The CLI locates an existing LIBRA CMake installation on your system. This
+avoids version conflicts with projects that already manage LIBRA as a CMake
+dependency. Use ``--bootstrap`` for a user-local install if you have not
+installed LIBRA separately.
+
+**Do I need the CLI to use LIBRA?**
+No. The CLI is an optional convenience layer. All CMake functionality is
+available without it. The main benefit of the CLI is the ``libra init``
+scaffolding command, which generates the project skeleton for you instead of
+copying the Quick Example by hand.
+
 Requirements
 ============
+
+**CMake framework (all users)**
 
 Platform: Linux/Unix, macOS
 
 Build Tools: CMake >= 3.31
 
 Compilers: GCC >= 9, Clang >= 14, Intel >= 2025.0
+
+**CLI (optional)**
+
+Rust toolchain >= 1.75 (install via `rustup <https://rustup.rs>`_)
+
+A compatible LIBRA CMake installation (or use ``libra --bootstrap``)

@@ -596,7 +596,9 @@ function(_libra_create_help_targets)
     sphinxdoc
     LIBRA_SPHINXDOC_COMMAND
     apidoc-check-clang
-    clang_EXECUTABLE)
+    clang_EXECUTABLE
+    apidoc-check-doxygen
+    DOXYGEN_EXECUTABLE)
 
   _libra_help_targets_block(
     OPTION

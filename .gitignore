@@ -59,5 +59,4 @@ CMakeUserPresets.json
 
 
 # Added by cargo
-
-/target
+cli/target

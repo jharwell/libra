@@ -43,7 +43,7 @@ endif()
 # ##############################################################################
 
 # Extensions compiled into test executables via add_executable/linking.
-set(LIBRA_COMPILED_EXTENSIONS c cpp)
+set(_LIBRA_COMPILED_EXTENSIONS c cpp)
 
 # Extensions run via an interpreter.
 set(_LIBRA_INTERPRETED_EXTENSIONS bats py sh)
@@ -72,7 +72,7 @@ set(_LIBRA_NEGATIVE_EXTENSIONS neg.cpp neg.c)
 # ##############################################################################
 
 # --- Compiled and interpreted extensions -------------------------------------
-foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
   string(REPLACE "." "_" ext_var ${ext})
   file(GLOB_RECURSE LIBRA_${ext_var}_utests
        ${${PROJECT_NAME}_TEST_PATH}/*${LIBRA_UNIT_TEST_MATCHER}.${ext})
@@ -172,8 +172,14 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
     #
     # Derive label from umbrella target name: "unit-tests" -> "unit"
     string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
-    set_tests_properties(${test_name} PROPERTIES LABELS ${test_label}
-                                                 ENVIRONMENT "BLESS=${BLESS}")
+    set_tests_properties(
+      ${test_name}
+      PROPERTIES LABELS
+                 ${test_label}
+                 ENVIRONMENT
+                 "BLESS=${BLESS}"
+                 WORKING_DIRECTORY
+                 ${CMAKE_SOURCE_DIR})
 
   endif()
 
@@ -229,8 +235,14 @@ function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
     #
     # Derive label from umbrella target name: "unit-tests" -> "unit"
     string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
-    set_tests_properties(${test_name} PROPERTIES LABELS ${test_label}
-                                                 ENVIRONMENT "BLESS=${BLESS}")
+    set_tests_properties(
+      ${test_name}
+      PROPERTIES LABELS
+                 ${test_label}
+                 ENVIRONMENT
+                 "BLESS=${BLESS}"
+                 WORKING_DIRECTORY
+                 ${CMAKE_SOURCE_DIR})
 
   endif()
 
@@ -399,8 +411,13 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
     string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
 
     set_tests_properties(
-      ${test_name}.neg PROPERTIES LABELS "${test_label}" ENVIRONMENT
-                                  "BLESS=${BLESS}")
+      ${test_name}.neg
+      PROPERTIES LABELS
+                 "${test_label}"
+                 ENVIRONMENT
+                 "BLESS=${BLESS}"
+                 WORKING_DIRECTORY
+                 ${CMAKE_SOURCE_DIR})
   endif()
 
   # Negative tests participate in the umbrella target so "make unit-tests"
@@ -417,7 +434,7 @@ function(dispatch_enable_single_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   get_filename_component(test_ext ${t} EXT)
   string(SUBSTRING ${test_ext} 1 -1 ext_key)
 
-  if(ext_key IN_LIST LIBRA_COMPILED_EXTENSIONS)
+  if(ext_key IN_LIST _LIBRA_COMPILED_EXTENSIONS)
     enable_single_compiled_test(${t} ${UMBRELLA_TARGET} ${INCLUDE_IN_CTEST})
   else()
     enable_single_interpreted_test(${t} ${UMBRELLA_TARGET} ${INCLUDE_IN_CTEST})
@@ -508,7 +525,7 @@ add_dependencies(all-tests unit-tests integration-tests regression-tests)
 # ##############################################################################
 # Unit tests
 set(num_utests_total 0)
-foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
   string(REPLACE "." "_" ext_var ${ext})
 
   foreach(t ${LIBRA_${ext_var}_utests})
@@ -533,7 +550,7 @@ libra_message(STATUS "Registered ${num_utests_total} unit tests total")
 # Register integration tests
 # ##############################################################################
 set(num_itests_total 0)
-foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
   string(REPLACE "." "_" ext_var ${ext})
 
   foreach(t ${LIBRA_${ext_var}_itests})
@@ -559,7 +576,7 @@ libra_message(STATUS "Registered ${num_itests_total} integration tests total")
 # Register regression tests
 # ##############################################################################
 set(num_rtests_total 0)
-foreach(ext ${LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
   string(REPLACE "." "_" ext_var ${ext})
 
   foreach(t ${LIBRA_${ext_var}_rtests})

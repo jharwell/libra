@@ -6,18 +6,17 @@
  * Longer description if needed.
  */
 
-
 // Imports
 use anyhow;
-use std::process;
-use crate::cli;
 
 // Types
+#[derive(Clone)]
 pub struct Context {
-    pub preset:  Option<String>,
+    pub preset: Option<String>,
     pub verbose: bool,
-    pub quiet:   bool,
+    pub quiet: bool,
     pub dry_run: bool,
+    pub reconfigure: bool,
 }
 
 // Traits
@@ -45,9 +44,10 @@ impl Context {
     }
 }
 
-fn format_cmd(cmd: &crate::cli::Command) -> String {
+fn format_cmd(cmd: &std::process::Command) -> String {
     let prog = cmd.get_program().to_string_lossy();
-    let args: Vec<_> = cmd.get_args()
+    let args: Vec<_> = cmd
+        .get_args()
         .map(|a| a.to_string_lossy().into_owned())
         .collect();
     if args.is_empty() {

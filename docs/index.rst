@@ -4,6 +4,7 @@
 
 .. figure:: figures/libra-logo-banner-light.png
 
+================================
 Luigi Builds Reusable Automation
 ================================
 

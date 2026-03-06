@@ -9,10 +9,44 @@ Quickstart
 This guide will get you from zero to a running LIBRA project in minutes.
 Before starting, ensure your system meets the :ref:`startup/config`.
 
-1. Choose Your Integration
-===========================
+There are two paths through this quickstart:
 
-Select the integration method that matches your workflow:
+* **With the CLI** — install ``libra-cli`` via Cargo, then use ``libra init``
+  to scaffold your project. The CLI handles the boilerplate in sections 1 and 2
+  for you. Jump to :ref:`quickstart/cli` if you have Rust installed.
+* **CMake only** — follow sections 1–3 below. No Rust required.
+
+.. _quickstart/cli:
+
+Using the CLI (Optional)
+=========================
+
+If you have the Rust toolchain installed, the CLI can scaffold a complete
+project skeleton for you:
+
+.. code-block:: bash
+
+   cargo install libra-cli
+   libra init my_project
+   cd my_project
+   libra build
+
+``libra init`` generates ``CMakeLists.txt``, ``cmake/project-local.cmake``,
+and the standard directory layout described in `Project Structure`_. You can
+then skip ahead to `3. Build & Run`_ or edit ``cmake/project-local.cmake``
+to customise your targets.
+
+.. note::
+
+   The CLI requires a compatible LIBRA CMake installation. If you do not have
+   one, run ``libra --bootstrap`` first to install LIBRA into
+   ``~/.local/share/libra`` without affecting any system-wide packages.
+
+1. Choose Your CMake Integration
+==================================
+
+If you are not using the CLI, select the CMake integration method that matches
+your workflow:
 
 .. list-table::
    :header-rows: 1
@@ -22,18 +56,17 @@ Select the integration method that matches your workflow:
      - Best For
      - Use When
 
+   * - **CPM** *(recommended)*
+     - Most projects; no pre-installation needed
+     - You want version-pinned, zero-install dependency management in CMake
+
    * - **Conan**
      - Multi-repo organizations, complex dependencies
      - You already use Conan, or manage 5+ related projects
 
-   * - **CMake Package Manager**
-     - Multi-repo builds without Conan
-     - You want all dependency management to be handled within CMake
-
    * - **CMake Package**
      - System-wide or shared team installation
      - Multiple developers sharing one LIBRA installation
-
 
    * - **In Situ (Submodule)**
      - Quick prototyping, standalone repos, CI/CD simplicity
@@ -41,29 +74,11 @@ Select the integration method that matches your workflow:
 
 .. tabs::
 
-   .. group-tab:: Conan (Recommended)
+   .. group-tab:: CPM (Recommended)
 
-      Best for managing dependencies and multi-repo scaling.
-
-      **Step A: Configure conanfile.py**
-
-      .. code-block:: python
-
-         def build_requirements(self):
-             self.tool_requires("libra/0.8.0")
-
-      **Step B: Create CMakeLists.txt**
-
-      .. code-block:: cmake
-
-         cmake_minimum_required(VERSION 3.31)
-         find_package(libra REQUIRED)  # Conan makes package available
-         project(my_project CXX)
-
-   .. group-tab:: CMake Package Manager (CPM)
-
-      Best for managing dependencies from with CMake and decent multi-repo
-      scaling.
+      Best for most projects. No pre-installation required; CPM fetches and
+      caches LIBRA automatically at configure time, and the version is pinned
+      in your repository.
 
       **Step A: Create CMakeLists.txt**
 
@@ -93,6 +108,27 @@ Select the integration method that matches your workflow:
 
          # Make LIBRA CMake code available
          list(APPEND CMAKE_MODULE_PATH ${libra_SOURCE_DIR}/cmake)
+         project(my_project C CXX)
+         include(libra/project)
+
+   .. group-tab:: Conan
+
+      Best for managing dependencies and multi-repo scaling.
+
+      **Step A: Configure conanfile.py**
+
+      .. code-block:: python
+
+         def build_requirements(self):
+             self.tool_requires("libra/0.8.0")
+
+      **Step B: Create CMakeLists.txt**
+
+      .. code-block:: cmake
+
+         cmake_minimum_required(VERSION 3.31)
+         find_package(libra REQUIRED)  # Conan makes package available
+         project(my_project CXX)
          include(libra/project)
 
    .. group-tab:: CMake Package
@@ -282,6 +318,8 @@ Troubleshooting
 **"CMake Error: Could not find package libra"**
  Ensure you've installed LIBRA or set ``CMAKE_PREFIX_PATH`` to point to the
  install location. For Conan, verify ``conan install`` completed successfully.
+ If using the CLI, try ``libra --bootstrap`` to install LIBRA to a user-local
+ cache, or verify your existing installation is a compatible version.
 
 **"No targets to build"**
  Create ``cmake/project-local.cmake`` with at least one

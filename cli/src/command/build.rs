@@ -4,9 +4,13 @@
  * Implementation of the build command.
  */
 
-
 // Imports
 use clap;
+
+use crate::cmake;
+use crate::preset;
+use crate::runner;
+use crate::utils;
 
 // Types
 #[derive(clap::Parser, Debug)]
@@ -23,10 +27,6 @@ pub struct BuildArgs {
     #[arg(long)]
     pub clean: bool,
 
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
-    pub reconfigure: bool,
-
     /// Continue building after errors.
     #[arg(short = 'k', long)]
     pub keep_going: bool,
@@ -41,3 +41,31 @@ pub struct BuildArgs {
 // Implementation
 
 // Public API
+pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
+    preset::check_project_root()?;
+    let preset = preset::resolve(ctx, None)?;
+
+    let bdir = cmake::binary_dir(ctx)?;
+
+    if ctx.reconfigure || !bdir.exists() {
+        cmake::reconf(ctx, &preset, &args.defines)?;
+    }
+
+    let mut cmd = cmake::base_build(&preset);
+    cmd.args(["--parallel", &args.jobs.to_string()]);
+
+    if args.keep_going {
+        cmd.arg("--keep-going");
+    }
+
+    if args.clean {
+        cmd.arg("--clean-first");
+    }
+
+    if let Some(target) = &args.target {
+        cmd.args(["--target", target]);
+    }
+    ctx.run(&mut cmd)?;
+
+    Ok(())
+}

@@ -17,7 +17,6 @@
 #   LIBRA_CTEST_INCLUDE_UNIT_TESTS        – register unit tests with CTest        (default: YES)
 #   LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS – register integration tests w/ CTest  (default: YES)
 #   LIBRA_CTEST_INCLUDE_REGRESSION_TESTS  – register regression tests w/ CTest   (default: YES)
-#   LIBRA_COMPILED_EXTENSIONS             – list of compiled source extensions    (default: c cpp)
 #   LIBRA_NEGATIVE_TEST_INCLUDE_DIRS      – extra include dirs for neg-compile tests
 #   LIBRA_NEGATIVE_TEST_COMPILE_FLAGS     – extra compile flags for neg-compile tests
 #   LIBRA_TEST_HARNESS_LIBS               – libraries linked into the test harness
@@ -694,7 +693,7 @@ setup() {
 }
 
 # ==============================================================================
-# LIBRA_COMPILED_EXTENSIONS — C extension (.c files)
+# C extension (.c files)
 # ==============================================================================
 
 @test "COMPILED_EXTENSIONS: c_alpha-utest.c is registered as a unit test with CTest" {
@@ -948,15 +947,10 @@ setup() {
 }
 
 # ==============================================================================
-# LIBRA_COMPILED_EXTENSIONS — custom extension list
-#
-# The public variable LIBRA_COMPILED_EXTENSIONS defaults to "c cpp".
-# Projects may override it to add or remove extensions.  The existing C-file
-# tests verify the default list; the tests below verify that the variable is
-# truly respected as a configuration knob.
+# Non-compiled tests
 # ==============================================================================
 
-@test "COMPILED_EXTENSIONS: bats_alpha-utest.bats is registered as a unit test with CTest when bats is available" {
+@test "INTERPRETED_TESTS: bats_alpha-utest.bats is registered as a unit test with CTest when bats is available" {
     # BATS test files fall in the interpreted path.  If bats is not on PATH,
     # enable_single_interpreted_test emits a warning and skips registration,
     # which is the correct behaviour — we skip the assertion accordingly.
@@ -969,7 +963,7 @@ setup() {
     assert_ctest_test_registered "$test_dir" "bats_alpha-utest"
 }
 
-@test "COMPILED_EXTENSIONS: bats_alpha-utest.bats receives label 'unit' when bats is available" {
+@test "INTERPRETED_TESTS: bats_alpha-utest.bats receives label 'unit' when bats is available" {
     if ! command -v bats &>/dev/null; then
         skip "bats not found on PATH — bats-test label cannot be verified"
     fi
@@ -979,7 +973,7 @@ setup() {
     assert_ctest_test_label "$test_dir" "bats_alpha-utest" "unit"
 }
 
-@test "COMPILED_EXTENSIONS: bats_alpha-itest.bats is registered as an integration test when bats is available" {
+@test "INTERPRETED_TESTS: bats_alpha-itest.bats is registered as an integration test when bats is available" {
     if ! command -v bats &>/dev/null; then
         skip "bats not found on PATH — bats-test registration cannot be verified"
     fi
@@ -989,7 +983,7 @@ setup() {
     assert_ctest_test_registered "$test_dir" "bats_alpha-itest"
 }
 
-@test "COMPILED_EXTENSIONS: bats_alpha-rtest.bats is registered as a regression test when bats is available" {
+@test "INTERPRETED_TESTS: bats_alpha-rtest.bats is registered as a regression test when bats is available" {
     if ! command -v bats &>/dev/null; then
         skip "bats not found on PATH — bats-test registration cannot be verified"
     fi
