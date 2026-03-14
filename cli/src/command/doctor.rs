@@ -5,10 +5,14 @@
  */
 
 // Imports
-use crate::preset;
 use anyhow;
 use clap;
+use log::debug;
+use semver::Version;
 use which;
+
+use crate::preset;
+use crate::runner;
 
 // Types
 #[derive(clap::Parser, Debug)]
@@ -17,9 +21,18 @@ pub struct DoctorArgs {}
 // Traits
 
 // Implementation
+fn normalize_version(v: &str) -> String {
+    let parts: Vec<&str> = v.split('.').collect();
+    match parts.len() {
+        1 => format!("{}.0.0", parts[0]),
+        2 => format!("{}.{}.0", parts[0], parts[1]),
+        _ => v.to_string(),
+    }
+}
+
 fn check_tool(
     name: &str,
-    min_version: &str,
+    min_ver: &str,
     optional: bool,
     ok: &mut u32,
     warn: &mut u32,
@@ -41,7 +54,7 @@ fn check_tool(
             .unwrap_or_else(|_| "unknown".to_string());
 
         // Extract first sequence of digits/dots from version string
-        let found_ver = ver
+        let raw_ver = ver
             .split_whitespace()
             .find_map(|s| {
                 let s = s.trim_matches(|c: char| !c.is_ascii_digit());
@@ -51,17 +64,30 @@ fn check_tool(
                     Some(s.to_string())
                 }
             })
-            .unwrap_or_default();
+            .unwrap_or_else(|| "unknown".to_string());
 
-        let version_ok = min_version.is_empty() || version_gte(&found_ver, min_version);
+        let min_ver =
+            Version::parse(&normalize_version(min_ver)).unwrap_or_else(|_| Version::new(0, 0, 0));
 
-        if version_ok {
+        // This handles things like 13.3.0-6ubuntu2~24.04.1, and falls back to
+        // raw_ver if there are no such shennanigans.
+        let clean_ver = raw_ver.split('-').next().unwrap_or(&raw_ver);
+
+        let parsed_ver = Version::parse(&normalize_version(&clean_ver))
+            .unwrap_or_else(|_| Version::new(0, 0, 0));
+
+        debug!(
+            "Check tool {}: min_ver='{}',raw_tool='{}',parsed_tool='{}'",
+            name, min_ver, raw_ver, parsed_ver
+        );
+
+        if parsed_ver >= min_ver {
             println!("  ✓ {} -> {} ({})", name, path.display(), ver);
             *ok += 1;
         } else {
             println!(
                 "  ✗ {} -> found {} but need >= {}",
-                name, found_ver, min_version
+                name, parsed_ver, min_ver
             );
             *fail += 1;
         }
@@ -103,25 +129,10 @@ fn check_project_structure(ok: &mut u32, warn: &mut u32) {
         }
     }
 }
-fn version_gte(found: &str, min: &str) -> bool {
-    let parse = |s: &str| -> Vec<u64> { s.split('.').filter_map(|p| p.parse().ok()).collect() };
-    let found = parse(found);
-    let min = parse(min);
-
-    for (f, m) in found.iter().zip(min.iter()) {
-        if f > m {
-            return true;
-        }
-        if f < m {
-            return false;
-        }
-    }
-    found.len() >= min.len()
-}
 
 // Public API
-pub fn run(_args: DoctorArgs) -> anyhow::Result<()> {
-    preset::check_project_root()?;
+pub fn run(ctx: &runner::Context, _args: DoctorArgs) -> anyhow::Result<()> {
+    preset::ensure_project_root(ctx)?;
 
     println!("Checking LIBRA environment...\n");
     println!("Tools:");

@@ -19,6 +19,8 @@ export LIBRA_TESTS_DIR
 # LIBRA repository root: one level above tests/
 LIBRA_SOURCE_ROOT_DEFAULT="$(cd "${LIBRA_TESTS_DIR}/.." && pwd)"
 
+export CLI_CMAKE_DEFINES="-DLIBRA_TESTS_DIR=$LIBRA_TESTS_DIR -DLIBRA_SOURCE_ROOT=$LIBRA_SOURCE_ROOT_DEFAULT"
+
 ################################################################################
 # Compiler Configuration
 ################################################################################
@@ -1085,4 +1087,109 @@ debug_cache_value() {
     local var_name="$2"
 
     echo "$var_name = $(get_cache_value "$test_dir" "$var_name")" >&3
+}
+
+################################################################################
+# CLI Test Helpers
+#
+# Helpers for testing the clibra CLI binary.
+# CLI tests use sample_cli/ as their project fixture.
+################################################################################
+
+# Path to the sample_cli project fixture
+CLI_PROJECT_DIR="${LIBRA_TESTS_DIR}/sample_cli"
+
+# Setup function for CLI tests.
+# Changes into a temporary copy of sample_cli so each test gets an isolated
+# project directory with no pre-existing build artifacts.
+setup_cli_test() {
+    export CLIBRA_BIN="${LIBRA_TESTS_DIR}/../target/debug/clibra"
+
+    if [[ ! -x "$CLIBRA_BIN" ]]; then
+        echo "ERROR: clibra binary not found at $CLIBRA_BIN" >&2
+        echo "Build with: cargo build" >&2
+        return 1
+    fi
+
+    # Copy the fixture into a fresh temp directory so each test is isolated
+    export CLI_TEST_DIR="${BATS_TEST_TMPDIR}/project"
+    cp -r "$CLI_PROJECT_DIR" "$CLI_TEST_DIR"
+    cd "$CLI_TEST_DIR"
+}
+
+# Run clibra with the given arguments.
+# Sets $status and $output (standard BATS run semantics).
+# Usage: run_clibra [ARGS...]
+run_clibra() {
+    # echo "$CLIBRA_BIN" "$@" >& 3
+    run "$CLIBRA_BIN" "$@"
+}
+
+# Assert the last run_clibra succeeded.
+assert_clibra_success() {
+    if [ "$status" -ne 0 ]; then
+        echo "Expected success but got exit code $status" >&3
+        echo "Output: $output" >&3
+        false
+    fi
+}
+
+# Assert the last run_clibra failed.
+assert_clibra_failure() {
+    if [ "$status" -eq 0 ]; then
+        echo "Expected failure but got exit code 0" >&3
+        echo "Output: $output" >&3
+        false
+    fi
+}
+
+# Assert that the last run output contains a string.
+# Usage: assert_output_contains STRING
+assert_output_contains() {
+    if ! echo "$output" | grep -qF -- "$1"; then
+        echo "Expected output to contain: $1" >&3
+        echo "Actual output: $output" >&3
+        false
+    fi
+}
+
+# Assert that the last run output does NOT contain a string.
+# Usage: assert_output_not_contains STRING
+assert_output_not_contains() {
+    if echo "$output" | grep -qF -- "$1"; then
+        echo "Expected output NOT to contain: $1" >&3
+        echo "Actual output: $output" >&3
+        false
+    fi
+}
+
+# Run clibra with --dry-run and assert the printed command contains a string.
+# Useful for verifying flag forwarding without needing a real build.
+# Usage: assert_dry_run_contains EXPECTED_FRAGMENT [ARGS...]
+assert_dry_run_contains() {
+    local expected="$1"
+    shift
+    run_clibra --dry-run "$@"
+    assert_clibra_success
+    assert_output_contains "$expected"
+}
+
+# Assert the build directory for a preset exists.
+# Usage: assert_build_dir_exists PRESET
+assert_build_dir_exists() {
+    local preset="$1"
+    if [ ! -d "build/${preset}" ]; then
+        echo "Expected build directory build/${preset} to exist" >&3
+        false
+    fi
+}
+
+# Assert the build directory for a preset does NOT exist.
+# Usage: assert_build_dir_absent PRESET
+assert_build_dir_absent() {
+    local preset="$1"
+    if [ -d "build/${preset}" ]; then
+        echo "Expected build directory build/${preset} to be absent" >&3
+        false
+    fi
 }

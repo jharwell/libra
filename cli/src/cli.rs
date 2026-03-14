@@ -32,32 +32,34 @@ pub enum ColorMode {
     term_width = 120
 )]
 pub struct Cli {
-    /// CMake preset name. Defaults to 'debug'.
+    /// CMake preset name. Must be specified if a default preset cannot be
+    /// loaded from CMakeUserPresets.json or CMakePresets.json.
     #[arg(long, global = true)]
     pub preset: Option<String>,
 
-    /// Print cmake/ctest commands before executing them.
-    #[arg(short, long, global = true)]
-    pub verbose: bool,
+    #[arg(long, value_enum, default_value = "warn", global=true)]
+    pub log: LogLevel,
 
-    /// Suppress cmake/ctest stdout; stderr always passes through.
-    #[arg(short, long, global = true)]
-    pub quiet: bool,
-
-    /// Print commands without executing them.
+    /// Print {cmake,ctest} commands without executing them or otherwise doing
+    /// anything.
     #[arg(long, global = true)]
     pub dry_run: bool,
 
     /// Include color in outputs where applicable.
-    #[arg(long, value_enum, default_value = "auto")]
+    #[arg(long, value_enum, default_value = "auto", global=true)]
     pub color: ColorMode,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long, global = true)]
-    pub reconfigure: bool,
 
     #[command(subcommand)]
     pub command: Command,
+}
+
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub enum LogLevel {
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
 }
 
 #[derive(Subcommand, Debug)]
@@ -71,13 +73,14 @@ pub enum Command {
     Ci(ci::CiArgs),
     /// Configure (if needed) and run static analysis.
     Analyze(analyze::AnalyzeArgs),
-    /// Configure (if needed) and generate a coverage report.
+    /// Configure (if needed) and generate a coverage report/check
+    /// coverage. Fails if neither of those operations are possible.
     Coverage(coverage::CoverageArgs),
     /// Configure (if needed) and build documentation.
     Docs(docs::DocsArgs),
     /// Clean build artifacts for the active preset.
     Clean(clean::CleanArgs),
-    /// Show resolved preset configuration.
+    /// Show resolved build configuration, available targets.
     Info(info::InfoArgs),
 
     /// Check tool availability project layout conformance.

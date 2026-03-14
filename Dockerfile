@@ -144,7 +144,8 @@ RUN apt-get update && apt-get install -y \
     doxygen \
     cppcheck \
     cmake-format \
-    bats
+    bats \
+    ninja-build
 
 RUN pip3 install --break-system-packages \
     sphinx \

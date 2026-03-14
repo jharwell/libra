@@ -7,6 +7,7 @@
 // Imports
 use anyhow;
 use clap;
+use log::debug;
 
 use crate::cmake;
 use crate::preset;
@@ -52,6 +53,10 @@ pub struct TestArgs {
     /// Forward -DVAR=VALUE to the cmake configure step when building.
     #[arg(short = 'D', value_name = "VAR=VALUE")]
     pub defines: Vec<String>,
+
+    /// Force the configure step even if the build directory exists.
+    #[arg(short, long)]
+    pub reconfigure: bool,
 }
 
 // Traits
@@ -60,17 +65,21 @@ pub struct TestArgs {
 
 // Public API
 pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
-    preset::check_project_root()?;
+    preset::ensure_project_root(ctx)?;
+
+    debug!("Begin");
     let preset = preset::resolve(ctx, None)?;
 
-    let bdir = cmake::binary_dir(ctx)?;
+    let bdir = cmake::binary_dir(&preset);
 
-    if ctx.reconfigure || !bdir.exists() {
+    if args.reconfigure || bdir.is_none_or(|b| !b.exists()) {
         cmake::reconf(ctx, &preset, &args.defines)?;
     }
+
     if !args.no_build {
         ctx.run(&mut cmake::base_build(&preset))?;
     }
+
     let mut cmd = cmake::base_test(&preset);
 
     match args.r#type {

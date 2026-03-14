@@ -32,9 +32,10 @@ document.
 
 **Minimal inter-invocation state.**
   The CLI avoids sidecar files and hidden directories.
-  ``CMakeUserPresets.json`` is the only file the CLI ever writes, and
-  only on explicit request. A developer who never runs ``libra preset``
-  can use every other command by passing ``--preset`` explicitly.
+  ``CMakeUserPresets.json`` and ``CMakePresets.json`` are the only files
+  the CLI ever writes, and only on explicit request. A developer who
+  never runs ``libra preset`` can use every other command by passing
+  ``--preset`` explicitly.
 
 **No required onboarding.**
   ``libra build --preset debug`` must work on a fresh checkout with no
@@ -56,7 +57,7 @@ configuration. ``libra`` wraps them, not the other way around.
 The CLI reads presets and, for sequenced operations, invokes them via
 ``cmake --workflow``. All other commands are pass-throughs to
 ``cmake --build`` or ``ctest``, using a preset name supplied by the
-developer or inferred from CMake's own ``defaultConfigurePreset`` field.
+developer or resolved from the preset files.
 
 .. code-block:: text
 
@@ -65,7 +66,7 @@ developer or inferred from CMake's own ``defaultConfigurePreset`` field.
    cmake --preset debug && cmake --build --preset debug -j$(nproc)
 
    libra ci --preset ci
-   # is exactly equivalent to:
+   # is exactly equivalent to the following, IF a ci workflow preset exists:
    cmake --workflow --preset ci
 
 Because ``cmake --preset``, ``cmake --build --preset``, ``ctest
@@ -78,14 +79,46 @@ Preset resolution order
 When ``--preset`` is not given, the CLI resolves a preset as follows:
 
 1. ``--preset=<n>`` on the current invocation.
-2. ``defaultConfigurePreset`` in ``CMakeUserPresets.json``.
-3. ``defaultConfigurePreset`` in ``CMakePresets.json``.
-4. Fail with a clear message if none of the above resolves.
+2. ``vendor.libra.defaultConfigurePreset`` in ``CMakeUserPresets.json``.
+3. ``vendor.libra.defaultConfigurePreset`` in ``CMakePresets.json``.
+4. Fail with a clear, actionable message if none of the above resolves.
+
+The vendor namespace (``vendor.libra``) is used rather than CMake's own
+``defaultConfigurePreset`` field because ``defaultConfigurePreset`` is
+not a standard CMake preset field. The vendor namespace is the correct
+extension mechanism for tool-specific metadata that CMake itself ignores.
 
 No sidecar file tracks an "active" preset. A developer who wants a
 persistent personal default sets it explicitly via ``libra preset
-default <n>`` (Phase 3), which writes ``defaultConfigurePreset`` into
-``CMakeUserPresets.json`` — a standard CMake field, not a CLI invention.
+default <n>`` (Phase 3), which writes ``vendor.libra.defaultConfigurePreset``
+into ``CMakeUserPresets.json``.
+
+Preset open-endedness
+----------------------
+
+``libra`` looks for presets by name and expects certain LIBRA variables
+to be set within them, but it does not restrict what else a preset may
+contain. This is a deliberate and powerful property.
+
+A user may add any CMake cache variables, environment variables, or
+generator settings to a preset that ``libra`` uses. For example, a
+developer who always wants to compile with ``-march=native`` during
+debug builds can add that to their personal ``debug`` preset in
+``CMakeUserPresets.json`` — ``libra build`` will pick it up
+transparently because it delegates entirely to cmake.
+
+This means ``libra`` presets are augmentable at any level:
+
+- **Project-wide** (``CMakePresets.json``): shared settings committed
+  to the repository, visible to all developers and CI.
+- **Developer-local** (``CMakeUserPresets.json``): personal overrides
+  that inherit from the shared presets and add or override variables
+  without modifying the committed file.
+
+The CLI never restricts or validates preset contents beyond what CMake
+itself enforces. A preset that ``libra build`` uses is the same preset
+that ``cmake --build --preset <n>`` uses — the CLI adds no additional
+interpretation layer.
 
 Why ``CMakePresets.json`` vs. ``CMakeUserPresets.json``
 --------------------------------------------------------
@@ -127,18 +160,10 @@ When workflow presets are used
 -------------------------------
 
 ``libra ci``
-  Maps directly to ``cmake --workflow --preset ci``. The CI pipeline
-  is a fixed sequence (configure → build → test) that a workflow preset
-  expresses exactly. ``CMakePresets.json`` ships a ``ci`` workflow
-  preset; the CLI invokes it.
-
-``libra test`` (implicit build)
-  When the preset's build directory does not exist, ``libra test`` must
-  configure and build before testing. If a workflow preset exists with
-  the same name as the configure preset, ``libra test`` uses
-  ``cmake --workflow --preset <n>`` for this cold-start path. If no
-  workflow preset exists, it falls back to sequencing the individual
-  steps itself.
+  Checks whether a workflow preset named ``<n>`` exists in either preset
+  file. If found, delegates entirely to ``cmake --workflow --preset <n>``.
+  If absent, falls back to sequencing individual cmake/ctest invocations
+  and emits a warning suggesting the workflow preset be added.
 
 When workflow presets are not used
 -----------------------------------
@@ -151,9 +176,10 @@ individual cmake/ctest calls in the following cases:
 - ``libra test --type=unit`` — requires a ``-L`` filter passed to
   ``ctest`` at runtime.
 - ``libra test --stop-on-failure`` — requires a runtime ctest flag.
+- ``libra test --rerun-failed`` — requires a runtime ctest flag.
 - ``libra ci --no-coverage`` — requires selectively omitting a step.
-- Any command where the developer passes ``-- <extra-args>`` to the
-  underlying tool.
+- Any command where the developer passes runtime flags incompatible with
+  a fixed workflow sequence.
 
 In every case, the fallback is explicit ``cmake``/``ctest`` invocations
 that the developer could type themselves — not hidden orchestration
@@ -268,8 +294,7 @@ preset is fully self-describing and no variable is left to chance.
   ``LIBRA_USE_COMPDB=YES``. The corresponding build preset pins
   ``"targets": ["analyze"]`` so that ``cmake --build --preset analyze``
   runs the analysis targets directly without building the full project
-  first. This means ``libra analyze`` is just ``libra build --preset
-  analyze`` — no special analysis command is needed.
+  first.
 
 ``fortify``
   Inherits ``release``, adds ``LIBRA_FORTIFY=ALL``. A release build
@@ -336,7 +361,10 @@ potentially inconsistent definition of "needs reconfiguration."
 
 The only gap CMake's re-run mechanism does not cover is the cold start:
 the build directory does not exist at all. ``libra build`` fills this
-gap with a single directory-existence check.
+gap by reading ``binaryDir`` from the preset JSON (walking the
+``inherits`` chain as needed) and checking whether that directory
+exists. This is more reliable than parsing cmake output, which is not
+part of cmake's stable interface.
 
 ``--reconfigure`` is provided for cases where the developer knows the
 cache needs rebuilding but CMake's heuristics have not caught up (e.g.
@@ -393,8 +421,14 @@ output from ``libra build`` is identical to output from
        emits a single completion line per phase
    * - ``--verbose, -v``
      - The cmake/ctest command is printed before execution; stdout and
-       stderr pass through unchanged. Gives the developer the exact
-       command to copy for direct cmake use.
+       stderr pass through unchanged. The preset resolution source is
+       also annotated (resolved via ``--preset``, ``CMakeUserPresets.json``,
+       etc.). Gives the developer the exact command to copy for direct
+       cmake use.
+   * - ``--dry-run``
+     - Prints the cmake/ctest commands that would be executed without
+       running them. Exits 0. Target availability checks and filesystem
+       checks are skipped; assumed targets are used as placeholders.
    * - ``--quiet --verbose``
      - Command printed; stdout suppressed; stderr passes through
 
@@ -414,19 +448,18 @@ Three-Phase Roadmap
      - Thin wrapper: shortens ``cmake``/``ctest``/``cmake --workflow``
        invocations. No preset management. No new state.
    * - 2
-     - Rust (parity)
-     - Identical commands and behaviour. Adds ``--json``, ``--dry-run``,
-       shell completions, and better error messages.
+     - Rust
+     - Full rewrite with enhanced command set, ``--dry-run``, ``--color``,
+       shell completions, structured error messages, and ``libra info``.
    * - 3
      - Rust (feature-complete)
      - Preset management, project scaffolding, PGO orchestration.
 
-Phase 2 is a clean Rust rewrite before new features are added. The
-rationale: Phase 3 requires correct JSON manipulation of preset files,
-which is not tractable in bash without an unacceptable external
-dependency. Rewriting to Rust first gives a stable, tested foundation.
-Phase 1 may be in production use while Phase 3 is still being designed;
-Phase 2 provides a stable binary in the interim.
+Phase 2 is a clean Rust rewrite that goes beyond parity with Phase 1.
+It adds commands and flags that were deferred from Phase 1 for
+implementation complexity reasons but are fully within the "reduce
+typing, not control" design goal. Phase 3 adds features that require
+JSON manipulation and template rendering.
 
 
 Phase 1 — Bash MVP
@@ -438,10 +471,6 @@ Scope
 Phase 1 reduces the typing required to invoke CMake and CTest for
 common LIBRA workflows. It writes nothing. ``CMakeUserPresets.json`` is
 not touched by any Phase 1 command.
-
-The ``--`` passthrough is the escape hatch for anything the CLI does
-not natively support. Every command forwards arguments after ``--``
-to the underlying cmake/ctest invocation verbatim.
 
 Commands
 --------
@@ -455,16 +484,15 @@ described in `Preset resolution order`_.
 ::
 
    libra build [--preset=<n>] [--jobs=N] [--clean] [--reconfigure]
-               [-- <cmake-build-args>]
 
 Cold start (build directory absent)::
 
   cmake --preset <n>
-  cmake --build --preset <n> --parallel <N> [extra-args]
+  cmake --build --preset <n> --parallel <N>
 
 Incremental (build directory present)::
 
-  cmake --build --preset <n> --parallel <N> [--clean-first] [extra-args]
+  cmake --build --preset <n> --parallel <N> [--clean-first]
 
 ``--jobs`` defaults to ``nproc``. ``--clean`` passes ``--clean-first``
 to the build step only; it does not wipe the build directory.
@@ -476,11 +504,8 @@ to the build step only; it does not wipe the build directory.
 
    libra test [--preset=<n>] [--type=<unit|integration|regression|all>]
               [--filter=<regex>] [--stop-on-failure] [--parallel=N]
-              [-- <ctest-args>]
 
-If a workflow preset named ``<n>`` exists and no filtering flags are
-given, uses ``cmake --workflow --preset <n>``. Otherwise sequences
-individual steps::
+Sequences individual cmake/ctest calls::
 
   # if build dir absent:
   cmake --preset <n>
@@ -488,7 +513,7 @@ individual steps::
 
   # always:
   ctest --preset <n> [-L <label>] [--tests-regex <filter>]
-        [--stop-on-failure] [--parallel N] [extra-args]
+        [--stop-on-failure] [--parallel N]
 
 CTest label mapping:
 
@@ -512,7 +537,7 @@ CTest label mapping:
 
 ::
 
-   libra ci [--preset=<n>] [-- <cmake-workflow-args>]
+   libra ci [--preset=<n>]
 
 Preferred expansion (workflow preset present)::
 
@@ -527,43 +552,36 @@ Fallback (no workflow preset for ``<n>``)::
 Emits a warning on fallback suggesting that a workflow preset be added
 to ``CMakePresets.json``.
 
-Note: ``libra ci`` intentionally has no ``--no-coverage`` or
-``--no-analyze`` flags in Phase 1. Selective step control requires
-runtime orchestration logic that belongs in Phase 3. CI jobs that need
-to skip steps should invoke the individual ``libra build`` / ``libra
-test`` commands explicitly, or use ``cmake --workflow`` directly.
-
 ``libra analyze``
 ~~~~~~~~~~~~~~~~~
 
 ::
 
-   libra analyze [--preset=<n>] [-- <cmake-build-args>]
+   libra analyze [--preset=<n>]
 
 Expands to::
 
-  cmake --build --preset analyze [extra-args]
+  cmake --build --preset analyze --target analyze
 
-The ``analyze`` build preset already pins ``"targets": ["analyze"]``,
-so no special target flag is needed. ``--preset`` overrides the default
-only if the user explicitly wants a non-standard analyze preset.
-
-Emits a clear error if the selected preset's configure cache does not
-contain ``LIBRA_ANALYSIS=ON``.
+The ``analyze`` build preset pins ``"targets": ["analyze"]`` so no
+special target flag is needed beyond specifying the preset. Emits a
+clear error if the selected preset's configure cache does not contain
+``LIBRA_ANALYSIS=ON``.
 
 ``libra coverage``
 ~~~~~~~~~~~~~~~~~~
 
 ::
 
-   libra coverage [--preset=<n>] [--open] [-- <cmake-build-args>]
+   libra coverage [--preset=<n>] [--open]
 
 Expands to::
 
-  cmake --build --preset <n> --target <coverage-target> [extra-args]
+  cmake --build --preset <n> --target <coverage-target>
 
 Where ``<coverage-target>`` is whichever target LIBRA registered for
-the active compiler (``gcovr``, ``lcov``, ``llvm-cov``). Requires
+the active compiler (``gcovr-report``, ``lcov-report``, ``llvm-report``),
+discovered at runtime via the ``help-targets`` cmake target. Requires
 ``LIBRA_CODE_COV=ON`` in the preset's cache. ``--open`` opens the HTML
 report in the system browser.
 
@@ -572,13 +590,17 @@ report in the system browser.
 
 ::
 
-   libra docs [--preset=<n>] [-- <cmake-build-args>]
+   libra docs [--preset=<n>]
 
 Expands to::
 
-  cmake --build --preset docs [extra-args]
+  cmake --build --preset docs --target apidoc     # if apidoc target available
+  cmake --build --preset docs --target sphinxdoc  # if sphinxdoc target available
 
-The ``docs`` build preset already pins ``"targets": ["docs"]``.
+Each documentation target is built independently. If a target is
+disabled (``LIBRA_DOCS=OFF``), it is skipped with an informational
+message rather than an error. The ``docs`` preset defaults to
+``CMAKE_BUILD_TYPE=Debug``, ``LIBRA_DOCS=ON``, ``LIBRA_TESTS=OFF``.
 
 ``libra clean``
 ~~~~~~~~~~~~~~~
@@ -598,11 +620,20 @@ Default::
 
 ::
 
-   libra info [--preset=<n>]
+   libra info [--preset=<n>] [--all | --build | --targets]
 
-Runs ``cmake --preset <n> -N`` (no-op configure) and pretty-prints the
-resolved ``LIBRA_*`` cache variables alongside ``CMAKE_BUILD_TYPE`` and
-the detected generator.
+Reads the preset's CMake cache (without reconfiguring) and displays:
+
+- **Build configuration**: build directory path, generator, and
+  ``CMAKE_*`` cache variables
+- **LIBRA options**: all ``LIBRA_*`` cache variables, with non-default
+  values highlighted
+- **Available LIBRA targets**: grouped by feature area (Tests, Docs,
+  Coverage, Analysis), showing which targets are available and why
+  disabled targets are unavailable
+
+Output is paged through ``less`` when longer than the terminal height.
+Requires a prior ``libra build`` to have configured the build directory.
 
 ``libra doctor``
 ~~~~~~~~~~~~~~~~
@@ -612,17 +643,21 @@ the detected generator.
    libra doctor
 
 Checks availability and minimum versions of: ``cmake``, ``ninja``,
-``gcc``/``g++``, ``clang``/``clang++``, ``lcov``, ``gcovr``,
-``cppcheck``, ``clang-tidy``, ``clang-format``, ``valgrind``.
-Validates that ``CMakeLists.txt`` exists in the current directory.
-No auto-fix in Phase 1.
+``gcc``/``g++``, ``clang``/``clang++``, ``gcovr``, ``lcov``,
+``cppcheck``, ``clang-tidy``, ``clang-format``, ``ccache``, Intel
+``icx``/``icpx``. Validates that ``CMakeLists.txt`` and at least one
+preset file exist in the current directory. Checks for recommended
+project structure (``src/``, ``include/``, ``tests/``, ``docs/``).
+
+Exits non-zero if any required tool (cmake) is missing or below its
+minimum version. Optional tools produce warnings, not errors.
 
 Global flags (Phase 1)
 -----------------------
 
 ::
 
-   --preset=<n>     Preset name. Resolved via CMake default rules if absent.
+   --preset=<n>     Preset name. Resolved via vendor field rules if absent.
    --verbose, -v    Print the cmake/ctest command before executing it.
    --quiet, -q      Suppress cmake/ctest stdout; stderr passes through.
    --help, -h       Show help.
@@ -643,7 +678,7 @@ Phase 1 non-goals
      - Requires template rendering; deferred to Phase 3
    * - ``libra pgo``
      - Two-phase orchestration with state between phases; deferred to Phase 3
-   * - ``--json`` / ``--dry-run``
+   * - ``--dry-run`` / ``--color``
      - Infrastructure not warranted in bash; Phase 2
    * - Shell completions
      - Phase 2
@@ -653,56 +688,145 @@ Phase 1 non-goals
      - No inter-invocation state in Phase 1
 
 
-Phase 2 — Rust (Parity)
-========================
+Phase 2 — Rust
+===============
 
 Goal
 ----
 
-Deliver an identical feature set to Phase 1 in a Rust binary. No new
-user-visible commands. The value is: ``--json`` and ``--dry-run``,
-shell completions, structured error messages, and a foundation that
-Phase 3 can build on without the constraints of bash.
+Rewrite the CLI in Rust with an enhanced command set, better error
+messages, and infrastructure for Phase 3. Phase 2 goes beyond bash
+parity: it adds flags and behaviours that were impractical in bash but
+are fully consistent with the design goals.
 
 Commands
 ---------
 
-All Phase 1 commands with identical semantics. The expansion from
-``libra <command>`` to ``cmake``/``ctest``/``cmake --workflow``
-invocations is unchanged.
+All Phase 1 commands are present with identical or enhanced semantics.
+
+``libra build`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gains ``--target`` to build a specific CMake target, and ``--keep-going``
+to continue after errors::
+
+   libra build [--preset=<n>] [--jobs=N] [--clean] [--reconfigure]
+               [--target=<t>] [--keep-going] [-D VAR=VALUE ...]
+
+``-D VAR=VALUE`` forwards cache variable definitions to the configure
+step when ``--reconfigure`` is active.
+
+``libra test`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gains ``--no-build`` to skip the build step, ``--rerun-failed`` to
+re-run only tests that failed in the previous run, and ``-D`` define
+forwarding::
+
+   libra test [--preset=<n>] [--type=<unit|integration|regression|all>]
+              [--filter=<regex>] [--stop-on-failure] [--parallel=N]
+              [--no-build] [--rerun-failed] [-D VAR=VALUE ...]
+
+``--rerun-failed`` is particularly useful in the TDD loop: after a
+full run identifies failures, subsequent runs only exercise the failing
+tests, giving fast feedback while fixing them.
+
+``libra analyze`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gains tool subcommands to run a specific analyser rather than all of
+them, and ``--jobs`` / ``--keep-going`` flags::
+
+   libra analyze [--preset=<n>] [--jobs=N] [--keep-going] [-D VAR=VALUE ...]
+                 [clang-tidy | clang-check | cppcheck |
+                  clang-format | cmake-format]
+
+Without a subcommand, runs the ``analyze`` umbrella target. With a
+subcommand, runs only the specified tool's target
+(e.g. ``analyze-clang-tidy``). Emits a clear error with the reason if
+the target is disabled (e.g. ``LIBRA_ANALYSIS=OFF``).
+
+``libra coverage`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gains ``--check`` to run the coverage threshold check target::
+
+   libra coverage [--preset=<n>] [--check] [--open] [-D VAR=VALUE ...]
+
+The coverage target is discovered at runtime from the ``help-targets``
+cmake target, selecting whichever of ``gcovr-report``, ``lcov-report``,
+or ``llvm-report`` is available. ``--check`` runs the coverage threshold
+target (``gcovr-check``). ``--open`` opens the HTML report in the system
+browser after generation.
+
+``libra info`` (enhanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+   libra info [--preset=<n>] [--all | --build | --targets]
+
+``--build`` shows only the build configuration section.
+``--targets`` shows only the LIBRA target availability section.
+``--all`` (default) shows everything. Output is paged through ``less``.
+
+``libra doctor``
+~~~~~~~~~~~~~~~~
+
+Same as Phase 1. The ``--fix`` flag described in earlier iterations is
+out of scope: creating files on the user's behalf conflicts with the
+minimal inter-invocation state goal. Diagnosis is the correct
+responsibility; remediation belongs to the user or to ``libra init``
+(Phase 3).
 
 Additional global flags
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-   --dry-run         Print the cmake/ctest/cmake --workflow commands that
-                     would be run, then exit without executing anything.
-   --json            Emit structured JSON to stdout. Errors are also JSON.
-                     Intended for IDE and tooling integration.
+   --dry-run             Print the cmake/ctest commands that would be run,
+                         then exit without executing. Target availability
+                         checks and filesystem checks are skipped.
    --color=auto|always|never
+                         Control ANSI color output. Defaults to auto
+                         (color when stdout is a TTY).
 
 Shell completions
 ~~~~~~~~~~~~~~~~~
 
 ::
 
-   libra completions bash   >> ~/.bash_completion.d/libra
-   libra completions zsh    >> ~/.zfunc/_libra
-   libra completions fish   > ~/.config/fish/completions/libra.fish
+   libra generate --shell=bash   >> ~/.bash_completion.d/libra
+   libra generate --shell=zsh    >> ~/.zfunc/_libra
+   libra generate --shell=fish   > ~/.config/fish/completions/libra.fish
+   libra generate --manpage      > libra.1
 
-Generated via ``clap``'s built-in completion infrastructure. Preset
-names are completed from ``CMakePresets.json`` and
-``CMakeUserPresets.json``.
+Generated via ``clap``'s built-in completion infrastructure.
 
-``libra doctor`` (enhanced)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Phase 2 non-goals
+------------------
 
-Gains ``--fix`` for automatically addressable issues:
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
 
-- Missing ``CMakeUserPresets.json`` (creates a minimal skeleton).
-- Build directory present but CMake cache absent (offers to
-  reconfigure).
+   * - Feature
+     - Reason deferred
+   * - ``--json`` output
+     - Schema stability requires the Phase 3 stability guarantee first;
+       shipping an unstabilised schema in Phase 2 creates a compatibility
+       burden. Deferred to Phase 3.
+   * - Dynamic preset name completions
+     - Requires a custom clap completer; moderate value, non-trivial
+       work. Deferred to Phase 3.
+   * - Preset creation/deletion/modification
+     - Requires JSON manipulation; deferred to Phase 3
+   * - ``libra init``
+     - Requires template rendering; deferred to Phase 3
+   * - ``libra pgo``
+     - Two-phase orchestration; deferred to Phase 3
+   * - ``--no-coverage``, ``--no-analyze`` on ``libra ci``
+     - Runtime step control; Phase 3
 
 
 Phase 3 — Rust (Feature-Complete)
@@ -721,6 +845,17 @@ Preset JSON schema enforcement
 All reads and writes of preset files are validated against the CMake
 JSON schema (schema version 6). A schema-invalid preset file produces
 a clear, actionable error before any command executes.
+
+``--json`` output
+------------------
+
+::
+
+   --json    Emit structured JSON to stdout. Errors are also JSON.
+             Intended for IDE and tooling integration.
+
+The JSON output format carries a ``"cliVersion"`` field. Breaking
+changes to the schema require a major version bump.
 
 ``libra preset``
 ~~~~~~~~~~~~~~~~~
@@ -751,8 +886,8 @@ a clear, actionable error before any command executes.
   so that ``libra preset new my-asan --from=asan`` reads naturally.
 
 **``libra preset default [<n>]``**
-  With argument: writes ``"defaultConfigurePreset": "<n>"`` into
-  ``CMakeUserPresets.json``. Without argument: prints the current
+  With argument: writes ``vendor.libra.defaultConfigurePreset: "<n>"``
+  into ``CMakeUserPresets.json``. Without argument: prints the current
   default and its source file.
 
 **``libra preset set <n> VAR=VALUE ...``**
@@ -785,8 +920,8 @@ a clear, actionable error before any command executes.
 Scaffolds a new project. Seeds ``CMakePresets.json`` with the full
 canonical preset hierarchy described in `Canonical Preset Hierarchy`_,
 plus workflow presets for ``ci`` and ``debug``. Seeds
-``CMakeUserPresets.json`` with a ``defaultConfigurePreset`` pointing to
-``debug``.
+``CMakeUserPresets.json`` with a ``vendor.libra.defaultConfigurePreset``
+pointing to ``debug``.
 
 Without options, presents an interactive questionnaire. All generated
 files are immediately usable with plain ``cmake --preset`` as well as
@@ -833,6 +968,13 @@ appropriate named sanitizer preset (``asan``, ``tsan``, ``msan``) and
 runs the test sequence against it. Equivalent to ``libra test --preset
 asan``, but more discoverable for one-off runs.
 
+Dynamic preset name completions
+--------------------------------
+
+Shell completions gain dynamic preset name completion, reading available
+preset names from ``CMakePresets.json`` and ``CMakeUserPresets.json``
+at completion time.
+
 Stability guarantee
 --------------------
 
@@ -850,55 +992,67 @@ Phase Comparison
 
    * - Capability
      - Phase 1 (Bash)
-     - Phase 2 (Rust parity)
+     - Phase 2 (Rust)
      - Phase 3 (Rust complete)
    * - ``libra build``
      - ✓
+     - ✓ + ``--target``, ``--keep-going``, ``-D``
      - ✓
-     - ✓ + ``--target``
    * - ``libra test``
      - ✓
-     - ✓
+     - ✓ + ``--no-build``, ``--rerun-failed``, ``-D``
      - ✓ + ``--sanitizer``
    * - ``libra ci``
-     - ✓ (workflow only)
-     - ✓ (workflow only)
+     - ✓ (workflow-first)
+     - ✓ (workflow-first)
      - ✓ + ``--no-coverage``, ``--no-analyze``
    * - ``libra analyze``
      - ✓
-     - ✓
+     - ✓ + tool subcommands, ``--jobs``, ``--keep-going``
      - ✓
    * - ``libra coverage``
      - ✓
-     - ✓
+     - ✓ + ``--check``, runtime target discovery
      - ✓
    * - ``libra docs``
      - ✓
-     - ✓
+     - ✓ + per-target skip with reason
      - ✓
    * - ``libra clean``
      - ✓
      - ✓
      - ✓
    * - ``libra info``
-     - ✓
-     - ✓
+     - ✓ (basic)
+     - ✓ + target availability, grouping, color, pager
      - ✓
    * - ``libra doctor``
-     - ✓ (no fix)
-     - ✓ + ``--fix``
-     - ✓ + ``--fix``
-   * - ``cmake --workflow`` as mechanism for ``ci`` / ``test``
+     - ✓
+     - ✓ + Intel compilers, ccache, project structure
+     - ✓
+   * - ``cmake --workflow`` for ``ci``
      - ✓
      - ✓
      - ✓
-   * - ``--dry-run`` / ``--json``
+   * - ``--dry-run``
      - ✗
      - ✓
      - ✓
-   * - Shell completions
+   * - ``--color``
      - ✗
      - ✓
+     - ✓
+   * - ``--json``
+     - ✗
+     - ✗
+     - ✓
+   * - Shell completions (static)
+     - ✗
+     - ✓
+     - ✓
+   * - Shell completions (dynamic preset names)
+     - ✗
+     - ✗
      - ✓
    * - ``libra preset`` (full subcommand tree)
      - ✗
@@ -922,7 +1076,7 @@ Phase Comparison
      - ✓
    * - Writes ``CMakeUserPresets.json``
      - ✗
-     - ✗ (except ``doctor --fix``)
+     - ✗
      - ✓
    * - Writes ``CMakePresets.json``
      - ✗

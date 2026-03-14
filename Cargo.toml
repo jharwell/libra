@@ -1,12 +1,21 @@
 [package]
-name    = "libra"
-version = "0.9.46"
+name    = "clibra"
 edition = "2021"
 license = "MIT"
+description = "CLI for the LIBRA CMake framework"
+homepage = "https://jharwell.github.io/libra"
+repository = "https://github.com/jharwell/libra"
+readme = "cli/README.md"
+publish = true
 
+version = "0.9.6-beta"
+
+include = [
+  "cli/src/**/*",
+]
 [[bin]]
 name = "clibra"
-path = "src/main.rs"
+path = "cli/src/main.rs"
 
 [dependencies]
 clap         = { version = "4.5", features = ["derive"] }
@@ -19,3 +28,6 @@ clap_mangen   = "0.2"
 open = "5"
 strip-ansi-escapes = "0.2"
 colored = "2"
+log = "0.4"
+pretty_env_logger = "0.5"
+semver = "1"

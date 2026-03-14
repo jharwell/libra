@@ -7,6 +7,7 @@
 // Imports
 use anyhow;
 use clap;
+use log::debug;
 
 use crate::cmake;
 use crate::preset;
@@ -27,12 +28,20 @@ pub struct CleanArgs {
 // Public API
 
 pub fn run(ctx: &runner::Context, args: CleanArgs) -> anyhow::Result<()> {
-    preset::check_project_root()?;
+    preset::ensure_project_root(ctx)?;
+
+    debug!("Begin");
 
     let preset = preset::resolve(ctx, None)?;
 
     if args.all {
-        let bdir = cmake::binary_dir(ctx)?;
+        let bdir = cmake::binary_dir(&preset).ok_or_else(|| {
+            anyhow::anyhow!(
+                "Build directory does not exist for preset '{}'.\n\
+         Run 'clibra build' first to configure the project.",
+                ctx.preset.as_deref().unwrap_or("unknown")
+            )
+        })?;
         std::fs::remove_dir_all(bdir)?;
     } else {
         ctx.run(
