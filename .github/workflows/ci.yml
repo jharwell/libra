@@ -80,8 +80,6 @@ jobs:
 
       - name: Build CLI
         run: cargo build
-      - name: Build CLI
-        run: cargo build
         working-directory: .
 
   cli-unit-tests:

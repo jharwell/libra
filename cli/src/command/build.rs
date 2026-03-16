@@ -16,7 +16,7 @@ use crate::utils;
 // Types
 #[derive(clap::Parser, Debug)]
 pub struct BuildArgs {
-    /// Parallel job count.
+    /// Parallel job count. Defaults to the # of logical CPUs.
     #[arg(short = 'j', long, default_value_t = utils::num_cpus())]
     pub jobs: u32,
 
@@ -32,13 +32,30 @@ pub struct BuildArgs {
     #[arg(short = 'k', long)]
     pub keep_going: bool,
 
-    /// Forward -DVAR=VALUE to the cmake configure step.
+    /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
+    /// (with a warning) if the build directory exists and neither
+    /// --reconfigure nor --fresh is given.
+    ///
+    /// # Examples
+    ///
+    /// Cold start (build directory absent):
+    ///
+    ///     cmake --preset <n> [-D VAR=VALUE ...]
+    ///     cmake --build --preset <n> --parallel <N>
+    ///
+    /// Incremental (build directory present):
+    ///
+    ///     cmake --build --preset <n> --parallel <N> [--clean-first] [--keep-going]
     #[arg(short = 'D', value_name = "VAR=VALUE")]
     pub defines: Vec<String>,
 
     /// Force the configure step even if the build directory exists.
     #[arg(short, long)]
     pub reconfigure: bool,
+
+    /// Reconfigure with a --fresh build directory by wiping the CMake cache.
+    #[arg(short, long)]
+    pub fresh: bool,
 }
 
 // Traits
@@ -53,9 +70,16 @@ pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
     let preset = preset::resolve(ctx, None)?;
     let bdir = cmake::binary_dir(&preset);
 
-    if args.reconfigure || bdir.is_none() {
+    if args.reconfigure || args.fresh || bdir.is_none() {
         debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, &args.defines)?;
+        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
+    }
+    if bdir.is_some() && !args.defines.is_empty() && !args.reconfigure && !args.fresh {
+        anyhow::bail!(
+            "{} -D values given but build directory exists and no --reconfigure;
+            values will not be applied",
+            args.defines.iter().count()
+        );
     }
 
     let mut cmd = cmake::base_build(&preset);

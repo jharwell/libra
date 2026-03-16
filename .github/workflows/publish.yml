@@ -26,13 +26,29 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-edit
+
+        # 2026-03-17 [JRH]: This keeps version.cmake as the single source of
+        # truth for the LIBRA version.
+      - name: Set version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"   # e.g. v1.2.3 -> 1.2.3
+          cargo set-version $VERSION
+
       - name: Build release binary
         run: cargo build --release
 
       - name: Publish to crates.io
         # --no-verify skips the redundant package rebuild that cargo publish
         # does by default — the binary was already verified by the CI suite
-        # that gated the release.
-        run: cargo publish --no-verify
+        # that gated the release. --allow-dirty is needed because we modified
+        # Cargo.toml to set the version.
+        run: cargo publish --no-verify --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}

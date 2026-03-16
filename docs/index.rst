@@ -2,100 +2,145 @@
 
 .. _main:
 
-.. figure:: figures/libra-logo-banner-light.png
-
 ================================
 Luigi Builds Reusable Automation
 ================================
 
-LIBRA is a reusable build framework for C/C++ projects built on top of CMake.
-It transforms the build process from manual scripting into a **declarative
-workflow**, providing compiler abstraction and near-zero boilerplate
-configuration. Its core goal: To make building complex C++ projects as simple as
-declaring intent (e.g., "I want a library with coverage") rather than writing
-imperative CMake logic.
+LIBRA is a build platform for C/C++ projects built on top of CMake.  Instead of
+writing project-specific CMake for testing, coverage, analysis, and
+documentation, you define your targets and enable features — LIBRA handles the
+rest with consistent, production-ready defaults.
 
-Who Should Use LIBRA
-====================
+Think of LIBRA as a standardized way to use CMake across projects, rather than a
+replacement for it: it automates build, test, analysis, and documentation
+workflows across C/C++ projects while remaining fully compatible with CMake.
 
-* **Platform Engineers** looking to standardize build quality across multiple
-  repositories.
-* **C/C++ Developers** who want to focus on code rather than debugging
-  ``.cmake`` modules.
-* **Teams** requiring consistent "push-button" integration for sanitizers,
-  static analysis, and documentation generation.
+Smallest possible project
+=========================
 
-Design Philosophy
-=================
+.. code-block:: cmake
 
-* **Convention over Configuration:** Standardized project layouts mean zero
-  setup for new repos.
-* **Declarative Intent:** Focus on *what* to build (e.g.,
-  :cmake:command:`libra_add_library()`), not *how* to set compiler flags.
-* **Toolchain Agnostic:** A single configuration should work across GCC, Clang,
-  and Intel LLVM without ``if(MSVC)`` blocks.
+   cmake_minimum_required(VERSION 3.31)
+   project(hello CXX)
 
-Architecture Overview
-=====================
+   include(libra/project)
+   libra_add_executable(my_app ${my_app_CXX_SOURCES})
 
-This diagram shows which parts of LIBRA are active during CMake configuration
-and which parts are active when build targets are executed.
+No source lists.  No test wiring.  No flags.
 
-.. figure:: figures/arch.png
+LIBRA auto-discovers sources under ``src/``, tests under ``tests/``, and
+configures your toolchain automatically.  See
+:ref:`getting-started/choose-your-path` to select your workflow.
 
-Features & Capabilities
-=======================
+.. note::
 
-Configure Time (Setup Logic)
-----------------------------
-During the ``cmake ..`` phase, LIBRA automates the heavy lifting:
+   **Requires** CMake ≥ 3.31 · one of {GCC / Clang / Intel LLVM} · Linux or
+   macOS.  See :ref:`getting-started/installation` for the full requirements and
+   compiler version table.
 
-* **Security & Hardening:** Automatic injection of stack protectors,
-  fortify-source, etc.
-* **Quality Gates:** Seamless setup for **clang-tidy**, **cppcheck**, and custom
-  linters, and various sanitizers.
-* **Dependency Orchestration:** Smart globbing for source discovery that
-  respects build-system boundaries.
-* **Environment Discovery:** Automatic detection and registration of tests and
-  source files.
+----
 
-Build Time (Execution Targets)
-------------------------------
-LIBRA injects standardized targets into your build system. E.g., for GNU make:
+What LIBRA is (and is not)
+==========================
 
-* ``make analyze``: Run the full suite of configured static analyzers.
-* ``make format``: Apply project-wide formatting via clang-Format, cmake-format.
-* ``make apidoc``: Generate API documentation (Doxygen).
+LIBRA **is** a thin, declarative layer on top of CMake — a set of conventions
+for structuring C++ projects and a unified interface for build, test, analysis,
+and documentation workflows.
 
+LIBRA **is not** a replacement for CMake, a new build system, or a tool that
+prevents you from dropping down to raw CMake when necessary.  Only targets
+registered with :cmake:command:`libra_add_executable()` or
+:cmake:command:`libra_add_library()` receive LIBRA features unless you specify
+otherwise; your existing ``add_executable()`` / ``add_library()`` calls are
+unaffected.
 
-Integration Modes
-=================
+LIBRA is a good fit if you use CMake but want less boilerplate, maintain
+multiple C++ projects, or want consistent CI workflows across repositories.
+It may not be a good fit if you want a completely new build system (see Bazel
+or Meson), need full control over every CMake detail, or your project is very
+small.
 
-LIBRA scales with your project's complexity. Choose the mode that fits your
-infrastructure:
+----
 
-#. **Conan Middleware (recommended):** The most robust path. LIBRA acts as a
-   `Conan <https://conan.io>`_ build helper.
-#. **CPM (CMake Package Manager):** Integrated via ``cpmaddpackage()``.
-#. **Standard CMake Package:** Integrated via ``find_package(libra)``.
-#. **In-Situ (submodule):** Drop LIBRA directly into your source tree.
+.. grid:: 1 2 2 2
+   :gutter: 3
+
+   .. grid-item-card:: 🚀 Getting started
+      :link: getting-started
+      :link-type: ref
+
+      CLI or CMake-only? Install your tools, and build your first project (CLI
+      optional).
+
+   .. grid-item-card:: 🗂 Concepts
+      :link: concepts
+      :link-type: ref
+
+      Project layout, the declarative target model, ``LIBRA_*`` feature
+      flags, preset hierarchy, and test file naming conventions.
+
+   .. grid-item-card:: 📖 Cookbook
+      :link: cookbook
+      :link-type: ref
+
+      End-to-end task guides: new project, adding LIBRA to an existing
+      project, CI setup, sanitizers, coverage, analysis, docs, and PGO.
+
+   .. grid-item-card:: ⌨ CLI reference
+      :link: cli/reference
+      :link-type: ref
+
+      All ``clibra`` subcommands and flags.  The CLI is optional — all
+      functionality is available through plain ``cmake`` and ``ctest``.
+
+   .. grid-item-card:: 📐 CMake reference
+      :link: reference/variables
+      :link-type: ref
+
+      Every ``LIBRA_*`` variable, build targets, ``libra_add_*``
+      functions, and ``project-local.cmake`` hooks.
+
+   .. grid-item-card:: 💡 Design & rationale
+      :link: design
+      :link-type: ref
+
+      Philosophy, architecture, compiler support, and the reasoning
+      behind LIBRA's conventions.
+
+----
+
+.. rubric:: Common questions
+
+**Does LIBRA replace CMake?**
+No.  It is a layer on top of CMake.  You still write CMake; LIBRA reduces
+how much of it you need to write.
+
+**Can I mix LIBRA and plain CMake targets?**
+Yes.  Only targets registered with :cmake:command:`libra_add_executable()`
+or :cmake:command:`libra_add_library()` receive LIBRA features.  Existing
+targets are unaffected.  See :ref:`cookbook/existing-project` for a
+step-by-step migration guide.
+
+**Do I need the CLI to use LIBRA?**
+No.  ``clibra`` is an optional convenience wrapper.  All functionality is
+available through plain ``cmake``, ``cmake --build``, and ``ctest``.
+See :ref:`getting-started/choose-your-path` to decide which interface
+suits you.
+
+**Is globbing mandatory?**
+No.  You can disable auto-discovery and pass explicit source lists to
+:cmake:command:`libra_add_executable()` / :cmake:command:`libra_add_library()`.
+See :ref:`reference/variables` for the relevant variables.
 
 ----
 
 .. toctree::
+   :hidden:
    :maxdepth: 1
-   :caption: Getting Started
 
-   startup/index.rst
-
-.. toctree::
-   :maxdepth: 1
-   :caption: LIBRA Feature Reference
-
-   usage/index.rst
-
-.. toctree::
-   :maxdepth: 1
-   :caption: LIBRA Design And Customization
-
-   design/index.rst
+   src/getting-started/index
+   src/concepts/index
+   src/cookbook/index
+   src/cli/index
+   src/design/index
+   src/reference/index

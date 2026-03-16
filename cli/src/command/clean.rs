@@ -16,7 +16,8 @@ use crate::runner;
 // Types
 #[derive(clap::Parser, Debug)]
 pub struct CleanArgs {
-    /// Remove the entire build directory instead of running the clean target.
+    /// Removes the preset's binaryDir entirely (rm -rf).  Requires the build
+    /// directory to exist; exits with an error otherwise.
     #[arg(long)]
     pub all: bool,
 }

@@ -37,6 +37,11 @@ pub struct CoverageArgs {
     /// Force the configure step even if the build directory exists.
     #[arg(short, long)]
     pub reconfigure: bool,
+
+    /// Reconfigure with a --fresh cmake build directory.
+    #[arg(short, long)]
+    pub fresh: bool,
+
 }
 
 // Traits
@@ -53,7 +58,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
 
     if args.reconfigure {
         debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, &args.defines)?;
+        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
     }
 
     let mut success = false;
@@ -91,6 +96,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
         success = true;
     }
     if args.check {
+        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_CODE_COV")?;
         debug!("Checking ['gcovr-check'] existence");
 
         let target = if ctx.dry_run {

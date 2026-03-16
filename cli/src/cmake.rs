@@ -133,31 +133,37 @@ pub fn target_status(
     preset: &str,
     ctx: &runner::Context,
 ) -> anyhow::Result<TargetStatus> {
-    let (stdout, _) = ctx.run_capture(base_build(preset).args(["--target", "help-targets"]))?;
+    let (_, stderr) = ctx.run_capture(base_build(preset).args(["--target", "help-targets"]))?;
 
-    for line in stdout.lines() {
+    for line in stderr.lines() {
         // Each line contains 3 fields {target, status, reason}
         let parts: Vec<&str> = line
             .splitn(3, ' ')
             .map(str::trim)
             .filter(|s| !s.is_empty())
             .collect();
-
         if parts.len() >= 2 && parts[0] == target {
-            return Ok(if parts[1] == "YES" {
-                TargetStatus::Available
-            } else {
-                let reason = parts.get(2).unwrap_or(&"unknown").to_string();
-                TargetStatus::Unavailable(reason)
-            });
+            if parts[1] == "YES" {
+                return Ok(TargetStatus::Available);
+            }
         }
     }
 
     Ok(TargetStatus::Unavailable("unknown".to_string()))
 }
 
-pub fn reconf(ctx: &runner::Context, preset: &str, defines: &[String]) -> anyhow::Result<()> {
-    ctx.run(base_conf(preset).args(defines.iter().map(|d| format!("-D{}", d))))?;
+pub fn reconf(
+    ctx: &runner::Context,
+    preset: &str,
+    fresh: bool,
+    defines: &[String],
+) -> anyhow::Result<()> {
+    let mut cmd = base_conf(preset);
+    cmd.args(defines.iter().map(|d| format!("-D{}", d)));
+    if fresh {
+        cmd.arg("--fresh");
+    }
+    ctx.run(&mut cmd)?;
     Ok(())
 }
 

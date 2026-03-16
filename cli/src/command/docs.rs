@@ -22,6 +22,10 @@ pub struct DocsArgs {
     /// Force the configure step even if the build directory exists.
     #[arg(short, long)]
     pub reconfigure: bool,
+
+    /// Reconfigure with a --fresh cmake build directory.
+    #[arg(short, long)]
+    pub fresh: bool,
 }
 
 // Traits
@@ -34,11 +38,11 @@ pub fn run(ctx: &runner::Context, args: DocsArgs) -> anyhow::Result<()> {
 
     let preset = preset::resolve(ctx, Some("docs"))?;
 
-    debug!("Begin: {preset}");
+    debug!("Begin");
 
-    if args.reconfigure {
+    if args.reconfigure || args.fresh {
         debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, &args.defines)?;
+        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
     }
 
     cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_DOCS")?;

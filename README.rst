@@ -28,278 +28,342 @@
    :target: https://github.com/jharwell/libra/releases
    :alt: Latest devel tag
 
-.. figure:: docs/figures/libra-logo-banner-light-text.png
+.. |maintenance| image:: https://img.shields.io/badge/Maintained%3F-yes-green.svg
+                 :target: https://github.com/jharwell/libra/graphs/commit-activity
+
+.. image:: docs/_static/logo-banner.png
+   :width: 400px
 
 +-----------------------------------+----------------------------------+
-|Usage                              | |docs| |cmake|                   |
+| Usage                             | |docs| |cmake|                   |
 |                                   | |compiler| |platform|            |
 +-----------------------------------+----------------------------------+
-|Release                            | |ci-master| |version-master|     |
+| Release                           | |ci-master| |version-master|     |
 +-----------------------------------+----------------------------------+
-|Development                        | |ci-devel| |version-devel|       |
+| Development                       | |ci-devel| |version-devel|       |
 +-----------------------------------+----------------------------------+
-| Miscellaneous                     | |license|                        |
+| Miscellaneous                     | |license| |maintenance|          |
 +-----------------------------------+----------------------------------+
 
 ================================
 Luigi Builds Reusable Automation
 ================================
 
-LIBRA is a declarative CMake framework that standardizes compiler flags,
-testing, analysis, and packaging for C/C++ projects with near-zero
-configuration.
+LIBRA is a build platform for C/C++ projects built on top of CMake that turns
+build configuration into a declaration of intent. Instead of writing
+project-specific CMake for testing, coverage, analysis, and documentation, you
+define your targets and enable features.  LIBRA handles the rest.
 
-* **Near-Zero Boilerplate:** Define your project in just a few lines of CMake.
-* **Secure by Default:** Automatic hardening flags and sanitizers.
-* **Unified Tooling:** One interface for GCC, Clang, and Intel compilers.
-* **Quality Tooling Built-In:** Native targets for coverage, analysis, and docs.
+LIBRA standardizes build, test, analysis, and documentation workflows
+across C++ projects while keeping full compatibility with CMake.
 
-Keywords: CMake framework, C/C++ build automation, sanitizers, coverage,
-static analysis, reproducible builds
+----
 
-How LIBRA Works
-===============
+Why LIBRA exists
+================
 
-LIBRA is a collection of CMake modules that:
+Modern C++ projects need more than just "builds":
 
-#. Define opinionated, best-practice defaults
-#. Auto-discover sources and tests
-#. Generate standard quality targets
+- consistent compiler behavior across environments
+- reliable testing and CI workflows
+- coverage and analysis integrated into development
+- repeatable project structure across repositories
 
-You still write CMake, but far less of it; LIBRA layers on top of CMake.  *It
-does not replace your build system.*
+CMake can do all of this — but only with significant per-project effort.
 
-Why Use LIBRA?
-==============
+LIBRA provides a single, opinionated layer that standardizes these
+patterns so every project doesn't have to reinvent them.
 
-* You maintain multiple C/C++ projects with similar build needs.
-* You want consistent builds across compilers.
-* You are tired of copy-pasting CMake boilerplate.
-* You need reproducible builds with modern defaults.
-* You want tests and quality tooling with minimal effort.
+----
 
-Why Not Use LIBRA?
-==================
+What LIBRA is (and is not)
+==========================
 
-LIBRA prioritizes consistency and automation over maximal flexibility. You may
-want to choose a different approach if:
+LIBRA is:
 
-* You use non-CMake build systems.
-* You require Windows/MSVC.
-* You depend on exotic or unsupported toolchains.
-* You need per-file compiler flag micromanagement.
+- A thin, declarative layer on top of CMake
+- A set of conventions for structuring C++ projects
+- A unified interface for build + test + analysis + docs
 
-Quick Example
-=============
+LIBRA is not:
 
+- A replacement for CMake
+- A new build system
+- A tool that prevents you from using raw CMake
 
-**Before LIBRA (Standard CMake):**
+You can always drop down to plain CMake when needed.
+
+When to use LIBRA
+=================
+
+LIBRA is a good fit if:
+
+- You use CMake but want less boilerplate
+- You maintain multiple C++ projects
+- You want consistent workflows across repositories and CI
+
+LIBRA may not be a good fit if:
+
+- You want a completely new build system (e.g. Bazel, Meson)
+- You need full control over every CMake detail
+- Your project is very small
+
+----
+
+Quick start
+===========
 
 .. code-block:: cmake
 
-   # 50+ lines to set up:
-   # - Compiler flags for Debug/Release
-   # - Sanitizer configuration with compiler detection
-   # - Code coverage setup
-   # - Test discovery and CTest integration
-   # - Static analysis targets
-   # ... (boilerplate continues)
-
-**After LIBRA:**
-
-.. code-block:: cmake
-
-   # CMakeLists.txt (4 lines)
+   # CMakeLists.txt
    cmake_minimum_required(VERSION 3.31)
-   find_package(libra REQUIRED)
-   project(myproj CXX)
+   project(hello CXX)
+
    include(libra/project)
 
-.. code-block:: cmake
+   # cmake/project-local.cmake
+   libra_add_executable(my_app ${my_app_CXX_SOURCES})
 
-   # cmake/project-local.cmake (2 lines)
-   libra_add_executable(${${PROJECT_NAME}_CXX_SOURCE})
-   set(LIBRA_SAN "ASAN+UBSAN")  # Sanitizers on any compiler
+No source lists. No test wiring. No flags.
 
-**Build:**
+LIBRA automatically:
+
+- discovers sources under ``src/`` and headers under ``include/``
+- discovers tests under ``tests/``
+- configures compiler flags for your toolchain
+- wires up test targets, coverage, and analysis (if enabled)
+
+What you don’t have to write
+============================
+
+With LIBRA, you do not need to manually configure:
+
+- compiler flags per toolchain
+- test registration with CTest
+- coverage tooling and thresholds
+- static analysis integration
+- sanitizer flags and wiring
+- documentation targets
+
+LIBRA provides consistent defaults for all of these.
+
+----
+
+Typical workflow
+================
+
+An optional CLI (``clibra``) provides shorter commands and preset-aware
+defaults:
 
 .. code-block:: bash
 
-   cmake -B build -DLIBRA_TESTS=ON -DLIBRA_CODE_COV=ON -DLIBRA_DOCS=ON
-   make -C build analyze                     # Run all static analysis tools
-   make -C build build-and-test gcovr-report # Tests run + coverage report generated
-   make -C build apidoc                      # Build API documentation
-   make -C build format                      # Format all source files
+   clibra build --preset debug
+   clibra test  --preset debug
+   clibra ci    --preset ci      # build + test + coverage check
 
-Key Features And Architecture
-=============================
+Or plain CMake:
 
-* Unified compiler abstraction
-* Sanitizers (ASAN, UBSAN, TSAN, MSAN, SSAN)
-* Static analysis (clang-check, clang-tidy, cppcheck)
-* Coverage (gcovr, llvm-cov)
-* Profile-guided optimization (PGO)
-* Automatic source file and test discovery and registration
-* Robust compiler warnings
+.. code-block:: bash
 
-All of the above comes "for free" with a project layout like this::
+   cmake --preset debug && cmake --build --preset debug
+   cmake --build --preset debug --target all-tests && ctest --preset debug
+
+----
+
+Key capabilities
+================
+
+- Works across GCC, Clang, and Intel LLVM without per-compiler logic
+- Automatically discovers and registers tests
+- Integrates coverage, analysis, sanitizers, and documentation
+- Enforces consistent build, test, and analysis workflows across projects
+
+See the documentation for full details.
+
+----
+
+Project layout
+==============
+
+LIBRA auto-discovers sources, headers, and tests from conventional
+directories::
 
    my_project/
-   ├── CMakeLists.txt              # Minimal: find_package + project()
+   ├── CMakeLists.txt
+   ├── CMakePresets.json
    ├── cmake/
-   │   └── project-local.cmake     # Your targets and configuration
-   ├── docs/
-   │   ├── conf.py                 # Your sphinx configuration
-   │   └── Doxyfile.in             # Your API doc configuration
-   ├── src/                        # Auto-discovered source files
-   ├── include/                    # Auto-discovered headers
-   ├── tests/                      # Auto-discovered tests (*-{u,i,r}test.{c,cpp})
-   └── build/                      # Build artifacts (git-ignored)
+   │   └── project-local.cmake   ← target definitions (required)
+   ├── src/                      ← .cpp / .c files (auto-discovered)
+   ├── include/                  ← .hpp / .h headers (auto-discovered)
+   ├── tests/                    ← test files (auto-discovered by configurable suffix)
+   └── docs/
+       └── Doxyfile.in           ← required if LIBRA_DOCS=ON
 
-At a high level, LIBRA works like this:
 
-.. figure:: docs/figures/arch.png
+----
 
 Installation
 ============
 
-There are two ways to consume LIBRA depending on whether you want the
-optional CLI companion tool.
+CMake framework
+---------------
 
-Using LIBRA in a C/C++ Project (CMake only)
---------------------------------------------
+Choose the integration method that fits your project. No installation
+is required beyond CMake itself.
 
-This is the core use case. No additional tooling is required beyond CMake.
-
-**Recommended: CPM (CMake Package Manager)**
-
-CPM is the recommended approach for most projects. It requires no
-pre-installation, pins the version in your project, and works
-automatically during configure.
+**CPM (recommended)** — version-pinned, fetched automatically at
+configure time:
 
 .. code-block:: cmake
+
+   cmake_minimum_required(VERSION 3.31)
 
    file(DOWNLOAD
         https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.2/CPM.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
-   set(CPM_SOURCE_CACHE
-       $ENV{HOME}/.cache/CPM
-       CACHE PATH "CPM source cache")
+
+   set(CPM_SOURCE_CACHE $ENV{HOME}/.cache/CPM CACHE PATH "CPM source cache")
+   set(CPM_USE_LOCAL_PACKAGES ON)
    include(${CMAKE_CURRENT_BINARY_DIR}/cmake/CPM.cmake)
-   cpmaddpackage(
-     NAME
-     libra
-     GIT_REPOSITORY
-     https://github.com/jharwell/libra.git)
 
-**Alternative: Conan**
+   CPMAddPackage(
+     NAME libra
+     GIT_REPOSITORY https://github.com/jharwell/libra.git
+     GIT_TAG master)
 
-If your project already uses Conan for dependency management:
+   list(APPEND CMAKE_MODULE_PATH ${libra_SOURCE_DIR}/cmake)
+   project(my_project C CXX)
+   include(libra/project)
+
+**Conan** — if your project already uses Conan:
+
+.. code-block:: python
+
+   # conanfile.py
+   def build_requirements(self):
+       self.tool_requires("libra/0.8.0")
+
+**Installed package** — system-wide or shared team installation:
 
 .. code-block:: bash
 
    git clone https://github.com/jharwell/libra
-   conan create .
+   cmake -S libra -B libra/build -DCMAKE_INSTALL_PREFIX=/opt/libra
+   cmake --build libra/build --target install
 
-**Alternative: System-wide install**
-
-Suitable for teams that manage build tooling centrally:
-
-.. code-block:: bash
-
-   git clone https://github.com/jharwell/libra
-   cmake -S libra -B build
-   cmake --build build --target install
-
-**Alternative: git submodule**
-
-If you prefer to vendor dependencies directly in your repository:
+**Git submodule** — for projects that vendor their dependencies:
 
 .. code-block:: bash
 
    git submodule add https://github.com/jharwell/libra
 
-Using the LIBRA CLI
---------------------
+``clibra`` CLI (optional)
+-------------------------
 
-The LIBRA CLI is a Rust-based companion tool that adds project scaffolding
-and other workflow conveniences on top of the CMake framework. The CLI
-*requires* a compatible LIBRA CMake installation — it locates and
-orchestrates an existing install rather than bundling its own copy.
+``clibra`` is a Rust binary that wraps ``cmake``, ``cmake --build``,
+and ``ctest`` with preset-aware defaults. It never introduces state
+that plain CMake cannot read — you can stop using it at any time.
 
-**Prerequisites:** Install LIBRA via one of the CMake options above, then:
-
-.. code-block:: bash
-
-   cargo install libra-cli
-
-The CLI will detect your LIBRA installation automatically. If none is
-found, it will exit with a clear error indicating which version is required.
-
-.. note::
-
-   If you have not yet set up a LIBRA CMake installation, you can use the
-   ``--bootstrap`` flag to have the CLI install LIBRA into a per-user cache
-   (``~/.local/share/libra``) without affecting any system-wide installs:
-
-   .. code-block:: bash
-
-      libra --bootstrap
-
-**With the CLI installed**, you can scaffold a new project instead of
-copying the Quick Example by hand:
+Requires the Rust toolchain. Install via `rustup <https://rustup.rs>`_
+if you do not have Cargo:
 
 .. code-block:: bash
 
-   libra init my_project
-   cd my_project
-   cmake -B build
-   make -C build
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+Then install ``clibra``:
+
+.. code-block:: bash
+
+   cargo install clibra
+   clibra --version
+
+Run ``clibra doctor`` from your project root to verify tool
+availability and minimum versions:
+
+.. code-block:: text
+
+   Checking LIBRA environment...
+
+   Tools:
+     ✓ cmake       -> /usr/bin/cmake (3.31.2)
+     ✓ gcc         -> /usr/bin/gcc (13.2.0)
+     ✓ g++         -> /usr/bin/g++ (13.2.0)
+     ⚠ gcovr       not found (optional)
+     ⚠ cppcheck    not found (optional)
+
+   Checked 14 items: 0 errors, 3 warnings, 11 ok
+
+----
+
+Requirements
+============
+
+**Platform:** Linux (Ubuntu 20.04+, RHEL 8+, Arch, Fedora, Debian),
+macOS, WSL. Native Windows (MSVC, MinGW) is not supported.
+
+**CMake:** >= 3.31
+
+**Compilers:**
+
++------------------+-----------------+
+| Compiler         | Minimum version |
++==================+=================+
+| GCC              | 9.0             |
++------------------+-----------------+
+| Clang            | 17.0            |
++------------------+-----------------+
+| Intel LLVM       | 2025.0          |
++------------------+-----------------+
+
+Always use matching C and C++ compilers from the same vendor.
+Mixing (e.g. ``gcc`` + ``clang++``) causes ABI incompatibilities.
+
+**CLI:** Rust toolchain >= 1.75 (optional)
+
+----
+
+Documentation
+=============
+
+Full documentation including quickstarts, cookbook, concept guides, and
+reference material is at https://jharwell.github.io/libra.
+
+- `Getting started <https://jharwell.github.io/libra/getting-started>`_
+- `Cookbook <https://jharwell.github.io/libra/cookbook>`_ — end-to-end
+  guides for CI setup, sanitizers, coverage, analysis, PGO, and more
+- `CLI reference <https://jharwell.github.io/libra/reference/cli>`_
+- `Variable reference <https://jharwell.github.io/libra/reference/variables>`_
+
+----
 
 FAQ
 ===
 
 **Does LIBRA replace CMake?**
-No. LIBRA is a layer on top of CMake that adds conventions and automation.
+No. It is a layer on top of CMake that provides conventions and
+automation. You still write CMake; LIBRA reduces how much of it you
+need to write.
 
 **Can I mix LIBRA and plain CMake targets?**
-Yes. Generally speaking, only targets created with ``libra_*`` macros receive
-LIBRA features.
+Yes. Only targets registered with ``libra_add_executable()`` or
+``libra_add_library()`` receive LIBRA features. Existing targets are
+unaffected.
 
 **Is globbing mandatory?**
-No. You may override discovery with explicit source lists.
-
-**Does LIBRA enforce its project layout?**
-LIBRA assumes conventional layouts by default, but most paths are configurable.
+No. You can disable auto-discovery and pass explicit source lists to
+``libra_add_executable()`` / ``libra_add_library()``.
 
 **Can I disable individual features?**
-Yes. All major features (sanitizers, coverage, analysis, docs) are opt-in.
-
-**Does the CLI bundle its own copy of LIBRA?**
-No. The CLI locates an existing LIBRA CMake installation on your system. This
-avoids version conflicts with projects that already manage LIBRA as a CMake
-dependency. Use ``--bootstrap`` for a user-local install if you have not
-installed LIBRA separately.
+Yes. All features (tests, coverage, analysis, sanitizers, docs) are
+opt-in via ``LIBRA_*`` cache variables, typically set in presets.
 
 **Do I need the CLI to use LIBRA?**
-No. The CLI is an optional convenience layer. All CMake functionality is
-available without it. The main benefit of the CLI is the ``libra init``
-scaffolding command, which generates the project skeleton for you instead of
-copying the Quick Example by hand.
+No. The CLI is an optional convenience layer. All functionality is
+available through plain ``cmake``, ``cmake --build``, and ``ctest``.
 
-Requirements
-============
-
-**CMake framework (all users)**
-
-Platform: Linux/Unix, macOS
-
-Build Tools: CMake >= 3.31
-
-Compilers: GCC >= 9, Clang >= 14, Intel >= 2025.0
-
-**CLI (optional)**
-
-Rust toolchain >= 1.75 (install via `rustup <https://rustup.rs>`_)
-
-A compatible LIBRA CMake installation (or use ``libra --bootstrap``)
+**Does LIBRA work with my existing CMakePresets.json?**
+Yes. Add a hidden ``base`` preset that sets all ``LIBRA_*`` flags
+explicitly, then make your existing presets inherit from it. See the
+`existing project guide
+<https://jharwell.github.io/libra/cookbook/existing-project>`_.
