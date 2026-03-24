@@ -411,7 +411,7 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
     string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
 
     set_tests_properties(
-      ${test_name}.neg
+      ${test_name}
       PROPERTIES LABELS
                  "${test_label}"
                  ENVIRONMENT

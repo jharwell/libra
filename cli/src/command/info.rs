@@ -148,7 +148,7 @@ fn emit_libra_targets(out: &mut String, ctx: &runner::Context, preset: &str) -> 
     // first 3 lines are the header
     let mut items = vec![];
 
-    debug!("Parsing help-targets output");
+    debug!("Parsing help-targets output: {:?}", stderr);
     for line in stderr.lines().skip(3) {
         // Each line contains 3 fields {target, status, reason}
         let parts: Vec<&str> = line.split_whitespace().collect();
@@ -211,6 +211,9 @@ fn emit_build_configuration(
 /// Emit info for all LIBRA cache variables (those which you could specify on
 /// the cmdline). Use case is to capture knobs which are/are not enabled by
 /// various cmake presets.
+///
+/// Values are highlighted in bold/green if truth-y in the CMake sense, and as
+/// regular text otherwise.
 fn emit_libra_vars(out: &mut String, items: &Vec<(String, String)>, width: usize) {
     let _ = writeln!(out, "{}", "\nLIBRA feature flags\n".bold().underline());
     if items.is_empty() {
@@ -218,10 +221,10 @@ fn emit_libra_vars(out: &mut String, items: &Vec<(String, String)>, width: usize
         return;
     }
     for (k, v) in items {
-        let value_str = if *v == "OFF" || *v == "NONE" || *v == "INHERIT" || *v == "UNDEFINED" {
-            v.dimmed().to_string()
-        } else {
-            v.bold().green().to_string()
+        let value_str = match v.as_str() {
+            "YES" => v.bold().green().to_string(),
+            "ON" => v.bold().green().to_string(),
+            _ => v.to_string(),
         };
         let _ = writeln!(out, "  {:<width$} = {}", k, value_str);
     }
