@@ -101,7 +101,7 @@ tools are available.
          cmake --build --preset analyze --target analyze-cmake-format
 
 4. Auto-fix warnings
-=====================
+====================
 
 .. tab-set::
 
@@ -206,7 +206,7 @@ across all targets, use ``LIBRA_CLANG_TIDY_CHECKS_CONFIG`` in
    int x = getValue(); // NOLINT(readability-identifier-naming)
 
 7. Supply your own tool config files
-======================================
+====================================
 
 .. code-block:: cmake
 

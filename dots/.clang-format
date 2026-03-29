@@ -4,14 +4,25 @@ BasedOnStyle: Google
 IncludeBlocks: Regroup
 SortIncludes: CaseSensitive
 IncludeCategories:
-  - Regex: '<[a-z]+>'
+  # STL no-extension headers
+  - Regex: '^<[a-z_]+>$'
     Priority: 1
-  - Regex: '[[:alnum:]]+\.h>'
+
+    # C stdlib .h headers
+  - Regex: '^<[[:alnum:]_]+\.h>$'
     Priority: 2
-  - Regex: '[[:alnum:]]+\.hpp>'
-    Priority: 2
-  - Regex: '.*'
+
+    # 3rd parter .hpp headers with <>
+  - Regex: '^<[[:alnum:]_/]+\.hpp>$'
     Priority: 3
+
+    # Projectal local "" headers
+  - Regex: '^".*"$'
+    Priority: 4
+
+    # Everything else
+  - Regex: '.*'
+    Priority: 5
 AlignConsecutiveDeclarations: true
 AlignConsecutiveAssignments: true
 AlignTrailingComments: true
@@ -19,7 +30,7 @@ AlwaysBreakTemplateDeclarations: Yes
 TabWidth: 2
 IndentWidth: 2
 ContinuationIndentWidth: 2
-ColumnLimit: 80
+ColumnLimit: 85
 AllowAllArgumentsOnNextLine: false
 AllowShortFunctionsOnASingleLine: All
 PackConstructorInitializers: CurrentLine

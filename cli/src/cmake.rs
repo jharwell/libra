@@ -40,6 +40,10 @@ pub fn expand_binary_dir(raw: &str, preset: &str) -> std::path::PathBuf {
     std::path::PathBuf::from(expanded)
 }
 // Public API
+
+/// Get the value of a variable in the CMake cache, given the build
+/// directory. If the cache doesn't exist, that is not an error. If the cache
+/// DOES exist, but the value isn't found, that is treated as an error.
 pub fn cache_value(bdir: &std::path::Path, variable: &str) -> anyhow::Result<Option<String>> {
     let cache = bdir.join("CMakeCache.txt");
     if !cache.exists() {
@@ -52,6 +56,8 @@ pub fn cache_value(bdir: &std::path::Path, variable: &str) -> anyhow::Result<Opt
         .and_then(|l| l.split_once('=').map(|x| x.1.to_string()));
     Ok(value)
 }
+
+/// Get a boolean value out of the CMake cache, given the build directory.
 pub fn cache_bool(bdir: &std::path::Path, variable: &str) -> anyhow::Result<Option<bool>> {
     let value = cache_value(bdir, variable)?;
     Ok(value.map(|v| {
@@ -60,6 +66,10 @@ pub fn cache_bool(bdir: &std::path::Path, variable: &str) -> anyhow::Result<Opti
             || v.parse::<f64>().map_or(false, |n| n != 0.0)
     }))
 }
+
+/// Verify that a given LIBRA feature is enabled by checking the CMake cache.
+/// Will fail if the build directory doesn't exist, or the necessary feature
+/// isn't enabled.
 pub fn ensure_libra_feature_enabled(
     ctx: &crate::runner::Context,
     preset: &str,
@@ -89,6 +99,9 @@ pub fn ensure_libra_feature_enabled(
     }
 }
 
+/// Get the CMake generator in use, given the resolved preset. If the build
+/// directory (and thus the CMake cache) doesn't exist yet, that's an error. If
+/// the cache doesn't contain the `CMAKE_GENERATOR` field, that is also an error.
 pub fn generator(preset: &str) -> anyhow::Result<String> {
     let bdir = binary_dir(preset).ok_or_else(|| {
         anyhow::anyhow!(
@@ -108,26 +121,37 @@ pub fn generator(preset: &str) -> anyhow::Result<String> {
     Ok(generator)
 }
 
+/// Get the build directory, given the resolved preset. Walks the preset file(s)
+/// to check if the `binaryDir` field is set in the resolved preset or any of
+/// its parents. If no preset files exist or `binaryDir` is not preset in
+/// either, then checks for the presence of a `build/` directory in the current
+/// dir. If that doesn't exist none is returned (not an error); a missing build
+/// directory is perfectly valid in a cold start.
 pub fn binary_dir(preset: &str) -> Option<std::path::PathBuf> {
     let path = {
         let from_user =
-            preset::read_configure_preset_field("CMakeUserPresets.json", &preset, "binaryDir")
+            preset::read_configure_preset_field("CMakeUserPresets.json", preset, "binaryDir")
                 .unwrap_or(None);
 
         let from_project =
-            preset::read_configure_preset_field("CMakePresets.json", &preset, "binaryDir")
+            preset::read_configure_preset_field("CMakePresets.json", preset, "binaryDir")
                 .unwrap_or(None);
         from_user
             .or(from_project)
             .unwrap_or_else(|| "./build".to_string())
     };
-    let bdir = expand_binary_dir(&path, &preset);
+    let bdir = expand_binary_dir(&path, preset);
     if bdir.exists() {
         return bdir.canonicalize().ok();
     }
     None
 }
 
+/// Get the status of a LIBRA target so that if it is missing, there's a reason
+/// WHY.
+///
+/// Parses LIBRA diagnostic output for enabled/disabled features, so that
+/// changes, this function will need to as well.
 pub fn target_status(
     target: &str,
     preset: &str,

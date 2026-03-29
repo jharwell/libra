@@ -14,6 +14,7 @@ pub mod docs;
 pub mod doctor;
 pub mod generate;
 pub mod info;
+pub mod install;
 pub mod test;
 
 // Types

@@ -387,6 +387,28 @@ standalone framework capable of handling cmake builds and packaging, OR as a
 cmake middleware / sister framework to a package manager like conan, where it
 then only is responsible for things related to building and analyzing the code.
 
+Why Is Something Like LIBRA Even Necessary?
+-------------------------------------------
+
+I.e., "Why not just put everything in CMakePresets.json and/or
+CMakeUserPresets.json?" This enables a very minimal (nearly 100% reusable)
+CMakeLists.txt which can be copied across projects, yielding a large degree of
+reusability across CMake-enabled projects. Following this argument, why is LIBRA
+even necessary if you following modern CMake best practices?
+
+#. Some things that LIBRA does can't be done in presets (e.g., automatic
+   source/test discovery, analysis registration, etc.).
+
+#. The bitrot associated with presets-less CMake configuration has just been
+   moved out of the CMakeLists.txt, and into the presets: if for a specific
+   project a team decides to tweak setting X, developers would have to go back
+   through all of the other projects and update the presets.
+
+#. Pure CMake presets doesn't provide a means for teams to ensure consistency
+   across many projects. LIBRA is opinionated about best practices/defaults,
+   most of which can be changed on a per-project basis if needed, but it does
+   provide a strong starting point.
+
 Automate Everything
 -------------------
 

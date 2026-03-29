@@ -79,6 +79,7 @@ fn main() -> Result<()> {
         Command::Coverage(args) => command::coverage::run(&ctx, args),
         Command::Docs(args) => command::docs::run(&ctx, args),
         Command::Clean(args) => command::clean::run(&ctx, args),
+        Command::Install(args) => command::install::run(&ctx, args),
         Command::Info(args) => command::info::run(&ctx, args),
         Command::Doctor(args) => command::doctor::run(&ctx, args),
         Command::Generate(args) => command::generate::run(args),

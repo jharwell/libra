@@ -49,3 +49,21 @@ when enabling ``LIBRA_USE_COMPDB`` alongside clang-based tools.
 Best practices and tool-specific configuration (suppression files,
 ``clang-tidy`` check categories, compilation database trade-offs) are
 covered in :ref:`cookbook/analysis`.
+
+
+Code Style
+==========
+
+LIBRA's formating checking/autoformatting capabilities use the baked-in
+``.clang-format`` file. This is of course opinionated; if you want to substitute
+your own ``.clang-format`` file, see
+:cmake:variable:`LIBRA_CLANG_FORMAT_FILEPATH`. The C/C++ style that comes baked
+in with LIBRA is based on google C/C++ style, because google operates at a scale
+most of us can't imagine; their style is very well thought out in most
+respects. Some important  differences with the stock style/formatting:
+
+- C++ includes are grouped/reorganized: STL -> C stdlib -> 3rd party .hpp
+  headers with <> -> project local headers with "" -> everything else.
+
+- C includes are grouped/reorganized: C stdlib AND 3rd party .h headers with <>
+  -> project local headers with "" -> everything else.

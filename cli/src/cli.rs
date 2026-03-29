@@ -6,7 +6,9 @@
 // Because this is included in build.rs, ONLY type definitions in here.
 
 // Imports
-use crate::command::{analyze, build, ci, clean, coverage, docs, doctor, generate, info, test};
+use crate::command::{
+    analyze, build, ci, clean, coverage, docs, doctor, generate, info, install, test,
+};
 use clap::{Parser, Subcommand};
 
 #[derive(clap::ValueEnum, Clone, Debug, Default)]
@@ -69,6 +71,9 @@ pub enum LogLevel {
 pub enum Command {
     /// Configure (if needed) and build the project.
     Build(build::BuildArgs),
+
+    /// Configure (if needed), build, and install the project.
+    Install(install::InstallArgs),
 
     /// Build (if needed) and run tests via ctest. Requires LIBRA_TESTS=ON in
     /// the resolved preset's CMake cache.
