@@ -105,18 +105,21 @@ function(libra_configure_source_file TARGET INFILE OUTFILE)
       "libra_configure_source_file: Input file does not exist: ${INFILE}")
   endif()
 
-  if(NOT "${INFILE}" IN_LIST _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC)
-    list(APPEND _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC "${INFILE}")
-    set(_LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC
-        "${_LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC}"
-        CACHE INTERNAL "")
+  get_property(_src_files GLOBAL
+               PROPERTY _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC)
+  get_property(_dest_files GLOBAL
+               PROPERTY _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST)
+
+  if(NOT "${INFILE}" IN_LIST _src_files)
+    list(APPEND _src_files "${INFILE}")
+    set_property(GLOBAL PROPERTY _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_SRC
+                                 "${_src_files}")
   endif()
 
-  if(NOT "${OUTFILE}" IN_LIST _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST)
-    list(APPEND _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST "${OUTFILE}")
-    set(_LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST
-        "${_LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST}"
-        CACHE INTERNAL "")
+  if(NOT "${OUTFILE}" IN_LIST _dest_files)
+    list(APPEND _dest_files "${OUTFILE}")
+    set_property(GLOBAL PROPERTY _LIBRA_${TARGET}_CONFIGURED_SOURCE_FILES_DEST
+                                 "${_dest_files}")
   endif()
 endfunction()
 

@@ -12,17 +12,21 @@ IncludeCategories:
   - Regex: '^<[[:alnum:]_]+\.h>$'
     Priority: 2
 
-    # 3rd parter .hpp headers with <>
-  - Regex: '^<[[:alnum:]_/]+\.hpp>$'
+    # 3rd parter .h headers with <>
+  - Regex: '^<[[:alnum:]_/.-]+\.h>$'
     Priority: 3
 
-    # Projectal local "" headers
-  - Regex: '^".*"$'
+    # 3rd parter .hpp headers with <>
+  - Regex: '^<[[:alnum:]_/.-]+\.hpp>$'
     Priority: 4
+
+    # Project local "" headers
+  - Regex: '^".*"$'
+    Priority: 5
 
     # Everything else
   - Regex: '.*'
-    Priority: 5
+    Priority: 6
 AlignConsecutiveDeclarations: true
 AlignConsecutiveAssignments: true
 AlignTrailingComments: true

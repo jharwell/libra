@@ -119,14 +119,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       CACHE INTERNAL "List of target to apply LIBRA magic to" FORCE)
 endif()
 
-set(_LIBRA_CONFIGURED_SOURCE_FILES_SRC
-    CACHE INTERNAL
-          "List of source files to configure and add to ${PROJECT_NAME}")
-
-set(_LIBRA_CONFIGURED_SOURCE_FILES_DEST
-    CACHE INTERNAL
-          "List of dest files for configured source files for ${PROJECT_NAME}")
-
 # ##############################################################################
 # Conan Configuration
 #

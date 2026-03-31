@@ -368,6 +368,17 @@ foreach(target ${_LIBRA_TARGETS})
   if(NOT TARGET ${target})
     continue()
   endif()
+
+  # Skip if already processed - prevents double-processing when consumed as a
+  # dependency
+  get_property(_already_done GLOBAL PROPERTY _LIBRA_${target}_POST_CONFIGURED)
+  if(_already_done)
+    libra_message(
+      STATUS
+      "Skipping ${target} for source file configuration - already processed")
+    continue()
+  endif()
+
   get_target_property(_imported ${target} IMPORTED)
   get_target_property(_target_dir ${target} SOURCE_DIR)
 
@@ -379,8 +390,13 @@ foreach(target ${_LIBRA_TARGETS})
     continue()
   endif()
 
-  list(LENGTH _LIBRA_${target}_CONFIGURED_SOURCE_FILES_SRC N_SRC)
-  list(LENGTH _LIBRA_${target}_CONFIGURED_SOURCE_FILES_DEST N_DEST)
+  get_property(_src_files GLOBAL
+               PROPERTY _LIBRA_${target}_CONFIGURED_SOURCE_FILES_SRC)
+  get_property(_dest_files GLOBAL
+               PROPERTY _LIBRA_${target}_CONFIGURED_SOURCE_FILES_DEST)
+
+  list(LENGTH _src_files N_SRC)
+  list(LENGTH _dest_files N_DEST)
 
   if(NOT N_SRC EQUAL N_DEST)
     libra_error(
@@ -391,10 +407,15 @@ foreach(target ${_LIBRA_TARGETS})
     math(EXPR N_SRC "${N_SRC} - 1")
 
     foreach(i RANGE ${N_SRC})
-      list(GET _LIBRA_${target}_CONFIGURED_SOURCE_FILES_SRC ${i} INFILE)
-      list(GET _LIBRA_${target}_CONFIGURED_SOURCE_FILES_DEST ${i} OUTFILE)
+      list(GET _src_files ${i} INFILE)
+      list(GET _dest_files ${i} OUTFILE)
 
       _libra_configure_source_file_post("${target}" "${INFILE}" "${OUTFILE}")
     endforeach()
   endif()
+
+  # Mark as processed so re-entrant calls from dependent projects are skipped.
+  # This has to be AFTER the loop completes so the guard at the top is only
+  # tripped on the second attempt from a dependent project's cmake context.
+  set_property(GLOBAL PROPERTY _LIBRA_${target}_POST_CONFIGURED TRUE)
 endforeach()
