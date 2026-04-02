@@ -70,13 +70,19 @@ function(_libra_register_code_fixers TARGET)
 endfunction()
 
 function(analyze_clang_extract_args_from_target TARGET RET)
-  set(INCLUDES $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
+  set(INCLUDES
+      $<REMOVE_DUPLICATES:$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>>)
   set(INTERFACE_INCLUDES
-      $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
+      $<REMOVE_DUPLICATES:$<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>>
+  )
   set(INTERFACE_SYSTEM_INCLUDES
-      $<TARGET_PROPERTY:${TARGET},INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>)
-  set(DEFS $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
+      $<REMOVE_DUPLICATES:$<TARGET_PROPERTY:${TARGET},INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>>
+  )
+  set(DEFS
+      $<REMOVE_DUPLICATES:$<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>>)
+  set(INTERFACE_DEFS
+      $<REMOVE_DUPLICATES:$<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>>
+  )
   get_target_property(TARGET_TYPE ${TARGET} TYPE)
 
   if(NOT ${LIBRA_USE_COMPDB})
@@ -93,16 +99,27 @@ function(analyze_clang_extract_args_from_target TARGET RET)
     set(USE_DATABASE ${LIBRA_USE_COMPDB})
   endif()
 
-  if(NOT USE_DATABASE)
-    # We use --extra-arg=... instead of '-- ...' because the former is
-    # documented and works, and the latter is undocumented and SORT OF works.
+  if(USE_DATABASE)
     set(${RET}
-        $<$<BOOL:${USE_DATABASE}>:-p\t${PROJECT_BINARY_DIR}>
-        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INCLUDES}>:--extra-arg=-I$<JOIN:${INCLUDES},\t--extra-arg=-I>>>
-        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_INCLUDES}>:--extra-arg=-I$<JOIN:${INTERFACE_INCLUDES},\t--extra-arg=-I>>>
-        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:--extra-arg=-isystem$<JOIN:${INTERFACE_SYSTEM_INCLUDES},\t--extra-arg=-isystem>>>
-        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${DEFS}>:--extra-arg=-D$<JOIN:${DEFS},\t--extra-arg=-D>>>
-        $<$<NOT:$<BOOL:${USE_DATABASE}>>:\t$<$<BOOL:${INTERFACE_DEFS}>:--extra-arg=-D$<JOIN:${INTERFACE_DEFS},\t--extra-arg=-D>>>
+        -p\t${PROJECT_BINARY_DIR}
         PARENT_SCOPE)
+  else()
+    if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
+      set(${RET}
+          $<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>
+          $<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>
+          $<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEM_INCLUDES},\t-isystem>>
+          $<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>
+          $<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>
+          PARENT_SCOPE)
+    else()
+      set(${RET}
+          $<$<BOOL:${INCLUDES}>:--extra-arg=-I$<JOIN:${INCLUDES},\t--extra-arg=-I>>
+          $<$<BOOL:${INTERFACE_INCLUDES}>:--extra-arg=-I$<JOIN:${INTERFACE_INCLUDES},\t--extra-arg=-I>>
+          $<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:--extra-arg=-isystem$<JOIN:${INTERFACE_SYSTEM_INCLUDES},\t--extra-arg=-isystem>>
+          $<$<BOOL:${DEFS}>:--extra-arg=-D$<JOIN:${DEFS},\t--extra-arg=-D>>
+          $<$<BOOL:${INTERFACE_DEFS}>:--extra-arg=-D$<JOIN:${INTERFACE_DEFS},\t--extra-arg=-D>>
+          PARENT_SCOPE)
+    endif()
   endif()
 endfunction()

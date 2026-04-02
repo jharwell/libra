@@ -353,3 +353,17 @@ Build configuration
    generate spurious warnings about the compilation database.
 
    .. versionadded:: 0.9.36
+
+.. cmake:variable:: LIBRA_CLANG_TOOLS_USE_FIXED_DB
+
+   :default: TRUE
+   :type: CACHE BOOL
+
+   If :cmake:variable:`LIBRA_USE_COMPDB` is false, define how to build the
+   compdb on the cmdline to pass to clang-tidy/clang-check. If false,
+   ``--extra-arg`` is used for each #define, include, etc. Otherwise ``--`` is
+   used, and all relevant args passed just as they would be to the compiler
+   after that. Either method may give better/worse results, depending on
+   clang/LLVM version version. YMMV.
+
+   .. versionadded:: 0.10.0

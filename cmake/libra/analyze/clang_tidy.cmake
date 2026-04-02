@@ -72,9 +72,6 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
     # We generate per-file commands so that we (a) get more fine-grained
     # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
     # finishes running against ALL files to get feedback for a given file.
-    #
-    # We also use --extra-arg=... instead of '-- ...' because the former is
-    # documented and works, and the latter is undocumented and SORT OF works.
     foreach(file ${ARGN})
 
       # We create one target per file we want to analyze so that we can do
@@ -97,30 +94,51 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
           ${CHECK_TARGET}-${CATEGORY}-${file_target}
           COMMAND
             ${clang_tidy_EXECUTABLE}
-            --header-filter=${CMAKE_SOURCE_DIR}/include/* ${HEADER_EXCLUDES}
+            --header-filter=${CMAKE_SOURCE_DIR}/include/.* ${HEADER_EXCLUDES}
             --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-            --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
+            --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
             ${JOB_ARGS} --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
             --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
-            ${PROJECT_BINARY_DIR} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+            ${PROJECT_BINARY_DIR} ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMENT
             "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
         )
       else()
-        add_custom_target(
-          ${CHECK_TARGET}-${CATEGORY}-${file_target}
-          COMMAND
-            ${clang_tidy_EXECUTABLE}
-            --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/*
-            ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-            --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
-            ${EXTRACTED_ARGS} ${JOB_ARGS}
-            --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
-            --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
-            /tmp/nonexistent --quiet ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
-          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMENT "Running ${clang_tidy_NAME} without compdb on ${file}")
+        if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
+          add_custom_target(
+            ${CHECK_TARGET}-${CATEGORY}-${file_target}
+            COMMAND
+              ${clang_tidy_EXECUTABLE}
+              --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/.*
+              ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+              --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
+              --warnings-as-errors='*' -p /tmp/libra-nonexistent --quiet
+              ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${JOB_ARGS} ${file} --
+              ${EXTRACTED_ARGS} -std=gnu++${LIBRA_CXX_STANDARD}
+              -Wno-unknown-warning-option
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT
+              "Running ${clang_tidy_NAME} without compdb on ${file} (fixed compdb)"
+          )
+        else()
+          add_custom_target(
+            ${CHECK_TARGET}-${CATEGORY}-${file_target}
+            COMMAND
+              ${clang_tidy_EXECUTABLE}
+              --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/.*
+              ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+              --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
+              --warnings-as-errors='*' -p /tmp/libra-nonexistent --quiet
+              ${JOB_ARGS} ${EXTRACTED_ARGS}
+              --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
+              --extra-arg=-Wno-unknown-warning-option
+              ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT
+              "Running ${clang_tidy_NAME} without compdb on ${file} (--extra-arg)"
+          )
+        endif()
 
       endif()
       add_dependencies(${CHECK_TARGET}-${CATEGORY}

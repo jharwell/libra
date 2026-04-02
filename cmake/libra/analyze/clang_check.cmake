@@ -22,9 +22,6 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
   # To get this to work with bleeding edge libraries, we have to tell clang to
   # use its own stdlib intsead of GCC's. Not doing this is fine for some
   # libraries, but for >= C++20 libs, it can cause problems.
-  #
-  # We also use --extra-arg=... instead of '-- ...' because the former is
-  # documented and works, and the latter is undocumented and SORT OF works.
   foreach(file ${ARGN})
     # We create one target per file we want to analyze so that we can do
     # analysis in parallel if desired. Targets can't have '/' on '.' in their
@@ -35,23 +32,39 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
       add_custom_target(
         ${CHECK_TARGET}-${file_target}
         COMMAND
-          ${clang_check_EXECUTABLE} ${file} -analyze
-          --extra-arg=-std=c++${LIBRA_CXX_STANDARD}
-          --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror -p
-          ${PROJECT_BINARY_DIR}
+          ${clang_check_EXECUTABLE} -analyze
+          --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
+          --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
+          --extra-arg="-Xanalyzer" --extra-arg="-analyzer-output=text" -p
+          ${PROJECT_BINARY_DIR} ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running ${clang_check_NAME} with compdb on ${file}, JOB=${JOB}"
       )
     else()
-      add_custom_target(
-        ${CHECK_TARGET}-${file_target}
-        COMMAND
-          ${clang_check_EXECUTABLE} ${file} -analyze ${EXTRACTED_ARGS}
-          --extra-arg=-std=c++${LIBRA_CXX_STANDARD}
-          --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT
-          "Running ${clang_check_NAME} without compdb on ${file}, JOB=${JOB}")
+      if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
+        add_custom_target(
+          ${CHECK_TARGET}-${file_target}
+          COMMAND
+            ${clang_check_EXECUTABLE} -analyze ${file} -- ${EXTRACTED_ARGS}
+            -std=gnu++${LIBRA_CXX_STANDARD} -Wno-unknown-warning-option -Werror
+            -Xanalyzer -analyzer-output=text
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT
+            "Running ${clang_check_NAME} without compdb on ${file}, JOB=${JOB} (fixed compdb)"
+        )
+      else()
+        add_custom_target(
+          ${CHECK_TARGET}-${file_target}
+          COMMAND
+            ${clang_check_EXECUTABLE} -analyze --extra-arg="-Xanalyzer"
+            --extra-arg="-analyzer-output=text" ${EXTRACTED_ARGS}
+            --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
+            --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror ${file}
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT
+            "Running ${clang_check_NAME} without compdb on ${file}, JOB=${JOB} (--extra-arg)"
+        )
+      endif()
     endif()
     add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})
   endforeach()
