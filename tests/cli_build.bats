@@ -41,7 +41,7 @@ setup() {
 }
 
 @test "BUILD: --keep-going is forwarded" {
-    assert_dry_run_contains "--keep-going" build --keep-going --preset debug
+    assert_dry_run_contains "--keep-going" build --keep-going --preset debug --log trace
 }
 
 @test "BUILD: -D defines are forwarded to configure step with --reconfigure" {

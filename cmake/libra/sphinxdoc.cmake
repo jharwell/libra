@@ -33,7 +33,7 @@ function(_libra_sphinxdoc_configure)
         sphinxdoc
         COMMAND ${LIBRA_SPHINXDOC_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}/docs
                 ${CMAKE_CURRENT_SOURCE_DIR}/docs/_build -b html
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generating ${PROJECT_NAME} documentation with sphinx"
         VERBATIM)
       if(TARGET apidoc)

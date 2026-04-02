@@ -202,7 +202,7 @@ CheckOptions:
   google-readability-function-size.BranchThreshold: 20
   google-readability-function-size.LineThreshold: 100
   google-readability-function-size.NestingThreshold: 8
-  google-readability-function-size.ParameterThreshold: 5
+  google-readability-function-size.ParameterThreshold: 6
   google-readability-function-size.StatementThreshold: '800'
   google-readability-function-size.VariableThreshold: 15
   google-readability-namespace-comments.ShortNamespaceLines: '10'
@@ -213,10 +213,10 @@ CheckOptions:
   hicpp-avoid-c-arrays.AllowStringArrays: 'false'
   hicpp-braces-around-statements.ShortStatementLines: '0'
   hicpp-deprecated-headers.CheckHeaderFile: 'false'
-  hicpp-function-size.BranchThreshold: 10
+  hicpp-function-size.BranchThreshold: 20
   hicpp-function-size.LineThreshold: 100
-  hicpp-function-size.NestingThreshold: 5
-  hicpp-function-size.ParameterThreshold: 5
+  hicpp-function-size.NestingThreshold: 8
+  hicpp-function-size.ParameterThreshold: 6
   hicpp-function-size.StatementThreshold: '800'
   hicpp-function-size.VariableThreshold: none
   hicpp-ignored-remove-result.AllowCastToVoid: 'true'
@@ -397,10 +397,10 @@ CheckOptions:
   readability-function-cognitive-complexity.DescribeBasicIncrements: 'true'
   readability-function-cognitive-complexity.IgnoreMacros: 'true'
   readability-function-cognitive-complexity.Threshold: '25'
-  readability-function-size.BranchThreshold: 10
+  readability-function-size.BranchThreshold: 20
   readability-function-size.LineThreshold: 100
-  readability-function-size.NestingThreshold: 5
-  readability-function-size.ParameterThreshold: 5
+  readability-function-size.NestingThreshold: 8
+  readability-function-size.ParameterThreshold: 6
   readability-function-size.StatementThreshold: '800'
   readability-function-size.VariableThreshold: 15
   readability-identifier-length.IgnoredExceptionVariableNames: '^[e]$'
@@ -427,26 +427,26 @@ CheckOptions:
   readability-identifier-naming.ConstantPointerParameterCase: 'lower_case'
   readability-identifier-naming.ConstexprFunctionCase: 'lower_case'
   readability-identifier-naming.ConstexprMethodCase: 'lower_case'
-  readability-identifier-naming.ConstexprVariableCase: 'UPPER_CASE'
-  readability-identifier-naming.ConstexprVariablePrefix: 'k'
+  readability-identifier-naming.ConstexprVariableCase: 'aNy_CasE'
+  readability-identifier-naming.ConstexprVariablePrefix: ''
   readability-identifier-naming.EnumCase: lower_case
   readability-identifier-naming.EnumConstantCase: 'UPPER_CASE'
   readability-identifier-naming.EnumConstantPrefix: 'ek'
   readability-identifier-naming.EnumPrefix: ''
   readability-identifier-naming.FunctionCase: 'lower_case'
   readability-identifier-naming.GlobalConstantCase: 'UPPER_CASE'
-  readability-identifier-naming.GlobalConstantPrefix: ''
+  readability-identifier-naming.GlobalConstantPrefix: 'k'
   readability-identifier-naming.GlobalFunctionCase: 'lower_case'
   readability-identifier-naming.GlobalPointerCase: 'lower_case'
   readability-identifier-naming.GlobalVariableCase: 'lower_case'
   readability-identifier-naming.GlobalVariablePrefix: 'g_'
   readability-identifier-naming.InlineNamespaceCase: 'lower_case'
   readability-identifier-naming.LocalConstantCase: 'UPPER_CASE'
-  readability-identifier-naming.LocalVariableCase: 'lower_case'
+  readability-identifier-naming.LocalVariableCase: 'aNy_CasE'
   readability-identifier-naming.LocalVariableSuffix: ''
   readability-identifier-naming.LocalVariablePrefix: ''
   readability-identifier-naming.LocalConstantSuffix: ''
-  readability-identifier-naming.LocalConstantPrefix: ''
+  readability-identifier-naming.LocalConstantPrefix: 'k'
   readability-identifier-naming.LocalConstantPointerCase: 'lower_case'
   readability-identifier-naming.LocalConstantPointerSuffix: ''
   readability-identifier-naming.LocalConstantPointerPrefix: ''
@@ -458,7 +458,7 @@ CheckOptions:
   readability-identifier-naming.MemberPrefix: 'm_'
   readability-identifier-naming.MemberSuffix: ''
   readability-identifier-naming.NamespaceCase: 'lower_case'
-  readability-identifier-naming.ParameterCase: 'lower_case'
+  readability-identifier-naming.ParameterCase: 'aNy_CasE'
   readability-identifier-naming.ParameterPackCase: 'lower_case'
   readability-identifier-naming.PointerParameterCase: 'lower_case'
   readability-identifier-naming.PrivateMemberCase: 'lower_case'

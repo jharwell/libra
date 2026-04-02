@@ -34,7 +34,7 @@ AlwaysBreakTemplateDeclarations: Yes
 TabWidth: 2
 IndentWidth: 2
 ContinuationIndentWidth: 2
-ColumnLimit: 85
+ColumnLimit: 82
 AllowAllArgumentsOnNextLine: false
 AllowShortFunctionsOnASingleLine: All
 PackConstructorInitializers: CurrentLine

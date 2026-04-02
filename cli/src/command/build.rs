@@ -6,7 +6,7 @@
 
 // Imports
 use clap;
-use log::debug;
+use log::{debug, warn};
 
 use crate::cmake;
 use crate::preset;
@@ -71,7 +71,6 @@ pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
             args.defines.len()
         );
     }
-
     let mut cmd = cmake::base_build(&preset);
     cmd.args(["--parallel", &args.jobs.to_string()]);
 
@@ -83,11 +82,15 @@ pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
         cmd.args(["--target", target]);
     }
     if args.keep_going {
-        let generator = cmake::generator(&preset)?;
+        let generator = cmake::generator(&preset).unwrap_or_else(|e| {
+            warn!("Failed to detect CMake generator: {e}, defaulting to Unix Makefiles");
+            "Unix Makefiles".to_string()
+        });
+
         if generator == "Ninja" {
             cmd.args(["--", "-k0"]);
         } else if generator == "Unix Makefiles" {
-            cmd.args(["--", "-k"]);
+            cmd.args(["--", "--keep-going"]);
         } else {
             anyhow::bail!("--keep-going only supported with {{Ninja, Unix Makefiles}} generators");
         }

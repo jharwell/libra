@@ -634,7 +634,9 @@ function(_libra_create_help_targets)
     analyze-cppcheck
     cppcheck_EXECUTABLE
     analyze-cmake-format
-    cmake_format_EXECUTABLE)
+    cmake_format_EXECUTABLE
+    analyze-clang-format
+    clang_format_EXECUTABLE)
 
   _libra_help_targets_block(
     OPTION

@@ -100,7 +100,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             --header-filter=${CMAKE_SOURCE_DIR}/include/* ${HEADER_EXCLUDES}
             --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
-            ${JOB_ARGS} --extra-arg=--std=c++${LIBRA_CXX_STANDARD}
+            ${JOB_ARGS} --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
             --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
             ${PROJECT_BINARY_DIR} ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -116,14 +116,9 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG} ${file}
             ${EXTRACTED_ARGS} ${JOB_ARGS}
-            --extra-arg=--std=c++${LIBRA_CXX_STANDARD}
-            --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
-            --quiet ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
-            "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"
-            "$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>"
-            "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"
-            "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
-            "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
+            --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
+            --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*' -p
+            /tmp/nonexistent --quiet ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMENT "Running ${clang_tidy_NAME} without compdb on ${file}")
 

@@ -50,6 +50,9 @@ Best practices and tool-specific configuration (suppression files,
 ``clang-tidy`` check categories, compilation database trade-offs) are
 covered in :ref:`cookbook/analysis`.
 
+.. NOTE:: The GNU extension versions of ``-std`` are passed when not using a
+          compilation database, to match LIBRA behavior in standard
+          autodetection.
 
 Code Style
 ==========

@@ -7,6 +7,7 @@
 // Imports
 use crate::preset;
 use crate::runner;
+use log::{debug, trace};
 
 // Types
 pub enum TargetStatus {
@@ -158,18 +159,28 @@ pub fn target_status(
     ctx: &runner::Context,
 ) -> anyhow::Result<TargetStatus> {
     let (_, stderr) = ctx.run_capture(base_build(preset).args(["--target", "help-targets"]))?;
+    debug!("Parsing help-targets output: {:?}", stderr);
 
-    for line in stderr.lines() {
+    // first 3 lines are the header
+    for line in stderr.lines().skip(3) {
         // Each line contains 3 fields {target, status, reason}
-        let parts: Vec<&str> = line
-            .splitn(3, ' ')
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .collect();
-        if parts.len() >= 2 && parts[0] == target {
-            if parts[1] == "YES" {
-                return Ok(TargetStatus::Available);
-            }
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() >= 3 && parts[0] == target {
+            trace!(
+                "Found target={},status={},reason={}",
+                parts[0],
+                parts[1],
+                parts[2..].join(" ")
+            );
+            return Ok(TargetStatus::Unavailable(parts[2..].join(" ")));
+        }
+        if parts.len() == 2 && parts[0] == target {
+            trace!(
+                "Found target={},status={},reason=enabled",
+                parts[0],
+                parts[1],
+            );
+            return Ok(TargetStatus::Available);
         }
     }
 
