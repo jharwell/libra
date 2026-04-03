@@ -25,12 +25,30 @@ function(do_register_clang_format FMT_TARGET JOB)
   endif()
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
 
-  add_custom_target(
-    ${FMT_TARGET}
-    COMMAND ${clang_format_EXECUTABLE}
-            -style=file:${LIBRA_CLANG_FORMAT_FILEPATH} ${JOB_ARGS} ${ARGN}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Running ${clang_format_NAME} JOB=${JOB}")
+  add_custom_target(${FMT_TARGET})
+
+  # We generate per-file commands so that we (a) get more fine-grained feedback
+  # from clang-format, and (b) don't have to wait until clang-format finishes
+  # running against ALL files to get feedback for a given file. Granted,
+  # clang-format is pretty fast, but for slow machines or massive codbases, this
+  # code be an issue.
+  foreach(file ${ARGN})
+
+    # We create one target per file we want to analyze so that we can do
+    # analysis in parallel if desired. Targets can't have '/' on '.' in their
+    # names, hence the replacements.
+    string(REPLACE "/" "_" file_target "${file}")
+    string(REPLACE "." "_" file_target "${file_target}")
+
+    add_custom_target(
+      ${FMT_TARGET}-${file_target}
+      COMMAND ${clang_format_EXECUTABLE}
+              -style=file:${LIBRA_CLANG_FORMAT_FILEPATH} ${JOB_ARGS} ${file}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Running ${clang_format_NAME} JOB=${JOB}")
+
+    add_dependencies(${FMT_TARGET} ${FMT_TARGET}-${file_target})
+  endforeach()
 
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 endfunction()

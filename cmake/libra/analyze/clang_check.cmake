@@ -19,9 +19,6 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
 
   add_custom_target(${CHECK_TARGET})
 
-  # To get this to work with bleeding edge libraries, we have to tell clang to
-  # use its own stdlib intsead of GCC's. Not doing this is fine for some
-  # libraries, but for >= C++20 libs, it can cause problems.
   foreach(file ${ARGN})
     # We create one target per file we want to analyze so that we can do
     # analysis in parallel if desired. Targets can't have '/' on '.' in their

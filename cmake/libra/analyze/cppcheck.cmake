@@ -70,14 +70,14 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
           ${cppcheck_EXECUTABLE}
           "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"
           "$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>"
-          "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"
+          "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEM_INCLUDES},\t-isystem>>"
           "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
           "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
           --enable=warning,style,performance,portability --verbose
           --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
           "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
           "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
-          "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1 ${file}
+          ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1 ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running ${cppcheck_NAME} without compdb on ${file}")
       add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})

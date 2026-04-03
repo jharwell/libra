@@ -12,7 +12,7 @@ use crate::utils;
 
 use anyhow;
 use clap;
-use log::debug;
+use log::{debug, warn};
 
 // Types
 
@@ -97,13 +97,22 @@ pub fn run_target(ctx: &runner::Context, args: AnalyzeArgs, target: &str) -> any
     }
 
     let mut cmd = cmake::base_build(&preset);
-    ctx.run(
-        cmd.args(["--target", target, "--parallel", &args.jobs.to_string()])
-            .args(if args.keep_going {
-                &["-k"][..]
-            } else {
-                &[][..]
-            }),
-    )?;
+    cmd.args(["--target", target, "--parallel", &args.jobs.to_string()]);
+
+    if args.keep_going {
+        let generator = cmake::generator(&preset).unwrap_or_else(|e| {
+            warn!("Failed to detect CMake generator: {e}, defaulting to Unix Makefiles");
+            "Unix Makefiles".to_string()
+        });
+
+        if generator == "Ninja" {
+            cmd.args(["--", "-k0"]);
+        } else if generator == "Unix Makefiles" {
+            cmd.args(["--", "--keep-going"]);
+        } else {
+            anyhow::bail!("--keep-going only supported with {{Ninja, Unix Makefiles}} generators");
+        }
+    }
+    ctx.run(&mut cmd)?;
     Ok(())
 }
