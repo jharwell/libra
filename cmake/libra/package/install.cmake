@@ -309,7 +309,7 @@ endfunction()
 
   .. code-block:: cmake
 
-    # Install headers from include/ to ${CMAKE_INSTALL_PREFIX}/include
+    # Install headers from include/ to ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
     libra_register_headers_for_install(
       ${PROJECT_SOURCE_DIR}/include
       )
@@ -346,7 +346,7 @@ function(libra_register_headers_for_install DIRECTORY)
     libra_message(STATUS "Found ${NUM_HEADERS} header file(s) in ${DIRECTORY}")
   endif()
 
-  set(INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/include")
+  set(INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 
   install(
     DIRECTORY ${DIRECTORY}
@@ -375,7 +375,7 @@ endfunction()
   The target is installed with:
 
     - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
-    - Public headers: ``${CMAKE_INSTALL_PREFIX}/include``
+    - Public headers: ``${CMAKE_INSTALL_INCLUDEDIR}``
     - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
@@ -430,7 +430,8 @@ function(libra_register_target_for_install TARGET)
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+    PUBLIC_HEADER
+      DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 
   install(
     EXPORT ${TARGET}-exports
@@ -441,9 +442,10 @@ function(libra_register_target_for_install TARGET)
   libra_message(STATUS "Registered target for install: ${TARGET}")
   libra_message(
     STATUS "  Libraries -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-  libra_message(STATUS "  Headers -> ${CMAKE_INSTALL_PREFIX}/include")
+  libra_message(
+    STATUS "  Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
   libra_message(
     STATUS
-    "  Exports -> ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake"
+    "  Exports -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake"
   )
 endfunction()

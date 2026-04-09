@@ -70,7 +70,6 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   set(LIBRA_CXX_DIAG_CANDIDATES
       ${LIBRA_BASE_DIAG_CANDIDATES}
       -Weffc++
-      -fdiagnostics-all-candidates
       -Wunused-macros
       -Wsuggest-override
       -Wstrict-null-sentinel
@@ -82,8 +81,17 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
       -Wnon-virtual-dtor
       -Wctor-dtor-privacy
       -Wdelete-non-virtual-dtor
-      -fconcepts-diagnostics-depth=10
       -Wuseless-cast)
+  if(LIBRA_ANALYSIS)
+    string(
+      CONCAT _msg "Skipping adding "
+             "-f{diagnostics-all-candidates,concepts-diagnostics-depth} for g++"
+             "--analysis enabled")
+    libra_message(STATUS "${_msg}")
+  else()
+    list(APPEND LIBRA_CXX_DIAG_CANDIDATES -fdiagnostics-all-candidates
+         -fconcepts-diagnostics-depth=10)
+  endif()
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
 endif()
@@ -429,11 +437,11 @@ endif()
 #[[.rst:
 .. cmake:variable:: LIBRA_STDLIB_GNU
 
-If NONE: ``-nostdlib`` during at link, both C/C++.
+If NONE: ``-nostdlib`` at link, both C/C++.
 
-If STDCXX: N/A.
+If STDCXX: ``-stdlib=libstdc++`` at link, C++ only.
 
-If CXX: N/A.
+If CXX: ``-stdlib=libc++`` at link, C++ only.
 
 ]]
 
@@ -448,7 +456,17 @@ if("${LIBRA_STDLIB}" MATCHES "NONE")
   set(_LIBRA_STDLIB_MATCH YES)
   set(_LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
   set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
+elseif("${LIBRA_STDLIB}" MATCHES "STDCXX")
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_STDLIB_MATCH YES)
+elseif("${LIBRA_STDLIB}" MATCHES "CXX")
+
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 endif()
+
 if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
     WARNING

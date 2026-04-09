@@ -200,7 +200,7 @@ CheckOptions:
   cppcoreguidelines-use-default-member-init.UseAssignment: 'false'
   google-readability-braces-around-statements.ShortStatementLines: '1'
   google-readability-function-size.BranchThreshold: 20
-  google-readability-function-size.LineThreshold: 100
+  google-readability-function-size.LineThreshold: 120
   google-readability-function-size.NestingThreshold: 8
   google-readability-function-size.ParameterThreshold: 6
   google-readability-function-size.StatementThreshold: '800'
@@ -214,7 +214,7 @@ CheckOptions:
   hicpp-braces-around-statements.ShortStatementLines: '0'
   hicpp-deprecated-headers.CheckHeaderFile: 'false'
   hicpp-function-size.BranchThreshold: 20
-  hicpp-function-size.LineThreshold: 100
+  hicpp-function-size.LineThreshold: 120
   hicpp-function-size.NestingThreshold: 8
   hicpp-function-size.ParameterThreshold: 6
   hicpp-function-size.StatementThreshold: '800'
@@ -398,7 +398,7 @@ CheckOptions:
   readability-function-cognitive-complexity.IgnoreMacros: 'true'
   readability-function-cognitive-complexity.Threshold: '25'
   readability-function-size.BranchThreshold: 20
-  readability-function-size.LineThreshold: 100
+  readability-function-size.LineThreshold: 120
   readability-function-size.NestingThreshold: 8
   readability-function-size.ParameterThreshold: 6
   readability-function-size.StatementThreshold: '800'

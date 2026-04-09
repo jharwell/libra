@@ -32,8 +32,8 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
           ${clang_check_EXECUTABLE} -analyze
           --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
           --extra-arg=-Wno-unknown-warning-option --extra-arg=-Werror
-          --extra-arg="-Xanalyzer" --extra-arg="-analyzer-output=text" -p
-          ${PROJECT_BINARY_DIR} ${file}
+          --extra-arg="-Xanalyzer" --extra-arg="-analyzer-output=text"
+          ${EXTRACTED_ARGS} ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running ${clang_check_NAME} with compdb on ${file}, JOB=${JOB}"
       )

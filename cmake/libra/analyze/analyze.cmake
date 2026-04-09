@@ -102,6 +102,7 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   if(USE_DATABASE)
     set(${RET}
         -p\t${PROJECT_BINARY_DIR}
+        $<$<BOOL:${INTERFACE_DEFS}>:--extra-arg=-D$<JOIN:${INTERFACE_DEFS},\t--extra-arg=-D>>
         PARENT_SCOPE)
   else()
     if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
