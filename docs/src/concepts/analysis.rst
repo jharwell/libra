@@ -36,6 +36,11 @@ the correct ``#defines``, includes, and language standard. LIBRA does
   database for header-only libraries that have nothing to compile. We
   cannot safely assume all header-only libraries have tests.
 
+- Header files should always be syntactically valid for all types of static
+  analysis, and so are checked separate from any .cpp files which include
+  them. Compilation databases don't have entries for headers as standalone
+  entities.
+
 - If the compiler is not clang, the compilation database may contain
   flags that clang does not understand, causing clang-based analysis
   to fail even if the project builds cleanly with the configured
