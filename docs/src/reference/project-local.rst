@@ -34,7 +34,7 @@ Variables
 =========
 
 The variables listed in this section are generally for configuring various LIBRA
-features on a per-project basis, and be stable for the duration of the
+features on a per-project basis, and are stable for the duration of the
 project. However, they are NOT defined as cache variables because (a) they don't
 *need* to be, and (b) so the user doesn't need to remember to ``set(VAR "value"
 CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
@@ -47,21 +47,57 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
    - :cmake:variable:`LIBRA_CXX_STANDARD`
 
    If you do set any, you will need to add ``CACHE FORCE`` when setting or
-   things may break it subtle ways.
+   things may break in subtle ways.
 
-.. cmake:variable:: LIBRA_ANALYSIS_LANGUAGE
+General
+-------
 
-   Defines the language that the different static analysis
-   checkers/formatters/fixers will use for checking the project. This should be
-   specified BEFORE any subdirectories, external projects, etc. are
-   specified. Only used if :cmake:variable:`LIBRA_ANALYSIS` is true. If used,
-   value must be one of:
+.. cmake:variable:: LIBRA_C_DIAG_CANDIDATES
 
-   - C
-   - CXX
+   The list of compiler warning options you want to pass to the C compiler. This
+   can be a superset of the options supported by the minimum C compiler version
+   you target; each option in the list is checked to see if the current C
+   compiler supports it. If not defined, uses LIBRA's internal C diagnostic
+   option set, which is fairly comprehensive.  If you don't want to compile with
+   any warnings, set this to ``""``.
 
-   You should only ever need to set this if your project contains both C and
-   C++ code, to switch between which is checked.
+   .. versionadded:: 0.8.6
+
+.. cmake:variable:: LIBRA_CXX_DIAG_CANDIDATES
+
+   The list of compiler warning options you want to pass to the compiler. This
+   can be a superset of the options supported by the minimum compiler version
+   you target; each option in the list is checked to see if the current CXX
+   compiler supports it. If not defined, uses LIBRA's internal CXX diagnostic
+   option set, which is fairly comprehensive. If you don't want to compile with
+   any warnings, set this to ``""``.
+
+   .. versionadded:: 0.8.6
+
+Source Discovery
+----------------
+
+.. cmake:variable:: ${PROJECT_NAME}_C_SRC
+
+   Glob containing all C source files.
+
+.. cmake:variable:: ${PROJECT_NAME}_CXX_SRC
+
+   Glob containing all C++ source files.
+
+.. cmake:variable:: ${PROJECT_NAME}_C_HEADERS
+
+   Glob containing all C header files.
+
+.. cmake:variable:: ${PROJECT_NAME}_CXX_HEADERS
+
+   Glob containing all C++ header files.
+
+.. NOTE:: See :ref:`design/philosophy/globbing` for rationale on why globs are
+          used, contrary to common cmake guidance.
+
+Analysis
+--------
 
 .. cmake:variable:: LIBRA_CPPCHECK_IGNORES
 
@@ -97,42 +133,31 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
 
 .. cmake:variable:: LIBRA_CLANG_TIDY_FILEPATH
 
-   The path to the ``.clang-tidy`` file you want to use. If not defined, LIBRA will
-   use its internal .clang-format file.
+   The path to the ``.clang-tidy`` file you want to use. If not defined, LIBRA
+   will use its internal .clang-tidy file.
 
    .. versionadded:: 0.8.8
 
 .. cmake:variable:: LIBRA_CLANG_TIDY_CHECKS_CONFIG
 
    Any additional things to pass to ``--checks``. If non empty, must start with
-   ``,``. Useful to disable certain checks within a each category of checks that
-   LIBRA creates targets for. Defaults to::
-
-     ,-clang-diagnostic-*
+   ``,``. Useful to disable certain checks within each category of checks that
+   LIBRA creates targets for.
 
    .. versionadded:: 0.8.15
 
-.. cmake:variable:: LIBRA_C_DIAG_CANDIDATES
+.. cmake:variable:: LIBRA_CLANG_TIDY_EXTRA_ARGS
 
-   The list of compiler warning options you want to pass to the C compiler. This
-   can be a superset of the options supported by the minimum C compiler version
-   you target; each option in the list is checked to see if the current C
-   compiler supports it. If not defined, uses LIBRA's internal C diagnostic
-   option set, which is fairly comprehensive.  If you don't want to compile with
-   any warnings, set this to ``""``.
+   Additional flags appended verbatim to every clang-tidy invocation,
+   on all paths (compdb, fixed-DB, and extra-arg). Useful for flags
+   that LIBRA does not otherwise expose, such as
+   ``--allow-enabling-analyzer-alpha-checkers``. Passed as-is; no
+   separators are added.
 
-   .. versionadded:: 0.8.6
+   .. versionadded:: 0.8.15
 
-.. cmake:variable:: LIBRA_CXX_DIAG_CANDIDATES
-
-   The list of compiler warning options you want to pass to the compiler. This
-   can be a superset of the options supported by the minimum compiler version
-   you target; each option in the list is checked to see if the current CXX
-   compiler supports it. If not defined, uses LIBRA's internal CXX diagnostic
-   option set, which is fairly comprehensive. If you don't want to compile with
-   any warnings, set this to ``""``.
-
-   .. versionadded:: 0.8.6
+Testing
+-------
 
 .. cmake:variable:: LIBRA_TEST_HARNESS_LIBS
 
@@ -212,6 +237,9 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
 
    Should registered regression tests be included in the ``test`` target to run?
 
+Code Coverage
+--------------
+
 .. cmake:variable:: LIBRA_GCOVR_LINES_THRESH
 
    :default: 95
@@ -250,25 +278,6 @@ CACHE FORCE)`` them instead of just ``set(VAR "value")`` them.
    :type: STRING
 
    The command to run sphinx and generate documentation. via ``make sphinxdoc``.
-
-.. cmake:variable:: ${PROJECT_NAME}_C_SRC
-
-   Glob containing all C source files.
-
-.. cmake:variable:: ${PROJECT_NAME}_CXX_SRC
-
-   Glob containing all C++ source files.
-
-.. cmake:variable:: ${PROJECT_NAME}_C_HEADERS
-
-   Glob containing all C header files.
-
-.. cmake:variable:: ${PROJECT_NAME}_CXX_HEADERS
-
-   Glob containing all C++ header files.
-
-.. NOTE:: See :ref:`design/philosophy/globbing` for rationale on why globs are
-          used, contrary to common cmake guidance.
 
 .. _usage/project-local/diagnostics:
 
@@ -321,15 +330,3 @@ Here's a full-featured ``cmake/project-local.cmake`` showing common patterns::
     # Application target
     libra_add_executable(my_app src/main.cpp)
     target_link_libraries(my_app PRIVATE my_library)
-
-    # Enable features (optional)
-    # set(LIBRA_TESTS ON)        # Enable test discovery
-    # set(LIBRA_DOCS ON)          # Enable API docs
-    # set(LIBRA_ANALYSIS ON)      # Enable static analysis
-    # set(LIBRA_CODE_COV ON)      # Enable coverage instrumentation
-
-    # Compiler-specific options
-    # set(LIBRA_NATIVE_OPT ON)    # Optimize for this CPU
-    # set(LIBRA_LTO ON)           # Link-time optimization
-    # set(LIBRA_FORTIFY ALL)      # Security hardening
-    # set(LIBRA_SAN "ASAN+UBSAN") # Runtime sanitizers (Debug builds)

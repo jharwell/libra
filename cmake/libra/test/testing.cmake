@@ -153,7 +153,8 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   # This will only work with GCC/clang compilers, but that's OK for now, as I'm
   # not doing anything that requires running unit tests on strange platforms
   # requiring more exotic compilers.
-  if("${${PROJECT_NAME}_ANALYSIS_LANGUAGE}" MATCHES "C")
+  get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
+  if("C" IN_LIST LANGUAGES_LIST)
     target_compile_options(${PROJECT_NAME}-${test_name}
                            PUBLIC -Wno-old-style-cast -Wno-useless-cast)
   endif()
@@ -490,7 +491,8 @@ function(configure_test_harness)
     # This will only work with GCC/clang compilers, but that's OK for now, as
     # I'm not doing anything that requires running unit tests on strange
     # platforms requiring more exotic compilers.
-    if("${${PROJECT_NAME}_ANALYSIS_LANGUAGE}" MATCHES "C")
+    get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
+    if("C" IN_LIST LANGUAGES_LIST)
       target_compile_options(${PROJECT_NAME}-cxx-harness
                              PUBLIC -Wno-old-style-cast -Wno-useless-cast)
     endif()

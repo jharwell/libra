@@ -12,7 +12,7 @@ function(do_register_clang_format FMT_TARGET JOB)
   if(JOB STREQUAL "FORMAT")
     set(JOB_ARGS -i)
   else()
-    set(JOB_ARGS --Werror --dry-run -i)
+    set(JOB_ARGS --Werror --dry-run)
   endif()
 
   # A clever way to bake in .clang-format and use with cmake. Tested with both

@@ -36,7 +36,7 @@ includes this file automatically. Move your target definitions here:
 
 .. code-block:: cmake
 
-   libra_add_executable(${${PROJECT_NAME}_CXX_SOURCES})
+   libra_add_executable(${${PROJECT_NAME}_CXX_SRC})
 
    # Preserve any existing link dependencies
    target_link_libraries(${PROJECT_NAME} PRIVATE my_existing_dep)

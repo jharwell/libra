@@ -49,11 +49,8 @@ General
 
 .. _reference/variables/sw-eng:
 
-SW engineering features
-=======================
-
-See also the :ref:`individual docs pages for each compiler <design/compilers>`,
-which describe how these variables are realized for each supported compiler.
+Quality Gates
+=============
 
 .. cmake:variable:: LIBRA_TESTS
 
@@ -102,6 +99,9 @@ which describe how these variables are realized for each supported compiler.
 
    Enable documentation build via ``make apidoc`` and/or ``make sphinxdoc``.
 
+Runtime Checking
+================
+
 .. cmake:variable:: LIBRA_SAN
 
    :default: NONE
@@ -123,14 +123,6 @@ which describe how these variables are realized for each supported compiler.
    .. NOTE:: ASAN, UBSAN, and SSAN can generally be stacked together without
              issue. TSAN is incompatible with some other sanitizer groups
              depending on compiler.
-
-.. cmake:variable:: LIBRA_OPT_REPORT
-
-   :default: NO
-   :type: CACHE BOOL
-
-   Enable compiler-generated reports for optimizations performed, as well as
-   suggestions for further optimizations.
 
 .. cmake:variable:: LIBRA_FORTIFY
 
@@ -154,23 +146,13 @@ which describe how these variables are realized for each supported compiler.
 
    .. versionadded:: 0.8.3
 
-.. cmake:variable:: LIBRA_NO_CCACHE
+.. cmake:variable:: LIBRA_VALGRIND_COMPAT
 
    :default: NO
    :type: CACHE BOOL
 
-   Disable usage of ``ccache`` even if it is found. Useful when doing build
-   profiling where ``ccache`` would skew timing results.
-
-.. cmake:variable:: LIBRA_BUILD_PROF
-
-   :default: NO
-   :type: CACHE BOOL
-
-   To the extent supported by the selected compiler, enable build
-   profiling. This can be helpful in determining why you're build is taking so
-   long (e.g., lots of header file parsing).
-
+   Disable compiler instructions in 64-bit code so that programs will run
+   under valgrind reliably.
 
 .. _reference/variables/builds:
 
@@ -203,6 +185,109 @@ Build configuration
 
    Make :cmake:variable:`LIBRA_FPC` visible to downstream projects. Private
    by default.
+
+.. cmake:variable:: LIBRA_ERL
+
+   :default: INHERIT
+   :type: CACHE STRING
+
+   Specify Event Reporting Level (ERL). LIBRA provides a declarative
+   interface for specifying the desired result of event reporting framework
+   configuration. Possible values:
+
+   - ``ALL`` - All event reporting compiled in.
+   - ``FATAL`` - Compile out all except FATAL events.
+   - ``ERROR`` - Compile out all except [FATAL, ERROR].
+   - ``WARN`` - Compile out all except [FATAL, ERROR, WARN].
+   - ``INFO`` - Compile out all except [FATAL, ERROR, WARN, INFO].
+   - ``DEBUG`` - Compile out all except [FATAL, ERROR, WARN, INFO, DEBUG].
+   - ``TRACE`` - Same as ``ALL``.
+   - ``NONE`` - All event reporting compiled out.
+   - ``INHERIT`` - Inherit from a parent project. Default.
+
+.. cmake:variable:: LIBRA_ERL_EXPORT
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Make :cmake:variable:`LIBRA_ERL` visible to downstream projects. Private
+   by default.
+
+
+Build optimization
+==================
+
+.. cmake:variable:: LIBRA_NATIVE_OPT
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Enable compiler optimizations native to the current machine. Binaries
+   compiled this way are not portable across CPU microarchitectures. Not
+   recommended for CI pipelines or Docker builds.
+
+   .. versionadded:: 0.9.15
+
+.. cmake:variable:: LIBRA_PGO
+
+   :default: NONE
+   :type: CACHE STRING
+
+   Generate a Profile-Guided Optimisation build. Possible values:
+
+   - ``NONE``
+   - ``GEN`` - Instrumentation phase. Build, run with a representative
+     workload, then merge profile data (Clang only):
+
+     .. code-block:: bash
+
+        cmake -DLIBRA_PGO=GEN ..
+        make
+        ./bin/my_application
+        llvm-profdata merge -o default.profdata default*.profraw  # Clang only
+
+   - ``USE`` - Optimisation phase, after collecting profile data:
+
+     .. code-block:: bash
+
+        cmake -DLIBRA_PGO=USE ..
+        make
+
+.. cmake:variable:: LIBRA_LTO
+
+   :default: NO
+   :type: BOOL
+
+   Enable Link-Time Optimisation (LTO), also known as Interprocedural
+   Optimisation (IPO). Compiler-independent.
+
+   .. versionchanged:: 0.8.3
+      Automatically enabled when ``LIBRA_FORTIFY != NONE``.
+
+.. cmake:variable:: LIBRA_STDLIB
+
+   :default: UNDEFINED; use compiler built-in default.
+   :type: CACHE STRING
+
+   Select which standard library to use. Valid values:
+
+   - ``NONE`` - No stdlib. Defines ``__nostdlib__`` for all source files.
+     For bare-metal builds.
+   - ``CXX`` - Use libc++, if the compiler supports it.
+   - ``STDCXX`` - Use libstdc++, if the compiler supports it.
+
+
+.. cmake:variable:: LIBRA_OPT_REPORT
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Enable compiler-generated reports for optimizations performed, as well as
+   suggestions for further optimizations.
+
+
+Toolchain/compiler
+==================
 
 .. cmake:variable:: LIBRA_C_STANDARD
 
@@ -245,112 +330,34 @@ Build configuration
 
    .. versionchanged:: 0.9.14
 
-.. cmake:variable:: LIBRA_ERL
+Build tooling
+=============
 
-   :default: INHERIT
-   :type: CACHE STRING
-
-   Specify Event Reporting Level (ERL). LIBRA provides a declarative
-   interface for specifying the desired result of event reporting framework
-   configuration. Possible values:
-
-   - ``ALL`` - All event reporting compiled in.
-   - ``FATAL`` - Compile out all except FATAL events.
-   - ``ERROR`` - Compile out all except [FATAL, ERROR].
-   - ``WARN`` - Compile out all except [FATAL, ERROR, WARN].
-   - ``INFO`` - Compile out all except [FATAL, ERROR, WARN, INFO].
-   - ``DEBUG`` - Compile out all except [FATAL, ERROR, WARN, INFO, DEBUG].
-   - ``TRACE`` - Same as ``ALL``.
-   - ``NONE`` - All event reporting compiled out.
-   - ``INHERIT`` - Inherit from a parent project. Default.
-
-.. cmake:variable:: LIBRA_ERL_EXPORT
+.. cmake:variable:: LIBRA_NO_CCACHE
 
    :default: NO
    :type: CACHE BOOL
 
-   Make :cmake:variable:`LIBRA_ERL` visible to downstream projects. Private
-   by default.
+   Disable usage of ``ccache`` even if it is found. Useful when doing build
+   profiling where ``ccache`` would skew timing results.
 
-.. cmake:variable:: LIBRA_PGO
-
-   :default: NONE
-   :type: CACHE STRING
-
-   Generate a Profile-Guided Optimisation build. Possible values:
-
-   - ``NONE``
-   - ``GEN`` - Instrumentation phase. Build, run with a representative
-     workload, then merge profile data (Clang only):
-
-     .. code-block:: bash
-
-        cmake -DLIBRA_PGO=GEN ..
-        make
-        ./bin/my_application
-        llvm-profdata merge -o default.profdata default*.profraw  # Clang only
-
-   - ``USE`` - Optimisation phase, after collecting profile data:
-
-     .. code-block:: bash
-
-        cmake -DLIBRA_PGO=USE ..
-        make
-
-.. cmake:variable:: LIBRA_VALGRIND_COMPAT
+.. cmake:variable:: LIBRA_BUILD_PROF
 
    :default: NO
    :type: CACHE BOOL
 
-   Disable compiler instructions in 64-bit code so that programs will run
-   under valgrind reliably.
+   To the extent supported by the selected compiler, enable build
+   profiling. This can be helpful in determining why you're build is taking so
+   long (e.g., lots of header file parsing).
 
-.. cmake:variable:: LIBRA_LTO
-
-   :default: NO
-   :type: BOOL
-
-   Enable Link-Time Optimisation (LTO), also known as Interprocedural
-   Optimisation (IPO). Compiler-independent.
-
-   .. versionchanged:: 0.8.3
-      Automatically enabled when ``LIBRA_FORTIFY != NONE``.
-
-.. cmake:variable:: LIBRA_STDLIB
-
-   :default: UNDEFINED; use compiler built-in default.
-   :type: CACHE STRING
-
-   Select which standard library to use. Valid values:
-
-   - ``NONE`` - No stdlib. Defines ``__nostdlib__`` for all source files.
-     For bare-metal builds.
-   - ``CXX`` - Use libc++, if the compiler supports it.
-   - ``STDCXX`` - Use libstdc++, if the compiler supports it.
-
-.. cmake:variable:: LIBRA_NATIVE_OPT
-
-   :default: NO
-   :type: CACHE BOOL
-
-   Enable compiler optimizations native to the current machine. Binaries
-   compiled this way are not portable across CPU microarchitectures. Not
-   recommended for CI pipelines or Docker builds.
-
-   .. versionadded:: 0.9.15
 
 .. cmake:variable:: LIBRA_USE_COMPDB
 
-   :default: NO
+   :default: YES
    :type: CACHE BOOL
 
-   Tell LIBRA that all analysis tools should use a compilation database
-   rather than extracting includes and defines directly from the target.
-   See :ref:`concepts/analysis` for the rationale and trade-offs.
-
-   For best results when using clang-based analysis targets, set the
-   compiler to clang before enabling this. GCC-compiled projects may
-   generate spurious warnings about the compilation database.
+   Use ``compile_commands.json`` for all analysis tools. See
+   :ref:`concepts/analysis` for when to disable this.
 
    .. versionadded:: 0.9.36
 
@@ -359,11 +366,17 @@ Build configuration
    :default: TRUE
    :type: CACHE BOOL
 
-   If :cmake:variable:`LIBRA_USE_COMPDB` is false, define how to build the
-   compdb on the cmdline to pass to clang-tidy/clang-check. If false,
-   ``--extra-arg`` is used for each #define, include, etc. Otherwise ``--`` is
-   used, and all relevant args passed just as they would be to the compiler
-   after that. Either method may give better/worse results, depending on
-   clang/LLVM version version. YMMV.
+   When :cmake:variable:`LIBRA_USE_COMPDB` is ``NO``, this controls how include
+   paths and defines are passed to clang-based tools. When ``YES`` (default),
+   flags are passed after ``--`` (fixed compilation database convention). When
+   ``NO``, ``--extra-arg=`` is used for each flag.
+
+   The fixed-DB path (``YES``) is more reliable for projects with complex
+   include paths or those using CPM, where include directories may contain
+   special characters or spaces. Use the extra-arg path only if a specific tool
+   version requires it.
 
    .. versionadded:: 0.10.0
+
+See also the :ref:`individual docs pages for each compiler <design/compilers>`,
+which describe how these variables are realized for each supported compiler.

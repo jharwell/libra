@@ -59,9 +59,6 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
 
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
-  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
-  set(USE_DATABASE ${LIBRA_USE_COMPDB})
-
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
     add_custom_target(${CHECK_TARGET}-${CATEGORY})
@@ -89,7 +86,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
             "${LIBRA_CLANG_TIDY_CONFIG_CHECKS},-misc-include-cleaner")
       endif()
 
-      if(USE_DATABASE)
+      if(LIBRA_USE_COMPDB)
         add_custom_target(
           ${CHECK_TARGET}-${CATEGORY}-${file_target}
           COMMAND
@@ -157,13 +154,18 @@ function(_libra_register_checker_clang_tidy TARGET)
     return()
   endif()
 
-  do_register_clang_tidy(analyze-clang-tidy ${TARGET} "CHECK" ${ARGN})
+  do_register_clang_tidy(
+    analyze-clang-tidy
+    ${TARGET}
+    "CHECK"
+    ${SRCS}
+    ${STUBS})
   add_dependencies(analyze analyze-clang-tidy)
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
+
   list(LENGTH ARGN LEN)
   libra_message(STATUS
                 "Registered ${LEN} files with ${clang_tidy_NAME} checker")
-
 endfunction()
 
 # ##############################################################################
@@ -174,10 +176,16 @@ function(_libra_register_fixer_clang_tidy TARGET)
     return()
   endif()
 
-  do_register_clang_tidy(fix-clang-tidy ${TARGET} "FIX" ${ARGN})
+  do_register_clang_tidy(
+    fix-clang-tidy
+    ${TARGET}
+    "FIX"
+    ${SRCS}
+    ${STUBS})
   add_dependencies(fix fix-clang-tidy)
 
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
+
   list(LENGTH ARGN LEN)
   libra_message(STATUS "Registered ${LEN} files with ${clang_tidy_NAME} fixer")
 endfunction()

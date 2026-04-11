@@ -140,6 +140,19 @@ If your structure differs from the above, you can disable globbing and
 list files manually in ``project-local.cmake``. See
 :ref:`reference/variables` for the relevant variables.
 
+In addition, build outputs in the binary directory follow these conventions. The
+build directory can of course be wherever you like.
+
+- libraries -> ``${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}`` (usually lib or
+  lib64)
+- executables -> ``${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}`` (usually bin)
+
+.. code-block:: text
+
+my_project/
+   ├── build/ (can be anywhere you want)
+   └──└── lib   ← target definitions (required)
+
 .. _concepts/project-setup/test-naming:
 
 Test file naming
@@ -182,7 +195,7 @@ CMakePresets.json
 =================
 
 LIBRA and ``clibra`` are preset-driven. The following is the recommended
-starting-point preset hierarchy. See :ref:`cli/presets` for a detailed
+starting-point preset hierarchy. See :ref:`concepts/feature-flags` for a detailed
 explanation of every preset and the rationale behind the structure.
 
 .. code-block:: json
@@ -236,8 +249,7 @@ explanation of every preset and the rationale behind the structure.
          "inherits": "base",
          "cacheVariables": {
            "CMAKE_BUILD_TYPE": "Debug",
-           "LIBRA_ANALYSIS": "ON",
-           "LIBRA_USE_COMPDB": "YES"
+           "LIBRA_ANALYSIS": "ON"
          }
        }
      ],
@@ -267,13 +279,6 @@ explanation of every preset and the rationale behind the structure.
        }
      ]
    }
-
-The ``base`` hidden preset sets every ``LIBRA_*`` flag to ``OFF``
-explicitly. This matters: a preset that inherits ``base`` and enables
-only ``LIBRA_TESTS=ON`` is guaranteed to have no other LIBRA features
-active, because ``base`` turned them all off. Without this pattern,
-stray inherited values from unrelated ancestors can enable features
-silently.
 
 To set a personal default preset without committing it, create
 ``CMakeUserPresets.json`` (git-ignored) with:

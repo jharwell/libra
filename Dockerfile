@@ -147,15 +147,6 @@ RUN apt-get update && apt-get install -y \
     bats \
     ninja-build
 
-RUN pip3 install --break-system-packages \
-    sphinx \
-    sphinx-rtd-theme \
-    sphinx-argparse \
-    sphinx-tabs \
-    sphinx-last-updated-by-git \
-    sphinxcontrib-doxylink \
-    graphviz
-
 ################################################################################
 # Environment Setup
 ################################################################################

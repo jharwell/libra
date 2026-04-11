@@ -65,7 +65,7 @@ option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
 option(LIBRA_CODE_COV_NATIVE
        "Should code coverage be emitted in the compiler's native format?" YES)
-option(LIBRA_USE_COMPDB "Should analysis tools use a compilation database?" NO)
+option(LIBRA_USE_COMPDB "Should analysis tools use a compilation database?" YES)
 option(
   LIBRA_CLANG_TOOLS_USE_FIXED_DB
   "Use the '--' separator (fixed compilation database for clang-based tools)"
@@ -188,9 +188,9 @@ endif()
 # unnecessary — conan doesn't care where the build outputs land, it only cares
 # about the install layout (what goes where after cmake --install). The build
 # output directory is purely a developer convenience.
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 # ##############################################################################
 # Source Definitions
@@ -218,7 +218,7 @@ file(GLOB_RECURSE ${PROJECT_NAME}_CXX_TESTS_HEADERS
      ${${PROJECT_NAME}_TESTS_PATH}/*.hpp)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_TESTS_SRC ${${PROJECT_NAME}_TESTS_PATH}/*.c)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_TESTS_HEADERS
-     ${${PROJECT_NAME}_TESTS_PATH}/*.)
+     ${${PROJECT_NAME}_TESTS_PATH}/*.h)
 
 file(GLOB ${PROJECT_NAME}_CMAKE_SRC ${PROJECT_SOURCE_DIR}/CMakeLists.txt
      ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
@@ -264,56 +264,12 @@ include(libra/diagnostics_post)
 # ##############################################################################
 # Code Checking/Analysis Options
 # ##############################################################################
-function(_libra_calculate_srcs SOURCE RET)
-  # Prefer C++ over C if a project enables both languages.
-  if(CMAKE_CXX_COMPILER_LOADED)
-    set(LIBRA_CODE_LANGUAGE CXX)
-    libra_message(STATUS "Detected language C++ for project")
-  elseif(CMAKE_C_COMPILER_LOADED)
-    set(LIBRA_CODE_LANGUAGE C)
-    libra_message(STATUS "Detected language C project")
-  endif()
-
-  if(NOT LIBRA_CODE_LANGUAGE)
-    libra_message(
-      WARNING "Unable to autodetect languages for static analysis--assuming CXX.
-      Set LIBRA_CODE_LANGUAGE in project-local.cmake to remove this warning.")
-    set(LIBRA_CODE_LANGUAGE CXX)
-  endif()
-
-  if("${LIBRA_CODE_LANGUAGE}" STREQUAL "C")
-    if("${SOURCE}" STREQUAL "APIDOC")
-      set(${RET}
-          ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_C_HEADERS}
-          PARENT_SCOPE)
-    else()
-      set(${RET}
-          ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_C_HEADERS}
-          ${${PROJECT_NAME}_C_TESTS_SRC} ${${PROJECT_NAME}_C_TESTS_HEADERS}
-          PARENT_SCOPE)
-    endif()
-  elseif("${LIBRA_CODE_LANGUAGE}" STREQUAL "CXX")
-    if("${SOURCE}" STREQUAL "APIDOC")
-      set(${RET}
-          ${${PROJECT_NAME}_CXX_SRC} ${${PROJECT_NAME}_CXX_HEADERS}
-          PARENT_SCOPE)
-    else()
-      set(${RET}
-          ${${PROJECT_NAME}_CXX_SRC} ${${PROJECT_NAME}_CXX_HEADERS}
-          ${${PROJECT_NAME}_CXX_TESTS_SRC} ${${PROJECT_NAME}_CXX_TESTS_HEADERS}
-          PARENT_SCOPE)
-    endif()
-  else()
-    libra_error(
-      "Bad language '${LIBRA_CODE_LANGUAGE}' for project: must be {C,CXX}")
-  endif()
-endfunction()
-
 if(${LIBRA_ANALYSIS})
   if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(libra/analyze/analyze)
 
-    _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
+    _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC
+                          ${PROJECT_NAME}_ANALYSIS_HEADERS)
     # Should not be needed, but just for safety
     if("${LIBRA_DRIVER}" MATCHES "CONAN")
       list(
@@ -324,6 +280,24 @@ if(${LIBRA_ANALYSIS})
         "\.conan2")
     endif()
 
+    set(STUB_DIR "${CMAKE_BINARY_DIR}/libra_header_stubs")
+    file(MAKE_DIRECTORY "${STUB_DIR}")
+    _libra_prune_stale_stubs(${PROJECT_NAME} "${STUB_DIR}")
+    _libra_generate_header_stubs(${PROJECT_NAME} "${STUB_DIR}"
+                                 ${PROJECT_NAME}_ANALYSIS_STUBS)
+
+    if(${PROJECT_NAME}_ANALYSIS_STUBS)
+      # Now stubs get compdb entries and --header-filter picks up their headers
+      add_library(_${PROJECT_NAME}_analysis_stubs OBJECT
+                  EXCLUDE_FROM_ALL ${${PROJECT_NAME}_ANALYSIS_STUBS})
+      target_link_libraries(_${PROJECT_NAME}_analysis_stubs
+                            PRIVATE ${PROJECT_NAME})
+    endif()
+    list(LENGTH ${PROJECT_NAME}_ANALYSIS_STUBS STUBS_LEN)
+    list(LENGTH ${PROJECT_NAME}_ANALYSIS_SRC SRC_LEN)
+    libra_message(STATUS
+                  "Registering ${STUBS_LEN}+${SRC_LEN} stubs+source files")
+
     # Multi-funtion tools
     _libra_toggle_clang_tidy(ON)
     _libra_toggle_clang_format(ON)
@@ -333,19 +307,41 @@ if(${LIBRA_ANALYSIS})
     # Handy checking tools
     libra_message(STATUS "Enabling analysis tools: checkers")
     _libra_toggle_checker_cppcheck(ON)
-    _libra_register_code_checkers(${PROJECT_NAME}
-                                  ${${PROJECT_NAME}_ANALYSIS_SRC})
+    _libra_register_code_checkers(
+      ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
+      "${${PROJECT_NAME}_ANALYSIS_STUBS}")
 
     _libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
 
     # Handy formatting tools
     libra_message(STATUS "Enabling analysis tools: formatters")
-    _libra_register_code_formatters(${${PROJECT_NAME}_ANALYSIS_SRC})
+    _libra_register_code_formatters("${${PROJECT_NAME}_ANALYSIS_SRC}"
+                                    "${${PROJECT_NAME}_ANALYSIS_HEADERS}")
     _libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
 
     # Handy fixing tools
     libra_message(STATUS "Enabling analysis tools: fixers")
-    _libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
+    _libra_register_code_fixers(
+      ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
+      "${${PROJECT_NAME}_ANALYSIS_STUBS}")
+
+    if(clang_tidy_EXECUTABLE AND clang_check_EXECUTABLE)
+      # Extract version numbers and warn if they differ
+      execute_process(
+        COMMAND ${clang_tidy_EXECUTABLE} --version
+        OUTPUT_VARIABLE _tidy_ver
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+      execute_process(
+        COMMAND ${clang_check_EXECUTABLE} --version
+        OUTPUT_VARIABLE _check_ver
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+      if(NOT "${_tidy_ver}" STREQUAL "${_check_ver}")
+        libra_message(
+          WARNING "clang-tidy and clang-check are different versions -- "
+          "analysis results may be inconsistent")
+      endif()
+    endif()
+
   endif()
 endif()
 
@@ -359,8 +355,7 @@ if(LIBRA_DOCS)
     include(libra/apidoc)
 
     add_custom_target(apidoc-check)
-    set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
-                                                     1)
+    set_target_properties(apidoc-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
     _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
     # Should not be needed, but just for safety

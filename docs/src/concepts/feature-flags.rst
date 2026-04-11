@@ -79,27 +79,12 @@ The explicit-off pattern
 
 The recommended preset hierarchy (see :ref:`concepts/project-setup/presets`)
 uses a ``base`` hidden preset that sets every ``LIBRA_*`` flag to its
-default/off state explicitly:
-
-.. code-block:: json
-
-   {
-     "name": "base",
-     "hidden": true,
-     "cacheVariables": {
-       "LIBRA_TESTS":    "OFF",
-       "LIBRA_CODE_COV": "OFF",
-       "LIBRA_ANALYSIS": "OFF",
-       "LIBRA_DOCS":     "OFF"
-     }
-   }
-
-Every other preset inherits from ``base`` and enables only what it
-needs. This matters because CMake preset inheritance is additive — a
-child preset that does not mention a variable inherits its parent's
-value. Without ``base`` setting everything off, a ``coverage`` preset
-inheriting from ``debug`` might silently inherit ``LIBRA_ANALYSIS=ON``
-from some ancestor and run analysis on every coverage build.
+default/off state explicitly.  Every other preset inherits from ``base`` and
+enables only what it needs. This matters because CMake preset inheritance is
+additive — a child preset that does not mention a variable inherits its parent's
+value. Without ``base`` setting everything off, a ``coverage`` preset inheriting
+from ``debug`` might silently inherit ``LIBRA_ANALYSIS=ON`` from some ancestor
+and run analysis on every coverage build.
 
 The explicit-off pattern makes every preset self-describing: reading a
 preset's ``cacheVariables`` tells you exactly what is enabled, with no

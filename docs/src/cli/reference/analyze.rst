@@ -24,11 +24,6 @@ CMake equivalent
 .. code-block:: bash
 
    cmake --build --preset <n> --target analyze
-   cmake --build --preset <n> --target analyze-clang-tidy
-   cmake --build --preset <n> --target analyze-clang-check
-   cmake --build --preset <n> --target analyze-cppcheck
-   cmake --build --preset <n> --target analyze-clang-format
-   cmake --build --preset <n> --target analyze-cmake-format
 
 For tool-specific configuration (suppression files, extra args, etc.) see
 :ref:`cookbook/analysis`.

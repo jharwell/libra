@@ -41,8 +41,6 @@ set(_LIBRA_C_LINK_OPTIONS ${_LIBRA_COMMON_LINK_OPTIONS}
 set(_LIBRA_CXX_LINK_OPTIONS ${_LIBRA_COMMON_LINK_OPTIONS}
                             ${_LIBRA_CXX_STDLIB_LINK_OPTIONS})
 
-get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
-
 # We have to do this by target, because setting
 # CMAKE_INTERPROCEDURAL_OPTIMIZATION in the per-compiler .cmake files only
 # affects targets created AFTER that, and since that stuff is currently included

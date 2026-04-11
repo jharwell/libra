@@ -14,18 +14,15 @@ function(do_register_clang_check CHECK_TARGET TARGET JOB)
     set(JOB_ARGS --fixit)
   endif()
 
-  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
-  set(USE_DATABASE ${LIBRA_USE_COMPDB})
-
   add_custom_target(${CHECK_TARGET})
-
+  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
   foreach(file ${ARGN})
     # We create one target per file we want to analyze so that we can do
     # analysis in parallel if desired. Targets can't have '/' on '.' in their
     # names, hence the replacements.
     string(REPLACE "/" "_" file_target "${file}")
     string(REPLACE "." "_" file_target "${file_target}")
-    if(USE_DATABASE)
+    if(LIBRA_USE_COMPDB)
       add_custom_target(
         ${CHECK_TARGET}-${file_target}
         COMMAND
@@ -77,10 +74,16 @@ function(_libra_register_checker_clang_check TARGET)
     return()
   endif()
 
-  do_register_clang_check(analyze-clang-check ${TARGET} "CHECK" ${ARGN})
+  do_register_clang_check(
+    analyze-clang-check
+    ${TARGET}
+    "CHECK"
+    ${SRCS}
+    ${STUBS})
   add_dependencies(analyze analyze-clang-check)
 
   get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
+
   list(LENGTH ARGN LEN)
   libra_message(STATUS
                 "Registered ${LEN} files with ${clang_check_NAME} checker")
@@ -95,7 +98,12 @@ function(_libra_register_fixer_clang_check TARGET)
     return()
   endif()
 
-  do_register_clang_check(fix-clang-check ${TARGET} "FIX" ${ARGN})
+  do_register_clang_check(
+    fix-clang-check
+    ${TARGET}
+    "FIX"
+    ${SRCS}
+    ${STUBS})
   add_dependencies(fix fix-clang-check)
 
   get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
@@ -116,7 +124,7 @@ function(_libra_toggle_clang_check request)
 
   find_program(
     clang_check_EXECUTABLE
-    NAMES clang-tidy-21
+    NAMES clang-check-21
           clang-check-20
           clang-check-19
           clang-check-18

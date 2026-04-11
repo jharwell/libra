@@ -12,7 +12,7 @@ set(_LIBRA_SHOWED_SUMMARY NO)
 set(_LIBRA_SUMMARY_COL_FEATURE 37) # Feature description
 set(_LIBRA_SUMMARY_COL_STATUS 46) # Status/value
 set(_LIBRA_SUMMARY_COL_VARIABLE 33) # [VARIABLE_NAME]
-set(_LIBRA_SUMMARY_COL_TARGET 22) # make target name
+set(_LIBRA_SUMMARY_COL_TARGET 36) # make target name
 set(_LIBRA_SUMMARY_SEP_WIDTH 80) # inner separator width
 
 # ##############################################################################
@@ -628,6 +628,30 @@ function(_libra_create_help_targets)
     analyze
     NONE
     analyze-clang-tidy
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-clang-analyze-core
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-abseil
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-readability
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-hicpp
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-bugprone
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-cert
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-preformance
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-portability
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-concurrency
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-modernize
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-misc
+    clang_tidy_EXECUTABLE
+    analyze-clang-tidy-google
     clang_tidy_EXECUTABLE
     analyze-clang-check
     clang_check_EXECUTABLE

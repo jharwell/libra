@@ -10,19 +10,16 @@ This page covers running LIBRA's static analysis tools: running all
 tools or a single tool, auto-fixing warnings, suppressing noise,
 and configuring clang-tidy check categories.
 
-For conceptual background (why LIBRA doesn't use a compilation
-database by default, how language detection works), see
-:ref:`concepts/analysis`. For the target reference, see
-:ref:`reference/targets`. For the flag reference, see
+For conceptual background on how LIBRA uses a compilation database, language
+detection, and header coverage, see :ref:`concepts/analysis`. For the target
+reference, see :ref:`reference/targets`. For the flag reference, see
 :ref:`cli/reference/analyze`.
 
 1. Add an analyze preset
 =========================
 
 Analysis should run in its own preset and build directory, separate
-from debug builds. The ``LIBRA_USE_COMPDB`` flag is recommended when
-using Clang-based tools — see :ref:`concepts/analysis` for the
-trade-offs:
+from debug builds:
 
 .. code-block:: json
 
@@ -33,8 +30,7 @@ trade-offs:
          "inherits": "base",
          "cacheVariables": {
            "CMAKE_BUILD_TYPE": "Debug",
-           "LIBRA_ANALYSIS":  "ON",
-           "LIBRA_USE_COMPDB": "YES"
+           "LIBRA_ANALYSIS":  "ON"
          }
        }
      ],
@@ -69,6 +65,9 @@ building the full project first.
          cmake --preset analyze
          cmake --build --preset analyze --target analyze
 
+For the full list of per-tool and per-category targets, see
+:ref:`reference/targets`.
+
 Only tools found on ``PATH`` are run. If ``cppcheck`` is not
 installed, ``analyze-cppcheck`` does not exist and is silently skipped
 by the umbrella ``analyze`` target. Run ``clibra info`` or
@@ -85,20 +84,15 @@ tools are available.
       .. code-block:: bash
 
          clibra analyze clang-tidy   --preset analyze
-         clibra analyze clang-check  --preset analyze
-         clibra analyze cppcheck     --preset analyze
-         clibra analyze clang-format --preset analyze
-         clibra analyze cmake-format --preset analyze
 
    .. tab-item:: CMake
 
       .. code-block:: bash
 
          cmake --build --preset analyze --target analyze-clang-tidy
-         cmake --build --preset analyze --target analyze-clang-check
-         cmake --build --preset analyze --target analyze-cppcheck
-         cmake --build --preset analyze --target analyze-clang-format
-         cmake --build --preset analyze --target analyze-cmake-format
+
+For the full list of per-tool and per-category targets, see
+:ref:`reference/targets`.
 
 4. Auto-fix warnings
 ====================
@@ -136,6 +130,9 @@ Format code in place (clang-format and cmake-format):
 
          cmake --build --preset analyze --target format
 
+For the full list of per-tool and per-category targets, see
+:ref:`reference/targets`.
+
 5. Run a specific clang-tidy check category
 ============================================
 
@@ -159,10 +156,9 @@ each of which enables only that category's checks via ``-*,+category.*``:
          cmake --build --preset analyze --target analyze-clang-tidy-modernize
          cmake --build --preset analyze --target analyze-clang-tidy-bugprone
 
-Available categories: ``abseil``, ``bugprone``, ``cert``,
-``concurrency``, ``cppcoreguidelines``, ``google``, ``hicpp``,
-``misc``, ``modernize``, ``performance``, ``portability``,
-``readability``.
+Available categories are listed in :ref:`reference/targets`. Run
+``cmake --build --preset analyze --target help-targets`` to confirm
+which are active in your build.
 
 6. Suppress warnings
 =====================

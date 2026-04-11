@@ -156,10 +156,10 @@ jobs:
             .
 
   create-release:
-    # Only create releases from master (stable) and devel (beta) branches
+    # Only create releases from master (stable). Gettings beta releases on every
+    # merge to devel is more noisy than useful.
     if: |
-      github.ref == 'refs/heads/master' ||
-      github.ref == 'refs/heads/devel'
+      github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16
@@ -181,21 +181,6 @@ jobs:
         run: |
           VERSION=$(grep -oP '(?<=set\(LIBRA_VERSION )[^)]+' cmake/libra/version.cmake)
           echo "version=v${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Set beta release tag
-        if: github.ref == 'refs/heads/devel'
-        shell: bash
-        run: |
-          echo "RELEASE_TAG=${{ steps.version.outputs.version }}-beta" >> $GITHUB_ENV
-
-      - name: Github beta release
-        if: github.ref == 'refs/heads/devel'
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: ${{ secrets.BOT_RELEASE_TOKEN }}
-          automatic_release_tag: ${{ env.RELEASE_TAG }}
-          prerelease: true
-          title: "Development release ${{ env.RELEASE_TAG }}"
 
       - name: Set release tag
         if: github.ref == 'refs/heads/master'

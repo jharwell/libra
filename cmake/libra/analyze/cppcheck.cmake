@@ -30,11 +30,6 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
     set(LIBRA_CPPCHECK_EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT}")
   endif()
 
-  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
-  set(USE_DATABASE ${LIBRA_USE_COMPDB})
-
-  get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
-
   # This may be required
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     list(APPEND LIBRA_CPPCHECK_EXTRA_ARGS -D__linux__)
@@ -42,7 +37,7 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
 
   # If a compilation database is used, cppcheck doesn't let you check a specific
   # file.
-  if(USE_DATABASE)
+  if(LIBRA_USE_COMPDB)
     add_custom_target(
       ${CHECK_TARGET}
       COMMAND
@@ -85,9 +80,6 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
   endif()
 
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-  list(LENGTH ARGN LEN)
-  libra_message(STATUS "Registered ${LEN} files with ${cppcheck_NAME}")
 endfunction()
 
 # ##############################################################################
@@ -100,6 +92,12 @@ function(_libra_register_checker_cppcheck TARGET)
   do_register_cppcheck(analyze-cppcheck ${TARGET} ${ARGN})
 
   add_dependencies(analyze analyze-cppcheck)
+
+  get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
+
+  list(LENGTH ARGN LEN)
+  libra_message(STATUS "Registered ${LEN} files with ${cppcheck_NAME}")
+
 endfunction()
 
 # ##############################################################################

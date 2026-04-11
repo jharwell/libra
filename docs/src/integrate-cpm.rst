@@ -6,7 +6,6 @@
 .. code-block:: cmake
 
    cmake_minimum_required(VERSION 3.31)
-   project(my_project CXX)
 
    file(DOWNLOAD
         https://github.com/cpm-cmake/CPM.cmake/releases/download/v0.40.2/CPM.cmake

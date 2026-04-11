@@ -106,12 +106,18 @@ for tools that are found on ``PATH`` are created — see
 
        - ``analyze-cppcheck`` — runs ``cppcheck``
        - ``analyze-clang-check`` — runs the clang static checker
-       - ``analyze-clang-tidy`` — runs clang-tidy using ``.clang-tidy``
-         in the repo root. Per-category targets also exist:
-         ``analyze-clang-tidy-modernize``, ``analyze-clang-tidy-bugprone``,
-         etc. — see ``cmake --build . --target help`` for the full set.
+       - ``analyze-clang-tidy`` — runs clang-tidy using ``.clang-tidy`` in the
+         repo root. Per-category targets follow the pattern
+         ``analyze-clang-tidy-<category>`` and ``fix-clang-tidy-<category>``.
+         Available categories: ``abseil``, ``bugprone``, ``cert``,
+         ``clang-analyzer-core``, ``concurrency``, ``cppcoreguidelines``,
+         ``google``, ``hicpp``, ``misc``, ``modernize``, ``performance``,
+         ``portability``, ``readability``.
+
        - ``analyze-clang-format`` — runs ``clang-format`` in check mode
-         (no changes made). .. versionadded:: 0.8.15
+         (no changes made).
+         .. versionadded:: 0.8.15
+
        - ``analyze-cmake-format`` — runs ``cmake-format`` in check mode.
          .. versionadded:: 0.8.15
 

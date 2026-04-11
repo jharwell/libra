@@ -21,3 +21,4 @@ knowledge. Day-to-day test workflows (filtering, debugging) are in
    testing
    analysis
    docs
+   style
