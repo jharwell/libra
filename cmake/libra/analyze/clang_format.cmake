@@ -8,7 +8,7 @@ include(libra/messaging)
 # ##############################################################################
 # Register a target for clang-format formatting
 # ##############################################################################
-function(do_register_clang_format FMT_TARGET JOB)
+function(_libra_register_clang_format FMT_TARGET JOB)
   if(JOB STREQUAL "FORMAT")
     set(JOB_ARGS -i)
   else()
@@ -61,7 +61,7 @@ function(_libra_register_formatter_clang_format)
     return()
   endif()
 
-  do_register_clang_format(format-clang-format "FORMAT" ${ARGN})
+  _libra_register_clang_format(format-clang-format "FORMAT" ${ARGN})
   add_dependencies(format format-clang-format)
 
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
@@ -78,7 +78,7 @@ function(_libra_register_checker_clang_format)
     return()
   endif()
 
-  do_register_clang_format(analyze-clang-format "CHECK" ${ARGN})
+  _libra_register_clang_format(analyze-clang-format "CHECK" ${ARGN})
   add_dependencies(analyze analyze-clang-format)
 
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
@@ -86,37 +86,4 @@ function(_libra_register_checker_clang_format)
   libra_message(STATUS
                 "Registered ${LEN} files with ${clang_format_NAME} checker")
 
-endfunction()
-
-# ##############################################################################
-# Enable or disable clang-format for auto-formatting/checking for the project
-# ##############################################################################
-function(_libra_toggle_clang_format request)
-  if(NOT request)
-    libra_message(STATUS "Disabling clang-format formatter by request")
-    set(clang_format_EXECUTABLE)
-    return()
-  endif()
-
-  find_program(
-    clang_format_EXECUTABLE
-    NAMES clang-format-21
-          clang-format-20
-          clang-format-19
-          clang-format-18
-          clang-format-17
-          clang-format-16
-          clang-format-15
-          clang-format-14
-          clang-format-13
-          clang-format-12
-          clang-format-11
-          clang-format-10
-          clang-format
-    PATHS "${clang_format_DIR}")
-
-  if(NOT clang_format_EXECUTABLE)
-    libra_message(STATUS "clang-format [disabled=not found]")
-    return()
-  endif()
 endfunction()

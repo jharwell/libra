@@ -26,16 +26,32 @@ pub struct DocsArgs {
     /// Reconfigure with a --fresh cmake build directory.
     #[arg(short, long)]
     pub fresh: bool,
+
+    /// The check to run. Defaults to nothing.
+    #[arg(short, long)]
+    pub check: Option<CheckKind>,
+
+    /// Continue building after errors. Only valid with {Ninja, Unix Makefiles}
+    /// generators.
+    #[arg(short = 'k', long)]
+    pub keep_going: bool,
 }
 
 // Traits
+#[derive(clap::ValueEnum, Debug, Clone)]
+pub enum CheckKind {
+    Clang,
+    Doxygen,
+}
 
 // Implementation
-
-// Public API
-pub fn run(ctx: &runner::Context, args: DocsArgs) -> anyhow::Result<()> {
+pub fn run_target(
+    ctx: &runner::Context,
+    args: &DocsArgs,
+    target: &str,
+    fail_ok: bool,
+) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
-
     let preset = preset::resolve(ctx, Some("docs"))?;
 
     debug!("Begin");
@@ -45,26 +61,44 @@ pub fn run(ctx: &runner::Context, args: DocsArgs) -> anyhow::Result<()> {
         cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
     }
 
-    cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_DOCS")?;
+    if !ctx.dry_run {
+        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_DOCS")?;
 
-    match cmake::target_status("apidoc", &preset, ctx)? {
-        cmake::TargetStatus::Available => {
-            debug!("apidoc target available--building");
-            let mut cmd = cmake::base_build(&preset);
-            ctx.run(cmd.args(["--target", "apidoc"]))?;
-        }
-        cmake::TargetStatus::Unavailable(reason) => {
-            warn!("apidoc target disabled (reason: {})--skipping", reason);
+        match cmake::target_status(target, &preset, ctx)? {
+            cmake::TargetStatus::Unavailable(reason) => {
+                if fail_ok {
+                    warn!(
+                        "Docs target {} disabled (reason: {})--skipping",
+                        &target, reason
+                    );
+                } else {
+                    anyhow::bail!("Docs target {} disabled (reason: {})", &target, reason);
+                }
+            }
+            cmake::TargetStatus::Available => {}
         }
     }
-    match cmake::target_status("sphinxdoc", &preset, ctx)? {
-        cmake::TargetStatus::Available => {
-            debug!("sphinxdoc target available--building");
-            let mut cmd = cmake::base_build(&preset);
-            ctx.run(cmd.args(["--target", "sphinxdoc"]))?
-        }
-        cmake::TargetStatus::Unavailable(reason) => {
-            warn!("sphinxdoc target disabled (reason: {})--skipping", reason);
+    let mut cmd = cmake::base_build(&preset);
+    cmd.args(["--target", target]);
+    if args.keep_going {
+        cmd = cmake::with_keep_going(cmd, &preset)?;
+    }
+    ctx.run(&mut cmd)?;
+    Ok(())
+}
+
+// Public API
+pub fn run(ctx: &runner::Context, args: DocsArgs) -> anyhow::Result<()> {
+    preset::ensure_project_root(ctx)?;
+
+    debug!("Begin");
+
+    match args.check {
+        Some(CheckKind::Clang) => run_target(ctx, &args, "apidoc-check-clang", false)?,
+        Some(CheckKind::Doxygen) => run_target(ctx, &args, "apidoc-check-doxygen", false)?,
+        None => {
+            run_target(ctx, &args, "apidoc", true)?;
+            run_target(ctx, &args, "sphinxdoc", true)?;
         }
     }
 

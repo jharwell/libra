@@ -73,7 +73,6 @@ macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
       set(CANDIDATE_HEADERS ${${PROJECT_NAME}_C_HEADERS})
     endif()
   elseif("${_LANGUAGE}" STREQUAL "CXX")
-
     if("${SOURCE}" STREQUAL "APIDOC")
       set(CANDIDATE_SRCS ${${PROJECT_NAME}_CXX_SRC})
       set(CANDIDATE_HEADERS ${${PROJECT_NAME}_CXX_HEADERS})

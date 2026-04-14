@@ -29,7 +29,7 @@ set(CLANG_TIDY_CATEGORIES
 # Register a target for clang-tidy checking
 # ##############################################################################
 function(
-  do_register_clang_tidy
+  _libra_register_clang_tidy
   CHECK_TARGET
   TARGET
   JOB
@@ -66,6 +66,13 @@ function(
 
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
+  _libra_get_project_language(_LANG)
+  if("${_LANG}" STREQUAL "CXX")
+    set(STD_ARGS --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD})
+  else()
+    set(STD_ARGS --extra-arg=-std=gnu${LIBRA_C_STANDARD})
+  endif()
+
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
     add_custom_target(${CHECK_TARGET}-${CATEGORY})
@@ -99,9 +106,9 @@ function(
             --header-filter=${CMAKE_SOURCE_DIR}/include/.* ${HEADER_EXCLUDES}
             --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
             --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
-            ${JOB_ARGS} --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
-            --extra-arg=-Wno-unknown-warning-option --warnings-as-errors='*'
-            ${EXTRACTED_ARGS} ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
+            ${JOB_ARGS} ${STD_ARGS} --extra-arg=-Wno-unknown-warning-option
+            --warnings-as-errors='*' ${EXTRACTED_ARGS}
+            ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
           COMMENT
             "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
@@ -117,8 +124,7 @@ function(
               --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
               --warnings-as-errors='*' -p /tmp/libra-nonexistent --quiet
               ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${JOB_ARGS} ${file} --
-              ${EXTRACTED_ARGS} -std=gnu++${LIBRA_CXX_STANDARD}
-              -Wno-unknown-warning-option
+              ${EXTRACTED_ARGS} ${STD_ARGS} -Wno-unknown-warning-option
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT
               "Running ${clang_tidy_NAME} without compdb on ${file} (fixed compdb)"
@@ -132,8 +138,7 @@ function(
               ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
               --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
               --warnings-as-errors='*' -p /tmp/libra-nonexistent --quiet
-              ${JOB_ARGS} ${EXTRACTED_ARGS}
-              --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD}
+              ${JOB_ARGS} ${EXTRACTED_ARGS} ${STD_ARGS}
               --extra-arg=-Wno-unknown-warning-option
               ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -148,11 +153,13 @@ function(
     endforeach()
   endforeach()
 
-  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 endfunction()
 
 # ##############################################################################
 # Register all target sources with the clang_tidy checker
+#
+# This function is different than the other analysis checkers, because the
+# misc-include-cleaner category needs the raw headers (no stubs).
 # ##############################################################################
 function(
   _libra_register_checker_clang_tidy
@@ -164,7 +171,7 @@ function(
     return()
   endif()
 
-  do_register_clang_tidy(
+  _libra_register_clang_tidy(
     analyze-clang-tidy
     ${TARGET}
     "CHECK"
@@ -174,80 +181,36 @@ function(
   add_dependencies(analyze analyze-clang-tidy)
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
-  list(LENGTH ARGN LEN)
-  libra_message(
-    STATUS
-    "Registered
-    ${LEN}
-    files
-    with
-    ${clang_tidy_NAME}
-    checker")
+  list(LENGTH SRCS LEN1)
+  list(LENGTH HEADERS LEN2)
+  list(LENGTH STUBS LEN3)
+  math(EXPR LEN "${LEN1} + ${LEN2} + ${LEN3}")
+  libra_message(STATUS
+                "Registered ${LEN} files with ${clang_tidy_NAME} checker")
 endfunction()
 
 # ##############################################################################
 # Register all target sources with the clang_tidy fixer
 # ##############################################################################
-function(_libra_register_fixer_clang_tidy TARGET)
+function(_libra_register_fixer_clang_tidy TARGET SRCS)
   if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
 
-  do_register_clang_tidy(fix-clang-tidy ${TARGET} "FIX" ${ARGN})
+  # Fixers operate on source files only -- no headers or stubs needed.
+  # Pass empty lists for HEADERS and STUBS to satisfy the positional signature
+  # of _libra_register_clang_tidy.
+  _libra_register_clang_tidy(
+    fix-clang-tidy
+    ${TARGET}
+    "FIX"
+    "${SRCS}"
+    ""
+    "")
   add_dependencies(fix fix-clang-tidy)
 
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
-  list(LENGTH ARGN LEN)
-  libra_message(
-    STATUS
-    "Registered
-    ${LEN}
-    files
-    with
-    ${clang_tidy_NAME}
-    fixer")
-endfunction()
-
-# ##############################################################################
-# Enable or disable clang-tidy checking for the project
-# ##############################################################################
-function(_libra_toggle_clang_tidy request)
-  if(NOT request)
-    libra_message(
-      STATUS
-      "Disabling
-    clang-tidy
-    by
-    request")
-    set(clang_tidy_EXECUTABLE)
-    return()
-  endif()
-
-  find_program(
-    clang_tidy_EXECUTABLE
-    NAMES clang-tidy-21
-          clang-tidy-20
-          clang-tidy-19
-          clang-tidy-18
-          clang-tidy-17
-          clang-tidy-16
-          clang-tidy-15
-          clang-tidy-14
-          clang-tidy-13
-          clang-tidy-12
-          clang-tidy-11
-          clang-tidy-10
-          clang-tidy
-    PATHS "${clang_tidy_DIR}")
-
-  if(NOT clang_tidy_EXECUTABLE)
-    libra_message(
-      STATUS
-      "clang-tidy
-    [disabled=not
-    found]
-    ")
-    return()
-  endif()
+  list(LENGTH SRCS LEN)
+  libra_message(STATUS "Registered ${LEN} files with ${clang_tidy_NAME} fixer")
 endfunction()

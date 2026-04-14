@@ -68,6 +68,8 @@ endfunction()
 
 # Detect llvm-cov and llvm-profdata for native Clang coverage
 function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
   # Use whichever compiler IS actually clang for version detection
   if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(_detect_compiler ${CMAKE_C_COMPILER})
@@ -96,6 +98,7 @@ function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
 
   libra_message(STATUS "Using llvm-cov=${LLVM_COV_TOOL}")
   libra_message(STATUS "Using llvm-profdata=${LLVM_PROFDATA_TOOL}")
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # Get all test executables for coverage
@@ -140,6 +143,8 @@ endfunction()
 # LCOV Coverage (GCC-compatible format)
 # ##############################################################################
 function(_libra_coverage_register_lcov)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
   find_program(LCOV_EXECUTABLE NAMES lcov REQUIRED)
   find_program(GENHTML_EXECUTABLE NAMES genhtml REQUIRED)
 
@@ -204,12 +209,15 @@ function(_libra_coverage_register_lcov)
       VERBATIM)
     libra_message(STATUS "Created lcov coverage targets")
   endif()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # ##############################################################################
 # GCOVR Coverage (GCC-compatible format with gcovr)
 # ##############################################################################
 function(_libra_coverage_register_gcovr)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
   _libra_detect_gcov_tool(gcovr_EXECUTABLE)
 
   libra_message(STATUS "Using gcovr=${gcovr_EXECUTABLE}")
@@ -260,12 +268,15 @@ function(_libra_coverage_register_gcovr)
       VERBATIM)
     libra_message(STATUS "Created gcovr coverage targets")
   endif()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # ##############################################################################
 # LLVM-COV Coverage (Native Clang source-based coverage)
 # ##############################################################################
 function(_libra_coverage_register_llvm)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
   if(NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES
                                                  "Clang"))
     libra_error("llvm-cov coverage requires clang compiler")
@@ -360,4 +371,5 @@ function(_libra_coverage_register_llvm)
     DEPENDS llvm-profdata llvm-report llvm-summary
     COMMENT "Generating complete LLVM coverage report")
   libra_message(STATUS "Created LLVM coverage targets")
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()

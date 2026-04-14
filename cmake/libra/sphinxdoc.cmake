@@ -10,6 +10,8 @@
 include(libra/messaging)
 
 function(_libra_sphinxdoc_configure)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
   if(NOT DEFINED LIBRA_SPHINXDOC_COMMAND)
     set(LIBRA_SPHINXDOC_COMMAND ${LIBRA_SPHINXDOC_COMMAND_DEFAULT})
   endif()
@@ -52,4 +54,5 @@ function(_libra_sphinxdoc_configure)
       "Not creating sphinxdoc target: ${CMAKE_CURRENT_SOURCE_DIR}/docs/conf.py missing"
     )
   endif()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()

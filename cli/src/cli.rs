@@ -114,14 +114,15 @@ pub enum Command {
     ///
     Coverage(coverage::CoverageArgs),
 
-    /// Configure (if needed) and build documentation.
+    /// Configure (if needed) and build/check documentation.
     ///
     /// Requires `LIBRA_DOCS=ON` in the preset's CMake cache. The preset
     /// defaults to docs if not given.
     ///
     /// Attempts to build both `apidoc` and `sphinxdoc` targets
     /// independently. If a target is listed as unavailable by the build system,
-    /// it is skipped with a warning rather than an error.
+    /// it is skipped with a warning rather than an error. Has suboptions for
+    /// checking documentation.
     Docs(docs::DocsArgs),
 
     /// Clean build artifacts for the active preset.

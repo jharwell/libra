@@ -7,7 +7,7 @@
 // Imports
 use crate::preset;
 use crate::runner;
-use log::{debug, trace};
+use log::{debug, trace, warn};
 
 // Types
 pub enum TargetStatus {
@@ -221,6 +221,25 @@ pub fn base_workflow(preset: &str) -> std::process::Command {
     let mut cmd = std::process::Command::new("cmake");
     cmd.args(["--workflow", "--preset", preset]);
     cmd
+}
+
+pub fn with_keep_going(
+    mut cmd: std::process::Command,
+    preset: &str,
+) -> anyhow::Result<std::process::Command> {
+    let generator = generator(preset).unwrap_or_else(|e| {
+        warn!("Failed to detect CMake generator: {e}, defaulting to Unix Makefiles");
+        "Unix Makefiles".to_string()
+    });
+
+    if generator == "Ninja" {
+        cmd.args(["--", "-k0"]);
+    } else if generator == "Unix Makefiles" {
+        cmd.args(["--", "--keep-going"]);
+    } else {
+        anyhow::bail!("--keep-going only supported with {{Ninja, Unix Makefiles}} generators");
+    }
+    Ok(cmd)
 }
 
 #[cfg(test)]

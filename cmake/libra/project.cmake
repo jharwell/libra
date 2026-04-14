@@ -276,12 +276,13 @@ endif()
 if(LIBRA_DOCS)
   libra_message(STATUS "Configuring documentation generation")
   if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    include(libra/apidoc)
+    include(libra/analyze/apidoc)
 
     add_custom_target(apidoc-check)
     set_target_properties(apidoc-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-    _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC "")
+    _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC
+                          ${PROJECT_NAME}_DOCS_HEADERS)
     # Should not be needed, but just for safety
     if("${LIBRA_DRIVER}" MATCHES "CONAN")
       list(
@@ -292,13 +293,17 @@ if(LIBRA_DOCS)
         "\.conan2")
     endif()
 
+    # check if Doxygen is installed
+    find_package(Doxygen)
     _libra_apidoc_configure_doxygen()
-    libra_toggle_clang(ON)
+    _libra_find_apidoc_analyzers()
 
     # Handy checking tools
-    libra_message(STATUS "Enabling apidoc tools: checkers")
-    _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
+    libra_message(STATUS "Configuring apidoc tools: checkers")
+    _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC}
+                                 ${${PROJECT_NAME}_DOCS_HEADERS})
 
+    libra_message(STATUS "Configuring sphinxdoc")
     include(libra/sphinxdoc)
     _libra_sphinxdoc_configure()
   endif()
@@ -319,7 +324,7 @@ endif()
 
 if(LIBRA_CODE_COV)
   if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-
+    libra_message(STATUS "Configuring code coverage")
     include(libra/test/coverage)
 
     if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"

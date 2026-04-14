@@ -33,6 +33,11 @@ preference — it is a correctness requirement for the ``fix`` targets (see
 targets against a stale build that does not reflect current source can
 produce incorrect patches.
 
+It is (highly) unlikely that a given project will want to require that ALL
+static analysis checks pass for MR merge, etc. Many of the checks overlap with
+each other (esp. ``clang-tidy``), so it is up to each project to choose which
+checks to use.
+
 Compilation database
 ====================
 
