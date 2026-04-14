@@ -28,7 +28,14 @@ set(CLANG_TIDY_CATEGORIES
 # ##############################################################################
 # Register a target for clang-tidy checking
 # ##############################################################################
-function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
+function(
+  do_register_clang_tidy
+  CHECK_TARGET
+  TARGET
+  JOB
+  SRCS
+  HEADERS
+  STUBS)
   analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
 
   if(JOB STREQUAL "FIX")
@@ -69,7 +76,7 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
     # We generate per-file commands so that we (a) get more fine-grained
     # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
     # finishes running against ALL files to get feedback for a given file.
-    foreach(file ${ARGN})
+    foreach(file ${SRCS} ${HEADERS} ${STUBS})
 
       # We create one target per file we want to analyze so that we can do
       # analysis in parallel if desired. Targets can't have '/' on '.' in their
@@ -77,15 +84,13 @@ function(do_register_clang_tidy CHECK_TARGET TARGET JOB)
       string(REPLACE "/" "_" file_target "${file}")
       string(REPLACE "." "_" file_target "${file_target}")
 
-      # It only makes sense to run this for .hpp files; for .cpp files, it is
-      # just noise (mostly). And the noise far outweighs any benefit.
-      get_filename_component(EXT ${file} EXT)
-      set(DISABLE_INCLUDE_CLEANER)
-      if("${EXT}" STREQUAL ".cpp")
-        set(LIBRA_CLANG_TIDY_CONFIG_CHECKS
-            "${LIBRA_CLANG_TIDY_CONFIG_CHECKS},-misc-include-cleaner")
+      # Only run the -misc-include-cleaner on header files. It's just noise in
+      # source files.
+      if("${CATEGORY}" STREQUAL "misc" AND NOT "${file}" IN_LIST HEADERS)
+        continue()
+      elseif(NOT "${CATEGORY}" STREQUAL "misc" AND "${file}" IN_LIST HEADERS)
+        continue()
       endif()
-
       if(LIBRA_USE_COMPDB)
         add_custom_target(
           ${CHECK_TARGET}-${CATEGORY}-${file_target}
@@ -149,7 +154,12 @@ endfunction()
 # ##############################################################################
 # Register all target sources with the clang_tidy checker
 # ##############################################################################
-function(_libra_register_checker_clang_tidy TARGET)
+function(
+  _libra_register_checker_clang_tidy
+  TARGET
+  SRCS
+  HEADERS
+  STUBS)
   if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
@@ -158,14 +168,21 @@ function(_libra_register_checker_clang_tidy TARGET)
     analyze-clang-tidy
     ${TARGET}
     "CHECK"
-    ${SRCS}
-    ${STUBS})
+    "${SRCS}"
+    "${HEADERS}"
+    "${STUBS}")
   add_dependencies(analyze analyze-clang-tidy)
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
   list(LENGTH ARGN LEN)
-  libra_message(STATUS
-                "Registered ${LEN} files with ${clang_tidy_NAME} checker")
+  libra_message(
+    STATUS
+    "Registered
+    ${LEN}
+    files
+    with
+    ${clang_tidy_NAME}
+    checker")
 endfunction()
 
 # ##############################################################################
@@ -176,18 +193,20 @@ function(_libra_register_fixer_clang_tidy TARGET)
     return()
   endif()
 
-  do_register_clang_tidy(
-    fix-clang-tidy
-    ${TARGET}
-    "FIX"
-    ${SRCS}
-    ${STUBS})
+  do_register_clang_tidy(fix-clang-tidy ${TARGET} "FIX" ${ARGN})
   add_dependencies(fix fix-clang-tidy)
 
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
   list(LENGTH ARGN LEN)
-  libra_message(STATUS "Registered ${LEN} files with ${clang_tidy_NAME} fixer")
+  libra_message(
+    STATUS
+    "Registered
+    ${LEN}
+    files
+    with
+    ${clang_tidy_NAME}
+    fixer")
 endfunction()
 
 # ##############################################################################
@@ -195,7 +214,12 @@ endfunction()
 # ##############################################################################
 function(_libra_toggle_clang_tidy request)
   if(NOT request)
-    libra_message(STATUS "Disabling clang-tidy by request")
+    libra_message(
+      STATUS
+      "Disabling
+    clang-tidy
+    by
+    request")
     set(clang_tidy_EXECUTABLE)
     return()
   endif()
@@ -218,7 +242,12 @@ function(_libra_toggle_clang_tidy request)
     PATHS "${clang_tidy_DIR}")
 
   if(NOT clang_tidy_EXECUTABLE)
-    libra_message(STATUS "clang-tidy [disabled=not found]")
+    libra_message(
+      STATUS
+      "clang-tidy
+    [disabled=not
+    found]
+    ")
     return()
   endif()
 endfunction()

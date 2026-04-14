@@ -4,7 +4,12 @@
 # SPDX-License Identifier: MIT
 #
 function(libra_message type msg)
-  message(${type} "[LIBRA] ${msg}")
+  list(JOIN CMAKE_MESSAGE_INDENT "" indent)
+  if(indent STREQUAL "")
+    message(${type} "[LIBRA] ${msg}")
+  else()
+    message(${type} "${indent}${msg}")
+  endif()
 endfunction()
 
 function(libra_error MSG)

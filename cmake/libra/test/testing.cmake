@@ -12,6 +12,7 @@ include(CTest)
 
 include(libra/messaging)
 include(libra/defaults)
+include(libra/test/negative)
 
 # ##############################################################################
 # Test sources
@@ -52,11 +53,6 @@ set(_LIBRA_INTERPRETED_EXTENSIONS bats py sh)
 set(_LIBRA_INTERPRETER_bats "bats")
 set(_LIBRA_INTERPRETER_py "python3")
 set(_LIBRA_INTERPRETER_sh "bash")
-
-# Negative compile test extensions. Files with these extensions are expected to
-# FAIL compilation and are registered as a fourth test category distinct from
-# unit/integration/regression tests.
-set(_LIBRA_NEGATIVE_EXTENSIONS neg.cpp neg.c)
 
 # ##############################################################################
 # Glob for all test sources
@@ -523,118 +519,106 @@ add_custom_target(all-tests)
 add_dependencies(all-tests unit-tests integration-tests regression-tests)
 
 # ##############################################################################
-# Register unit tests
+# Helper: register all tests of one category (unit/integration/regression)
+#
+# Arguments: CATEGORY_LABEL   -- "unit", "integration", or "regression"
+# UMBRELLA_TARGET  -- CMake target name, e.g. "unit-tests" CTEST_FLAG       --
+# value of LIBRA_CTEST_INCLUDE_<X>_TESTS LIST_SUFFIX      -- suffix used in
+# LIBRA_<ext>_<suffix> glob vars ("utests", "itests", "rtests") Sets in parent
+# scope: _libra_n_<LIST_SUFFIX>  -- total count registered
 # ##############################################################################
-# Unit tests
-set(num_utests_total 0)
-foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
-  string(REPLACE "." "_" ext_var ${ext})
+function(
+  _libra_register_tests
+  CATEGORY_LABEL
+  UMBRELLA_TARGET
+  CTEST_FLAG
+  LIST_SUFFIX)
+  set(_total 0)
+  set(_breakdown "")
+  foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
+    string(REPLACE "." "_" ext_var ${ext})
 
-  foreach(t ${LIBRA_${ext_var}_utests})
-    string(FIND ${t} ".#" position)
-    if(NOT "${position}" MATCHES "-1")
-      continue()
+    foreach(t ${LIBRA_${ext_var}_${LIST_SUFFIX}})
+      string(FIND "${t}" ".#" _pos)
+      if(NOT _pos EQUAL -1)
+        continue()
+      endif()
+      dispatch_enable_single_test(${t} ${UMBRELLA_TARGET} ${CTEST_FLAG})
+    endforeach()
+
+    list(LENGTH LIBRA_${ext_var}_${LIST_SUFFIX} _n)
+    math(EXPR _total "${_total} + ${_n}")
+    if(_n GREATER 0)
+      if(_breakdown STREQUAL "")
+        set(_breakdown "${_n} .${ext}")
+      else()
+        string(APPEND _breakdown ", ${_n} .${ext}")
+      endif()
     endif()
-
-    dispatch_enable_single_test(${t} unit-tests
-                                ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
   endforeach()
 
-  list(LENGTH LIBRA_${ext_var}_utests num_ext_utests)
-  math(EXPR num_utests_total "${num_utests_total} + ${num_ext_utests}")
-  if(num_ext_utests GREATER 0)
-    libra_message(STATUS "Registered ${num_ext_utests} .${ext} unit tests")
-  endif()
-endforeach()
-libra_message(STATUS "Registered ${num_utests_total} unit tests total")
+  set(_libra_n_${LIST_SUFFIX}
+      ${_total}
+      PARENT_SCOPE)
+  set(_libra_breakdown_${LIST_SUFFIX}
+      "${_breakdown}"
+      PARENT_SCOPE)
+endfunction()
 
 # ##############################################################################
-# Register integration tests
+# Helper: register negative compile tests for one category
+#
+# Arguments: NEG_LIST         -- list variable name, e.g. LIBRA_neg_utests
+# UMBRELLA_TARGET  -- CMake target name CTEST_FLAG       -- value of
+# LIBRA_CTEST_INCLUDE_<X>_TESTS
 # ##############################################################################
-set(num_itests_total 0)
-foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
-  string(REPLACE "." "_" ext_var ${ext})
-
-  foreach(t ${LIBRA_${ext_var}_itests})
-    string(FIND ${t} ".#" position)
-    if(NOT "${position}" MATCHES "-1")
+function(_libra_register_neg_tests NEG_LIST UMBRELLA_TARGET CTEST_FLAG)
+  foreach(t ${${NEG_LIST}})
+    string(FIND "${t}" ".#" _pos)
+    if(NOT _pos EQUAL -1)
       continue()
     endif()
-
-    dispatch_enable_single_test(${t} integration-tests
-                                ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
+    enable_single_negative_compile_test(${t} ${UMBRELLA_TARGET} ${CTEST_FLAG})
   endforeach()
-
-  list(LENGTH LIBRA_${ext_var}_itests num_ext_itests)
-  math(EXPR num_itests_total "${num_itests_total} + ${num_ext_itests}")
-  if(num_ext_itests GREATER 0)
-    libra_message(STATUS
-                  "Registered ${num_ext_itests} .${ext} integration tests")
-  endif()
-endforeach()
-libra_message(STATUS "Registered ${num_itests_total} integration tests total")
+endfunction()
 
 # ##############################################################################
-# Register regression tests
+# Register all tests
 # ##############################################################################
-set(num_rtests_total 0)
-foreach(ext ${_LIBRA_COMPILED_EXTENSIONS} ${_LIBRA_INTERPRETED_EXTENSIONS})
-  string(REPLACE "." "_" ext_var ${ext})
+libra_message(STATUS "Configuring testing")
+list(APPEND CMAKE_MESSAGE_INDENT " ")
 
-  foreach(t ${LIBRA_${ext_var}_rtests})
-    string(FIND ${t} ".#" position)
-    if(NOT "${position}" MATCHES "-1")
-      continue()
-    endif()
+_libra_register_tests(unit unit-tests ${LIBRA_CTEST_INCLUDE_UNIT_TESTS} utests)
+_libra_register_tests(integration integration-tests
+                      ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS} itests)
+_libra_register_tests(regression regression-tests
+                      ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS} rtests)
 
-    dispatch_enable_single_test(${t} regression-tests
-                                ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
-  endforeach()
-
-  list(LENGTH LIBRA_${ext_var}_rtests num_ext_rtests)
-  math(EXPR num_rtests_total "${num_rtests_total} + ${num_ext_rtests}")
-  if(num_ext_rtests GREATER 0)
-    libra_message(STATUS
-                  "Registered ${num_ext_rtests} .${ext} regression tests")
-  endif()
-endforeach()
-libra_message(STATUS "Registered ${num_rtests_total} regression tests total")
-
-# ##############################################################################
-# Register negative compile tests
-# ##############################################################################
-set(num_negtests_total 0)
-
-foreach(t ${LIBRA_neg_utests})
-  string(FIND ${t} ".#" position)
-  if(NOT "${position}" MATCHES "-1")
-    continue()
-  endif()
-  enable_single_negative_compile_test(${t} unit-tests
-                                      ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
-endforeach()
-
-foreach(t ${LIBRA_neg_itests})
-  string(FIND ${t} ".#" position)
-  if(NOT "${position}" MATCHES "-1")
-    continue()
-  endif()
-  enable_single_negative_compile_test(${t} integration-tests
-                                      ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
-endforeach()
-
-foreach(t ${LIBRA_neg_rtests})
-  string(FIND ${t} ".#" position)
-  if(NOT "${position}" MATCHES "-1")
-    continue()
-  endif()
-  enable_single_negative_compile_test(${t} regression-tests
-                                      ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
-endforeach()
+_libra_register_neg_tests(LIBRA_neg_utests unit-tests
+                          ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
+_libra_register_neg_tests(LIBRA_neg_itests integration-tests
+                          ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
+_libra_register_neg_tests(LIBRA_neg_rtests regression-tests
+                          ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
 
 list(LENGTH LIBRA_neg_utests _n_neg_u)
 list(LENGTH LIBRA_neg_itests _n_neg_i)
 list(LENGTH LIBRA_neg_rtests _n_neg_r)
-math(EXPR num_negtests_total "${_n_neg_u} + ${_n_neg_i} + ${_n_neg_r}")
-libra_message(STATUS
-              "Registered ${num_negtests_total} negative compile tests total")
+math(EXPR _n_neg_total "${_n_neg_u} + ${_n_neg_i} + ${_n_neg_r}")
+
+# Format each line as "N (breakdown)" or just "0" when empty
+foreach(_suffix utests itests rtests)
+  if(_libra_breakdown_${_suffix} STREQUAL "")
+    set(_libra_summary_${_suffix} "${_libra_n_${_suffix}}")
+  else()
+    set(_libra_summary_${_suffix}
+        "${_libra_n_${_suffix}} (${_libra_breakdown_${_suffix}})")
+  endif()
+endforeach()
+
+libra_message(STATUS "unit:        ${_libra_summary_utests}")
+libra_message(STATUS "integration: ${_libra_summary_itests}")
+libra_message(STATUS "regression:  ${_libra_summary_rtests}")
+libra_message(STATUS "negative:    ${_n_neg_total}")
+
+list(POP_BACK CMAKE_MESSAGE_INDENT)

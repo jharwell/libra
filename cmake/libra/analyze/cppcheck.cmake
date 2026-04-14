@@ -97,7 +97,6 @@ function(_libra_register_checker_cppcheck TARGET)
 
   list(LENGTH ARGN LEN)
   libra_message(STATUS "Registered ${LEN} files with ${cppcheck_NAME}")
-
 endfunction()
 
 # ##############################################################################

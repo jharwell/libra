@@ -11,7 +11,13 @@ include(libra/analyze/cmake_format)
 include(libra/messaging)
 
 # Function to register a target for enabled code checkers
-function(_libra_register_code_checkers TARGET SRCS STUBS)
+function(
+  _libra_register_code_checkers
+  TARGET
+  SRCS
+  HEADERS
+  STUBS)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${SRCS}" STREQUAL "")
     libra_error("No source files passed--misconfiguration?")
   endif()
@@ -21,14 +27,16 @@ function(_libra_register_code_checkers TARGET SRCS STUBS)
   set_target_properties(analyze PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
   _libra_register_checker_cppcheck(${TARGET} ${SRCS} ${STUBS})
-  _libra_register_checker_clang_tidy(${TARGET} ${SRCS} ${STUBS})
+  _libra_register_checker_clang_tidy(${TARGET} "${SRCS}" "${HEADERS}"
+                                     "${STUBS}")
   _libra_register_checker_clang_check(${TARGET} ${SRCS} ${STUBS})
-  _libra_register_checker_clang_format(${SRCS} ${${PROJECT_NAME}_CXX_HEADERS}
-                                       ${${PROJECT_NAME}_C_HEADERS})
+  _libra_register_checker_clang_format(${SRCS} ${HEADERS})
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # Function to register a target for enabled automated formatters
 function(_libra_register_code_formatters)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${ARGN}" STREQUAL "")
     libra_error("No source files passed--misconfiguration?")
   endif()
@@ -38,29 +46,35 @@ function(_libra_register_code_formatters)
   set_target_properties(format PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
   _libra_register_formatter_clang_format(${ARGN})
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # Function to register a target for enabled automated formatters for non-code
 # things.
 function(_libra_register_cmake_checkers)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${ARGN}" STREQUAL "")
     libra_error("No CMake files passed--misconfiguration?")
   endif()
 
   _libra_register_checker_cmake_format(${ARGN})
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # Function to register a target for checking format for non-code things.
 function(_libra_register_cmake_formatters)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${ARGN}" STREQUAL "")
     libra_error("No CMake files passed--misconfiguration?")
   endif()
 
   _libra_register_formatter_cmake_format(${ARGN})
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # Function to register a target for enabled automated fixers
 function(_libra_register_code_fixers TARGET SRCS STUBS)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${SRCS}" STREQUAL "")
     libra_error("No source files passed--misconfiguration?")
   endif()
@@ -69,6 +83,7 @@ function(_libra_register_code_fixers TARGET SRCS STUBS)
   set_target_properties(fix PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
   _libra_register_fixer_clang_tidy(${TARGET} ${SRCS} ${STUBS})
   _libra_register_fixer_clang_check(${TARGET} ${SRCS} ${STUBS})
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 # cmake-format: off
@@ -107,12 +122,13 @@ endfunction()
 # ##############################################################################
 # cmake-format: on
 function(_libra_prune_stale_stubs TARGET STUB_DIR)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   get_target_property(IFACE_INCLUDES ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
   if(NOT IFACE_INCLUDES)
     return()
   endif()
 
-  _libra_get_analysis_language(_LANGUAGE)
+  _libra_get_project_language(_LANGUAGE)
   if("${_LANGUAGE}" STREQUAL "CXX")
     set(_STUB_EXT "cpp")
   elseif("${_LANGUAGE}" STREQUAL "C")
@@ -125,12 +141,18 @@ function(_libra_prune_stale_stubs TARGET STUB_DIR)
   # .c/.cpp coverage (matching the logic in _libra_generate_header_stubs)
   set(EXPECTED_STUBS "")
   foreach(INCLUDE_DIR IN LISTS IFACE_INCLUDES)
+    if(INCLUDE_DIR MATCHES "\\$<INSTALL_INTERFACE:.*>")
+      continue()
+    endif()
+    string(REGEX REPLACE "\\$<BUILD_INTERFACE:(.+)>" "\\1" INCLUDE_DIR2
+                         "${INCLUDE_DIR}")
+
     foreach(HEADER IN LISTS ${PROJECT_NAME}_C_HEADERS
                             ${PROJECT_NAME}_CXX_HEADERS)
       set(INCLUDED NO)
       foreach(SRC IN LISTS ${PROJECT_NAME}_C_SRC ${PROJECT_NAME}_CXX_SRC)
         file(READ "${SRC}" SRC_CONTENTS)
-        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR}" "${HEADER}")
+        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR2}" "${HEADER}")
         if("${SRC_CONTENTS}" MATCHES "${REL_HEADER}")
           set(INCLUDED YES)
           break()
@@ -138,7 +160,7 @@ function(_libra_prune_stale_stubs TARGET STUB_DIR)
       endforeach()
 
       if(NOT INCLUDED)
-        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR}" "${HEADER}")
+        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR2}" "${HEADER}")
         string(REPLACE "/" "__" STUB_NAME "${REL_HEADER}")
         string(REPLACE "." "_" STUB_NAME "${STUB_NAME}")
         list(APPEND EXPECTED_STUBS "${STUB_DIR}/${STUB_NAME}.${_STUB_EXT}")
@@ -154,7 +176,9 @@ function(_libra_prune_stale_stubs TARGET STUB_DIR)
       file(REMOVE "${EXISTING}")
     endif()
   endforeach()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
+
 # cmake-format: off
 # ##############################################################################
 # @brief Generate stub .cpp files for standalone header analysis.
@@ -181,12 +205,13 @@ endfunction()
 # ##############################################################################
 # cmake-format: on
 function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
   get_target_property(IFACE_INCLUDES ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
   if(NOT IFACE_INCLUDES)
     return()
   endif()
 
-  _libra_get_analysis_language(_LANGUAGE)
+  _libra_get_project_language(_LANGUAGE)
   # Determine stub extension and language from project language
   if("${_LANGUAGE}" STREQUAL "CXX")
     set(_STUB_EXT "cpp")
@@ -198,7 +223,11 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
   set(skipped_count 0)
   set(stub_count 0)
   foreach(INCLUDE_DIR IN LISTS IFACE_INCLUDES)
-
+    if(INCLUDE_DIR MATCHES "\\$<INSTALL_INTERFACE:.*>")
+      continue()
+    endif()
+    string(REGEX REPLACE "\\$<BUILD_INTERFACE:(.+)>" "\\1" INCLUDE_DIR2
+                         "${INCLUDE_DIR}")
     foreach(HEADER IN LISTS ${PROJECT_NAME}_C_HEADERS
                             ${PROJECT_NAME}_CXX_HEADERS)
       # Skip headers that are included by at least one .cpp. AFAIK the only way
@@ -208,7 +237,7 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
       set(INCLUDED NO)
       foreach(SRC IN LISTS ${PROJECT_NAME}_C_SRC ${PROJECT_NAME}_CXX_SRC)
         file(READ "${SRC}" SRC_CONTENTS)
-        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR}" "${HEADER}")
+        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR2}" "${HEADER}")
         if("${SRC_CONTENTS}" MATCHES "${REL_HEADER}")
           set(INCLUDED YES)
           math(EXPR skipped_count "${skipped_count} + 1")
@@ -217,7 +246,7 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
       endforeach()
 
       if(NOT INCLUDED)
-        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR}" "${HEADER}")
+        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR2}" "${HEADER}")
         string(REPLACE "/" "__" STUB_NAME "${REL_HEADER}")
         string(REPLACE "." "_" STUB_NAME "${STUB_NAME}")
         set(STUB_FILE "${STUB_DIR}/${STUB_NAME}.${_STUB_EXT}")
@@ -244,6 +273,7 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
   set(${STUBS_VAR}
       ${STUBS}
       PARENT_SCOPE)
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 function(analyze_clang_extract_args_from_target TARGET RET)
@@ -268,30 +298,12 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   set(INTERFACE_DEFS
       $<REMOVE_DUPLICATES:$<TARGET_PROPERTY:${PROBE_TARGET},INTERFACE_COMPILE_DEFINITIONS>>
   )
-  if(NOT LIBRA_USE_COMPDB)
-    set(USE_DATABASE NO)
-    if(NOT CMAKE_EXPORT_COMPILE_COMMANDS
-       OR NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
-      set(USE_DATABASE NO)
-    endif()
-  else()
-    get_target_property(TARGET_TYPE ${TARGET} TYPE)
-    set(USE_DATABASE ${LIBRA_USE_COMPDB})
-    if("${TARGET_TYPE}" STREQUAL "INTERFACE_LIBRARY" AND LIBRA_USE_COMPDB)
-      libra_message(
-        STATUS
-        "${TARGET} is INTERFACE_LIBRARY -- compdb has no entries for it, "
-        "using fixed-DB path instead")
-      set(USE_DATABASE NO)
-    endif()
-
-    if(USE_DATABASE AND NOT EXISTS
-                        "${PROJECT_BINARY_DIR}/compile_commands.json")
-      libra_message(
-        WARNING
-        "LIBRA_USE_COMPDB=YES but compile_commands.json doesn't exist--falling back to fixed-DB"
-      )
-    endif()
+  set(USE_DATABASE ${LIBRA_USE_COMPDB})
+  if(USE_DATABASE AND NOT EXISTS "${PROJECT_BINARY_DIR}/compile_commands.json")
+    libra_message(
+      WARNING
+      "LIBRA_USE_COMPDB=YES but compile_commands.json doesn't exist--falling back to fixed-DB"
+    )
   endif()
 
   if(USE_DATABASE)
@@ -319,50 +331,78 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   endif()
 endfunction()
 
-macro(_libra_get_analysis_language OUT)
-  # Prefer C++ over C if a project enables both languages.
-  if(CMAKE_CXX_COMPILER_LOADED)
-    set(${OUT} CXX)
-  elseif(CMAKE_C_COMPILER_LOADED)
-    set(${OUT} C)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC
+                        ${PROJECT_NAME}_ANALYSIS_HEADERS)
+
+  # Should not be needed, but just for safety
+  if("${LIBRA_DRIVER}" MATCHES "CONAN")
+    list(
+      FILTER
+      ${PROJECT_NAME}_ANALYSIS_SRC
+      EXCLUDE
+      REGEX
+      "\.conan2")
   endif()
 
-endmacro()
+  set(STUB_DIR "${CMAKE_BINARY_DIR}/libra_header_stubs")
+  file(MAKE_DIRECTORY "${STUB_DIR}")
+  _libra_prune_stale_stubs(${PROJECT_NAME} "${STUB_DIR}")
+  _libra_generate_header_stubs(${PROJECT_NAME} "${STUB_DIR}"
+                               ${PROJECT_NAME}_ANALYSIS_STUBS)
 
-macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
-  _libra_get_analysis_language(_LANGUAGE)
-
-  if("${_LANGUAGE}" MATCHES "CXX")
-    libra_message(STATUS "Detected language C++ for project")
-  elseif("${_LANGUAGE}" MATCHES "C")
-    libra_message(STATUS "Detected language C project")
+  if(${PROJECT_NAME}_ANALYSIS_STUBS)
+    # Now stubs get compdb entries and --header-filter picks up their headers
+    add_library(_${PROJECT_NAME}_analysis_stubs OBJECT
+                EXCLUDE_FROM_ALL ${${PROJECT_NAME}_ANALYSIS_STUBS})
+    target_link_libraries(_${PROJECT_NAME}_analysis_stubs
+                          PRIVATE ${PROJECT_NAME})
   endif()
+  list(LENGTH ${PROJECT_NAME}_ANALYSIS_STUBS STUBS_LEN)
+  list(LENGTH ${PROJECT_NAME}_ANALYSIS_SRC SRC_LEN)
+  libra_message(STATUS "Registering ${STUBS_LEN}+${SRC_LEN} stubs+source files")
 
-  if(NOT _LANGUAGE)
-    libra_message(
-      WARNING
-      "Unable to autodetect languages for static analysis--assuming CXX.")
-    set(_LANGUAGE CXX)
-  endif()
+  # Tool toggles
+  _libra_toggle_clang_tidy(ON)
+  _libra_toggle_clang_format(ON)
+  _libra_toggle_cmake_format(ON)
+  _libra_toggle_clang_check(ON)
+  _libra_toggle_checker_cppcheck(ON)
 
-  if("${_LANGUAGE}" STREQUAL "C")
-    if("${SOURCE}" STREQUAL "APIDOC")
-      set(${SRCS_RET} ${${PROJECT_NAME}_C_SRC})
-      set(${HEADERS_RET} ${${PROJECT_NAME}_C_HEADERS})
-    else()
-      set(${SRCS_RET} ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_C_TESTS_SRC})
-      set(${HEADERS_RET} ${${PROJECT_NAME}_C_HEADERS})
+  # Handy checking tools
+  libra_message(STATUS "Enabling analysis tools: checkers")
+  _libra_register_code_checkers(
+    ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
+    "${${PROJECT_NAME}_ANALYSIS_HEADERS}" "${${PROJECT_NAME}_ANALYSIS_STUBS}")
+
+  _libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
+
+  # Handy formatting tools
+  libra_message(STATUS "Enabling analysis tools: formatters")
+  _libra_register_code_formatters("${${PROJECT_NAME}_ANALYSIS_SRC}"
+                                  "${${PROJECT_NAME}_ANALYSIS_HEADERS}")
+  _libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
+
+  # Handy fixing tools
+  libra_message(STATUS "Enabling analysis tools: fixers")
+  _libra_register_code_fixers(${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
+                              "${${PROJECT_NAME}_ANALYSIS_STUBS}")
+
+  if(clang_tidy_EXECUTABLE AND clang_check_EXECUTABLE)
+    # Extract version numbers and warn if they differ
+    execute_process(
+      COMMAND ${clang_tidy_EXECUTABLE} --version
+      OUTPUT_VARIABLE _tidy_ver
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(
+      COMMAND ${clang_check_EXECUTABLE} --version
+      OUTPUT_VARIABLE _check_ver
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT "${_tidy_ver}" STREQUAL "${_check_ver}")
+      libra_message(
+        WARNING "clang-tidy and clang-check are different versions -- "
+        "analysis results may be inconsistent")
     endif()
-  elseif("${_LANGUAGE}" STREQUAL "CXX")
-    if("${SOURCE}" STREQUAL "APIDOC")
-      set(${SRCS_RET} ${${PROJECT_NAME}_CXX_SRC})
-      set(${HEADERS_RET} ${${PROJECT_NAME}_CXX_HEADERS})
-    else()
-      set(${SRCS_RET} ${${PROJECT_NAME}_CXX_SRC}
-                      ${${PROJECT_NAME}_CXX_TESTS_SRC})
-      set(${HEADERS_RET} ${${PROJECT_NAME}_CXX_HEADERS})
-    endif()
-  else()
-    libra_error("Bad language '${_LANGUAGE}' for project: must be {C,CXX}")
   endif()
-endmacro()
+
+endif()

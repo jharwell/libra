@@ -343,7 +343,6 @@ function(libra_register_headers_for_install DIRECTORY)
       "  This directory will be installed but appears to be empty")
   else()
     list(LENGTH HEADER_CHECK NUM_HEADERS)
-    libra_message(STATUS "Found ${NUM_HEADERS} header file(s) in ${DIRECTORY}")
   endif()
 
   set(INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
@@ -354,7 +353,8 @@ function(libra_register_headers_for_install DIRECTORY)
     FILES_MATCHING
     PATTERN "*.hpp"
     PATTERN "*.h")
-  libra_message(STATUS "Registered headers for install from ${DIRECTORY}")
+  libra_message(
+    STATUS "Registered ${NUM_HEADERS} headers for install from ${DIRECTORY}")
 endfunction()
 
 #[[.rst:
@@ -440,12 +440,15 @@ function(libra_register_target_for_install TARGET)
     NAMESPACE ${TARGET}::)
 
   libra_message(STATUS "Registered target for install: ${TARGET}")
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
+  libra_message(STATUS
+                "Libraries -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
   libra_message(
-    STATUS "  Libraries -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-  libra_message(
-    STATUS "  Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+    STATUS "Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
   libra_message(
     STATUS
-    "  Exports -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake"
+    "Exports -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake"
   )
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()

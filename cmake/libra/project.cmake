@@ -265,84 +265,7 @@ include(libra/diagnostics_post)
 # Code Checking/Analysis Options
 # ##############################################################################
 if(${LIBRA_ANALYSIS})
-  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    include(libra/analyze/analyze)
-
-    _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC
-                          ${PROJECT_NAME}_ANALYSIS_HEADERS)
-    # Should not be needed, but just for safety
-    if("${LIBRA_DRIVER}" MATCHES "CONAN")
-      list(
-        FILTER
-        ${PROJECT_NAME}_ANALYSIS_SRC
-        EXCLUDE
-        REGEX
-        "\.conan2")
-    endif()
-
-    set(STUB_DIR "${CMAKE_BINARY_DIR}/libra_header_stubs")
-    file(MAKE_DIRECTORY "${STUB_DIR}")
-    _libra_prune_stale_stubs(${PROJECT_NAME} "${STUB_DIR}")
-    _libra_generate_header_stubs(${PROJECT_NAME} "${STUB_DIR}"
-                                 ${PROJECT_NAME}_ANALYSIS_STUBS)
-
-    if(${PROJECT_NAME}_ANALYSIS_STUBS)
-      # Now stubs get compdb entries and --header-filter picks up their headers
-      add_library(_${PROJECT_NAME}_analysis_stubs OBJECT
-                  EXCLUDE_FROM_ALL ${${PROJECT_NAME}_ANALYSIS_STUBS})
-      target_link_libraries(_${PROJECT_NAME}_analysis_stubs
-                            PRIVATE ${PROJECT_NAME})
-    endif()
-    list(LENGTH ${PROJECT_NAME}_ANALYSIS_STUBS STUBS_LEN)
-    list(LENGTH ${PROJECT_NAME}_ANALYSIS_SRC SRC_LEN)
-    libra_message(STATUS
-                  "Registering ${STUBS_LEN}+${SRC_LEN} stubs+source files")
-
-    # Multi-funtion tools
-    _libra_toggle_clang_tidy(ON)
-    _libra_toggle_clang_format(ON)
-    _libra_toggle_cmake_format(ON)
-    _libra_toggle_clang_check(ON)
-
-    # Handy checking tools
-    libra_message(STATUS "Enabling analysis tools: checkers")
-    _libra_toggle_checker_cppcheck(ON)
-    _libra_register_code_checkers(
-      ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
-      "${${PROJECT_NAME}_ANALYSIS_STUBS}")
-
-    _libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
-
-    # Handy formatting tools
-    libra_message(STATUS "Enabling analysis tools: formatters")
-    _libra_register_code_formatters("${${PROJECT_NAME}_ANALYSIS_SRC}"
-                                    "${${PROJECT_NAME}_ANALYSIS_HEADERS}")
-    _libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
-
-    # Handy fixing tools
-    libra_message(STATUS "Enabling analysis tools: fixers")
-    _libra_register_code_fixers(
-      ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
-      "${${PROJECT_NAME}_ANALYSIS_STUBS}")
-
-    if(clang_tidy_EXECUTABLE AND clang_check_EXECUTABLE)
-      # Extract version numbers and warn if they differ
-      execute_process(
-        COMMAND ${clang_tidy_EXECUTABLE} --version
-        OUTPUT_VARIABLE _tidy_ver
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-      execute_process(
-        COMMAND ${clang_check_EXECUTABLE} --version
-        OUTPUT_VARIABLE _check_ver
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
-      if(NOT "${_tidy_ver}" STREQUAL "${_check_ver}")
-        libra_message(
-          WARNING "clang-tidy and clang-check are different versions -- "
-          "analysis results may be inconsistent")
-      endif()
-    endif()
-
-  endif()
+  include(libra/analyze/analyze)
 endif()
 
 # ##############################################################################
@@ -351,13 +274,14 @@ endif()
 # Put this AFTER sourcing the project-local.cmake to enable disabling
 # documentation builds for projects that don't have docs.
 if(LIBRA_DOCS)
+  libra_message(STATUS "Configuring documentation generation")
   if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(libra/apidoc)
 
     add_custom_target(apidoc-check)
     set_target_properties(apidoc-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-    _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
+    _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC "")
     # Should not be needed, but just for safety
     if("${LIBRA_DRIVER}" MATCHES "CONAN")
       list(
@@ -390,6 +314,7 @@ if(LIBRA_TESTS)
   if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(libra/test/testing)
   endif()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endif()
 
 if(LIBRA_CODE_COV)
