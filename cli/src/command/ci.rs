@@ -51,7 +51,7 @@ pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
     }
     warn!("No ci workflow preset found--falling back to manual steps");
 
-    if args.reconfigure {
+    if args.reconfigure || args.fresh {
         debug!("Begin reconfigure");
         cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
     }
@@ -61,27 +61,25 @@ pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_TESTS")?;
     }
 
-    let test_target = if ctx.dry_run { "all-tests"} else {
+    let test_target = if ctx.dry_run {
+        "all-tests"
+    } else {
         match cmake::target_status("all-tests", &preset, ctx)? {
             cmake::TargetStatus::Unavailable(reason) => {
-                anyhow::bail!(
-                    "CI target all-tests does not exist! Reason: {}",
-                    reason
-                );
+                anyhow::bail!("CI target all-tests does not exist! Reason: {}", reason);
             }
-            cmake::TargetStatus::Available => {"all-tests"}
+            cmake::TargetStatus::Available => "all-tests",
         }
     };
 
-    let check_target = if ctx.dry_run {"gcovr-check"} else {
+    let check_target = if ctx.dry_run {
+        "gcovr-check"
+    } else {
         match cmake::target_status("gcovr-check", &preset, ctx)? {
             cmake::TargetStatus::Unavailable(reason) => {
-                anyhow::bail!(
-                    "CI target gcovr-check does not exist! Reason: {}",
-                    reason
-                );
+                anyhow::bail!("CI target gcovr-check does not exist! Reason: {}", reason);
             }
-            cmake::TargetStatus::Available => {"gcovr-check"}
+            cmake::TargetStatus::Available => "gcovr-check",
         }
     };
 

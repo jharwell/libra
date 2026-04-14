@@ -276,7 +276,7 @@ endif()
 if(LIBRA_DOCS)
   libra_message(STATUS "Configuring documentation generation")
   if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    include(libra/analyze/apidoc)
+    include(libra/apidoc)
 
     add_custom_target(apidoc-check)
     set_target_properties(apidoc-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
@@ -291,11 +291,17 @@ if(LIBRA_DOCS)
         EXCLUDE
         REGEX
         "\.conan2")
+      list(
+        FILTER
+        ${PROJECT_NAME}_DOCS_HEADERS
+        EXCLUDE
+        REGEX
+        "\.conan2")
     endif()
 
     # check if Doxygen is installed
     find_package(Doxygen)
-    _libra_apidoc_configure_doxygen()
+    _libra_apidoc_configure_doxygen(apidoc apidoc-check-doxygen)
     _libra_find_apidoc_analyzers()
 
     # Handy checking tools
@@ -305,7 +311,7 @@ if(LIBRA_DOCS)
 
     libra_message(STATUS "Configuring sphinxdoc")
     include(libra/sphinxdoc)
-    _libra_sphinxdoc_configure()
+    _libra_sphinxdoc_configure(sphinxdoc)
   endif()
 endif()
 

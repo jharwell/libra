@@ -45,12 +45,7 @@ pub enum CheckKind {
 }
 
 // Implementation
-pub fn run_target(
-    ctx: &runner::Context,
-    args: &DocsArgs,
-    target: &str,
-    fail_ok: bool,
-) -> anyhow::Result<()> {
+pub fn run_target(ctx: &runner::Context, args: &DocsArgs, target: &str) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     let preset = preset::resolve(ctx, Some("docs"))?;
 
@@ -66,14 +61,7 @@ pub fn run_target(
 
         match cmake::target_status(target, &preset, ctx)? {
             cmake::TargetStatus::Unavailable(reason) => {
-                if fail_ok {
-                    warn!(
-                        "Docs target {} disabled (reason: {})--skipping",
-                        &target, reason
-                    );
-                } else {
-                    anyhow::bail!("Docs target {} disabled (reason: {})", &target, reason);
-                }
+                anyhow::bail!("Docs target {} disabled (reason: {})", &target, reason);
             }
             cmake::TargetStatus::Available => {}
         }
@@ -94,11 +82,11 @@ pub fn run(ctx: &runner::Context, args: DocsArgs) -> anyhow::Result<()> {
     debug!("Begin");
 
     match args.check {
-        Some(CheckKind::Clang) => run_target(ctx, &args, "apidoc-check-clang", false)?,
-        Some(CheckKind::Doxygen) => run_target(ctx, &args, "apidoc-check-doxygen", false)?,
+        Some(CheckKind::Clang) => run_target(ctx, &args, "apidoc-check-clang")?,
+        Some(CheckKind::Doxygen) => run_target(ctx, &args, "apidoc-check-doxygen")?,
         None => {
-            run_target(ctx, &args, "apidoc", true)?;
-            run_target(ctx, &args, "sphinxdoc", true)?;
+            run_target(ctx, &args, "apidoc")?;
+            run_target(ctx, &args, "sphinxdoc")?;
         }
     }
 

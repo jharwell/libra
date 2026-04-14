@@ -10,7 +10,19 @@
 include(libra/messaging)
 include(libra/analyze/analyze)
 
-function(_libra_apidoc_configure_doxygen)
+#[[.rst:
+.. cmake:command:: _libra_apidoc_configure_doxygen
+
+  Configures doxygen. If docs/Doxyfile.in doesn't exist, nothing is done. If it
+  does exist, then the parameter targets are created.
+
+  :param APIDOC_TARGET: Target to generate API docs with doxygen.
+
+  :param APIDOC_CHECK_TARGET: Target to check doxygen markup for all configured
+   source files. All warnings from doxygen are treated as errors, which can be a
+   little pedantic.
+]]
+function(_libra_apidoc_configure_doxygen APIDOC_TARGET APIDOC_CHECK_TARGET)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in")
@@ -55,6 +67,12 @@ function(_libra_apidoc_configure_doxygen)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
+#[[.rst:
+.. cmake:command:: _libra_apidoc_register_clang
+
+  Configures clang for API doc checking. Uses a fixeddb unconditionally, since
+  we need very little actual syntax checking for the code to check the docs.
+]]
 function(_libra_apidoc_register_clang CHECK_TARGET)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
   add_custom_target(${CHECK_TARGET})

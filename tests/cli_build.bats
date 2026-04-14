@@ -55,10 +55,11 @@ setup() {
 @test "BUILD: without --reconfigure no configure step in dry-run" {
     run_clibra --dry-run build --preset debug
     assert_clibra_success
-    # configure (cmake --preset) only appears when cold-start or --reconfigure
-    # dry-run has no build dir so configure will appear — this test verifies
-    # the configure appears for cold start
     assert_output_contains "cmake --preset"
+}
+
+@test "BUILD: --fresh invokes configure step with --fresh flag" {
+    assert_dry_run_contains "--fresh" build --fresh --preset debug
 }
 
 # ==============================================================================
@@ -105,10 +106,30 @@ setup() {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
     assert_clibra_success
-    # reconfigure with a new -D — verify it succeeds (configure re-runs)
     run_clibra build --reconfigure --preset debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $CLI_CMAKE_DEFINES
     assert_clibra_success
     [ -f "build/debug/compile_commands.json" ]
+}
+
+# ==============================================================================
+# -D with existing build dir and no --reconfigure (real cmake)
+# ==============================================================================
+
+@test "BUILD: -D with existing build dir and no --reconfigure fails with error" {
+    skip_if_compiler_missing gnu c
+    run_clibra build $CLI_CMAKE_DEFINES --preset debug
+    assert_clibra_success
+    run_clibra build --preset debug -DFOO=BAR
+    assert_clibra_failure
+}
+
+@test "BUILD: -D error message mentions --reconfigure as fix" {
+    skip_if_compiler_missing gnu c
+    run_clibra build $CLI_CMAKE_DEFINES --preset debug
+    assert_clibra_success
+    run_clibra build --preset debug -DFOO=BAR
+    assert_clibra_failure
+    assert_output_contains "reconfigure"
 }
 
 # ==============================================================================

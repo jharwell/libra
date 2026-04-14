@@ -221,3 +221,125 @@ setup() {
     run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "OFF"
     [ "$status" -eq 0 ]
 }
+
+# ==============================================================================
+# Per-category clang-tidy subtargets
+# ==============================================================================
+
+@test "ANALYSIS: LIBRA_ANALYSIS=ON creates analyze-clang-tidy-bugprone subtarget" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
+
+    assert_target_exists "$test_dir" "analyze-clang-tidy-bugprone"
+}
+
+@test "ANALYSIS: LIBRA_ANALYSIS=ON creates analyze-clang-tidy-readability subtarget" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
+
+    assert_target_exists "$test_dir" "analyze-clang-tidy-readability"
+}
+
+@test "ANALYSIS: LIBRA_ANALYSIS=ON creates analyze-clang-tidy-cppcoreguidelines subtarget" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
+
+    assert_target_exists "$test_dir" "analyze-clang-tidy-cppcoreguidelines"
+}
+
+@test "ANALYSIS: LIBRA_ANALYSIS=ON creates analyze-clang-tidy-modernize subtarget" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
+
+    assert_target_exists "$test_dir" "analyze-clang-tidy-modernize"
+}
+
+@test "ANALYSIS: LIBRA_ANALYSIS=ON creates all expected clang-tidy category subtargets" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
+
+    for category in clang-analyzer-core abseil cppcoreguidelines readability hicpp \
+                    bugprone cert performance portability concurrency modernize misc google; do
+        assert_target_exists "$test_dir" "analyze-clang-tidy-${category}"
+    done
+}
+
+@test "ANALYSIS: LIBRA_ANALYSIS=OFF does not create any clang-tidy category subtargets" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=OFF)
+
+    for category in bugprone readability modernize; do
+        assert_target_absent "$test_dir" "analyze-clang-tidy-${category}"
+    done
+}
+
+# ==============================================================================
+# LIBRA_CLANG_TOOLS_USE_FIXED_DB
+# ==============================================================================
+
+@test "ANALYSIS: LIBRA_CLANG_TOOLS_USE_FIXED_DB=YES creates analysis targets" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_ANALYSIS=ON \
+        -DLIBRA_USE_COMPDB=NO \
+        -DLIBRA_CLANG_TOOLS_USE_FIXED_DB=YES)
+
+    assert_target_exists "$test_dir" "analyze"
+    assert_target_exists "$test_dir" "analyze-clang-tidy"
+    assert_target_exists "$test_dir" "analyze-clang-check"
+}
+
+@test "ANALYSIS: LIBRA_CLANG_TOOLS_USE_FIXED_DB=NO creates analysis targets" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_ANALYSIS=ON \
+        -DLIBRA_USE_COMPDB=NO \
+        -DLIBRA_CLANG_TOOLS_USE_FIXED_DB=NO)
+
+    assert_target_exists "$test_dir" "analyze"
+    assert_target_exists "$test_dir" "analyze-clang-tidy"
+    assert_target_exists "$test_dir" "analyze-clang-check"
+}
+
+@test "ANALYSIS: LIBRA_CLANG_TOOLS_USE_FIXED_DB stored in cache" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_ANALYSIS=ON \
+        -DLIBRA_CLANG_TOOLS_USE_FIXED_DB=YES)
+
+    run cache_value_equals "$test_dir" "LIBRA_CLANG_TOOLS_USE_FIXED_DB" "YES"
+    [ "$status" -eq 0 ]
+}
+
+# ==============================================================================
+# Header stub generation
+# ==============================================================================
+
+@test "ANALYSIS: stub directory created when project has public headers" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_ANALYSIS=ON \
+        -DLIBRA_TEST_STUBS=ON)
+
+    [ -d "$test_dir/libra_header_stubs" ]
+}
+
+@test "ANALYSIS: stub file generated for uncovered public header" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_ANALYSIS=ON \
+        -DLIBRA_TEST_STUBS=ON)
+
+    # The stub directory must contain at least one generated .cpp stub
+    run find "$test_dir/libra_header_stubs" -name "*.cpp" -o -name "*.c"
+    [ "$status" -eq 0 ]
+    [ -n "$output" ]
+}
+
+@test "ANALYSIS: stub file is included in analysis stubs library target" {
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_ANALYSIS=ON \
+        -DLIBRA_TEST_STUBS=ON)
+
+    assert_target_exists "$test_dir" "_sample_build_info_analysis_stubs"
+}
+
+@test "ANALYSIS: no stub directory created when project has no public headers" {
+    # Default sample_build_info has no INTERFACE_INCLUDE_DIRECTORIES
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
+
+    # Either no stubs dir, or it exists but is empty
+    if [ -d "$test_dir/libra_header_stubs" ]; then
+        run find "$test_dir/libra_header_stubs" -name "*.cpp" -o -name "*.c"
+        [ -z "$output" ]
+    fi
+}

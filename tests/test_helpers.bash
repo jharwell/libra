@@ -425,6 +425,73 @@ reconfigure_libra_test() {
 ################################################################################
 # CMake Test Runner: Root + Dependency
 #
+################################################################################
+# CMake Test Runner: generic named sample
+#
+# Like run_libra_cmake_test but configures a named sample directory instead of
+# sample_build_info.  Used for samples that are always C++ and do not require
+# the LIBRA_TEST_LANGUAGE variable (e.g. sample_consumer, sample_export,
+# sample_keywords).
+#
+# Usage: run_libra_cmake_sample_test SAMPLE_DIR [CMAKE_OPTIONS...]
+# Returns: Path to build directory
+################################################################################
+run_libra_cmake_sample_test() {
+    local sample_dir="$1"
+    shift
+    local cmake_options=("$@")
+
+    local compiler
+    compiler=$(get_compiler "${COMPILER_TYPE:-gnu}" "cxx")
+
+    local test_dir
+    test_dir="$(mktemp -d "$TEST_BUILD_DIR/sample_XXXXXX")"
+
+    local cmake_args=(
+        "$LIBRA_TESTS_DIR/${sample_dir}"
+        -DCMAKE_INSTALL_PREFIX="$test_dir/install"
+        -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Debug}"
+        -DCMAKE_CXX_COMPILER="$compiler"
+        --log-level="$LOGLEVEL"
+    )
+
+    while IFS= read -r _flag; do
+        [[ -n "$_flag" ]] && cmake_args+=("$_flag")
+    done < <(_consume_mode_cmake_args)
+
+    if [[ "${LIBRA_CONSUME_MODE:-in_situ}" == "conan" ]]; then
+        mkdir -p "$test_dir/conan"
+        cat > "$test_dir/conanfile.txt" << EOF
+[requires]
+libra/${LIBRA_CONAN_VERSION}
+
+[generators]
+CMakeToolchain
+EOF
+        conan install "$test_dir/conanfile.txt" \
+              --output-folder="$test_dir/conan" \
+              -s build_type="${CMAKE_BUILD_TYPE:-Debug}" \
+              --build=missing
+        cmake_args+=("-DCMAKE_TOOLCHAIN_FILE=$test_dir/conan/conan_toolchain.cmake")
+    fi
+
+    cmake_args+=("${cmake_options[@]}")
+
+    pushd "$test_dir" > /dev/null
+
+    run cmake "${cmake_args[@]}"
+    if [ "$status" -ne 0 ]; then
+        echo "DEBUG: cmake failed with status $status" >&3
+        echo "$output" >&3
+        popd > /dev/null
+        return 1
+    fi
+    [ -n "$GITHUB_ACTIONS" ] && echo "$output" >&3
+
+    popd > /dev/null
+    echo "$test_dir"
+}
+
 # Like run_libra_cmake_test but configures sample_dep_isolation/root instead
 # of sample_build_info.  The root project pulls in sample_dep_isolation/dep
 # via add_subdirectory, giving a two-level LIBRA project tree.

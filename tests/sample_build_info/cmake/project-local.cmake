@@ -12,13 +12,22 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
-# ERL_EXPORT test path: build a STATIC library + a plain consumer executable.
-# The consumer links the library and we inspect what definitions propagated. We
-# do NOT use libra_configure_source_file here — that macro appends sources to
-# ${PROJECT_NAME} assuming it is an executable, and we don't need the library's
-# own build_info for this test.
+# STUBS test path: build a STATIC library with a public header so that
+# _libra_generate_header_stubs and _libra_prune_stale_stubs are exercised
+# during LIBRA_ANALYSIS=ON configure.
 # ---------------------------------------------------------------------------
-if(LIBRA_TEST_ERL_EXPORT OR LIBRA_TEST_FPC_EXPORT)
+if(LIBRA_TEST_STUBS)
+  # include/sample_build_info/stub.hpp is a static source-tree file that
+  # project.cmake's GLOB_RECURSE picks up into ${PROJECT_NAME}_CXX_HEADERS
+  # before project-local.cmake is included.  Exposing it via
+  # INTERFACE_INCLUDE_DIRECTORIES on the library target gives
+  # _libra_generate_header_stubs something to produce a stub for.
+  libra_add_library(${PROJECT_NAME} STATIC lib_stub.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}
+    INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
+elseif(LIBRA_TEST_ERL_EXPORT OR LIBRA_TEST_FPC_EXPORT)
   if(LIBRA_TEST_LANGUAGE STREQUAL "C")
     set(LIB_SOURCES lib_stub.c)
   else()

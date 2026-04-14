@@ -123,3 +123,64 @@ setup() {
     run cache_value_equals "$test_dir" "LIBRA_ERL" "DEBUG"
     [ "$status" -eq 0 ]
 }
+
+# ==============================================================================
+# Compile-time define propagation
+#
+# The cache variable being set is a necessary but not sufficient condition —
+# these tests verify that the value actually reaches the compiler as a define.
+# ==============================================================================
+
+@test "ERL: LIBRA_ERL=NONE sets LIBRA_ERL=LIBRA_ERL_NONE define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=NONE)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_NONE"
+}
+
+@test "ERL: LIBRA_ERL=ERROR sets LIBRA_ERL=LIBRA_ERL_ERROR define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=ERROR)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_ERROR"
+}
+
+@test "ERL: LIBRA_ERL=WARN sets LIBRA_ERL=LIBRA_ERL_WARN define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=WARN)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_WARN"
+}
+
+@test "ERL: LIBRA_ERL=INFO sets LIBRA_ERL=LIBRA_ERL_INFO define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=INFO)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_INFO"
+}
+
+@test "ERL: LIBRA_ERL=DEBUG sets LIBRA_ERL=LIBRA_ERL_DEBUG define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=DEBUG)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_DEBUG"
+}
+
+@test "ERL: LIBRA_ERL=TRACE sets LIBRA_ERL=LIBRA_ERL_TRACE define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=TRACE)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_TRACE"
+}
+
+@test "ERL: LIBRA_ERL=ALL sets LIBRA_ERL=LIBRA_ERL_ALL define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=ALL)
+
+    assert_define_present "$test_dir" "c" "LIBRA_ERL=LIBRA_ERL_ALL"
+}
+
+@test "ERL: LIBRA_ERL=INHERIT does not set a LIBRA_ERL define on target" {
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=INHERIT)
+
+    assert_define_absert "$test_dir" "c" "LIBRA_ERL"
+}
+
+@test "ERL: define propagates to C++ targets" {
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ERL=DEBUG)
+
+    assert_define_present "$test_dir" "cxx" "LIBRA_ERL=LIBRA_ERL_DEBUG"
+}

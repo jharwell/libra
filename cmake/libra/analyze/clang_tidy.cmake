@@ -25,12 +25,23 @@ set(CLANG_TIDY_CATEGORIES
     misc
     google)
 
-# ##############################################################################
-# Register a target for clang-tidy checking
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_clang_tidy
+
+  Register clang-tidy on a target in a specific mode for all configured source
+  files.
+
+  :param ANALYSIS_TARGET: The name of the umbrella analysis target to create.
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+
+  :param JOB: Either "FIX" or "CHECK", depending on what you want clang-tidy to
+   do.
+]]
 function(
   _libra_register_clang_tidy
-  CHECK_TARGET
+  ANALYSIS_TARGET
   TARGET
   JOB
   SRCS
@@ -42,8 +53,9 @@ function(
     set(JOB_ARGS --fix --fix-errors)
   endif()
 
-  add_custom_target(${CHECK_TARGET})
-  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+  add_custom_target(${ANALYSIS_TARGET})
+  set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
+                                                      1)
 
   set(LIBRA_CLANG_TIDY_FILEPATH_DEFAULT
       "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
@@ -75,9 +87,9 @@ function(
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
 
-    add_custom_target(${CHECK_TARGET}-${CATEGORY})
-    add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${CATEGORY})
-    set_target_properties(${CHECK_TARGET}-${CATEGORY}
+    add_custom_target(${ANALYSIS_TARGET}-${CATEGORY})
+    add_dependencies(${ANALYSIS_TARGET} ${ANALYSIS_TARGET}-${CATEGORY})
+    set_target_properties(${ANALYSIS_TARGET}-${CATEGORY}
                           PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 
     # We generate per-file commands so that we (a) get more fine-grained
@@ -100,7 +112,7 @@ function(
       endif()
       if(LIBRA_USE_COMPDB)
         add_custom_target(
-          ${CHECK_TARGET}-${CATEGORY}-${file_target}
+          ${ANALYSIS_TARGET}-${CATEGORY}-${file_target}
           COMMAND
             ${clang_tidy_EXECUTABLE}
             --header-filter=${CMAKE_SOURCE_DIR}/include/.* ${HEADER_EXCLUDES}
@@ -116,7 +128,7 @@ function(
       else()
         if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
           add_custom_target(
-            ${CHECK_TARGET}-${CATEGORY}-${file_target}
+            ${ANALYSIS_TARGET}-${CATEGORY}-${file_target}
             COMMAND
               ${clang_tidy_EXECUTABLE}
               --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/.*
@@ -131,7 +143,7 @@ function(
           )
         else()
           add_custom_target(
-            ${CHECK_TARGET}-${CATEGORY}-${file_target}
+            ${ANALYSIS_TARGET}-${CATEGORY}-${file_target}
             COMMAND
               ${clang_tidy_EXECUTABLE}
               --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/.*
@@ -148,19 +160,31 @@ function(
         endif()
 
       endif()
-      add_dependencies(${CHECK_TARGET}-${CATEGORY}
-                       ${CHECK_TARGET}-${CATEGORY}-${file_target})
+      add_dependencies(${ANALYSIS_TARGET}-${CATEGORY}
+                       ${ANALYSIS_TARGET}-${CATEGORY}-${file_target})
     endforeach()
   endforeach()
 
 endfunction()
 
-# ##############################################################################
-# Register all target sources with the clang_tidy checker
-#
-# This function is different than the other analysis checkers, because the
-# misc-include-cleaner category needs the raw headers (no stubs).
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_checker_clang_tidy
+
+  Calls :cmake:command:`_libra_register_clang_tidy` in CHECK mode: analyze
+  only.
+
+  This function is different than the other analysis checkers, because the
+  misc-include-cleaner category needs the raw headers (no stubs).
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+
+  :param SRCS: The list of source files to analyze.
+
+  :param HEADERS: The list of raw header files to analyze.
+
+  :param STUBS: The list of stub files to analyze.
+]]
 function(
   _libra_register_checker_clang_tidy
   TARGET
@@ -189,17 +213,25 @@ function(
                 "Registered ${LEN} files with ${clang_tidy_NAME} checker")
 endfunction()
 
-# ##############################################################################
-# Register all target sources with the clang_tidy fixer
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_fixer_clang_tidy
+
+  Calls :cmake:command:`_libra_register_clang_tidy` in FIX mode: analyze
+  and fix.
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+
+  :param SRCS: The list of source files to analyze.
+]]
 function(_libra_register_fixer_clang_tidy TARGET SRCS)
   if(NOT clang_tidy_EXECUTABLE)
     return()
   endif()
 
-  # Fixers operate on source files only -- no headers or stubs needed.
-  # Pass empty lists for HEADERS and STUBS to satisfy the positional signature
-  # of _libra_register_clang_tidy.
+  # Fixers operate on source files only -- no headers or stubs needed. Pass
+  # empty lists for HEADERS and STUBS to satisfy the positional signature of
+  # _libra_register_clang_tidy.
   _libra_register_clang_tidy(
     fix-clang-tidy
     ${TARGET}

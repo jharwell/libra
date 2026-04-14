@@ -5,6 +5,9 @@
 # Flag-forwarding tests use --dry-run.
 # Feature-disabled error message tests require a real configured build.
 #
+# Note: --html and --check are independent flags; at least one must be given
+# or the command fails with "Failed to run any coverage targets".
+#
 
 load test_helpers
 
@@ -17,40 +20,54 @@ setup() {
 # ==============================================================================
 
 @test "COVERAGE: defaults to 'coverage' preset when --preset not given" {
-    assert_dry_run_contains "--preset coverage" coverage
+    assert_dry_run_contains "--preset coverage" coverage --html
 }
 
 @test "COVERAGE: --preset flag is forwarded" {
-    assert_dry_run_contains "--preset release" coverage --preset release
+    assert_dry_run_contains "--preset release" coverage --preset release --html
 }
 
 # ==============================================================================
 # Flag forwarding (--dry-run, fast)
 # ==============================================================================
 
-@test "COVERAGE: invokes cmake --build" {
-    assert_dry_run_contains "cmake --build" coverage
+@test "COVERAGE: --html invokes cmake --build" {
+    assert_dry_run_contains "cmake --build" coverage --html
 }
 
-@test "COVERAGE: --html targets a coverage report target" {
-    assert_dry_run_contains "gcovr-report" coverage
+@test "COVERAGE: --html targets gcovr-report" {
+    assert_dry_run_contains "gcovr-report" coverage --html
 }
 
 @test "COVERAGE: --check targets gcovr-check" {
     assert_dry_run_contains "gcovr-check" coverage --check
 }
 
-@test "COVERAGE: --open flag is accepted without error" {
-    run_clibra --dry-run coverage --open
+@test "COVERAGE: --html and --check together invoke cmake --build twice" {
+    run_clibra --dry-run coverage --html --check
+    assert_clibra_success
+    # Both report and check targets should appear in output
+    assert_output_contains "gcovr-report"
+    assert_output_contains "gcovr-check"
+}
+
+@test "COVERAGE: --open flag is accepted without error in dry-run" {
+    run_clibra --dry-run coverage --html --open
     assert_clibra_success
 }
 
 @test "COVERAGE: --reconfigure invokes configure step" {
-    assert_dry_run_contains "cmake --preset" coverage --reconfigure
+    assert_dry_run_contains "cmake --preset" coverage --reconfigure --html
 }
 
 @test "COVERAGE: -D defines forwarded to configure step with --reconfigure" {
-    assert_dry_run_contains "-DFOO=BAR" coverage --reconfigure -DFOO=BAR
+    assert_dry_run_contains "-DFOO=BAR" coverage --reconfigure -DFOO=BAR --html
+}
+
+@test "COVERAGE: neither --html nor --check fails with actionable error" {
+    run_clibra --dry-run coverage
+    assert_clibra_failure
+    assert_output_contains "No coverage target specified"
 }
 
 # ==============================================================================
@@ -61,7 +78,7 @@ setup() {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
-    run_clibra coverage --preset debug
+    run_clibra coverage --preset debug --html
     assert_clibra_failure
     assert_output_contains "LIBRA_CODE_COV"
 }
@@ -70,7 +87,7 @@ setup() {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
-    run_clibra coverage --preset debug
+    run_clibra coverage --preset debug --html
     assert_clibra_failure
     assert_output_contains "debug"
 }
@@ -79,7 +96,7 @@ setup() {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
-    run_clibra coverage --preset debug
+    run_clibra coverage --preset debug --html
     assert_clibra_failure
     assert_output_contains "LIBRA_CODE_COV=ON"
 }
@@ -89,6 +106,6 @@ setup() {
 # ==============================================================================
 
 @test "COVERAGE: non-existent preset causes failure" {
-    run_clibra coverage --preset no_such_preset_xyzzy
+    run_clibra coverage --preset no_such_preset_xyzzy --html
     assert_clibra_failure
 }

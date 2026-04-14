@@ -73,7 +73,6 @@ setup() {
 }
 
 @test "TEST: -L unit and -L integration are separate flags not combined" {
-    # Ensure -L is followed by the label as a separate token
     run_clibra --dry-run test --type=unit --preset debug
     assert_clibra_success
     assert_output_contains "-L unit"
@@ -109,12 +108,61 @@ setup() {
 }
 
 # ==============================================================================
+# Feature gate — LIBRA_TESTS (real build required)
+# ==============================================================================
+
+@test "TEST: fails with clear error when LIBRA_TESTS not enabled in preset" {
+    skip_if_compiler_missing gnu c
+    # 'release' preset does not have LIBRA_TESTS=ON
+    run_clibra build --preset release $CLI_CMAKE_DEFINES
+    assert_clibra_success
+    run_clibra test --preset release
+    assert_clibra_failure
+    assert_output_contains "LIBRA_TESTS"
+}
+
+@test "TEST: error message names the preset when LIBRA_TESTS disabled" {
+    skip_if_compiler_missing gnu c
+    run_clibra build --preset release $CLI_CMAKE_DEFINES
+    assert_clibra_success
+    run_clibra test --preset release
+    assert_clibra_failure
+    assert_output_contains "release"
+}
+
+@test "TEST: error message suggests fix when LIBRA_TESTS disabled" {
+    skip_if_compiler_missing gnu c
+    run_clibra build --preset release $CLI_CMAKE_DEFINES
+    assert_clibra_success
+    run_clibra test --preset release
+    assert_clibra_failure
+    assert_output_contains "LIBRA_TESTS=ON"
+}
+
+# ==============================================================================
+# --preset is required (no per-command default)
+# ==============================================================================
+
+@test "TEST: fails with actionable error when no preset can be resolved" {
+    # 'test' has no per-command default preset, unlike ci/analyze/coverage/docs
+    python3 -c "
+import json
+with open('CMakePresets.json') as f: d = json.load(f)
+d.pop('vendor', None)
+print(json.dumps(d))
+" > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
+    rm -f CMakeUserPresets.json
+    run_clibra test --dry-run
+    assert_clibra_failure
+    assert_output_contains "no preset"
+}
+
+# ==============================================================================
 # Cold start (real cmake)
 # ==============================================================================
 
 @test "TEST: cold start configures and builds before running ctest" {
     skip_if_compiler_missing gnu c
-    # sample_cli has no tests so ctest exits 0 with no tests run
     run_clibra test --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
     assert_build_dir_exists "debug"

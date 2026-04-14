@@ -65,8 +65,15 @@ setup() {
     assert_dry_run_contains "--parallel 1" analyze --jobs=1
 }
 
-@test "ANALYZE: --keep-going is forwarded" {
-    assert_dry_run_contains "-k" analyze --keep-going
+@test "ANALYZE: --keep-going adds generator-appropriate flag" {
+    # With Unix Makefiles (sample_cli base preset) --keep-going becomes --keep-going
+    assert_dry_run_contains "--keep-going" analyze --keep-going --preset analyze --log trace
+}
+
+@test "ANALYZE: --keep-going does not add Ninja-style -k0 for Unix Makefiles" {
+    run_clibra --dry-run analyze --keep-going --preset analyze --log trace
+    assert_clibra_success
+    assert_output_not_contains "-k0"
 }
 
 @test "ANALYZE: --reconfigure invokes configure step" {
@@ -83,7 +90,7 @@ setup() {
 
 @test "ANALYZE: fails with clear error when LIBRA_ANALYSIS not enabled in preset" {
     skip_if_compiler_missing gnu c
-    # Build with debug preset which has LIBRA_ANALYSIS=OFF
+    # debug preset has LIBRA_ANALYSIS=OFF
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
     run_clibra analyze --preset debug

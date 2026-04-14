@@ -188,7 +188,7 @@ fn emit_libra_targets(out: &mut String, ctx: &runner::Context, preset: &str) -> 
 fn emit_build_configuration(
     out: &mut String,
     preset: &str,
-    items: &Vec<(String, String)>,
+    items: &[(String, String)],
     width: usize,
 ) -> anyhow::Result<()> {
     let bdir = cmake::binary_dir(preset);

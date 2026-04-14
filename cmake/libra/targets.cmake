@@ -50,6 +50,9 @@ function(libra_add_library)
 
   endif()
   add_library(${NAME} ${_rest})
+  set(_LIBRA_TARGET_OWNER_${NAME}
+      "${PROJECT_NAME}"
+      CACHE INTERNAL "")
   _libra_configure_standard(${NAME})
 endfunction()
 
@@ -95,6 +98,9 @@ function(libra_add_executable)
     libra_message(STATUS "Added executable target ${NAME}")
   endif()
   add_executable(${NAME} ${_rest})
+  set(_LIBRA_TARGET_OWNER_${NAME}
+      "${PROJECT_NAME}"
+      CACHE INTERNAL "")
   _libra_configure_standard(${NAME})
 endfunction()
 

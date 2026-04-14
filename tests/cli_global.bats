@@ -8,7 +8,7 @@
 #   - Preset resolution priority order including per-command defaults
 #   - --dry-run: prints commands, no side effects, works for all subcommands
 #   - --log: annotates cmake commands at debug level
-#   - --color: ANSI code suppression
+#   - --color: ANSI code suppression and forcing
 #
 
 load test_helpers
@@ -82,29 +82,29 @@ setup() {
 }
 
 @test "PRESET: vendor field in CMakeUserPresets.json used when --preset absent" {
-    cat > CMakeUserPresets.json << 'EOF'
+    cat > CMakeUserPresets.json << 'EOF2'
 {
   "version": 6,
   "vendor": { "libra": { "defaultConfigurePreset": "release" } }
 }
-EOF
+EOF2
     assert_dry_run_contains "--preset release" build
 }
 
 @test "PRESET: CMakeUserPresets.json vendor preset takes priority over CMakePresets.json" {
-    cat > CMakeUserPresets.json << 'EOF'
+    cat > CMakeUserPresets.json << 'EOF2'
 {
   "version": 6,
   "vendor": { "libra": { "defaultConfigurePreset": "release" } }
 }
-EOF
+EOF2
     assert_dry_run_contains "--preset release" build
 }
 
 @test "PRESET: CMakePresets.json vendor field used when CMakeUserPresets.json has no vendor entry" {
-    cat > CMakeUserPresets.json << 'EOF'
+    cat > CMakeUserPresets.json << 'EOF2'
 { "version": 6 }
-EOF
+EOF2
     python3 -c "
 import json
 with open('CMakePresets.json') as f: d = json.load(f)
@@ -183,7 +183,7 @@ d.pop('vendor', None)
 print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
-    assert_dry_run_contains "--preset coverage" coverage
+    assert_dry_run_contains "--preset coverage" coverage --html
 }
 
 @test "PRESET: docs uses per-command default 'docs' when no vendor field" {
@@ -195,6 +195,32 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     assert_dry_run_contains "--preset docs" docs
+}
+
+@test "PRESET: test has no per-command default — fails without --preset" {
+    python3 -c "
+import json
+with open('CMakePresets.json') as f: d = json.load(f)
+d.pop('vendor', None)
+print(json.dumps(d))
+" > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
+    rm -f CMakeUserPresets.json
+    run_clibra test --dry-run
+    assert_clibra_failure
+    assert_output_contains "no preset"
+}
+
+@test "PRESET: install has no per-command default — fails without --preset" {
+    python3 -c "
+import json
+with open('CMakePresets.json') as f: d = json.load(f)
+d.pop('vendor', None)
+print(json.dumps(d))
+" > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
+    rm -f CMakeUserPresets.json
+    run_clibra install --dry-run
+    assert_clibra_failure
+    assert_output_contains "no preset"
 }
 
 # ==============================================================================
@@ -243,7 +269,7 @@ print(json.dumps(d))
 }
 
 @test "DRY_RUN: works with coverage subcommand" {
-    run_clibra --dry-run --preset debug coverage
+    run_clibra --dry-run --preset debug coverage --html
     assert_clibra_success
 }
 
@@ -289,4 +315,14 @@ print(json.dumps(d))
 @test "COLOR: --color=always exits 0" {
     run_clibra --color=always --dry-run build --preset debug
     assert_clibra_success
+}
+
+@test "COLOR: --color=always produces ANSI escape codes in info output" {
+    skip_if_compiler_missing gnu c
+    run_clibra build --preset debug $CLI_CMAKE_DEFINES
+    assert_clibra_success
+    run "$CLIBRA_BIN" --color=always info --preset debug
+    assert_clibra_success
+    # info output uses colored crate for bold/green; verify ANSI codes present
+    echo "$output" | grep -qP '\x1b\['
 }

@@ -20,7 +20,7 @@ pub struct CoverageArgs {
     /// Generate HTML report.
     ///
     /// Tries gcovr and LLVM-based generation in order.
-    #[arg(long, default_value_t = true)]
+    #[arg(long)]
     pub html: bool,
 
     /// Check code coverage with gcovr.
@@ -41,7 +41,6 @@ pub struct CoverageArgs {
     /// Reconfigure with a --fresh cmake build directory.
     #[arg(short, long)]
     pub fresh: bool,
-
 }
 
 // Traits
@@ -62,6 +61,9 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
     }
 
     let mut success = false;
+    if !args.html && !args.check {
+        anyhow::bail!("No coverage target specified: either --html or --check must be given");
+    }
     if args.html {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_CODE_COV")?;
         debug!("Checking ['gcovr-report','llvm-report'] existence");

@@ -15,9 +15,6 @@ set(_LIBRA_SUMMARY_COL_VARIABLE 33) # [VARIABLE_NAME]
 set(_LIBRA_SUMMARY_COL_TARGET 36) # make target name
 set(_LIBRA_SUMMARY_SEP_WIDTH 80) # inner separator width
 
-# ##############################################################################
-# Public API
-# ##############################################################################
 function(libra_config_summary_prepare_fields FIELDS)
   if(NOT FIELDS)
     libra_message(WARNING

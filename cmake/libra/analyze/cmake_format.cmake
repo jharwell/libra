@@ -5,9 +5,18 @@
 #
 
 include(libra/messaging)
-# ##############################################################################
-# Register a target for cmake-format formatting/checking
-# ##############################################################################
+
+#[[.rst
+.. cmake:command: _libra_register_cmake_format
+
+  Register cmake-format on a target in a specific mode for all configured source
+  files.
+
+  :param FMT_TARGET: The name of the umbrella format target to create.
+
+  :param JOB: Either "FORMAT" or "CHECK", depending on what you want cmake-format to
+   do.
+]]
 function(_libra_register_cmake_format FMT_TARGET JOB)
   if(JOB STREQUAL "FORMAT")
     set(JOB_ARGS -i)
@@ -36,9 +45,12 @@ function(_libra_register_cmake_format FMT_TARGET JOB)
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 endfunction()
 
-# ##############################################################################
-# Register all target sources with the cmake-format formatter
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_formatter_cmake_format
+
+  Calls :cmake:command:`_libra_register_cmake_format` in FORMAT mode: apply
+  formatting.
+]]
 function(_libra_register_formatter_cmake_format)
   if(NOT cmake_format_EXECUTABLE)
     return()
@@ -53,9 +65,12 @@ function(_libra_register_formatter_cmake_format)
                 "Registered ${LEN} files with ${cmake_format_NAME} formatter")
 endfunction()
 
-# ##############################################################################
-# Register all target sources with the cmake-format checker
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_check_cmake_format
+
+  Calls :cmake:command:`_libra_register_cmake_format` in CHECK mode: check if
+  files are conformant to the applied schema.
+]]
 function(_libra_register_checker_cmake_format)
   if(NOT cmake_format_EXECUTABLE)
     return()

@@ -54,7 +54,8 @@ foreach(target ${_LIBRA_TARGETS})
   get_target_property(_imported ${target} IMPORTED)
   get_target_property(_target_dir ${target} SOURCE_DIR)
 
-  if(_imported OR NOT _target_dir MATCHES "^${CMAKE_CURRENT_SOURCE_DIR}")
+  if(_imported OR NOT "${_LIBRA_TARGET_OWNER_${target}}" STREQUAL
+                  "${PROJECT_NAME}")
     libra_message(
       STATUS
       "Skipping ${target} for build type configuration - not owned by ${PROJECT_NAME}"
@@ -126,10 +127,13 @@ if(LIBRA_GLOBAL_C_FLAGS AND "C" IN_LIST LANGUAGES_LIST)
   endif()
 endif()
 
-if(_LIBRA_GLOBAL_CXX_FLAGS)
+if(LIBRA_GLOBAL_CXX_FLAGS)
   add_compile_options("$<$<CONFIG:Release>:${_LIBRA_CXX_COMPILE_OPTIONS}>")
   add_compile_options(
     "$<$<CONFIG:Debug>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
+  )
+  add_compile_options(
+    "$<$<CONFIG:Release>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
   )
   add_link_options(${_LIBRA_CXX_LINK_OPTIONS})
   foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)

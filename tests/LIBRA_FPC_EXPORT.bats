@@ -39,7 +39,7 @@ setup() {
 
     # The consumer should NOT see the LIBRA_FPC define
     run consumer_define_absent "$test_dir" "LIBRA_FPC=" "c"
-    [ "$status" -ne 0 ]
+    [ "$status" -eq 0 ]
 }
 
 @test "FPC_EXPORT: Consumer build info file exists when test enabled" {

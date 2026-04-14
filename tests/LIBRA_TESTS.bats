@@ -1112,17 +1112,51 @@ setup() {
 # ==============================================================================
 
 @test "NEGATIVE_COMPILE: configure succeeds when a .expected companion file is present" {
-    # sample_testing is expected to ship at least one .expected companion.
-    # If none are present this test is a no-op (the configure still succeeds).
+    # neg_cpp_alpha-utest.expected ships alongside neg_cpp_alpha-utest.neg.cpp.
+    # This verifies the companion is discovered at configure time without error,
+    # and that the negative test is still registered with CTest.
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
     [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
 @test "NEGATIVE_COMPILE: neg.c unit test receives label 'unit'" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
     assert_ctest_test_label "$test_dir" "neg_c_alpha-utest" "unit"
+}
+
+@test "NEGATIVE_COMPILE: neg.c integration test is registered with CTest" {
+    test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
+
+    assert_ctest_test_registered "$test_dir" "neg_c_alpha-itest"
+}
+
+@test "NEGATIVE_COMPILE: neg.c integration test receives label 'integration'" {
+    test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
+
+    assert_ctest_test_label "$test_dir" "neg_c_alpha-itest" "integration"
+}
+
+@test "NEGATIVE_COMPILE: neg.c regression test is registered with CTest" {
+    test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
+
+    assert_ctest_test_registered "$test_dir" "neg_c_alpha-rtest"
+}
+
+@test "NEGATIVE_COMPILE: neg.c regression test receives label 'regression'" {
+    test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
+
+    assert_ctest_test_label "$test_dir" "neg_c_alpha-rtest" "regression"
+}
+
+@test "NEGATIVE_COMPILE: LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO excludes neg.c integration tests from CTest" {
+    test_dir=$(run_libra_testing_cmake_test \
+        -DLIBRA_TESTS=ON \
+        -DLIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO)
+
+    assert_ctest_test_absent "$test_dir" "neg_c_alpha-itest"
 }
 
 @test "NEGATIVE_COMPILE: LIBRA_CTEST_INCLUDE_REGRESSION_TESTS=NO excludes neg.c regression tests from CTest" {

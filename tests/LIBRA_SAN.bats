@@ -557,3 +557,56 @@ assert_san_flag_present() {
     run cache_value_equals "$test_dir" "LIBRA_SAN" "UBSAN"
     [ "$status" -eq 0 ]
 }
+
+# ==============================================================================
+# Sanitizer combinations — Clang
+# ==============================================================================
+
+@test "SAN: Clang/C ASAN+UBSAN adds -fsanitize=address in compile and link flags" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" "-DLIBRA_SAN=ASAN+UBSAN")
+
+    assert_san_flag_present "$test_dir" "c" "-fsanitize=address"
+}
+
+@test "SAN: Clang/C ASAN+UBSAN adds -fsanitize=undefined in compile and link flags" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" "-DLIBRA_SAN=ASAN+UBSAN")
+
+    assert_san_flag_present "$test_dir" "c" "-fsanitize=undefined"
+}
+
+@test "SAN: Clang/C++ ASAN+UBSAN adds both sanitizer flags in compile and link flags" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
+
+    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+}
+
+@test "SAN: GNU/C MSAN+ASAN not tested (incompatible combination)" {
+    # MSAN and ASAN are mutually exclusive — this serves as documentation
+    # that we intentionally do not test that combination.
+    skip "MSAN+ASAN is an incompatible sanitizer combination"
+}
+
+# ==============================================================================
+# Sanitizer combinations — GNU C++
+# ==============================================================================
+
+@test "SAN: GNU/C++ ASAN+UBSAN adds -fsanitize=address in compile and link flags" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
+
+    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
+}
+
+@test "SAN: GNU/C++ ASAN+UBSAN adds -fsanitize=undefined in compile and link flags" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
+
+    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+}

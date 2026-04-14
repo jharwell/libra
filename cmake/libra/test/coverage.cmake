@@ -13,11 +13,15 @@ file(MAKE_DIRECTORY ${COVERAGE_DIR})
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)
 set(CMAKE_C_OUTPUT_EXTENSION_REPLACE ON)
 
-# ##############################################################################
-# Helper Functions
-# ##############################################################################
-# Detect coverage tool based on compiler
-#
+#[[.rst
+.. cmake:command:: _libra_detect_gcov_tool
+
+  Try to find a suitable gcov tool for coverage calculations. For GNU compilers,
+  this looks for gcov-XX, where XX is the compiler version. For clang compilers,
+  this looks for llvm-cov-XX, where XX is the compiler version.
+
+  :param OUTPUT_VAR: The output variable to set if a suitable tool is found.
+]]
 function(_libra_detect_gcov_tool OUTPUT_VAR)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES
                                               "Clang")
@@ -66,7 +70,17 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
   endif()
 endfunction()
 
-# Detect llvm-cov and llvm-profdata for native Clang coverage
+#[[.rst
+.. cmake:command:: _libra_detect_llvm_tools
+
+  Detect llvm-cov and llvm-profdata for native Clang coverage.
+
+  :param LLVM_COV_VAR: The output variable to set if a suitable llvm-cov tool is
+   found.
+
+  :param LLVM_PROFDATA_VAR: The output variable to set if a suitable
+   llvm-profdata tool is found.
+]]
 function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
@@ -101,7 +115,14 @@ function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# Get all test executables for coverage
+#[[.rst
+.. cmake:command:: _libra_get_test_executables
+
+  Get all executables for coverage calculations by searching through the
+  current directory.
+
+  :param OUTPUT_VAR: The output variable to set with the result.
+]]
 function(_libra_get_test_executables OUTPUT_VAR)
   # Get all targets in the project
   set(test_executables "")
@@ -139,9 +160,11 @@ function(_libra_get_test_executables OUTPUT_VAR)
       PARENT_SCOPE)
 endfunction()
 
-# ##############################################################################
-# LCOV Coverage (GCC-compatible format)
-# ##############################################################################
+#[[.rst
+.. cmake:command:: _libra_coverage_register_lcov
+
+  Register lcov for covareg (GNU compatible format).
+]]
 function(_libra_coverage_register_lcov)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
@@ -212,9 +235,11 @@ function(_libra_coverage_register_lcov)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# ##############################################################################
-# GCOVR Coverage (GCC-compatible format with gcovr)
-# ##############################################################################
+#[[.rst
+.. cmake:command:: _libra_coverage_register_gcovr
+
+  Register gcovr for coverage (GNU compatible format).
+]]
 function(_libra_coverage_register_gcovr)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
@@ -271,9 +296,11 @@ function(_libra_coverage_register_gcovr)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# ##############################################################################
-# LLVM-COV Coverage (Native Clang source-based coverage)
-# ##############################################################################
+#[[.rst
+.. cmake:command:: _libra_coverage_register_llvm
+
+  Register llvm-cov for coverage. Requires clang compiler.
+]]
 function(_libra_coverage_register_llvm)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 

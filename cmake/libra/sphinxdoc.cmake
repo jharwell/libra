@@ -9,7 +9,16 @@
 # ##############################################################################
 include(libra/messaging)
 
-function(_libra_sphinxdoc_configure)
+#[[.rst:
+.. cmake:command:: _libra_sphinx_configure
+
+  Configures sphinx. If docs/conf.py doesn't exist, nothing is done. Checks if
+  :cmake:variable:`LIBRA_SPHINXDOC_COMMAND` works. If it
+  works, then the sphinx target is created.
+
+  :param TARGET: Target to generate docs with sphinx.
+]]
+function(_libra_sphinxdoc_configure TARGET)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
   if(NOT DEFINED LIBRA_SPHINXDOC_COMMAND)
@@ -32,7 +41,7 @@ function(_libra_sphinxdoc_configure)
       )
 
       add_custom_target(
-        sphinxdoc
+        ${TARGET}
         COMMAND ${LIBRA_SPHINXDOC_COMMAND} ${CMAKE_CURRENT_SOURCE_DIR}/docs
                 ${CMAKE_CURRENT_SOURCE_DIR}/docs/_build -b html
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

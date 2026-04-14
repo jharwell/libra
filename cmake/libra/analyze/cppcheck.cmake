@@ -5,14 +5,18 @@
 #
 include(libra/messaging)
 
-# ##############################################################################
-# Register a target for cppcheck
-#
-# Since cppcheck can work without a compilation database, you have to manually
-# get the includes, #defines, etc. for the target and add them to the cppcheck
-# command if one isn't found.
-# ##############################################################################
-function(_libra_register_cppcheck CHECK_TARGET TARGET)
+#[[.rst
+.. cmake:command: _libra_register_cppcheck
+
+  Register cppcheck on a target in a specific mode for all configured source
+  files.
+
+  :param ANALYSIS_TARGET: The name of the umbrella analysis target to create.
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+]]
+function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
   if(NOT DEFINED LIBRA_CPPCHECK_SUPPRESSIONS)
     set(LIBRA_CPPCHECK_SUPPRESSIONS "${LIBRA_CPPCHECK_SUPPRESSIONS_DEFAULT}")
   endif()
@@ -37,7 +41,7 @@ function(_libra_register_cppcheck CHECK_TARGET TARGET)
   # file.
   if(LIBRA_USE_COMPDB)
     add_custom_target(
-      ${CHECK_TARGET}
+      ${ANALYSIS_TARGET}
       COMMAND
         ${cppcheck_EXECUTABLE}
         --project=${PROJECT_BINARY_DIR}/compile_commands.json
@@ -49,7 +53,7 @@ function(_libra_register_cppcheck CHECK_TARGET TARGET)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
       COMMENT "Running ${cppcheck_NAME} with compdb")
   else()
-    add_custom_target(${CHECK_TARGET})
+    add_custom_target(${ANALYSIS_TARGET})
     foreach(file ${ARGN})
       # We create one target per file we want to analyze so that we can do
       # analysis in parallel if desired. Targets can't have '/' on '.' in their
@@ -60,7 +64,7 @@ function(_libra_register_cppcheck CHECK_TARGET TARGET)
       analyze_build_fixeddb_for_target(${TARGET} EXTRACTED_ARGS)
 
       add_custom_target(
-        ${CHECK_TARGET}-${file_target}
+        ${ANALYSIS_TARGET}-${file_target}
         COMMAND
           ${cppcheck_EXECUTABLE} ${EXTRACTED_ARGS}
           --enable=warning,style,performance,portability --verbose ${STD_ARGS}
@@ -70,16 +74,23 @@ function(_libra_register_cppcheck CHECK_TARGET TARGET)
           ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1 ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running ${cppcheck_NAME} without compdb on ${file}")
-      add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})
+      add_dependencies(${ANALYSIS_TARGET} ${ANALYSIS_TARGET}-${file_target})
     endforeach()
   endif()
 
-  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+  set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
+                                                      1)
 endfunction()
 
-# ##############################################################################
-# Register all sources from the target with the cppcheck checker
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_checker_cppcheck
+
+  Calls :cmake:command:`_libra_register_cppcheck` in CHECK mode: analyze
+  only.
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+]]
 function(_libra_register_checker_cppcheck TARGET)
   if(NOT cppcheck_EXECUTABLE)
     return()

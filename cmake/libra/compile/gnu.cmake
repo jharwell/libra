@@ -175,26 +175,29 @@ set(_LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format=2)
 
 if("${LIBRA_FORTIFY}" MATCHES "STACK")
   set(_LIBRA_FORTIFY_MATCH YES)
-  set(_LIBRA_FORTIFY_OPTIONS "${_LIBRA_FORTIFY_STACK}")
+  list(APPEND _LIBRA_FORTIFY_OPTIONS ${_LIBRA_FORTIFY_STACK})
 endif()
 
 if("${LIBRA_FORTIFY}" MATCHES "SOURCE")
   set(_LIBRA_FORTIFY_MATCH YES)
-  set(_LIBRA_FORTIFY_OPTIONS "${_LIBRA_FORTIFY_SOURCE}")
+  list(APPEND _LIBRA_FORTIFY_OPTIONS ${_LIBRA_FORTIFY_SOURCE})
 endif()
 
 if("${LIBRA_FORTIFY}" MATCHES "FORMAT")
   set(_LIBRA_FORTIFY_MATCH YES)
-  set(_LIBRA_FORTIFY_OPTIONS "${_LIBRA_FORTIFY_FORMAT}")
+  list(APPEND _LIBRA_FORTIFY_OPTIONS ${_LIBRA_FORTIFY_FORMAT})
 endif()
 
 if("${LIBRA_FORTIFY}" MATCHES "ALL")
   set(_LIBRA_FORTIFY_MATCH YES)
-  set(_LIBRA_FORTIFY_OPTIONS ${_LIBRA_FORTIFY_STACK} ${_LIBRA_FORTIFY_SOURCE}
-                             ${_LIBRA_FORTIFY_FORMAT})
+  list(
+    APPEND
+    _LIBRA_FORTIFY_OPTIONS
+    ${_LIBRA_FORTIFY_STACK}
+    ${_LIBRA_FORTIFY_SOURCE}
+    ${_LIBRA_FORTIFY_FORMAT})
 endif()
-
-if(NOT LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
+if(NOT _LIBRA_FORTIFY_MATCH AND NOT "${LIBRA_FORTIFY}" STREQUAL "NONE")
   libra_message(
     WARNING
     "Bad LIBRA_FORTIFY setting ${LIBRA_FORTIFY}: Must be subset of {STACK,SOURCE,FORMAT,ALL} or set to NONE for gcc"
@@ -438,11 +441,6 @@ endif()
 .. cmake:variable:: LIBRA_STDLIB_GNU
 
 If NONE: ``-nostdlib`` at link, both C/C++.
-
-If STDCXX: ``-stdlib=libstdc++`` at link, C++ only.
-
-If CXX: ``-stdlib=libc++`` at link, C++ only.
-
 ]]
 
 if(NOT LIBRA_STDLIB)
@@ -456,22 +454,12 @@ if("${LIBRA_STDLIB}" MATCHES "NONE")
   set(_LIBRA_STDLIB_MATCH YES)
   set(_LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
   set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
-elseif("${LIBRA_STDLIB}" MATCHES "STDCXX")
-  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
-  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
-  set(_LIBRA_STDLIB_MATCH YES)
-elseif("${LIBRA_STDLIB}" MATCHES "CXX")
-
-  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
-  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
-  set(_LIBRA_STDLIB_MATCH YES)
 endif()
 
 if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
     WARNING
-    "Bad LIBRA_STDLIB setting '${LIBRA_STDLIB}': Must be one of {NONE,STDCXX,CXX}"
-  )
+    "Bad LIBRA_STDLIB setting '${LIBRA_STDLIB}': Must be one of {NONE,STDCXX}")
 endif()
 
 # ##############################################################################

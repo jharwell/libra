@@ -20,6 +20,12 @@ setup() {
     assert_target_exists "$test_dir" "apidoc"
     assert_target_exists "$test_dir" "apidoc-check"
     assert_target_exists "$test_dir" "apidoc-check-doxygen"
+}
+
+@test "DOCS: LIBRA_DOCS=ON creates apidoc-check-clang target when clang is available" {
+    skip_if_compiler_missing "clang" "c"
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_DOCS=ON)
+
     assert_target_exists "$test_dir" "apidoc-check-clang"
 }
 

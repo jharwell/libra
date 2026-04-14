@@ -33,7 +33,6 @@ setup() {
 }
 
 @test "CI: cmake --workflow invocation has correct argument order" {
-    # Must be: cmake --workflow --preset ci  (not cmake --preset ci --workflow ci)
     assert_dry_run_contains "--workflow --preset ci" ci
 }
 
@@ -44,7 +43,6 @@ setup() {
 @test "CI: does not invoke cmake --build when workflow preset found" {
     run_clibra --dry-run ci
     assert_clibra_success
-    # workflow path delegates entirely to cmake --workflow; no separate build step
     assert_output_not_contains "cmake --build"
 }
 
@@ -61,7 +59,6 @@ setup() {
 @test "CI: fallback emits warning mentioning workflow preset" {
     run_clibra --dry-run ci --preset release
     assert_clibra_success
-    # Warning should mention workflow and suggest adding one
     assert_output_contains "workflow"
     assert_output_not_contains "--workflow --preset"
 }
@@ -70,12 +67,54 @@ setup() {
     assert_dry_run_contains "ctest --preset" ci --preset release
 }
 
+@test "CI: fallback invokes cmake --build before ctest" {
+    run_clibra --dry-run ci --preset release
+    assert_clibra_success
+    # Both build and test must appear; output order matters
+    local build_pos test_pos
+    build_pos=$(echo "$output" | grep -n "cmake --build" | head -1 | cut -d: -f1)
+    test_pos=$(echo "$output" | grep -n "ctest" | head -1 | cut -d: -f1)
+    [ -n "$build_pos" ] && [ -n "$test_pos" ] && [ "$build_pos" -lt "$test_pos" ]
+}
+
 # ==============================================================================
-# --reconfigure
+# --reconfigure and --fresh in fallback path
 # ==============================================================================
 
 @test "CI: --reconfigure invokes configure step in fallback path" {
     assert_dry_run_contains "cmake --preset" ci --reconfigure --preset release
+}
+
+@test "CI: --fresh invokes configure step in fallback path" {
+    # --fresh alone (without --reconfigure) must still trigger the configure step
+    assert_dry_run_contains "cmake --preset" ci --fresh --preset release
+}
+
+@test "CI: --fresh passes --fresh to cmake configure in fallback path" {
+    assert_dry_run_contains "--fresh" ci --fresh --preset release
+}
+
+# ==============================================================================
+# Feature gate (real build required)
+# ==============================================================================
+
+@test "CI: fallback fails with error when LIBRA_TESTS not enabled in preset" {
+    skip_if_compiler_missing gnu c
+    # 'release' preset has neither LIBRA_TESTS nor LIBRA_CODE_COV
+    run_clibra build --preset release $CLI_CMAKE_DEFINES
+    assert_clibra_success
+    run_clibra ci --preset release
+    assert_clibra_failure
+    assert_output_contains "LIBRA"
+}
+
+@test "CI: fallback fails with error when LIBRA_CODE_COV not enabled in preset" {
+    skip_if_compiler_missing gnu c
+    run_clibra build --preset release $CLI_CMAKE_DEFINES
+    assert_clibra_success
+    run_clibra ci --preset release
+    assert_clibra_failure
+    assert_output_contains "CODE_COV"
 }
 
 # ==============================================================================

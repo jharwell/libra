@@ -318,16 +318,32 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   if(COMPILE_DEFINITIONS)
     list(APPEND RAW_FLAGS_COMPILE ${COMPILE_DEFINITIONS})
   endif()
+
+  # Collect PUBLIC compile definitions from directly-linked libraries.
+  # get_target_property(COMPILE_DEFINITIONS) only returns definitions set
+  # directly on this target; it does not traverse the link graph.
+  # INTERFACE_COMPILE_DEFINITIONS on each linked library is exactly the
+  # PUBLIC-only view that target_compile_definitions(...PUBLIC...) populates, so
+  # reading it here gives us the transitively-propagated defines without needing
+  # generator expressions.
+  get_target_property(_link_libs ${TARGET} LINK_LIBRARIES)
+  if(_link_libs)
+    foreach(_lib IN LISTS _link_libs)
+      if(TARGET ${_lib})
+        get_target_property(_iface_defs ${_lib} INTERFACE_COMPILE_DEFINITIONS)
+        if(_iface_defs)
+          list(APPEND RAW_FLAGS_COMPILE ${_iface_defs})
+        endif()
+      endif()
+    endforeach()
+  endif()
   if(LINK_OPTIONS)
     list(APPEND RAW_FLAGS_LINK ${LINK_OPTIONS})
   endif()
 
-  string(TOUPPER "${CMAKE_BUILD_TYPE}" build_type_upper)
-
   # Include the build flags you get with the selected cmake build type
   list(APPEND RAW_FLAGS_COMPILE ${CMAKE_CXX_FLAGS_${build_type_upper}})
   list(APPEND RAW_FLAGS_COMPILE ${CMAKE_C_FLAGS_${build_type_upper}})
-
   # Include the build flags you get when using cmake's builtin IPO capability If
   # a target has both C/C++ code, any duplicates will be removed below. You
   # can't include these unconditionally, because (I've learned) these variables

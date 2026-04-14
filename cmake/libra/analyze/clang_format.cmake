@@ -5,9 +5,17 @@
 #
 include(libra/messaging)
 
-# ##############################################################################
-# Register a target for clang-format formatting
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_clang_format
+
+  Register clang-format on a target in a specific mode for all configured source
+  files.
+
+  :param FMT_TARGET: The name of the umbrella format target to create.
+
+  :param JOB: Either "FORMAT" or "CHECK", depending on what you want clang-format to
+   do.
+]]
 function(_libra_register_clang_format FMT_TARGET JOB)
   if(JOB STREQUAL "FORMAT")
     set(JOB_ARGS -i)
@@ -53,9 +61,12 @@ function(_libra_register_clang_format FMT_TARGET JOB)
   set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 endfunction()
 
-# ##############################################################################
-# Register all target sources with the clang-format formatter
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_formatter_clang_format
+
+  Calls :cmake:command:`_libra_register_clang_format` in FORMAT mode: apply
+  formatting.
+]]
 function(_libra_register_formatter_clang_format)
   if(NOT clang_format_EXECUTABLE)
     return()
@@ -70,9 +81,12 @@ function(_libra_register_formatter_clang_format)
                 "Registered ${LEN} files with ${clang_format_NAME} formatter")
 endfunction()
 
-# ##############################################################################
-# Register all target sources with the clang-format checker
-# ##############################################################################
+#[[.rst
+.. cmake:command: _libra_register_check_clang_format
+
+  Calls :cmake:command:`_libra_register_clang_format` in CHECK mode: check if
+  files are conformant to the applied schema.
+]]
 function(_libra_register_checker_clang_format)
   if(NOT clang_format_EXECUTABLE)
     return()

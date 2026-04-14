@@ -10,7 +10,27 @@ include(libra/analyze/clang_check)
 include(libra/analyze/cmake_format)
 include(libra/messaging)
 
-# Function to register a target for enabled code checkers
+#[[.rst:
+.. cmake:command:: _libra_register_code_checkers
+
+  Registers all code-checking analysis tools (distinct from documentation
+  checking analysis tools). Currently this is:
+
+  - cppcheck. Operates on sources and stubs.
+  - clang-tidy. Operates on sources, headers, and stubs.
+  - clang-check. Operates on sources and stubs.
+  - clang-format. Operates on sources and headers.
+
+  :param TARGET: The name of the target {sources,headers,stubs} are attached to.
+
+  :param SRCS: Source files for checkers to check.
+
+  :param HEADERS: Header files for checkers to check.
+
+  :param STUBS: Stub C/C++ files which include a single header for checkers to
+   check. Used to check headers which aren't included in any source file and
+   thus don't have compdb entries.
+]]
 function(
   _libra_register_code_checkers
   TARGET
@@ -34,7 +54,14 @@ function(
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# Function to register a target for enabled automated formatters
+#[[.rst:
+.. cmake:command:: _libra_register_code_formatters
+
+  Registers all code-formatting analysis tools. Currently this is:
+
+  - clang-format. Operates on source files and raw headers.
+
+]]
 function(_libra_register_code_formatters)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${ARGN}" STREQUAL "")
@@ -49,13 +76,23 @@ function(_libra_register_code_formatters)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# Function to register a target for enabled automated fixers
-function(
-  _libra_register_code_fixers
-  TARGET
-  SRCS
-  HEADERS
-  STUBS)
+#[[.rst:
+.. cmake:command:: _libra_register_code_fixers
+
+  Registers all code-fixing analysis tools. Currently this is:
+
+  - clang-tidy
+  - clang-check
+
+  Fixing is limited to source files because fixing with raw header files and/or
+  stubs is not very reliable.
+
+  :param TARGET: The name of the target {sources,headers,stubs} are attached to.
+
+  :param SRCS: Source files for checkers to check.
+
+]]
+function(_libra_register_code_fixers TARGET SRCS)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
   if("${SRCS}" STREQUAL "")
     libra_error("No source files passed--misconfiguration?")
@@ -64,17 +101,28 @@ function(
   add_custom_target(fix)
   set_target_properties(fix PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
   _libra_register_fixer_clang_tidy(${TARGET} "${SRCS}")
-  _libra_register_fixer_clang_check(${TARGET} ${SRCS} ${STUBS})
+  _libra_register_fixer_clang_check(${TARGET} "${SRCS}")
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
+#[[.rst:
+.. cmake:command:: _libra_header_needs_stub
+
+  Determine if a header file in the project needs a stub created for it so that
+  analysis works reliably with a compilation database. A header needs a stub if
+  it isn't included in any source file in the project.
+
+  This is done by checking through every source file to see if a given header
+  appears in it relative to a given interface include directory.
+
+  :param HEADER: The header to check the status of.
+
+  :param PARENT: The parent interface include directory to check against.
+
+  :param RET: Name of variable in parent scope to set with yes/no.
+]]
 function(_libra_header_needs_stub HEADER PARENT_DIR RET)
 
-  # Assume a stub is needed unless we find a source file that already includes
-  # this header. AFAIK the only way to do this is to check through (a) every
-  # public include dir, (b) every header and (c) every source file and see if
-  # any include path relative to a public include dir for a given header appears
-  # in a source file.
   set(NEEDS_STUB YES)
   file(RELATIVE_PATH REL_HEADER "${PARENT_DIR}" "${HEADER}")
   foreach(SRC IN LISTS ${PROJECT_NAME}_C_SRC ${PROJECT_NAME}_CXX_SRC)
@@ -90,41 +138,42 @@ function(_libra_header_needs_stub HEADER PARENT_DIR RET)
       PARENT_SCOPE)
 endfunction()
 
-# cmake-format: off
-# ##############################################################################
-# @brief Remove stub files from STUB_DIR that no longer correspond to any
-#        header in the current project.
-#
-# Called before _libra_generate_header_stubs so that stubs for removed or
-# renamed headers don't accumulate across reconfigures. Relies on the same
-# naming convention used by _libra_generate_header_stubs to reconstruct the
-# expected stub filename from each header path.
-#
-# This approach was chosen over nuking the stub directory on every configure for
-# a few reasons:
-#
-# - The unconditional delete violates incremental build principles. CMake's
-#   configure step is supposed to be idempotent and cheap for unchanged
-#   inputs. Unconditionally deleting and regenerating all stubs means every
-#   cmake configure run with LIBRA_ANALYSIS=YES invalidates all stub object
-#   files, forcing a full stub recompile before any analysis can run — even if
-#   zero headers changed. For a project with hundreds of public headers this
-#   becomes a meaningful tax on every analysis run.
-#
-# - The IS_NEWER_THAN mechanism already exists for a reason: to avoid
-#   unnecessary regeneration. The unconditional delete defeats it entirely,
-#   making it dead code in practice.
-#
-# - This approach composes better with --fresh. A --fresh configure already
-#   wipes the binary directory entirely, so stale stubs are cleaned up
-#   naturally. The unconditional delete is redundant in the --fresh case and
-#   harmful in the incremental case.
-#
-# @param[in] TARGET   The CMake target whose public headers define the
-#                     expected stub set.
-# @param[in] STUB_DIR Directory containing existing stubs to prune.
-# ##############################################################################
-# cmake-format: on
+#[[.rst:
+.. cmake:command:: _libra_prune_stale_stubs
+
+  Remove stub files from STUB_DIR that no longer correspond to any
+  header in the current project.
+
+  Called before _libra_generate_header_stubs so that stubs for removed or
+  renamed headers don't accumulate across reconfigures. Relies on the same
+  naming convention used by _libra_generate_header_stubs to reconstruct the
+  expected stub filename from each header path.
+
+  This approach was chosen over nuking the stub directory on every configure for
+  a few reasons:
+
+  - The unconditional delete violates incremental build principles. CMake's
+    configure step is supposed to be idempotent and cheap for unchanged
+    inputs. Unconditionally deleting and regenerating all stubs means every
+    cmake configure run with LIBRA_ANALYSIS=YES invalidates all stub object
+    files, forcing a full stub recompile before any analysis can run — even if
+    zero headers changed. For a project with hundreds of public headers this
+    becomes a meaningful tax on every analysis run.
+
+  - The IS_NEWER_THAN mechanism already exists for a reason: to avoid
+    unnecessary regeneration. The unconditional delete defeats it entirely,
+    making it dead code in practice.
+
+  - This approach composes better with --fresh. A --fresh configure already
+    wipes the binary directory entirely, so stale stubs are cleaned up
+    naturally. The unconditional delete is redundant in the --fresh case and
+    harmful in the incremental case.
+
+  :param TARGET: The CMake target whose public headers define the expected stub
+   set.
+
+  :param STUB_DIR: Directory containing existing stubs to prune.
+]]
 function(_libra_prune_stale_stubs TARGET STUB_DIR)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
   get_target_property(IFACE_INCLUDES ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
@@ -174,31 +223,33 @@ function(_libra_prune_stale_stubs TARGET STUB_DIR)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# cmake-format: off
-# ##############################################################################
-# @brief Generate stub .cpp files for standalone header analysis.
-#
-# Each stub contains a single #include of its corresponding header, expressed
-# as a path relative to the include directory it was found under. This ensures
-# the header is analyzed with the same include path form as real consumers
-# would use, and that any missing self-containment or include-order bugs are
-# caught as real errors rather than papered over.
-#
-# Stubs are written to STUB_DIR and only regenerated if the header is newer
-# than the existing stub, avoiding spurious rebuilds.
-#
-# Only headers under the target's INTERFACE_INCLUDE_DIRECTORIES are stubbed,
-# which is correct: those are the headers that form the public API and must
-# be self-contained. Private/internal headers that are not exposed via
-# INTERFACE_INCLUDE_DIRECTORIES are intentionally excluded.
-#
-# @param[in]  TARGET   The CMake target whose public headers are stubbed.
-# @param[in]  STUB_DIR Directory under which stub .cpp files are written.
-#                      Typically ${CMAKE_BINARY_DIR}/libra_header_stubs.
-# @param[out] STUBS_VAR Name of the variable in caller's scope that receives
-#                       the list of generated stub file paths.
-# ##############################################################################
-# cmake-format: on
+#[[.rst:
+.. cmake:command:: _libra_generate_header_stubs
+
+  Generate stub .cpp files for standalone header analysis.
+
+  Each stub contains a single #include of its corresponding header, expressed
+  as a path relative to the include directory it was found under. This ensures
+  the header is analyzed with the same include path form as real consumers
+  would use, and that any missing self-containment or include-order bugs are
+  caught as real errors rather than papered over.
+
+  Stubs are written to STUB_DIR and only regenerated if the header is newer
+  than the existing stub, avoiding spurious rebuilds.
+
+  Only headers under the target's INTERFACE_INCLUDE_DIRECTORIES are stubbed,
+  which is correct: those are the headers that form the public API and must
+  be self-contained. Private/internal headers that are not exposed via
+  INTERFACE_INCLUDE_DIRECTORIES are intentionally excluded.
+
+  :param TARGET: The CMake target whose public headers are stubbed.
+
+  :param STUB_DIR: Directory under which stub .cpp files are written. Typically
+   ${CMAKE_BINARY_DIR}/libra_header_stubs.
+
+  :param STUBS_VAR: Name of the variable in caller's scope that receives the
+   list of generated stub file paths.
+]]
 function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
   get_target_property(IFACE_INCLUDES ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
@@ -259,6 +310,25 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
+#[[.rst:
+.. cmake:command:: analyze_build_fixeddb_for_target
+
+  Build a fixed compilation database (LLVM/clang terminology) for a target. A
+  fixed compdb is the set of includes and #define which would otherwise be
+  pulled out of the compilation database. These are then passed to the analysis
+  tool just as they would be to the compiler. In theory this should be the same
+  as a compilation database, but isn't necessarily guaranteed to be.
+
+  The magic here is that we create a fake interface target to force transitive
+  resolution of interface {include dirs, definitions}. Without this, we have to
+  walk the PRIVATE deps of TARGET, which is bad, or be limited to a single level
+  of resolution, which isn't sufficient for complex projects.
+
+  :param TARGET: The target to build a fixeddb for.
+
+  :param RET: Name of variable to set in parent scope with the args to add to
+   the analysis tool.
+]]
 function(analyze_build_fixeddb_for_target TARGET RET)
   # Create a scratch interface target to force transitive resolution
   set(PROBE_TARGET _libra_probe_${TARGET})
@@ -292,6 +362,19 @@ function(analyze_build_fixeddb_for_target TARGET RET)
 
 endfunction()
 
+#[[.rst:
+.. cmake:command:: analyze_build_adhocdb_for_target
+
+  Same as :cmake:command:`analyze_build_fixeddb_for_target`, but
+  clang tools only. Instead of fixeddb, we build a set of ``--extra-arg`` arguments
+  which are passed en masse to clang tools. In theory this should be the same as a
+  compilation database, but isn't necessarily guaranteed to be.
+
+  :param TARGET: The target to build a adhocdb for.
+
+  :param RET: Name of variable to set in parent scope with the args to add to
+   the analysis tool.
+]]
 function(analyze_clang_build_adhocdb_for_target TARGET RET)
   # Create a scratch interface target to force transitive resolution
   set(PROBE_TARGET _libra_probe_${TARGET})
@@ -326,6 +409,25 @@ function(analyze_clang_build_adhocdb_for_target TARGET RET)
 
 endfunction()
 
+#[[.rst:
+.. cmake:command:: analyze_clang_extract_args_from_target
+
+  For clang-based analysis tools, extract necessary args for a target so that
+  analysis will work on all input files.
+
+  This can be:
+
+  - Telling the tool to use a compdb (default).
+  - Telling the tool to use a fixed compdb via
+    :cmake:variable:`LIBRA_CLANG_TOOLS_USE_FIXED_DB`.
+  - Telling the tool to use an adhocdb via
+    :cmake:variable:`LIBRA_CLANG_TOOLS_USE_FIXED_DB`.
+
+  :param TARGET: The target to extract args from.
+
+  :param RET: Name of variable to set in parent scope with the args to add to
+   the analysis tool.
+]]
 function(analyze_clang_extract_args_from_target TARGET RET)
   set(USE_DATABASE ${LIBRA_USE_COMPDB})
   if(USE_DATABASE)
@@ -347,6 +449,18 @@ function(analyze_clang_extract_args_from_target TARGET RET)
   endif()
 endfunction()
 
+#[[.rst:
+.. cmake:command:: _libra_find_code_analyzers
+
+  Finds acceptable versions of all analysis tools libra uses for analyze code.
+
+  Currently this is:
+
+  - clang-tidy
+  - clang-check
+  - clang-format
+  - cppcheck
+]]
 function(_libra_find_code_analyzers)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
@@ -368,7 +482,7 @@ function(_libra_find_code_analyzers)
           clang-tidy
     PATHS "${clang_tidy_DIR}")
   if(NOT clang_tidy_EXECUTABLE)
-    libra_message(STATUS "clang-tidy [disabled=not found]")
+    libra_message(STATUS "clang-tidy [disabled=notfound]")
   endif()
 
   # cppcheck
@@ -378,7 +492,7 @@ function(_libra_find_code_analyzers)
     PATHS "${cppcheck_DIR}" "$ENV{CPPCHECK_DIR}")
 
   if(NOT cppcheck_EXECUTABLE)
-    libra_message(STATUS "cppcheck [disabled=not found]")
+    libra_message(STATUS "cppcheck [disabled=notfound]")
   endif()
 
   # clang-check
@@ -400,7 +514,7 @@ function(_libra_find_code_analyzers)
     PATHS "${clang_check_DIR}")
 
   if(NOT clang_check_EXECUTABLE)
-    libra_message(STATUS "clang-check [disabled=not found]")
+    libra_message(STATUS "clang-check [disabled=notfound]")
   endif()
 
   # clang-format
@@ -422,7 +536,7 @@ function(_libra_find_code_analyzers)
     PATHS "${clang_format_DIR}")
 
   if(NOT clang_format_EXECUTABLE)
-    libra_message(STATUS "clang-format [disabled=not found]")
+    libra_message(STATUS "clang-format [disabled=notfound]")
   endif()
 
   # cmake-format
@@ -432,12 +546,23 @@ function(_libra_find_code_analyzers)
     PATHS "${cmake_format_DIR}")
 
   if(NOT cmake_format_EXECUTABLE)
-    libra_message(STATUS "cmake-format [disabled=not found]")
+    libra_message(STATUS "cmake-format [disabled=notfound]")
   endif()
 
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
+#[[.rst:
+.. cmake:command:: _libra_find_apidoc_analyzers
+
+  Finds acceptable versions of all analysis tools libra uses for analyze
+  documentation.
+
+  Currently this is:
+
+  - clang
+  - doxygen
+]]
 function(_libra_find_apidoc_analyzers)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
@@ -459,8 +584,11 @@ function(_libra_find_apidoc_analyzers)
     PATHS "${clang_DIR}")
 
   if(NOT clang_EXECUTABLE)
-    libra_message(STATUS "clang [disabled=not found]")
+    libra_message(STATUS "clang [disabled=notfound]")
   endif()
+
+  find_program(doxygen PATHS "${doxygen_DIR}")
+
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
@@ -473,6 +601,12 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     list(
       FILTER
       ${PROJECT_NAME}_ANALYSIS_SRC
+      EXCLUDE
+      REGEX
+      "\.conan2")
+    list(
+      FILTER
+      ${PROJECT_NAME}_ANALYSIS_HEADERS
       EXCLUDE
       REGEX
       "\.conan2")
@@ -498,7 +632,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Find tools
   _libra_find_code_analyzers()
 
-  # Handy checking tools
+  # Configure checking tools
   libra_message(STATUS "Enabling analysis tools: checkers")
   _libra_register_code_checkers(
     ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
@@ -506,15 +640,13 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
   _libra_register_checker_cmake_format(${${PROJECT_NAME}_CMAKE_SRC})
 
-  # Handy formatting tools
+  # Configure formatting tools
   libra_message(STATUS "Enabling analysis tools: formatters")
   _libra_register_code_formatters("${${PROJECT_NAME}_ANALYSIS_SRC}"
                                   "${${PROJECT_NAME}_ANALYSIS_HEADERS}")
   _libra_register_formatter_cmake_format(${${PROJECT_NAME}_CMAKE_SRC})
 
-  # Handy fixing tools
+  # Configure fixing tools
   libra_message(STATUS "Enabling analysis tools: fixers")
-  _libra_register_code_fixers(
-    ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
-    "${${PROJECT_NAME}_ANALYSIS_HEADERS}" "${${PROJECT_NAME}_ANALYSIS_STUBS}")
+  _libra_register_code_fixers(${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}")
 endif()
