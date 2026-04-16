@@ -9,6 +9,7 @@ use anyhow;
 use clap;
 use colored::Colorize;
 use log::{debug, trace, warn};
+use serde::Deserialize;
 use std::fmt::Write;
 
 use crate::cmake;
@@ -31,49 +32,54 @@ pub struct InfoArgs {
     pub build: bool,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct Target {
+    pub name: String,
+    pub available: bool,
+    pub unavailable_reason: Option<String>,
+    pub category: String,
+    pub parent: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct HelpTargets {
+    pub schema_version: u32,
+    pub project: String,
+    pub targets: Vec<Target>,
+}
+
 // Traits
 
 // Implementation
 
 /// Emit output for a single target group; that is, for a collection of
 /// buildable targets which all fall under the same semantic umbrella.
-fn emit_target_group(
-    out: &mut String,
-    label: &str,
-    items: &[(&str, &str, String)],
-    targets: &[&str],
-) {
+fn emit_target_group(out: &mut String, category: &str, items: &Vec<Target>) {
     let indent = "    "; // 4 spaces
-    let filtered: Vec<_> = items
-        .iter()
-        .filter(|(t, _, _)| targets.contains(t))
-        .collect();
-
-    let width = filtered.iter().map(|(t, _, _)| t.len()).max().unwrap_or(20);
+    let filtered: Vec<_> = items.iter().filter(|t| t.category == category).collect();
+    println!("items: {:?} filtered: {:?}", items, filtered);
+    let width = filtered.iter().map(|t| t.name.len()).max().unwrap_or(20) + 1;
 
     // label on its own line
-    let _ = writeln!(out, "  {}", label.bold());
+    let _ = writeln!(out, "  {}", category.bold());
 
     if filtered.is_empty() {
         let _ = writeln!(out, "{} (None)", indent);
         return;
     }
     for item in filtered {
+        let reason = item.unavailable_reason.as_deref();
         let _ = writeln!(
             out,
             "{}{:.<width$} {} {}",
             indent,
-            item.0,
-            if item.1 == "YES" {
-                item.1.green().bold().to_string()
+            item.name,
+            if item.available {
+                "YES".green().bold()
             } else {
-                item.1.dimmed().to_string()
+                "NO".dimmed()
             },
-            if item.1 == "YES" {
-                String::new()
-            } else {
-                format!("({})", item.2.yellow())
-            }
+            reason.map_or(String::new(), |r| format!("({})", r.yellow())),
         );
     }
 }
@@ -104,81 +110,32 @@ pub fn run_paged(output: &str) -> anyhow::Result<()> {
 ///
 /// This is read from the LIBRA cmake output, so if that changes, this
 /// function will probably need to too.
-fn emit_libra_targets(out: &mut String, ctx: &runner::Context, preset: &str) -> anyhow::Result<()> {
-    let tests_targets = [
-        "all-tests",
-        "integration-tests",
-        "unit-tests",
-        "regression-tests",
-        "build-and-test",
-    ];
-    let coverage_targets = [
-        "lcov-preinfo",
-        "lcov-report",
-        "gcovr-check",
-        "gcovr-report",
-        "llvm-summary",
-        "llvm-show",
-        "llvm-report-coverage",
-        "llvm-export-lcov",
-    ];
-    let docs_targets = [
-        "apidoc",
-        "sphinxdoc",
-        "apidoc-check-doxygen",
-        "apidoc-check-clang",
-    ];
-    let analysis_targets = [
-        "analyze",
-        "analyze-clang-tidy",
-        "analyze-clang-check",
-        "analyze-cppcheck",
-        "analyze-cmake-format",
-        "format",
-        "format-clang-format",
-        "format-cmake-format",
-        "fix",
-        "fix-clang-tidy",
-        "fix-clang-check",
-    ];
+fn emit_libra_targets(out: &mut String, preset: &str) -> anyhow::Result<()> {
+    let bdir = cmake::binary_dir(preset);
 
-    let (_, stderr) =
-        ctx.run_capture(cmake::base_build(preset).args(["--target", "help-targets"]))?;
-
-    // first 3 lines are the header
-    let mut items = vec![];
-
-    debug!("Parsing help-targets output: {:?}", stderr);
-    for line in stderr.lines().skip(3) {
-        // Each line contains 3 fields {target, status, reason}
-        let parts: Vec<&str> = line.split_whitespace().collect();
-
-        if parts.len() >= 3 {
-            trace!(
-                "Found target={},status={},reason={}",
-                parts[0],
-                parts[1],
-                parts[2..].join(" ")
-            );
-            items.push((parts[0], parts[1], parts[2..].join(" ")));
-        }
-        if parts.len() == 2 {
-            trace!(
-                "Found target={},status={},reason=enabled",
-                parts[0],
-                parts[1]
-            );
-
-            items.push((parts[0], parts[1], String::new()));
-        }
+    if bdir.is_none() {
+        warn!("Build directory does not exist--no available target info can be emitted");
+        return Ok(());
     }
 
-    let _ = writeln!(out, "{}", "\nAvailable LIBRA targets\n".bold().underline());
+    let text = std::fs::read_to_string(bdir.unwrap().join("libra_targets.json"))?;
+    let data: HelpTargets = serde_json::from_str(&text)?;
 
-    emit_target_group(out, "Tests", &items, &tests_targets);
-    emit_target_group(out, "Docs", &items, &docs_targets);
-    emit_target_group(out, "Coverage", &items, &coverage_targets);
-    emit_target_group(out, "Analysis", &items, &analysis_targets);
+    let s = format!("\nAvailable LIBRA targets for {}\n", data.project)
+        .bold()
+        .underline();
+    if data.schema_version != 1 {
+        anyhow::bail!(
+            "Only info schema v1 supported, have {}",
+            data.schema_version
+        );
+    }
+    let _ = writeln!(out, "{}", s);
+
+    emit_target_group(out, "test", &data.targets);
+    emit_target_group(out, "docs", &data.targets);
+    emit_target_group(out, "coverage", &data.targets);
+    emit_target_group(out, "analysis", &data.targets);
     Ok(())
 }
 
@@ -193,7 +150,7 @@ fn emit_build_configuration(
 ) -> anyhow::Result<()> {
     let bdir = cmake::binary_dir(preset);
     if bdir.is_none() {
-        warn!("Build directory does not exist--no build configuration nifo can be emitted");
+        warn!("Build directory does not exist--no build configuration info can be emitted");
         return Ok(());
     }
     let _ = writeln!(out, "{}", "\nBuild configuration\n".bold().underline());
@@ -318,7 +275,7 @@ pub fn run(ctx: &runner::Context, mut args: InfoArgs) -> anyhow::Result<()> {
         emit_libra_vars(&mut out, &libra_items, width);
     }
     if args.all || args.targets {
-        emit_libra_targets(&mut out, ctx, &preset)?;
+        emit_libra_targets(&mut out, &preset)?;
     }
     run_paged(&out)?;
     Ok(())

@@ -31,6 +31,11 @@ pub struct AnalyzeArgs {
     #[arg(short = 'j', long, default_value_t = utils::num_cpus())]
     pub jobs: u32,
 
+    /// Attempt to apply fixes using the {clang-tidy,clang-check} tools, if they
+    /// are run. Ignored for other tools.
+    #[arg(long)]
+    pub fix: bool,
+
     /// Continue building after errors.
     #[arg(short = 'k', long)]
     pub keep_going: bool,
@@ -60,17 +65,28 @@ pub enum Tool {
 }
 
 pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
-    match args.tool {
-        Some(Tool::ClangTidy) => run_target(ctx, args, "analyze-clang-tidy"),
-        Some(Tool::ClangCheck) => run_target(ctx, args, "analyze-clang-check"),
-        Some(Tool::Cppcheck) => run_target(ctx, args, "analyze-cppcheck"),
-        Some(Tool::ClangFormat) => run_target(ctx, args, "analyze-clang-format"),
-        Some(Tool::CmakeFormat) => run_target(ctx, args, "analyze-cmake-format"),
-        None => run_target(ctx, args, "analyze"),
+    if args.fix {
+        match args.tool {
+            Some(Tool::ClangTidy) => run_target(ctx, &args, "fix-clang-tidy"),
+            Some(Tool::ClangCheck) => run_target(ctx, &args, "fix-clang-check"),
+            Some(Tool::Cppcheck) => anyhow::bail!("cppcheck has no fix target"),
+            Some(Tool::ClangFormat) => anyhow::bail!("clang-format has no fix target"),
+            Some(Tool::CmakeFormat) => anyhow::bail!("cmake-format has no fix target"),
+            None => run_target(ctx, &args, "fix"),
+        }
+    } else {
+        match args.tool {
+            Some(Tool::ClangTidy) => run_target(ctx, &args, "analyze-clang-tidy"),
+            Some(Tool::ClangCheck) => run_target(ctx, &args, "analyze-clang-check"),
+            Some(Tool::Cppcheck) => run_target(ctx, &args, "analyze-cppcheck"),
+            Some(Tool::ClangFormat) => run_target(ctx, &args, "analyze-clang-format"),
+            Some(Tool::CmakeFormat) => run_target(ctx, &args, "analyze-cmake-format"),
+            None => run_target(ctx, &args, "analyze"),
+        }
     }
 }
 
-pub fn run_target(ctx: &runner::Context, args: AnalyzeArgs, target: &str) -> anyhow::Result<()> {
+pub fn run_target(ctx: &runner::Context, args: &AnalyzeArgs, target: &str) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     let preset = preset::resolve(ctx, Some("analyze"))?;
 
@@ -84,7 +100,7 @@ pub fn run_target(ctx: &runner::Context, args: AnalyzeArgs, target: &str) -> any
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_ANALYSIS")?;
 
-        match cmake::target_status(target, &preset, ctx)? {
+        match cmake::target_status(target, &preset)? {
             cmake::TargetStatus::Unavailable(reason) => {
                 anyhow::bail!(
                     "Analysis target {} does not exist! Reason: {}",
@@ -97,6 +113,7 @@ pub fn run_target(ctx: &runner::Context, args: AnalyzeArgs, target: &str) -> any
     }
 
     let mut cmd = cmake::base_build(&preset);
+
     cmd.args(["--target", target, "--parallel", &args.jobs.to_string()]);
 
     if args.keep_going {

@@ -321,7 +321,7 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
       # Strip trailing > left over from split generator expressions e.g.
       # "-Wnull-dereference>" -> "-Wnull-dereference"
       string(REGEX REPLACE ">$" "" opt "${opt}")
-      list(APPEND _compile_args "${opt}")
+      list(APPEND _compile_args ${opt})
     endforeach()
   endif()
 
@@ -333,7 +333,7 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
       endif()
       # Strip trailing > left over from split generator expressions
       string(REGEX REPLACE ">$" "" opt "${opt}")
-      list(APPEND _compile_args -D"${opt}")
+      list(APPEND _compile_args -D${opt})
     endforeach()
   endif()
 

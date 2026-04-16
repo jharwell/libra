@@ -5,9 +5,10 @@
  */
 
 // Imports
+use crate::command::info;
 use crate::preset;
 use crate::runner;
-use log::{debug, trace, warn};
+use log::warn;
 
 // Types
 pub enum TargetStatus {
@@ -153,33 +154,21 @@ pub fn binary_dir(preset: &str) -> Option<std::path::PathBuf> {
 ///
 /// Parses LIBRA diagnostic output for enabled/disabled features, so that
 /// changes, this function will need to as well.
-pub fn target_status(
-    target: &str,
-    preset: &str,
-    ctx: &runner::Context,
-) -> anyhow::Result<TargetStatus> {
-    let (_, stderr) = ctx.run_capture(base_build(preset).args(["--target", "help-targets"]))?;
-    debug!("Parsing help-targets output: {:?}", stderr);
+pub fn target_status(target: &str, preset: &str) -> anyhow::Result<TargetStatus> {
+    let bdir = binary_dir(preset).ok_or_else(|| {
+        anyhow::anyhow!(
+            "Build directory does not exist for preset '{}'.\n\
+         Run 'libra build --preset {}' first.",
+            preset,
+            preset
+        )
+    })?;
 
-    // first 3 lines are the header
-    for line in stderr.lines().skip(3) {
-        // Each line contains 3 fields {target, status, reason}
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 3 && parts[0] == target {
-            trace!(
-                "Found target={},status={},reason={}",
-                parts[0],
-                parts[1],
-                parts[2..].join(" ")
-            );
-            return Ok(TargetStatus::Unavailable(parts[2..].join(" ")));
-        }
-        if parts.len() == 2 && parts[0] == target {
-            trace!(
-                "Found target={},status={},reason=enabled",
-                parts[0],
-                parts[1],
-            );
+    let text = std::fs::read_to_string(bdir.join("libra_targets.json"))?;
+    let data: info::HelpTargets = serde_json::from_str(&text)?;
+
+    for t in data.targets {
+        if t.name == target {
             return Ok(TargetStatus::Available);
         }
     }

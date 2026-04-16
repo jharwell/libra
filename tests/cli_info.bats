@@ -101,13 +101,13 @@ setup() {
 @test "INFO: --targets shows Tests group" {
     run_clibra info --preset debug --targets
     assert_clibra_success
-    assert_output_contains "Tests"
+    assert_output_contains "tests"
 }
 
 @test "INFO: --targets shows Analysis group" {
     run_clibra info --preset debug --targets
     assert_clibra_success
-    assert_output_contains "Analysis"
+    assert_output_contains "analysis"
 }
 
 @test "INFO: --targets does not show build configuration section" {

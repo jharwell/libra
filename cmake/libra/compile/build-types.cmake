@@ -107,13 +107,13 @@ endforeach()
 # Global Application
 # ##############################################################################
 if(LIBRA_GLOBAL_C_FLAGS AND "C" IN_LIST LANGUAGES_LIST)
-  add_compile_options(
-    "$<$<CONFIG:Release>:${_LIBRA_C_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
-  )
-  add_compile_options(
-    "$<$<CONFIG:Debug>:${_LIBRA_C_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
-  )
-  add_link_options(${_LIBRA_C_LINK_OPTIONS})
+  foreach(opt IN LISTS _LIBRA_C_COMPILE_OPTIONS)
+    add_compile_options($<$<CONFIG:Release>:${opt}> $<$<CONFIG:Debug>:${opt}>)
+  endforeach()
+
+  foreach(def IN LISTS _LIBRA_PUBLIC_DEFS _LIBRA_PRIVATE_DEFS)
+    add_compile_options($<$<CONFIG:Release>:${def}> $<$<CONFIG:Debug>:${def}>)
+  endforeach()
 
   set(opt_genex "")
   foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
@@ -127,14 +127,15 @@ if(LIBRA_GLOBAL_C_FLAGS AND "C" IN_LIST LANGUAGES_LIST)
   endif()
 endif()
 
-if(LIBRA_GLOBAL_CXX_FLAGS)
-  add_compile_options("$<$<CONFIG:Release>:${_LIBRA_CXX_COMPILE_OPTIONS}>")
-  add_compile_options(
-    "$<$<CONFIG:Debug>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
-  )
-  add_compile_options(
-    "$<$<CONFIG:Release>:${_LIBRA_CXX_COMPILE_OPTIONS} ${_LIBRA_PUBLIC_DEFS} ${_LIBRA_PRIVATE_DEFS}>"
-  )
+if(LIBRA_GLOBAL_CXX_FLAGS AND "CXX" IN_LIST LANGUAGES_LIST)
+  foreach(opt IN LISTS _LIBRA_CXX_COMPILE_OPTIONS)
+    add_compile_options($<$<CONFIG:Release>:${opt}> $<$<CONFIG:Debug>:${opt}>)
+  endforeach()
+
+  foreach(def IN LISTS _LIBRA_PUBLIC_DEFS _LIBRA_PRIVATE_DEFS)
+    add_compile_options($<$<CONFIG:Release>:${def}> $<$<CONFIG:Debug>:${def}>)
+  endforeach()
+
   add_link_options(${_LIBRA_CXX_LINK_OPTIONS})
   foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
     string(REGEX MATCH "-O[0-9sgz]?" opt_flag "${CMAKE_CXX_FLAGS_${config}}")

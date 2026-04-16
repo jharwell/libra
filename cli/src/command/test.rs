@@ -63,6 +63,10 @@ pub struct TestArgs {
     /// Reconfigure with a --fresh cmake build directory.
     #[arg(short, long)]
     pub fresh: bool,
+
+    /// Run the build and/or tests in verbose mode, printing commands
+    #[arg(short, long)]
+    pub verbose: bool,
 }
 
 // Traits
@@ -85,7 +89,12 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_TESTS")?;
     }
     if !args.no_build {
-        ctx.run(&mut cmake::base_build(&preset).args(["--target", "all-tests"]))?;
+        let mut cmd = cmake::base_build(&preset);
+        cmd.args(["--target", "all-tests"]);
+        if args.verbose {
+            cmd.arg("--verbose");
+        }
+        ctx.run(&mut cmd)?;
     }
 
     let mut cmd = cmake::base_test(&preset);
@@ -103,7 +112,9 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
         TestType::All => {}
     }
     cmd.args(["--parallel", &args.parallel.to_string()]);
-
+    if args.verbose {
+        cmd.arg("--verbose");
+    }
     if let Some(filter) = &args.filter {
         cmd.args(["--tests-regex", filter]);
     }

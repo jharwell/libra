@@ -56,6 +56,22 @@ jobs:
       suite-script: ./suites/run_suite_conan.sh
       pip-install-conan: true
 
+  schema-help-targets:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Run LIBRA install
+        shell: bash
+        run: |
+          cd tests/sample_basic
+          cmake .
+          uv run check-jsonschema --schemafile ../../schema/help-targets.yaml libra_targets.json
+
+
   cmake-self-install-test:
     runs-on: ubuntu-latest
     container:
@@ -128,6 +144,7 @@ jobs:
       - cmake-self-install-test
       - cli-smoke-tests
       - cli-unit-tests
+      - schema-help-targets
     secrets: inherit
 
   create-conan-pkg:
