@@ -89,8 +89,8 @@ if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
              "--analysis enabled")
     libra_message(STATUS "${_msg}")
   else()
-    list(APPEND LIBRA_CXX_DIAG_CANDIDATES -fdiagnostics-all-candidates
-         -fconcepts-diagnostics-depth=10)
+    # list(APPEND LIBRA_CXX_DIAG_CANDIDATES -fdiagnostics-all-candidates)
+    list(APPEND LIBRA_CXX_DIAG_CANDIDATES -fconcepts-diagnostics-depth=10)
   endif()
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
@@ -131,7 +131,6 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
     list(APPEND _LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
-
 # ##############################################################################
 # Build-time Profiling Options
 # ##############################################################################
@@ -141,7 +140,7 @@ endforeach()
 If enabled: ``-ftime-report``.
 ]]
 if(LIBRA_BUILD_PROF)
-  set(_LIBRA_BUILD_PROF_OPTIONS "-ftime-report")
+  set(_LIBRA_BUILD_PROF_OPTIONS -ftime-report)
 else()
   set(_LIBRA_BUILD_PROF_OPTIONS)
 endif()
@@ -431,7 +430,7 @@ endif()
 If enabled: ``-mno-sse3`` to compiler.
 ]]
 if(LIBRA_VALGRIND_COMPAT)
-  set(_LIBRA_VALGRIND_COMPAT_OPTIONS "-mno-sse3")
+  set(_LIBRA_VALGRIND_COMPAT_OPTIONS -mno-sse3)
 endif()
 
 # ##############################################################################

@@ -7,7 +7,7 @@
 // Imports
 use anyhow;
 use clap;
-use log::{debug, warn};
+use log::debug;
 
 use crate::cmake;
 use crate::preset;
@@ -59,7 +59,7 @@ pub fn run_target(ctx: &runner::Context, args: &DocsArgs, target: &str) -> anyho
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_DOCS")?;
 
-        match cmake::target_status(target, &preset, ctx)? {
+        match cmake::target_status(target, &preset)? {
             cmake::TargetStatus::Unavailable(reason) => {
                 anyhow::bail!("Docs target {} disabled (reason: {})", &target, reason);
             }

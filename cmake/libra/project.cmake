@@ -38,6 +38,7 @@ include(libra/compile/version) # To be available in project-local.cmake
 # of this file. It needs to be here so libra_config_summary_prepare_fields() is
 # available in project-local.cmake.
 include(libra/summary)
+include(libra/help)
 
 # Set policies
 include(libra/policies)
@@ -60,7 +61,7 @@ option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
-option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally?" OFF)
+option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
 option(LIBRA_CODE_COV_NATIVE
@@ -354,7 +355,22 @@ endif()
 # ##############################################################################
 # Config Summary
 # ##############################################################################
-_libra_create_help_targets()
+set(_json_output "${CMAKE_BINARY_DIR}/libra_targets.json")
+_libra_create_targets_json(${_json_output})
+
+if(NOT TARGET help-targets)
+  message("OUTPUT: ${_json_output}")
+  set(_this_script "${CMAKE_CURRENT_LIST_DIR}/help_targets.cmake")
+  add_custom_target(
+    help-targets
+    COMMAND
+      ${CMAKE_COMMAND} -DLIBRA_JSON_FILE=${_json_output}
+      -D_LIBRA_SUMMARY_COL_TARGET=${_LIBRA_SUMMARY_COL_TARGET}
+      -D_LIBRA_SUMMARY_SEP_WIDTH=${_LIBRA_SUMMARY_SEP_WIDTH} -P${_this_script}
+    VERBATIM
+    COMMENT "LIBRA target availability"
+    USES_TERMINAL)
+endif()
 
 if(${LIBRA_SUMMARY})
   if(NOT ${_LIBRA_SHOWED_SUMMARY})

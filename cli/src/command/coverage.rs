@@ -74,7 +74,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
             ["gcovr-report", "llvm-report"]
                 .iter()
                 .copied()
-                .find_map(|t| match cmake::target_status(t, &preset, ctx) {
+                .find_map(|t| match cmake::target_status(t, &preset) {
                     Ok(cmake::TargetStatus::Available) => Some(Ok(t)),
                     Ok(cmake::TargetStatus::Unavailable(_)) => None,
                     Err(e) => Some(Err(e)),
@@ -107,7 +107,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
             ["gcovr-check"]
                 .iter()
                 .copied()
-                .find_map(|t| match cmake::target_status(t, &preset, ctx) {
+                .find_map(|t| match cmake::target_status(t, &preset) {
                     Ok(cmake::TargetStatus::Available) => Some(Ok(t)),
                     Ok(cmake::TargetStatus::Unavailable(_)) => None,
                     Err(e) => Some(Err(e)),

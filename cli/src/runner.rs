@@ -39,28 +39,6 @@ impl Context {
         }
         Ok(())
     }
-
-    pub fn run_capture(&self, cmd: &mut std::process::Command) -> anyhow::Result<(String, String)> {
-        if self.dry_run {
-            eprintln!("+ {}", format_cmd(cmd));
-            return Ok((String::new(), String::new()));
-        } else {
-            debug!("+ {}", format_cmd(cmd));
-        }
-        let output = cmd.output()?;
-        if !output.status.success() {
-            anyhow::bail!(
-                "command failed with exit code {}: {}",
-                output.status.code().unwrap_or(-1),
-                format_cmd(cmd)
-            );
-        }
-
-        Ok((
-            strip_ansi_escapes::strip_str(String::from_utf8_lossy(&output.stdout).into_owned()),
-            strip_ansi_escapes::strip_str(String::from_utf8_lossy(&output.stderr).into_owned()),
-        ))
-    }
 }
 fn format_cmd(cmd: &std::process::Command) -> String {
     let prog = cmd.get_program().to_string_lossy();

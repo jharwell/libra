@@ -84,7 +84,7 @@ pub fn run_target(ctx: &runner::Context, args: AnalyzeArgs, target: &str) -> any
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_ANALYSIS")?;
 
-        match cmake::target_status(target, &preset, ctx)? {
+        match cmake::target_status(target, &preset)? {
             cmake::TargetStatus::Unavailable(reason) => {
                 anyhow::bail!(
                     "Analysis target {} does not exist! Reason: {}",

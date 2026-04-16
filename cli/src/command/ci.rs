@@ -64,7 +64,7 @@ pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
     let test_target = if ctx.dry_run {
         "all-tests"
     } else {
-        match cmake::target_status("all-tests", &preset, ctx)? {
+        match cmake::target_status("all-tests", &preset)? {
             cmake::TargetStatus::Unavailable(reason) => {
                 anyhow::bail!("CI target all-tests does not exist! Reason: {}", reason);
             }
@@ -75,7 +75,7 @@ pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
     let check_target = if ctx.dry_run {
         "gcovr-check"
     } else {
-        match cmake::target_status("gcovr-check", &preset, ctx)? {
+        match cmake::target_status("gcovr-check", &preset)? {
             cmake::TargetStatus::Unavailable(reason) => {
                 anyhow::bail!("CI target gcovr-check does not exist! Reason: {}", reason);
             }

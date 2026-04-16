@@ -36,8 +36,10 @@ docs = [
   "sphinxcontrib-plantuml",
   "myst-parser"
 ]
+
 dev = [
     {include-group ="docs"},
+    "check-jsonschema"
 ]
 
 [project.urls]
