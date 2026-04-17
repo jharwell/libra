@@ -46,6 +46,10 @@ pub struct BuildArgs {
     /// Reconfigure with a --fresh build directory by wiping the CMake cache.
     #[arg(short, long)]
     pub fresh: bool,
+
+    /// Run the build in verbose mode, printing build commands
+    #[arg(short, long)]
+    pub verbose: bool,
 }
 
 // Traits
@@ -78,6 +82,9 @@ pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
         cmd.arg("--clean-first");
     }
 
+    if args.verbose {
+        cmd.arg("--verbose");
+    }
     if let Some(target) = &args.target {
         cmd.args(["--target", target]);
     }

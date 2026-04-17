@@ -56,7 +56,7 @@ jobs:
       suite-script: ./suites/run_suite_conan.sh
       pip-install-conan: true
 
-  schema-help-check:
+  schema-help-targets:
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16
@@ -144,7 +144,7 @@ jobs:
       - cmake-self-install-test
       - cli-smoke-tests
       - cli-unit-tests
-      - schema-help-check
+      - schema-help-targets
     secrets: inherit
 
   create-conan-pkg:

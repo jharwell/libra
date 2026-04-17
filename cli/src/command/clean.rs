@@ -45,8 +45,10 @@ pub fn run(ctx: &runner::Context, args: CleanArgs) -> anyhow::Result<()> {
         })?;
         std::fs::remove_dir_all(bdir)?;
     } else {
-        let mut cmd = cmake::base_build(&preset);
-        ctx.run(cmd.args(["--target", "clean"]))?;
+        ctx.run(
+            std::process::Command::new("cmake")
+                .args(["--build", "--preset", &preset, "--target", "clean"]),
+        )?;
     }
     Ok(())
 }
