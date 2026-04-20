@@ -151,8 +151,10 @@ macro(
   string(REPLACE ";" "|" VALID_GENERATORS_REGEX "DEB|RPM|TGZ|ZIP|STGZ|TBZ2|TXZ")
   foreach(GENERATOR ${GENERATORS})
     if(NOT "${GENERATOR}" MATCHES "^(${VALID_GENERATORS_REGEX})$")
-      libra_error("libra_configure_cpack: Invalid GENERATOR '${GENERATOR}'\n"
-                  "  Valid options: DEB, RPM, TGZ, ZIP, STGZ, TBZ2, TXZ")
+      string(CONCAT _msg
+                    "libra_configure_cpack: Invalid GENERATOR '${GENERATOR}'."
+                    "Valid options: DEB, RPM, TGZ, ZIP, STGZ, TBZ2, TXZ")
+      libra_error("${_msg}")
     endif()
   endforeach()
 

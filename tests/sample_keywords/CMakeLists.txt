@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
-project(
-  sample_keywords
-  LANGUAGES CXX
-  VERSION 1.0.0)
+if(LIBRA_TEST_CPACK_OMIT_VERSION)
+  project(sample_keywords LANGUAGES CXX)
+else()
+  project(
+    sample_keywords
+    LANGUAGES CXX
+    VERSION 1.0.0)
+endif()
 
 # Wire up LIBRA according to the consumption mode selected by the test harness.
 # LIBRA_CONSUME_MODE and companion variables are injected as -D arguments by

@@ -3,6 +3,10 @@
 #
 # SPDX-License Identifier:  MIT
 #
+include(libra/utils)
+
+_libra_register_custom_target(analyze-clang-check LIBRA_ANALYSIS NONE)
+_libra_register_custom_target(fix-clang-check LIBRA_ANALYSIS NONE)
 
 #[[.rst
 .. cmake:command: _libra_register_clang_check
@@ -27,7 +31,7 @@ function(_libra_register_clang_check ANALYSIS_TARGET TARGET JOB)
 
   add_custom_target(${ANALYSIS_TARGET})
   set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
-                                                      1)
+                                                      1 EXCLUDE_FROM_ALL 1)
 
   _libra_get_project_language(_LANG)
   if("${_LANG}" STREQUAL "CXX")
@@ -103,8 +107,7 @@ function(_libra_register_checker_clang_check TARGET)
   get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
 
   list(LENGTH ARGN LEN)
-  libra_message(STATUS
-                "Registered ${LEN} files with ${clang_check_NAME} checker")
+  libra_message(STATUS "Registered ${LEN} files with ${clang_check_NAME}")
 
 endfunction()
 
@@ -127,6 +130,6 @@ function(_libra_register_fixer_clang_check TARGET)
 
   get_filename_component(clang_check_NAME ${clang_check_EXECUTABLE} NAME)
   list(LENGTH ARGN LEN)
-  libra_message(STATUS "Registered ${LEN} files with ${clang_check_NAME} fixer")
+  libra_message(STATUS "Registered ${LEN} files with ${clang_check_NAME}")
 
 endfunction()

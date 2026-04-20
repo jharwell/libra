@@ -67,16 +67,20 @@ foreach(target ${_LIBRA_TARGETS})
     set_target_properties(${target} PROPERTIES INTERPROCEDURAL_OPTIMIZATION
                                                TRUE)
   endif()
-  target_compile_options(
-    ${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${_LIBRA_C_COMPILE_OPTIONS}>)
+  foreach(_opt IN LISTS _LIBRA_C_COMPILE_OPTIONS)
+    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:C>:${_opt}>)
+  endforeach()
+  foreach(_opt IN LISTS _LIBRA_CXX_COMPILE_OPTIONS)
+    target_compile_options(${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${_opt}>)
+  endforeach()
 
-  target_compile_options(
-    ${target} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${_LIBRA_CXX_COMPILE_OPTIONS}>)
+  foreach(_opt IN LISTS _LIBRA_C_LINK_OPTIONS)
+    target_link_options(${target} PRIVATE $<$<LINK_LANGUAGE:C>:${_opt}>)
+  endforeach()
+  foreach(_opt IN LISTS _LIBRA_CXX_LINK_OPTIONS)
+    target_link_options(${target} PRIVATE $<$<LINK_LANGUAGE:CXX>:${_opt}>)
+  endforeach()
 
-  target_link_options(${target} PUBLIC
-                      $<$<LINK_LANGUAGE:C>:${_LIBRA_C_LINK_OPTIONS}>)
-  target_link_options(${target} PUBLIC
-                      $<$<LINK_LANGUAGE:CXX>:${_LIBRA_CXX_LINK_OPTIONS}>)
   target_compile_definitions(${target} PRIVATE ${_LIBRA_PRIVATE_DEFS})
   target_compile_definitions(${target} PUBLIC ${_LIBRA_PUBLIC_DEFS})
 
@@ -136,7 +140,9 @@ if(LIBRA_GLOBAL_CXX_FLAGS AND "CXX" IN_LIST LANGUAGES_LIST)
     add_compile_options($<$<CONFIG:Release>:${def}> $<$<CONFIG:Debug>:${def}>)
   endforeach()
 
-  add_link_options(${_LIBRA_CXX_LINK_OPTIONS})
+  foreach(_opt IN LISTS _LIBRA_CXX_LINK_OPTIONS)
+    add_link_options(${_opt})
+  endforeach()
   foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
     string(REGEX MATCH "-O[0-9sgz]?" opt_flag "${CMAKE_CXX_FLAGS_${config}}")
     if(opt_flag)

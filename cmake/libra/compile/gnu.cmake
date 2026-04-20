@@ -13,7 +13,7 @@ include(libra/defaults)
 # ##############################################################################
 # Diagnostic Options
 # ##############################################################################
-set(LIBRA_BASE_DIAG_CANDIDATES
+set(_LIBRA_BASE_DIAG_CANDIDATES
     -fdiagnostics-color=always
     -W
     -Wall
@@ -52,10 +52,14 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wnarrowing
     -Wmultistatement-macros)
 
+if(LIBRA_WERROR)
+  list(APPEND _LIBRA_BASE_DIAG_CANDIDATES -Werror)
+endif()
+
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
   set(LIBRA_C_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES}
+      ${_LIBRA_BASE_DIAG_CANDIDATES}
       -Wstrict-prototypes
       -Wmissing-prototypes
       -Wbad-function-cast
@@ -68,7 +72,7 @@ endif()
 if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
   set(LIBRA_CXX_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES}
+      ${_LIBRA_BASE_DIAG_CANDIDATES}
       -Weffc++
       -Wunused-macros
       -Wsuggest-override

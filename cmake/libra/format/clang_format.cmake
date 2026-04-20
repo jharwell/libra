@@ -4,6 +4,11 @@
 # SPDX-License Identifier:  MIT
 #
 include(libra/messaging)
+include(libra/utils)
+
+_libra_register_custom_target(format-check-clang LIBRA_FORMAT
+                              clang_format_EXECUTABLE)
+_libra_register_custom_target(format-clang LIBRA_FORMAT clang_format_EXECUTABLE)
 
 #[[.rst
 .. cmake:command: _libra_register_clang_format
@@ -34,6 +39,8 @@ function(_libra_register_clang_format FMT_TARGET JOB)
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
 
   add_custom_target(${FMT_TARGET})
+  set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
 
   # We generate per-file commands so that we (a) get more fine-grained feedback
   # from clang-format, and (b) don't have to wait until clang-format finishes
@@ -57,8 +64,6 @@ function(_libra_register_clang_format FMT_TARGET JOB)
 
     add_dependencies(${FMT_TARGET} ${FMT_TARGET}-${file_target})
   endforeach()
-
-  set_target_properties(${FMT_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
 endfunction()
 
 #[[.rst
@@ -67,18 +72,19 @@ endfunction()
   Calls :cmake:command:`_libra_register_clang_format` in FORMAT mode: apply
   formatting.
 ]]
-function(_libra_register_formatter_clang_format)
+function(_libra_register_formatter_clang_format PARENT_TARGET)
   if(NOT clang_format_EXECUTABLE)
     return()
   endif()
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
 
-  _libra_register_clang_format(format-clang-format "FORMAT" ${ARGN})
-  add_dependencies(format format-clang-format)
+  _libra_register_clang_format(format-clang "FORMAT" ${ARGN})
+  add_dependencies(${PARENT_TARGET} format-clang)
 
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
   list(LENGTH ARGN LEN)
-  libra_message(STATUS
-                "Registered ${LEN} files with ${clang_format_NAME} formatter")
+  libra_message(STATUS "Registered ${LEN} files with ${clang_format_NAME}")
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
 #[[.rst
@@ -87,17 +93,17 @@ endfunction()
   Calls :cmake:command:`_libra_register_clang_format` in CHECK mode: check if
   files are conformant to the applied schema.
 ]]
-function(_libra_register_checker_clang_format)
+function(_libra_register_checker_clang_format PARENT_TARGET)
   if(NOT clang_format_EXECUTABLE)
     return()
   endif()
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
 
-  _libra_register_clang_format(analyze-clang-format "CHECK" ${ARGN})
-  add_dependencies(analyze analyze-clang-format)
+  _libra_register_clang_format(format-check-clang "CHECK" ${ARGN})
+  add_dependencies(${PARENT_TARGET} format-check-clang)
 
   get_filename_component(clang_format_NAME ${clang_format_EXECUTABLE} NAME)
   list(LENGTH ARGN LEN)
-  libra_message(STATUS
-                "Registered ${LEN} files with ${clang_format_NAME} checker")
-
+  libra_message(STATUS "Registered ${LEN} files with ${clang_format_NAME}")
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()

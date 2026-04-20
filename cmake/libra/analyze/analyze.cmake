@@ -5,10 +5,12 @@
 #
 include(libra/analyze/cppcheck)
 include(libra/analyze/clang_tidy)
-include(libra/analyze/clang_format)
 include(libra/analyze/clang_check)
-include(libra/analyze/cmake_format)
 include(libra/messaging)
+include(libra/utils)
+
+_libra_register_custom_target(analyze LIBRA_ANALYSIS NONE)
+_libra_register_custom_target(fix LIBRA_ANALYSIS NONE)
 
 #[[.rst:
 .. cmake:command:: _libra_register_code_checkers
@@ -19,7 +21,6 @@ include(libra/messaging)
   - cppcheck. Operates on sources and stubs.
   - clang-tidy. Operates on sources, headers, and stubs.
   - clang-check. Operates on sources and stubs.
-  - clang-format. Operates on sources and headers.
 
   :param TARGET: The name of the target {sources,headers,stubs} are attached to.
 
@@ -44,35 +45,13 @@ function(
 
   add_custom_target(analyze)
 
-  set_target_properties(analyze PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+  set_target_properties(analyze PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                           EXCLUDE_FROM_ALL 1)
 
   _libra_register_checker_cppcheck(${TARGET} ${SRCS} ${STUBS})
   _libra_register_checker_clang_tidy(${TARGET} "${SRCS}" "${HEADERS}"
                                      "${STUBS}")
   _libra_register_checker_clang_check(${TARGET} ${SRCS} ${STUBS})
-  _libra_register_checker_clang_format(${SRCS} ${HEADERS})
-  list(POP_BACK CMAKE_MESSAGE_INDENT)
-endfunction()
-
-#[[.rst:
-.. cmake:command:: _libra_register_code_formatters
-
-  Registers all code-formatting analysis tools. Currently this is:
-
-  - clang-format. Operates on source files and raw headers.
-
-]]
-function(_libra_register_code_formatters)
-  list(APPEND CMAKE_MESSAGE_INDENT " ")
-  if("${ARGN}" STREQUAL "")
-    libra_error("No source files passed--misconfiguration?")
-  endif()
-
-  add_custom_target(format)
-
-  set_target_properties(format PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-  _libra_register_formatter_clang_format(${ARGN})
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
@@ -99,7 +78,10 @@ function(_libra_register_code_fixers TARGET SRCS)
   endif()
 
   add_custom_target(fix)
-  set_target_properties(fix PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+
+  set_target_properties(fix PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                       EXCLUDE_FROM_ALL 1)
+
   _libra_register_fixer_clang_tidy(${TARGET} "${SRCS}")
   _libra_register_fixer_clang_check(${TARGET} "${SRCS}")
   list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -458,7 +440,6 @@ endfunction()
 
   - clang-tidy
   - clang-check
-  - clang-format
   - cppcheck
 ]]
 function(_libra_find_code_analyzers)
@@ -475,10 +456,6 @@ function(_libra_find_code_analyzers)
           clang-tidy-16
           clang-tidy-15
           clang-tidy-14
-          clang-tidy-13
-          clang-tidy-12
-          clang-tidy-11
-          clang-tidy-10
           clang-tidy
     PATHS "${clang_tidy_DIR}")
   if(NOT clang_tidy_EXECUTABLE)
@@ -506,47 +483,11 @@ function(_libra_find_code_analyzers)
           clang-check-16
           clang-check-15
           clang-check-14
-          clang-check-13
-          clang-check-12
-          clang-check-11
-          clang-check-10
           clang-check
     PATHS "${clang_check_DIR}")
 
   if(NOT clang_check_EXECUTABLE)
     libra_message(STATUS "clang-check [disabled=notfound]")
-  endif()
-
-  # clang-format
-  find_program(
-    clang_format_EXECUTABLE
-    NAMES clang-format-21
-          clang-format-20
-          clang-format-19
-          clang-format-18
-          clang-format-17
-          clang-format-16
-          clang-format-15
-          clang-format-14
-          clang-format-13
-          clang-format-12
-          clang-format-11
-          clang-format-10
-          clang-format
-    PATHS "${clang_format_DIR}")
-
-  if(NOT clang_format_EXECUTABLE)
-    libra_message(STATUS "clang-format [disabled=notfound]")
-  endif()
-
-  # cmake-format
-  find_program(
-    cmake_format_EXECUTABLE
-    NAMES cmake-format
-    PATHS "${cmake_format_DIR}")
-
-  if(NOT cmake_format_EXECUTABLE)
-    libra_message(STATUS "cmake-format [disabled=notfound]")
   endif()
 
   list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -576,10 +517,6 @@ function(_libra_find_apidoc_analyzers)
           clang-16
           clang-15
           clang-14
-          clang-13
-          clang-12
-          clang-11
-          clang-10
           clang
     PATHS "${clang_DIR}")
 
@@ -592,7 +529,7 @@ function(_libra_find_apidoc_analyzers)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(LIBRA_ANALYSIS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   _libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC
                         ${PROJECT_NAME}_ANALYSIS_HEADERS)
 
@@ -637,14 +574,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   _libra_register_code_checkers(
     ${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}"
     "${${PROJECT_NAME}_ANALYSIS_HEADERS}" "${${PROJECT_NAME}_ANALYSIS_STUBS}")
-
-  _libra_register_checker_cmake_format(${${PROJECT_NAME}_CMAKE_SRC})
-
-  # Configure formatting tools
-  libra_message(STATUS "Enabling analysis tools: formatters")
-  _libra_register_code_formatters("${${PROJECT_NAME}_ANALYSIS_SRC}"
-                                  "${${PROJECT_NAME}_ANALYSIS_HEADERS}")
-  _libra_register_formatter_cmake_format(${${PROJECT_NAME}_CMAKE_SRC})
 
   # Configure fixing tools
   libra_message(STATUS "Enabling analysis tools: fixers")

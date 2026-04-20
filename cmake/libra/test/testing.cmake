@@ -6,13 +6,15 @@
 # ##############################################################################
 # Testing Options
 # ##############################################################################
-# This also does enable_testing(), but also configures the DartConfiguration.tcl
-# file needed to run tests under valgrind
-include(CTest)
-
 include(libra/messaging)
 include(libra/defaults)
 include(libra/test/negative)
+include(libra/utils)
+
+_libra_register_custom_target(unit-tests LIBRA_TESTS NONE)
+_libra_register_custom_target(integration-tests LIBRA_TESTS NONE)
+_libra_register_custom_target(regression-tests LIBRA_TESTS NONE)
+_libra_register_custom_target(all-tests LIBRA_TESTS NONE)
 
 # ##############################################################################
 # Test sources
@@ -497,28 +499,6 @@ function(configure_test_harness)
 endfunction()
 
 # ##############################################################################
-# Basic test setup
-# ##############################################################################
-configure_test_harness()
-
-# Target for building and running all tests
-add_custom_target(
-  build-and-test COMMAND ${CMAKE_CTEST_COMMAND} --test-dir
-                         ${CMAKE_CURRENT_BINARY_DIR} --output-on-failure)
-
-# Target for building all unit tests
-add_custom_target(unit-tests)
-
-# Target for building all integration tests
-add_custom_target(integration-tests)
-
-# Target for building all regression tests
-add_custom_target(regression-tests)
-add_custom_target(all-tests)
-
-add_dependencies(all-tests unit-tests integration-tests regression-tests)
-
-# ##############################################################################
 # Helper: register all tests of one category (unit/integration/regression)
 #
 # Arguments: CATEGORY_LABEL   -- "unit", "integration", or "regression"
@@ -585,40 +565,74 @@ endfunction()
 # ##############################################################################
 # Register all tests
 # ##############################################################################
-libra_message(STATUS "Configuring testing")
-list(APPEND CMAKE_MESSAGE_INDENT " ")
+if(LIBRA_TESTS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  libra_message(STATUS "Configuring testing")
+  # This also does enable_testing(), but also configures the
+  # DartConfiguration.tcl file needed to run tests under valgrind
+  include(CTest)
 
-_libra_register_tests(unit unit-tests ${LIBRA_CTEST_INCLUDE_UNIT_TESTS} utests)
-_libra_register_tests(integration integration-tests
-                      ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS} itests)
-_libra_register_tests(regression regression-tests
-                      ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS} rtests)
+  # Basic test setup
+  configure_test_harness()
 
-_libra_register_neg_tests(LIBRA_neg_utests unit-tests
-                          ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
-_libra_register_neg_tests(LIBRA_neg_itests integration-tests
-                          ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
-_libra_register_neg_tests(LIBRA_neg_rtests regression-tests
-                          ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
+  # Target for building and running all tests
+  add_custom_target(
+    build-and-test COMMAND ${CMAKE_CTEST_COMMAND} --test-dir
+                           ${CMAKE_CURRENT_BINARY_DIR} --output-on-failure)
 
-list(LENGTH LIBRA_neg_utests _n_neg_u)
-list(LENGTH LIBRA_neg_itests _n_neg_i)
-list(LENGTH LIBRA_neg_rtests _n_neg_r)
-math(EXPR _n_neg_total "${_n_neg_u} + ${_n_neg_i} + ${_n_neg_r}")
+  # Target for building all unit tests
+  add_custom_target(unit-tests)
+  set_target_properties(unit-tests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                              EXCLUDE_FROM_ALL 1)
+  # Target for building all integration tests
+  add_custom_target(integration-tests)
+  set_target_properties(integration-tests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
+                                                     1 EXCLUDE_FROM_ALL 1)
 
-# Format each line as "N (breakdown)" or just "0" when empty
-foreach(_suffix utests itests rtests)
-  if(_libra_breakdown_${_suffix} STREQUAL "")
-    set(_libra_summary_${_suffix} "${_libra_n_${_suffix}}")
-  else()
-    set(_libra_summary_${_suffix}
-        "${_libra_n_${_suffix}} (${_libra_breakdown_${_suffix}})")
-  endif()
-endforeach()
+  # Target for building all regression tests
+  add_custom_target(regression-tests)
+  set_target_properties(regression-tests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                    EXCLUDE_FROM_ALL 1)
+  add_custom_target(all-tests)
+  set_target_properties(all-tests PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                             EXCLUDE_FROM_ALL 1)
 
-libra_message(STATUS "unit:        ${_libra_summary_utests}")
-libra_message(STATUS "integration: ${_libra_summary_itests}")
-libra_message(STATUS "regression:  ${_libra_summary_rtests}")
-libra_message(STATUS "negative:    ${_n_neg_total}")
+  add_dependencies(all-tests unit-tests integration-tests regression-tests)
 
-list(POP_BACK CMAKE_MESSAGE_INDENT)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
+  _libra_register_tests(unit unit-tests ${LIBRA_CTEST_INCLUDE_UNIT_TESTS}
+                        utests)
+  _libra_register_tests(integration integration-tests
+                        ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS} itests)
+  _libra_register_tests(regression regression-tests
+                        ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS} rtests)
+
+  _libra_register_neg_tests(LIBRA_neg_utests unit-tests
+                            ${LIBRA_CTEST_INCLUDE_UNIT_TESTS})
+  _libra_register_neg_tests(LIBRA_neg_itests integration-tests
+                            ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS})
+  _libra_register_neg_tests(LIBRA_neg_rtests regression-tests
+                            ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS})
+
+  list(LENGTH LIBRA_neg_utests _n_neg_u)
+  list(LENGTH LIBRA_neg_itests _n_neg_i)
+  list(LENGTH LIBRA_neg_rtests _n_neg_r)
+  math(EXPR _n_neg_total "${_n_neg_u} + ${_n_neg_i} + ${_n_neg_r}")
+
+  # Format each line as "N (breakdown)" or just "0" when empty
+  foreach(_suffix utests itests rtests)
+    if(_libra_breakdown_${_suffix} STREQUAL "")
+      set(_libra_summary_${_suffix} "${_libra_n_${_suffix}}")
+    else()
+      set(_libra_summary_${_suffix}
+          "${_libra_n_${_suffix}} (${_libra_breakdown_${_suffix}})")
+    endif()
+  endforeach()
+
+  libra_message(STATUS "unit:        ${_libra_summary_utests}")
+  libra_message(STATUS "integration: ${_libra_summary_itests}")
+  libra_message(STATUS "regression:  ${_libra_summary_rtests}")
+  libra_message(STATUS "negative:    ${_n_neg_total}")
+
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
+endif()

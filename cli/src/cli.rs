@@ -7,7 +7,7 @@
 
 // Imports
 use crate::command::{
-    analyze, build, ci, clean, coverage, docs, doctor, generate, info, install, test,
+    analyze, build, ci, clean, coverage, docs, doctor, format, generate, info, install, test,
 };
 use clap::{Parser, Subcommand};
 
@@ -124,6 +124,15 @@ pub enum Command {
     /// it is skipped with a warning rather than an error. Has suboptions for
     /// checking documentation.
     Docs(docs::DocsArgs),
+
+    /// Configure (if needed) and check/apply formatting.
+    ///
+    /// Requires `LIBRA_FORMAT=ON` in the preset's CMake cache. The preset
+    /// defaults to format if not given.
+    ///
+    /// Attempts to apply formatting by default. Has suboptions for
+    /// checking formatting.
+    Format(format::FormatArgs),
 
     /// Clean build artifacts for the active preset.
     Clean(clean::CleanArgs),

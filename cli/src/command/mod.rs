@@ -12,6 +12,7 @@ pub mod clean;
 pub mod coverage;
 pub mod docs;
 pub mod doctor;
+pub mod format;
 pub mod generate;
 pub mod info;
 pub mod install;

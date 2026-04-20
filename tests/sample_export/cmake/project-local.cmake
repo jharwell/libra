@@ -17,7 +17,9 @@ file(WRITE ${CMAKE_BINARY_DIR}/cmake/foo.cmake "set(X 1)")
 libra_add_library(NAME mylib ${CMAKE_BINARY_DIR}/a.cpp)
 libra_add_executable(NAME myexe ${CMAKE_BINARY_DIR}/b.cpp)
 
+libra_configure_exports(mylib)
 libra_register_headers_for_install(${CMAKE_BINARY_DIR}/include)
+libra_register_target_for_install(mylib)
 libra_register_extra_configs_for_install(TARGET mylib FILES_OR_DIRS
                                          ${CMAKE_BINARY_DIR}/cmake/foo.cmake)
 

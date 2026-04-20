@@ -292,3 +292,62 @@ setup() {
     run cache_value_equals "$test_dir" "LIBRA_OPT_REPORT" "OFF"
     [ "$status" -eq 0 ]
 }
+
+# ==============================================================================
+# RelWithDebInfo and MinSizeRel build types
+#
+# Clang emits -Rpass=.* in compile flags for all build types when
+# LIBRA_OPT_REPORT=ON.  The link-flag path is conditional on LIBRA_LTO, which
+# is independent of build type, but the compile flag must be present in
+# RelWithDebInfo and MinSizeRel just as it is in Release.
+# ==============================================================================
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass=.* in RelWithDebInfo build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass=.* in MinSizeRel build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C OFF does not add -Rpass in RelWithDebInfo build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=OFF \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    assert_compile_flag_absent "$test_dir" "c" "-Rpass"
+}
+
+@test "OPT_REPORT: Intel/C ON adds -qopt-report=3 in RelWithDebInfo build" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    assert_compile_flag_present "$test_dir" "c" "-qopt-report=3"
+}
+
+@test "OPT_REPORT: Intel/C ON adds -qopt-report=3 in MinSizeRel build" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    assert_compile_flag_present "$test_dir" "c" "-qopt-report=3"
+}

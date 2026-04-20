@@ -4,6 +4,10 @@
 # SPDX-License Identifier:  MIT
 #
 include(libra/messaging)
+include(libra/utils)
+
+_libra_register_custom_target(analyze-cppcheck LIBRA_ANALYSIS
+                              cppcheck_EXECUTABLE)
 
 #[[.rst
 .. cmake:command: _libra_register_cppcheck
@@ -34,8 +38,18 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
   if("${_LANG}" STREQUAL "CXX")
     set(STD_ARGS --std=c++${LIBRA_CXX_STANDARD})
   else()
-    set(STD_ARGS --std=c++${LIBRA_C_STANDARD})
+    set(STD_ARGS --std=c${LIBRA_C_STANDARD})
   endif()
+
+  set(_suppr_args "")
+  foreach(_s ${LIBRA_CPPCHECK_SUPPRESSIONS})
+    list(APPEND _suppr_args "--suppress=${_s}")
+  endforeach()
+
+  set(_ignore_args "")
+  foreach(_i ${LIBRA_CPPCHECK_IGNORES})
+    list(APPEND _ignore_args "-i${_i}")
+  endforeach()
 
   # If a compilation database is used, cppcheck doesn't let you check a specific
   # file.
@@ -46,14 +60,13 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
         ${cppcheck_EXECUTABLE}
         --project=${PROJECT_BINARY_DIR}/compile_commands.json
         --enable=warning,style,performance,portability --verbose
-        --check-level=exhaustive ${STD_ARGS} --inline-suppr
-        "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
-        "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
-        ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1
+        --check-level=exhaustive ${STD_ARGS} --inline-suppr ${_suppr_args}
+        ${_ignore_args} ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
       COMMENT "Running ${cppcheck_NAME} with compdb")
   else()
     add_custom_target(${ANALYSIS_TARGET})
+
     foreach(file ${ARGN})
       # We create one target per file we want to analyze so that we can do
       # analysis in parallel if desired. Targets can't have '/' on '.' in their
@@ -68,9 +81,7 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
         COMMAND
           ${cppcheck_EXECUTABLE} ${EXTRACTED_ARGS}
           --enable=warning,style,performance,portability --verbose ${STD_ARGS}
-          --inline-suppr
-          "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
-          "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
+          --inline-suppr ${_suppr_args} ${_ignore_args}
           ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1 ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running ${cppcheck_NAME} without compdb on ${file}")
@@ -79,7 +90,7 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
   endif()
 
   set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
-                                                      1)
+                                                      1 EXCLUDE_FROM_ALL 1)
 endfunction()
 
 #[[.rst

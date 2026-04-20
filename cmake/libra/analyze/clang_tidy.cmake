@@ -5,6 +5,7 @@
 #
 
 include(libra/defaults)
+include(libra/utils)
 
 # We want to be able to enable only SOME checks in clang-tidy in a single run,
 # both to speed up pipelines, but also to fixing errors simpler when there are
@@ -24,6 +25,17 @@ set(CLANG_TIDY_CATEGORIES
     modernize
     misc
     google)
+
+_libra_register_custom_target(analyze-clang-tidy LIBRA_ANALYSIS
+                              clang_tidy_EXECUTABLE)
+_libra_register_custom_target(fix-clang-tidy LIBRA_ANALYSIS
+                              clang_tidy_EXECUTABLE)
+foreach(c ${CLANG_TIDY_CATEGORIES})
+  _libra_register_custom_target(analyze-clang-tidy-${c} LIBRA_ANALYSIS
+                                clang_tidy_EXECUTABLE)
+  _libra_register_custom_target(fix-clang-tidy-${c} LIBRA_ANALYSIS
+                                clang_tidy_EXECUTABLE)
+endforeach()
 
 #[[.rst
 .. cmake:command: _libra_register_clang_tidy
@@ -54,8 +66,9 @@ function(
   endif()
 
   add_custom_target(${ANALYSIS_TARGET})
+
   set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
-                                                      1)
+                                                      1 EXCLUDE_FROM_ALL 1)
 
   set(LIBRA_CLANG_TIDY_FILEPATH_DEFAULT
       "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
@@ -86,11 +99,11 @@ function(
   endif()
 
   foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
-
     add_custom_target(${ANALYSIS_TARGET}-${CATEGORY})
     add_dependencies(${ANALYSIS_TARGET} ${ANALYSIS_TARGET}-${CATEGORY})
-    set_target_properties(${ANALYSIS_TARGET}-${CATEGORY}
-                          PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+    set_target_properties(
+      ${ANALYSIS_TARGET}-${CATEGORY} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                EXCLUDE_FROM_ALL 1)
 
     # We generate per-file commands so that we (a) get more fine-grained
     # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
@@ -209,8 +222,7 @@ function(
   list(LENGTH HEADERS LEN2)
   list(LENGTH STUBS LEN3)
   math(EXPR LEN "${LEN1} + ${LEN2} + ${LEN3}")
-  libra_message(STATUS
-                "Registered ${LEN} files with ${clang_tidy_NAME} checker")
+  libra_message(STATUS "Registered ${LEN} files with ${clang_tidy_NAME}")
 endfunction()
 
 #[[.rst
@@ -244,5 +256,5 @@ function(_libra_register_fixer_clang_tidy TARGET SRCS)
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
   list(LENGTH SRCS LEN)
-  libra_message(STATUS "Registered ${LEN} files with ${clang_tidy_NAME} fixer")
+  libra_message(STATUS "Registered ${LEN} files with ${clang_tidy_NAME}")
 endfunction()

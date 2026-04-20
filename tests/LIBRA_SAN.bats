@@ -487,23 +487,30 @@ assert_san_flag_present() {
     assert_san_flag_present "$test_dir" "cxx" "-fsanitize=thread"
 }
 
+@test "SAN: Intel/C TSAN does not add GNU -fsanitize-recover=all" {
+    # Intel TSAN: -fno-omit-frame-pointer -fsanitize=thread (no -fsanitize-recover=all)
+    # GNU  TSAN: -fno-omit-frame-pointer -fsanitize=thread -fsanitize-recover=all
+    # This guards against the Intel compiler accidentally inheriting the GNU flag set.
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=TSAN)
+
+    assert_compile_flag_absent "$test_dir" "c" "-fsanitize-recover=all"
+    assert_link_flag_absent    "$test_dir" "c" "-fsanitize-recover=all"
+}
+
+@test "SAN: Intel/C++ TSAN does not add GNU -fsanitize-recover=all" {
+    skip_if_compiler_missing "intel" "cxx"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=TSAN)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-fsanitize-recover=all"
+    assert_link_flag_absent    "$test_dir" "cxx" "-fsanitize-recover=all"
+}
+
 # ==============================================================================
 # Combined sanitizers
 # ==============================================================================
-
-@test "SAN: GNU/C ASAN+UBSAN adds -fsanitize=address in compile and link flags" {
-    COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=address"
-}
-
-@test "SAN: GNU/C ASAN+UBSAN adds -fsanitize=undefined in compile and link flags" {
-    COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=undefined"
-}
 
 @test "SAN: GNU/C++ ASAN+UBSAN adds both sanitizer flags in compile and link flags" {
     COMPILER_TYPE=gnu
@@ -511,6 +518,46 @@ assert_san_flag_present() {
 
     assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
     assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+}
+
+@test "SAN: Clang/C++ ASAN+UBSAN adds both sanitizer flags in compile and link flags" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
+
+    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+}
+
+@test "SAN: GNU/C MSAN+ASAN not tested (incompatible combination)" {
+    # MSAN and ASAN are mutually exclusive — this serves as documentation
+    # that we intentionally do not test that combination.
+    skip "MSAN+ASAN is an incompatible sanitizer combination"
+}
+
+# ==============================================================================
+# Cross-compiler flag isolation
+#
+# GNU MSAN adds -fsanitize=leak; Clang MSAN does not (it uses -fsanitize=memory
+# instead).  Clang ASAN must not pick up the GNU leak flag.
+# ==============================================================================
+
+@test "SAN: Clang/C ASAN does not add GNU -fsanitize=leak" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
+
+    assert_compile_flag_absent "$test_dir" "c" "-fsanitize=leak"
+    assert_link_flag_absent    "$test_dir" "c" "-fsanitize=leak"
+}
+
+@test "SAN: Clang/C++ ASAN does not add GNU -fsanitize=leak" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=ASAN)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-fsanitize=leak"
+    assert_link_flag_absent    "$test_dir" "cxx" "-fsanitize=leak"
 }
 
 # ==============================================================================
@@ -556,57 +603,4 @@ assert_san_flag_present() {
 
     run cache_value_equals "$test_dir" "LIBRA_SAN" "UBSAN"
     [ "$status" -eq 0 ]
-}
-
-# ==============================================================================
-# Sanitizer combinations — Clang
-# ==============================================================================
-
-@test "SAN: Clang/C ASAN+UBSAN adds -fsanitize=address in compile and link flags" {
-    skip_if_compiler_missing "clang" "c"
-    COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=address"
-}
-
-@test "SAN: Clang/C ASAN+UBSAN adds -fsanitize=undefined in compile and link flags" {
-    skip_if_compiler_missing "clang" "c"
-    COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=undefined"
-}
-
-@test "SAN: Clang/C++ ASAN+UBSAN adds both sanitizer flags in compile and link flags" {
-    skip_if_compiler_missing "clang" "cxx"
-    COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
-}
-
-@test "SAN: GNU/C MSAN+ASAN not tested (incompatible combination)" {
-    # MSAN and ASAN are mutually exclusive — this serves as documentation
-    # that we intentionally do not test that combination.
-    skip "MSAN+ASAN is an incompatible sanitizer combination"
-}
-
-# ==============================================================================
-# Sanitizer combinations — GNU C++
-# ==============================================================================
-
-@test "SAN: GNU/C++ ASAN+UBSAN adds -fsanitize=address in compile and link flags" {
-    COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
-}
-
-@test "SAN: GNU/C++ ASAN+UBSAN adds -fsanitize=undefined in compile and link flags" {
-    COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
-
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
 }

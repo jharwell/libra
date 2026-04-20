@@ -13,7 +13,7 @@ include(libra/defaults)
 # ##############################################################################
 # Diagnostic Options
 # ##############################################################################
-set(LIBRA_BASE_DIAG_CANDIDATES
+set(_LIBRA_BASE_DIAG_CANDIDATES
     -Wabi
     -Wshadow
     -Wremarks
@@ -45,9 +45,13 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wno-exit-time-destructors
     -fcomment-block-commands=internal,endinternal)
 
+if(LIBRA_WERROR)
+  list(APPEND _LIBRA_BASE_DIAG_CANDIDATES -Werror)
+endif()
+
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
-  set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
+  set(LIBRA_C_DIAG_CANDIDATES ${_LIBRA_BASE_DIAG_CANDIDATES})
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C compiler")
 endif()
@@ -55,7 +59,7 @@ endif()
 if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
   set(LIBRA_CXX_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES}
+      ${_LIBRA_BASE_DIAG_CANDIDATES}
       -fdiagnostics-show-template-tree
       -Wno-c++98-compat
       -Wno-c++98-compat-pedantic
@@ -248,12 +252,15 @@ set(_LIBRA_STDLIB_MATCH NO)
 if("${LIBRA_STDLIB}" MATCHES "NONE")
   set(_LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
   set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_STDLIB_MATCH YES)
 elseif("${LIBRA_STDLIB}" MATCHES "STDCXX")
   set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
   set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 elseif("${LIBRA_STDLIB}" MATCHES "CXX")
   set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
   set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 endif()
 
 if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")

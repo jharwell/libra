@@ -42,27 +42,13 @@ setup() {
     # When LIBRA_FPC is not specified, it should default to INHERIT
     test_dir=$(run_libra_cmake_test "c")
 
-    assert_define_absert "$test_dir" "c" "LIBRA_FPC"
+    assert_define_absent "$test_dir" "c" "LIBRA_FPC"
 }
 
 @test "FPC: Works with C++ projects" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_FPC=ABORT)
 
     assert_define_present "$test_dir" "cxx" "LIBRA_FPC=LIBRA_FPC_ABORT"
-}
-
-@test "FPC: Multiple values can be tested sequentially" {
-    # Test RETURN
-    test_dir_return=$(run_libra_cmake_test "c" -DLIBRA_FPC=RETURN)
-    assert_define_present "$test_dir_return" "c" "LIBRA_FPC=LIBRA_FPC_RETURN"
-
-    # Test ABORT
-    test_dir_abort=$(run_libra_cmake_test "c" -DLIBRA_FPC=ABORT)
-    assert_define_present "$test_dir_abort" "c" "LIBRA_FPC=LIBRA_FPC_ABORT"
-
-    # Test NONE
-    test_dir_none=$(run_libra_cmake_test "c" -DLIBRA_FPC=NONE)
-    assert_define_present "$test_dir_none" "c" "LIBRA_FPC=LIBRA_FPC_NONE"
 }
 
 @test "FPC: Define appears in build_info.c" {

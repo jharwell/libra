@@ -1,7 +1,7 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "libra-help-targets.schema.yaml"
 title: LibraHelpTargets
-description: Output of the help-targets-json cmake target
+description: Schema for help-targets cmake target JSON output
 type: object
 required: [schema_version, project, targets]
 additionalProperties: false
@@ -26,18 +26,18 @@ $defs:
     properties:
       name:
         type: string
-        description: The make/ninja target name
+        description: The make/ninja target name.
       available:
         type: boolean
-        description: Whether the target is currently enabled
+        description: Whether the target is currently enabled.
       unavailable_reason:
         type: [string, "null"]
         description: >
           The LIBRA_FOO=OFF string when available=false,
-          null when available=true
+          null when available=true.
       category:
         type: string
-        enum: [test, docs, coverage, analysis, format, fix]
+        enum: [tests, docs, coverage, analysis, format, fix]
       parent:
         type: [string, "null"]
         description: >

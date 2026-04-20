@@ -9,6 +9,7 @@
 # ##############################################################################
 include(libra/messaging)
 include(libra/analyze/analyze)
+include(libra/utils)
 
 #[[.rst:
 .. cmake:command:: _libra_apidoc_configure_doxygen
@@ -18,9 +19,9 @@ include(libra/analyze/analyze)
 
   :param APIDOC_TARGET: Target to generate API docs with doxygen.
 
-  :param APIDOC_CHECK_TARGET: Target to check doxygen markup for all configured
-   source files. All warnings from doxygen are treated as errors, which can be a
-   little pedantic.
+  :param APIDOC_CHECK_TARGET: Parent target to check API documentation for all
+   configured source files. All warnings from doxygen are treated as errors,
+   which can be a little pedantic.
 ]]
 function(_libra_apidoc_configure_doxygen APIDOC_TARGET APIDOC_CHECK_TARGET)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
@@ -35,22 +36,29 @@ function(_libra_apidoc_configure_doxygen APIDOC_TARGET APIDOC_CHECK_TARGET)
       configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 
       add_custom_target(
-        apidoc
+        ${APIDOC_TARGET}
         COMMAND echo WARN_AS_ERROR=NO >> ${DOXYFILE_OUT} && echo QUIET=NO >>
                 ${DOXYFILE_OUT} && ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Generating ${PROJECT_NAME} API documentation with doxygen"
         VERBATIM)
+      set_target_properties(
+        ${APIDOC_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                    EXCLUDE_FROM_ALL 1)
+
       set(DOXYGEN_WARN_AS_ERROR YES)
 
       add_custom_target(
-        apidoc-check-doxygen
+        ${APIDOC_CHECK_TARGET}-doxygen
         COMMAND
           echo WARN_AS_ERROR=FAIL_ON_WARNINGS >> ${DOXYFILE_OUT} && echo
           QUIET=YES >> ${DOXYFILE_OUT} && ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Checking ${PROJECT_NAME} API documentation with doxygen")
-      add_dependencies(apidoc-check apidoc-check-doxygen)
+      set_target_properties(
+        ${APIDOC_CHECK_TARGET}-doxygen PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                  EXCLUDE_FROM_ALL 1)
+      add_dependencies(${APIDOC_CHECK_TARGET} ${APIDOC_CHECK_TARGET}-doxygen)
 
     else()
       libra_message(
@@ -75,8 +83,10 @@ endfunction()
 ]]
 function(_libra_apidoc_register_clang CHECK_TARGET)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
-  add_custom_target(${CHECK_TARGET})
 
+  add_custom_target(${CHECK_TARGET})
+  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                   EXCLUDE_FROM_ALL 1)
   analyze_build_fixeddb_for_target(${PROJECT_NAME} EXTRACTED_ARGS)
 
   get_filename_component(clang_NAME ${clang_EXECUTABLE} NAME)

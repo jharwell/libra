@@ -108,3 +108,40 @@ macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
   set(${HEADERS_RET} ${SELECTED_HEADERS})
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endmacro()
+
+function(_libra_register_custom_target NAME OPTION TOOL)
+  if(NOT NAME)
+    libra_error("_libra_register_custom_target: NAME is required")
+  endif()
+  if(NOT OPTION)
+    libra_error("_libra_register_custom_target: OPTION is required")
+  endif()
+  if(NOT TOOL)
+    libra_error(
+      "_libra_register_custom_target: TOOL is required (pass NONE if tool-agnostic)"
+    )
+  endif()
+
+  set(_targets_file "${CMAKE_BINARY_DIR}/libra_targets.cmake")
+
+  if(${OPTION})
+    set(_opt_val "ON")
+  else()
+    set(_opt_val "OFF")
+  endif()
+
+  if(NOT TOOL STREQUAL "NONE")
+    set(_tool_val "${${TOOL}}")
+  else()
+    set(_tool_val "")
+  endif()
+
+  file(
+    APPEND "${_targets_file}"
+    "list(APPEND _LIBRA_SUMMARY_TARGETS [[${NAME}]] [[${OPTION}]] [[${TOOL}]])\n"
+  )
+  file(APPEND "${_targets_file}" "set([[${OPTION}]] ${_opt_val})\n")
+  if(NOT TOOL STREQUAL "NONE")
+    file(APPEND "${_targets_file}" "set([[${TOOL}]] [[${_tool_val}]])\n")
+  endif()
+endfunction()

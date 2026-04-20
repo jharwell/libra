@@ -151,9 +151,6 @@ pub fn binary_dir(preset: &str) -> Option<std::path::PathBuf> {
 
 /// Get the status of a LIBRA target so that if it is missing, there's a reason
 /// WHY.
-///
-/// Parses LIBRA diagnostic output for enabled/disabled features, so that
-/// changes, this function will need to as well.
 pub fn target_status(target: &str, preset: &str) -> anyhow::Result<TargetStatus> {
     let bdir = binary_dir(preset).ok_or_else(|| {
         anyhow::anyhow!(

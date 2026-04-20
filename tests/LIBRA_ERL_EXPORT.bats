@@ -54,7 +54,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=ON \
         -DLIBRA_ERL=DEBUG)
 
-    run consumer_has_define "$test_dir" "LIBRA_ERL=LIBRA_ERL_DEBUG" "c++"
+    run consumer_has_define "$test_dir" "LIBRA_ERL=LIBRA_ERL_DEBUG" "cxx"
     [ "$status" -eq 0 ]
 }
 
@@ -64,7 +64,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=OFF \
         -DLIBRA_ERL=DEBUG)
 
-    run consumer_define_absent "$test_dir" "LIBRA_ERL=" "c++"
+    run consumer_define_absent "$test_dir" "LIBRA_ERL=" "cxx"
     [ "$status" -eq 0 ]
 }
 

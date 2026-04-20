@@ -6,6 +6,18 @@
 
 include(libra/messaging)
 include(libra/defaults)
+include(libra/utils)
+
+_libra_register_custom_target(lcov-preinfo LIBRA_CODE_COV lcov_EXECUTABLE)
+_libra_register_custom_target(lcov-report LIBRA_CODE_COV lcov_EXECUTABLE)
+_libra_register_custom_target(gcovr-check LIBRA_CODE_COV gcovr_EXECUTABLE)
+_libra_register_custom_target(gcovr-report LIBRA_CODE_COV gcovr_EXECUTABLE)
+_libra_register_custom_target(llvm-profdata LIBRA_CODE_COV LLVM_PROFDATA)
+_libra_register_custom_target(llvm-summary LIBRA_CODE_COV LLVM_COV)
+_libra_register_custom_target(llvm-show LIBRA_CODE_COV LLVM_COV)
+_libra_register_custom_target(llvm-report LIBRA_CODE_COV LLVM_COV)
+_libra_register_custom_target(llvm-export-lcov LIBRA_CODE_COV LLVM_COV)
+_libra_register_custom_target(llvm-coverage LIBRA_CODE_COV NONE)
 
 set(COVERAGE_DIR ${PROJECT_BINARY_DIR}/coverage)
 file(MAKE_DIRECTORY ${COVERAGE_DIR})
@@ -168,7 +180,7 @@ endfunction()
 function(_libra_coverage_register_lcov)
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
-  find_program(LCOV_EXECUTABLE NAMES lcov REQUIRED)
+  find_program(lcov_EXECUTABLE NAMES lcov REQUIRED)
   find_program(GENHTML_EXECUTABLE NAMES genhtml REQUIRED)
 
   _libra_detect_gcov_tool(LLVM_COV_TOOL)
@@ -176,7 +188,7 @@ function(_libra_coverage_register_lcov)
       ${LLVM_COV_TOOL}
       PARENT_SCOPE)
 
-  libra_message(STATUS "Using lcov=${LCOV_EXECUTABLE}")
+  libra_message(STATUS "Using lcov=${lcov_EXECUTABLE}")
   libra_message(STATUS "Using genhtml=${GENHTML_EXECUTABLE}")
 
   # 2026-02-23 [JRH]: The geninfo_intermediate=on is required to get things to
@@ -202,27 +214,29 @@ function(_libra_coverage_register_lcov)
     # Pre-coverage: Capture baseline before running tests
     add_custom_target(
       lcov-preinfo
-      COMMAND ${LCOV_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --initial
+      COMMAND ${lcov_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --initial
               --output-file ${COVERAGE_DIR}/pre.info
       COMMENT "Capturing baseline coverage for ${PROJECT_NAME}"
       VERBATIM)
+    set_target_properties(lcov-preinfo PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                  EXCLUDE_FROM_ALL 1)
 
     # Post-coverage: Capture after running tests, merge with baseline, strip,
     # generate HTML
     add_custom_target(
       lcov-report
       # Capture post-test coverage
-      COMMAND ${LCOV_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --output-file
+      COMMAND ${lcov_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --output-file
               ${COVERAGE_DIR}/post.info
       # Merge pre/post if pre.info exists, otherwise use post.info
       COMMAND
-        test -e ${COVERAGE_DIR}/pre.info && ${LCOV_EXECUTABLE}
+        test -e ${COVERAGE_DIR}/pre.info && ${lcov_EXECUTABLE}
         ${LCOV_COMMON_FLAGS} -a ${COVERAGE_DIR}/pre.info -a
         ${COVERAGE_DIR}/post.info --output-file ${COVERAGE_DIR}/coverage.info ||
         cp ${COVERAGE_DIR}/post.info ${COVERAGE_DIR}/coverage.info
       # Strip excluded directories
       COMMAND
-        ${LCOV_EXECUTABLE} ${LCOV_COMMON_FLAGS} --remove
+        ${lcov_EXECUTABLE} ${LCOV_COMMON_FLAGS} --remove
         ${COVERAGE_DIR}/coverage.info ${EXCLUDE_PATTERNS} --ignore-errors unused
         --output-file ${COVERAGE_DIR}/coverage-stripped.info
       # Generate HTML report
@@ -230,6 +244,8 @@ function(_libra_coverage_register_lcov)
               --output-directory ${COVERAGE_DIR} --branch-coverage --legend
       COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}"
       VERBATIM)
+    set_target_properties(lcov-report PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
     libra_message(STATUS "Created lcov coverage targets")
   endif()
   list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -284,6 +300,8 @@ function(_libra_coverage_register_gcovr)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       COMMENT "Checking coverage thresholds"
       VERBATIM)
+    set_target_properties(gcovr-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
     # HTML report target
     add_custom_target(
       gcovr-report
@@ -291,6 +309,8 @@ function(_libra_coverage_register_gcovr)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}/index.html"
       VERBATIM)
+    set_target_properties(gcovr-report PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                  EXCLUDE_FROM_ALL 1)
     libra_message(STATUS "Created gcovr coverage targets")
   endif()
   list(POP_BACK CMAKE_MESSAGE_INDENT)
@@ -355,6 +375,8 @@ function(_libra_coverage_register_llvm)
       -ignore-filename-regex='tests/.*' -use-color
     COMMENT "Generating coverage summary"
     VERBATIM)
+  set_target_properties(llvm-summary PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                EXCLUDE_FROM_ALL 1)
 
   # Generate detailed text coverage report
   add_custom_target(
@@ -367,6 +389,8 @@ function(_libra_coverage_register_llvm)
       -show-instantiations -use-color -Xdemangler c++filt -Xdemangler -n
     COMMENT "Generating detailed coverage report"
     VERBATIM)
+  set_target_properties(llvm-show PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                             EXCLUDE_FROM_ALL 1)
 
   # Generate HTML coverage report
   add_custom_target(
@@ -380,6 +404,8 @@ function(_libra_coverage_register_llvm)
       -Xdemangler c++filt -Xdemangler -n
     COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}"
     VERBATIM)
+  set_target_properties(llvm-report PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                               EXCLUDE_FROM_ALL 1)
 
   # Export coverage in lcov format (for compatibility with other tools)
   add_custom_target(
@@ -391,12 +417,35 @@ function(_libra_coverage_register_llvm)
       -ignore-filename-regex='tests/.*' > ${COVERAGE_DIR}/coverage.lcov
     COMMENT "Exporting coverage in lcov format"
     VERBATIM)
+  set_target_properties(llvm-export-lcov PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                    EXCLUDE_FROM_ALL 1)
 
   # All-in-one target: merge + report + summary
   add_custom_target(
     llvm-coverage
     DEPENDS llvm-profdata llvm-report llvm-summary
     COMMENT "Generating complete LLVM coverage report")
-  libra_message(STATUS "Created LLVM coverage targets")
+  set_target_properties(llvm-coverage PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
+
+if(LIBRA_CODE_COV AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  libra_message(STATUS "Configuring code coverage")
+
+  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                 MATCHES "Clang")
+    if(LIBRA_CODE_COV_NATIVE)
+      _libra_coverage_register_llvm()
+    else()
+      _libra_coverage_register_lcov()
+      _libra_coverage_register_gcovr()
+    endif()
+  elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                   MATCHES "GNU")
+    _libra_coverage_register_lcov()
+    _libra_coverage_register_gcovr()
+  else()
+    libra_error("Unsupported compiler for coverage")
+  endif()
+endif()

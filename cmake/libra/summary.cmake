@@ -12,8 +12,10 @@ set(_LIBRA_SHOWED_SUMMARY NO)
 set(_LIBRA_SUMMARY_COL_FEATURE 37) # Feature description
 set(_LIBRA_SUMMARY_COL_STATUS 46) # Status/value
 set(_LIBRA_SUMMARY_COL_VARIABLE 33) # [VARIABLE_NAME]
-set(_LIBRA_SUMMARY_COL_TARGET 36) # make target name
+set(_LIBRA_SUMMARY_COL_TARGET 39) # make target name
 set(_LIBRA_SUMMARY_SEP_WIDTH 80) # inner separator width
+set(_LIBRA_SUMMARY_TARGETS_FILE "${CMAKE_BINARY_DIR}/libra_targets.cmake")
+file(WRITE "${_LIBRA_SUMMARY_TARGETS_FILE}" "set(_LIBRA_SUMMARY_TARGETS)\n")
 
 function(libra_config_summary_prepare_fields FIELDS)
   if(NOT FIELDS)

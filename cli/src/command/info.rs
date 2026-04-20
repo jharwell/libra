@@ -57,7 +57,6 @@ pub struct HelpTargets {
 fn emit_target_group(out: &mut String, category: &str, items: &Vec<Target>) {
     let indent = "    "; // 4 spaces
     let filtered: Vec<_> = items.iter().filter(|t| t.category == category).collect();
-    println!("items: {:?} filtered: {:?}", items, filtered);
     let width = filtered.iter().map(|t| t.name.len()).max().unwrap_or(20) + 1;
 
     // label on its own line
@@ -132,10 +131,11 @@ fn emit_libra_targets(out: &mut String, preset: &str) -> anyhow::Result<()> {
     }
     let _ = writeln!(out, "{}", s);
 
-    emit_target_group(out, "test", &data.targets);
-    emit_target_group(out, "docs", &data.targets);
-    emit_target_group(out, "coverage", &data.targets);
     emit_target_group(out, "analysis", &data.targets);
+    emit_target_group(out, "coverage", &data.targets);
+    emit_target_group(out, "docs", &data.targets);
+    emit_target_group(out, "format", &data.targets);
+    emit_target_group(out, "tests", &data.targets);
     Ok(())
 }
 

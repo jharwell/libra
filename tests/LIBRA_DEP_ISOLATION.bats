@@ -11,7 +11,7 @@
 #
 # Three properties are verified:
 #
-#   (a) ROOT TARGETS PRESENT: All LIBRA special targets (analyze, format, fix,
+#   (a) ROOT TARGETS PRESENT: All LIBRA special targets (analyze, fix,
 #       coverage, etc.) are created for the root project as normal.
 #
 #   (b) DEP TARGET ISOLATION: No duplicate LIBRA special targets are created
@@ -55,12 +55,6 @@ setup() {
     assert_target_exists "$test_dir" "analyze"
 }
 
-@test "DEP_ISOLATION: LIBRA_ANALYSIS=ON - root has format target" {
-    test_dir=$(run_libra_cmake_dep_test "c" -DLIBRA_ANALYSIS=ON)
-
-    assert_target_exists "$test_dir" "format"
-}
-
 @test "DEP_ISOLATION: LIBRA_ANALYSIS=ON - root has fix target" {
     test_dir=$(run_libra_cmake_dep_test "c" -DLIBRA_ANALYSIS=ON)
 
@@ -71,14 +65,10 @@ setup() {
     test_dir=$(run_libra_cmake_dep_test "c" -DLIBRA_ANALYSIS=ON)
 
     assert_target_exists "$test_dir" "analyze"
-    assert_target_exists "$test_dir" "format"
     assert_target_exists "$test_dir" "fix"
     assert_target_exists "$test_dir" "analyze-clang-check"
     assert_target_exists "$test_dir" "analyze-clang-tidy"
     assert_target_exists "$test_dir" "analyze-cppcheck"
-    assert_target_exists "$test_dir" "analyze-cmake-format"
-    assert_target_exists "$test_dir" "format-clang-format"
-    assert_target_exists "$test_dir" "format-cmake-format"
     assert_target_exists "$test_dir" "fix-clang-tidy"
     assert_target_exists "$test_dir" "fix-clang-check"
 }
@@ -87,7 +77,6 @@ setup() {
     test_dir=$(run_libra_cmake_dep_test "cxx" -DLIBRA_ANALYSIS=ON)
 
     assert_target_exists "$test_dir" "analyze"
-    assert_target_exists "$test_dir" "format"
     assert_target_exists "$test_dir" "fix"
 }
 

@@ -14,7 +14,7 @@ include(libra/compile/standard)
 # ##############################################################################
 # Diagnostic Options
 # ##############################################################################
-set(LIBRA_BASE_DIAG_CANDIDATES
+set(_LIBRA_BASE_DIAG_CANDIDATES
     -Weverything
     -fdiagnostics-color=always
     -Wno-reserved-id-macro
@@ -33,9 +33,13 @@ set(LIBRA_BASE_DIAG_CANDIDATES
     -Wno-exit-time-destructors
     -fcomment-block-commands=internal,endinternal)
 
+if(LIBRA_WERROR)
+  list(APPEND _LIBRA_BASE_DIAG_CANDIDATES -Werror)
+endif()
+
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
-  set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
+  set(LIBRA_C_DIAG_CANDIDATES ${_LIBRA_BASE_DIAG_CANDIDATES})
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C compiler")
 endif()
@@ -43,7 +47,7 @@ endif()
 if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
   set(LIBRA_CXX_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES}
+      ${_LIBRA_BASE_DIAG_CANDIDATES}
       -fdiagnostics-show-template-tree
       -Wno-c++98-compat
       -Wno-c++98-compat-pedantic
@@ -58,13 +62,14 @@ foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
   # name that the result of the check is assigned to.
-  string(REGEX REPLACE "[-=]" "_" flag ${flag})
+  string(REGEX REPLACE "[-=]" "_" checked_flag_output ${flag})
 
   # A project can be C/C++ only
   if(CMAKE_C_COMPILER_LOADED)
-    check_c_compiler_flag(${flag} _LIBRA_C_COMPILER_SUPPORTS_${flag})
+    check_c_compiler_flag(${flag}
+                          _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
-  if(_LIBRA_C_COMPILER_SUPPORTS_${flag})
+  if(_LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
     list(APPEND _LIBRA_C_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
@@ -124,7 +129,7 @@ endif()
 # in/added eventually.
 set(_LIBRA_FORTIFY_STACK -fstack-protector)
 set(_LIBRA_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
-set(_LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format-security)
+set(_LIBRA_FORTIFY_FORMAT -Wformat-security -Werror=format=2)
 
 if("${LIBRA_FORTIFY}" MATCHES "STACK")
   set(_LIBRA_FORTIFY_MATCH YES)

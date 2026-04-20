@@ -59,7 +59,7 @@ setup() {
         -DLIBRA_FPC=ABORT)
 
     # Consumer should see the define
-    run consumer_has_define "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "c++"
+    run consumer_has_define "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "cxx"
     [ "$status" -eq 0 ]
 }
 

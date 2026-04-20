@@ -18,67 +18,8 @@
 # Requires CMake >= 3.19 (string(JSON ...))
 # ##############################################################################
 
-#[[.rst:
-.. cmake:command:: _libra_help_targets_block
-
-  Register a block of targets for display via the ``help-targets`` make target.
-  The purpose is to make it clear which targets will/will not be available at
-  build time and *why*.
-
-  :param OPTION: ``LIBRA_XX`` option that gates all targets in this block.
-
-  :param TARGETS: Flat list of ``(target, tool_var)`` pairs. Pass ``NONE`` as
-  ``tool_var`` if a target is gated only by ``OPTION`` with no additional tool
-  dependency.
-
-  .. code-block:: cmake
-
-     libra_help_targets_block( OPTION  <variable-name> TARGETS <target> <tool-var>... )
-
-  **Example:**
-
-  .. code-block:: cmake
-
-     libra_help_targets_block(OPTION LIBRA_ANALYSIS
-                             TARGETS analyze NONE
-                                     analyze-clang-tidy clang_tidy_EXECUTABLE
-                                     analyze-cppcheck cppcheck_EXECUTABLE)
-
-]]
-macro(_libra_help_targets_block)
-  cmake_parse_arguments(
-    ARG
-    ""
-    "OPTION"
-    "TARGETS"
-    ${ARGN})
-
-  if(NOT ARG_OPTION)
-    libra_error("libra_help_targets_block: OPTION is required")
-  endif()
-  if(NOT ARG_TARGETS)
-    libra_error("libra_help_targets_block: TARGETS is required")
-  endif()
-
-  # Parse flat (target, tool_var) pairs and append to global accumulator
-  set(_toggle ON)
-  set(_cur_target "")
-
-  foreach(_item ${ARG_TARGETS})
-    if(_toggle)
-      set(_cur_target "${_item}")
-      set(_toggle OFF)
-    else()
-      list(
-        APPEND
-        _LIBRA_SUMMARY_TARGETS
-        "${_cur_target}"
-        "${ARG_OPTION}"
-        "${_item}")
-      set(_toggle ON)
-    endif()
-  endforeach()
-endmacro()
+# Clear file to avaid stale accumulation
+file(WRITE "${CMAKE_BINARY_DIR}/libra_targets.cmake" "")
 
 #[[.rst
 .. cmake:command:: _libra_help_resolve_status
@@ -149,7 +90,7 @@ endfunction()
 function(_libra_help_option_to_category _option _out_var)
   if(_option STREQUAL "LIBRA_TESTS")
     set(${_out_var}
-        "test"
+        "tests"
         PARENT_SCOPE)
   elseif(_option STREQUAL "LIBRA_DOCS")
     set(${_out_var}
@@ -162,6 +103,10 @@ function(_libra_help_option_to_category _option _out_var)
   elseif(_option STREQUAL "LIBRA_ANALYSIS")
     set(${_out_var}
         "analysis"
+        PARENT_SCOPE)
+  elseif(_option STREQUAL "LIBRA_FORMAT")
+    set(${_out_var}
+        "format"
         PARENT_SCOPE)
   else()
     set(${_out_var}
@@ -209,120 +154,9 @@ endfunction()
 
   - ``help-targets`` CMake target at build time which formats the output for the
     terminal.
-
-  This writes
 ]]
 function(_libra_create_targets_json JSON_OUTPUT_FILE)
-  # Register all target blocks
-  _libra_help_targets_block(
-    OPTION
-    LIBRA_TESTS
-    TARGETS
-    all-tests
-    NONE
-    unit-tests
-    NONE
-    integration-tests
-    NONE
-    build-and-test
-    NONE)
-
-  _libra_help_targets_block(
-    OPTION
-    LIBRA_DOCS
-    TARGETS
-    apidoc
-    DOXYGEN_EXECUTABLE
-    sphinxdoc
-    LIBRA_SPHINXDOC_COMMAND
-    apidoc-check-clang
-    clang_EXECUTABLE
-    apidoc-check-doxygen
-    DOXYGEN_EXECUTABLE)
-
-  _libra_help_targets_block(
-    OPTION
-    LIBRA_CODE_COV
-    TARGETS
-    lcov-preinfo
-    LCOV_EXECUTABLE
-    lcov-report
-    LCOV_EXECUTABLE
-    gcovr-report
-    gcovr_EXECUTABLE
-    gcovr-check
-    gcovr_EXECUTABLE
-    llvm-summary
-    LLVM_COV_TOOL
-    llvm-show
-    LLVM_COV_TOOL
-    llvm-report-coverage
-    LLVM_COV_TOOL
-    llvm-export-lcov
-    LLVM_COV_TOOL)
-
-  _libra_help_targets_block(
-    OPTION
-    LIBRA_ANALYSIS
-    TARGETS
-    analyze
-    NONE
-    analyze-clang-tidy
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-clang-analyze-core
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-abseil
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-readability
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-hicpp
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-bugprone
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-cert
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-preformance
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-portability
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-concurrency
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-modernize
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-misc
-    clang_tidy_EXECUTABLE
-    analyze-clang-tidy-google
-    clang_tidy_EXECUTABLE
-    analyze-clang-check
-    clang_check_EXECUTABLE
-    analyze-cppcheck
-    cppcheck_EXECUTABLE
-    analyze-cmake-format
-    cmake_format_EXECUTABLE
-    analyze-clang-format
-    clang_format_EXECUTABLE)
-
-  _libra_help_targets_block(
-    OPTION
-    LIBRA_ANALYSIS
-    TARGETS
-    format
-    NONE
-    format-clang-format
-    clang_format_EXECUTABLE
-    format-cmake-format
-    cmake_format_EXECUTABLE)
-
-  _libra_help_targets_block(
-    OPTION
-    LIBRA_ANALYSIS
-    TARGETS
-    fix
-    NONE
-    fix-clang-tidy
-    clang_tidy_EXECUTABLE
-    fix-clang-check
-    clang_check_EXECUTABLE)
+  include("${CMAKE_BINARY_DIR}/libra_targets.cmake")
 
   # ------------------------------------------------------------------
   # Write libra_targets.json at configure time. All option and tool values are
@@ -398,4 +232,6 @@ function(_libra_create_targets_json JSON_OUTPUT_FILE)
 
   string(APPEND _json "\n  ]\n}\n")
   file(WRITE "${JSON_OUTPUT_FILE}" "${_json}")
+  libra_message(STATUS
+                "Wrote target availability information to ${JSON_OUTPUT_FILE}")
 endfunction()

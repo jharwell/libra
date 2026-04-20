@@ -87,7 +87,7 @@ rationale.
 .. _usage/build-time/sw-eng:
 
 Analysis and formatting targets
-================================
+===============================
 
 Requires :cmake:variable:`LIBRA_ANALYSIS` to be enabled. Only targets
 for tools that are found on ``PATH`` are created — see
@@ -118,9 +118,6 @@ for tools that are found on ``PATH`` are created — see
          (no changes made).
          .. versionadded:: 0.8.15
 
-       - ``analyze-cmake-format`` — runs ``cmake-format`` in check mode.
-         .. versionadded:: 0.8.15
-
        .. versionchanged:: 0.8.5
           Renamed from ``check/check-XX`` to ``analyze/analyze-XX``.
 
@@ -129,8 +126,8 @@ for tools that are found on ``PATH`` are created — see
    * - ``format``
      - Run all enabled formatters (changes files in place):
 
-       - ``format-clang-format`` — runs ``clang-format``
-       - ``format-cmake-format`` — runs ``cmake-format``
+       - ``format-clang`` — runs ``clang-format``
+       - ``format-cmake`` — runs ``cmake-format``
 
        .. versionadded:: 0.8.15
 

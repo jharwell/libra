@@ -98,13 +98,13 @@ setup() {
     assert_output_contains "Available LIBRA targets"
 }
 
-@test "INFO: --targets shows Tests group" {
+@test "INFO: --targets shows tests group" {
     run_clibra info --preset debug --targets
     assert_clibra_success
     assert_output_contains "tests"
 }
 
-@test "INFO: --targets shows Analysis group" {
+@test "INFO: --targets shows analysis group" {
     run_clibra info --preset debug --targets
     assert_clibra_success
     assert_output_contains "analysis"

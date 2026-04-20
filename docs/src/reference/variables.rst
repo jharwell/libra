@@ -99,6 +99,22 @@ Quality Gates
 
    Enable documentation build via ``make apidoc`` and/or ``make sphinxdoc``.
 
+.. cmake:variable:: LIBRA_FORMAT
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Enable formatting/format checking via ``make format`` and/or ``make
+   format-check``.
+
+.. cmake:variable:: LIBRA_WERROR
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Pass ``-Werror`` to the selected compiler so that all warnings are treated as
+   errors when building.
+
 Runtime Checking
 ================
 

@@ -22,6 +22,7 @@ load test_helpers
 
 setup() {
     setup_libra_test
+    INSTALL_LIBDIR=$(get_install_libdir)
 }
 
 # ==============================================================================
@@ -112,4 +113,134 @@ setup() {
     run cmake "$BATS_TEST_DIRNAME/sample_consumer" --log-level=ERROR
     popd > /dev/null
     [ "$status" -eq 0 ]
+}
+
+# ==============================================================================
+# Actual install verification — cmake --install
+#
+# The configure-only tests above verify cmake exits 0 and targets exist, but
+# they do not prove that files land in the right places after installation.
+# These tests run `cmake --install` and check the output directory layout.
+#
+# Expected layout after install:
+#   ${prefix}/lib/              — libproducer.a / libproducer.so
+#   ${prefix}/lib/cmake/producer/producer-config.cmake
+#   ${prefix}/lib/cmake/producer/producer-exports.cmake
+#   ${prefix}/include/          — public headers (if any)
+# ==============================================================================
+
+@test "EXPORT: cmake --install succeeds for sample_consumer" {
+    test_dir=$(run_libra_cmake_sample_test "sample_consumer")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    run cmake --install .
+    popd > /dev/null
+
+    [ "$status" -eq 0 ]
+}
+
+@test "EXPORT: installed producer-config.cmake exists under lib/cmake/producer/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_consumer")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+
+    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/producer/producer-config.cmake" ]
+}
+
+@test "EXPORT: installed producer-exports.cmake exists under lib/cmake/producer/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_consumer")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/producer/producer-exports.cmake" ]
+
+
+}
+
+@test "EXPORT: installed library file exists under lib/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_consumer")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+
+    # Either a static or shared library must be present
+    run find "$test_dir/install/${INSTALL_LIBDIR}" -maxdepth 1 \
+        \( -name "libproducer.a" -o -name "libproducer.so" -o -name "libproducer.dylib" \)
+    [ -n "$output" ]
+}
+
+@test "INSTALL_API: cmake --install succeeds for sample_keywords" {
+    test_dir=$(run_libra_cmake_sample_test "sample_keywords")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    run cmake --install .
+    popd > /dev/null
+
+    [ "$status" -eq 0 ]
+}
+
+@test "INSTALL_API: sample_keywords installs mylib-config.cmake under lib/cmake/mylib/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_keywords")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+
+    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/mylib/mylib-config.cmake" ]
+}
+
+@test "INSTALL_API: sample_keywords installs mylib-exports.cmake under lib/cmake/mylib/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_keywords")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+
+    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/mylib/mylib-exports.cmake" ]
+}
+
+@test "INSTALL_API: sample_keywords installs headers under include/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_keywords")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+
+    # At least one header must have been installed
+    run find "$test_dir/install/include" -name "*.hpp" -o -name "*.h"
+    [ -n "$output" ]
+}
+
+@test "INSTALL_API: cmake --install succeeds for sample_export" {
+    test_dir=$(run_libra_cmake_sample_test "sample_export")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    run cmake --install .
+    popd > /dev/null
+
+    [ "$status" -eq 0 ]
+}
+
+@test "INSTALL_API: sample_export installs mylib-config.cmake under lib/cmake/mylib/" {
+    test_dir=$(run_libra_cmake_sample_test "sample_export")
+
+    pushd "$test_dir" > /dev/null
+    run cmake --build .
+    cmake --install . > /dev/null 2>&1
+    popd > /dev/null
+
+    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/mylib/mylib-config.cmake" ]
 }

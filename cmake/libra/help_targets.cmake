@@ -7,12 +7,12 @@ get_filename_component(_this_dir "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 include("${_this_dir}/colorize.cmake")
 
 if(NOT LIBRA_JSON_FILE)
-  message(FATAL_ERROR "summary_help.cmake: LIBRA_JSON_FILE is not set")
+  message(FATAL_ERROR "help_targets.cmake: LIBRA_JSON_FILE is not set")
 endif()
 
 if(NOT EXISTS "${LIBRA_JSON_FILE}")
   message(
-    FATAL_ERROR "summary_help.cmake: JSON file not found: ${LIBRA_JSON_FILE}\n"
+    FATAL_ERROR "help_targets.cmake: JSON file not found: ${LIBRA_JSON_FILE}\n"
                 "Re-run cmake to regenerate it.")
 endif()
 

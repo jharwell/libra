@@ -7,13 +7,17 @@ Code Style
 ==========
 
 LIBRA's format checking and autoformatting use a baked-in ``.clang-format`` file
-based on `Google C++ Style
-<https://google.github.io/styleguide/cppguide.html>`_. This page documents the
-specific choices and where they diverge from the Google baseline. To substitute
-your own config, see :cmake:variable:`LIBRA_CLANG_FORMAT_FILEPATH`.
+based on a hybrid of:
+
+- `Google C++ Style <https://google.github.io/styleguide/cppguide.html>`_
+- "Do as the standard library does"
+
+This page documents the specific choices and where they diverge from the
+baseline. To substitute your own config, see
+:cmake:variable:`LIBRA_CLANG_FORMAT_FILEPATH`.
 
 Indentation and line length
-============================
+===========================
 
 - **Indent width**: 2 spaces. No tabs.
 - **Continuation indent**: 2 spaces for wrapped lines — same as the base
@@ -53,7 +57,7 @@ Trailing comments are also aligned within a block:
 These rules apply to contiguous blocks only — a blank line resets alignment.
 
 Pointers and references
-========================
+=======================
 
 The ``*`` and ``&`` bind to the **type**, not the variable name:
 
@@ -67,7 +71,7 @@ right-alignment) in favour of the type-system reading: ``int*`` is a
 distinct type from ``int``.
 
 Function arguments and parameters
-===================================
+=================================
 
 Bin-packing is disabled for both arguments and parameters. Every call or
 declaration either fits on one line or puts each argument on its own line —
@@ -88,7 +92,7 @@ the next line as a block" form is not used. This keeps call sites visually
 consistent.
 
 Templates
-==========
+=========
 
 Template declarations always break before the ``<``:
 
@@ -103,7 +107,7 @@ Template declarations always break before the ``<``:
    void bar(T t, U u);
 
 Short functions
-================
+===============
 
 Functions short enough to fit on one line are permitted to stay on one line,
 including empty bodies and simple accessors:
@@ -114,7 +118,7 @@ including empty bodies and simple accessors:
    void reset() {}
 
 Constructor initialisers
-=========================
+========================
 
 Constructor initialisers break before the colon, with each initialiser on
 its own line if they do not fit on the constructor declaration line. If they
@@ -132,7 +136,7 @@ fit on the current line they stay there:
          z_(z) {}
 
 Include ordering
-=================
+================
 
 Includes are automatically regrouped and sorted case-sensitively into the
 following priority order on every format run. The groups are separated by
@@ -175,7 +179,7 @@ lowercase). The format target rewrites include blocks to match this order
 on every run — manual ordering within a group will not be preserved.
 
 Comments
-=========
+========
 
 Comments are reflowed to fit within the column limit. This applies to both
 line comments and block comments. Trailing comments within a block are

@@ -804,7 +804,7 @@ assert_define_present() {
 
 # Assert that a define is absent
 # Usage: assert_define_absent TEST_DIR LANG DEFINE
-assert_define_absert() {
+assert_define_absent() {
     local test_dir="$1"
     local lang="$2"
     local define="$3"
@@ -1080,6 +1080,16 @@ cache_value_equals() {
     [ "$actual" = "$expected" ]
 }
 
+get_install_libdir() {
+  local tmp_src="$BATS_TMPDIR/libdir_probe"
+  local tmp_build="$BATS_TMPDIR/libdir_probe_build"
+  mkdir -p "$tmp_src"
+  printf 'cmake_minimum_required(VERSION 3.0)\nproject(probe C)\ninclude(GNUInstallDirs)\nmessage(STATUS "LIBDIR=${CMAKE_INSTALL_LIBDIR}")' > "$tmp_src/CMakeLists.txt"
+  cmake -S "$tmp_src" -B "$tmp_build" 2>&1 \
+    | grep 'LIBDIR=' \
+    | grep -o '[^=]*$'
+}
+
 ################################################################################
 # Consumer Verification Utilities
 ################################################################################
@@ -1102,12 +1112,11 @@ consumer_has_define() {
 }
 
 # Check if define is absent in consumer build info
-# Usage: consumer_define_absent TEST_DIR DEFINE
+# Usage: consumer_define_absent TEST_DIR DEFINE LANG
 consumer_define_absent() {
     local test_dir="$1"
     local define="$2"
     local lang="$3"
-    local consumer_info="$test_dir/consumer/consumer_build_info.c"
 
     run consumer_has_define "$test_dir" "$define" "$lang"
     [ "$status" -ne 0 ]

@@ -54,6 +54,7 @@ option(
   "Disable some compiler instructions so 64-bit code can robustly be run under valgrind"
   OFF)
 option(LIBRA_ANALYSIS "Enable static analysis checkers" OFF)
+option(LIBRA_FORMAT "Enable format checking/application" OFF)
 option(LIBRA_SUMMARY "Show a configuration summary" OFF)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
@@ -71,6 +72,7 @@ option(
   LIBRA_CLANG_TOOLS_USE_FIXED_DB
   "Use the '--' separator (fixed compilation database for clang-based tools)"
   YES)
+option(LIBRA_WERROR "Add -Werror to the list of compiler options" NO)
 
 # 2026-02-02 [JRH]: All of these are cache variables, because option() does not
 # support non-boolean things.
@@ -265,56 +267,13 @@ include(libra/diagnostics_post)
 # ##############################################################################
 # Code Checking/Analysis Options
 # ##############################################################################
-if(${LIBRA_ANALYSIS})
-  include(libra/analyze/analyze)
-endif()
+include(libra/analyze/analyze)
+include(libra/format/format)
 
 # ##############################################################################
 # Documentation Options
 # ##############################################################################
-# Put this AFTER sourcing the project-local.cmake to enable disabling
-# documentation builds for projects that don't have docs.
-if(LIBRA_DOCS)
-  libra_message(STATUS "Configuring documentation generation")
-  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    include(libra/apidoc)
-
-    add_custom_target(apidoc-check)
-    set_target_properties(apidoc-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-    _libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC
-                          ${PROJECT_NAME}_DOCS_HEADERS)
-    # Should not be needed, but just for safety
-    if("${LIBRA_DRIVER}" MATCHES "CONAN")
-      list(
-        FILTER
-        ${PROJECT_NAME}_DOCS_SRC
-        EXCLUDE
-        REGEX
-        "\.conan2")
-      list(
-        FILTER
-        ${PROJECT_NAME}_DOCS_HEADERS
-        EXCLUDE
-        REGEX
-        "\.conan2")
-    endif()
-
-    # check if Doxygen is installed
-    find_package(Doxygen)
-    _libra_apidoc_configure_doxygen(apidoc apidoc-check-doxygen)
-    _libra_find_apidoc_analyzers()
-
-    # Handy checking tools
-    libra_message(STATUS "Configuring apidoc tools: checkers")
-    _libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC}
-                                 ${${PROJECT_NAME}_DOCS_HEADERS})
-
-    libra_message(STATUS "Configuring sphinxdoc")
-    include(libra/sphinxdoc)
-    _libra_sphinxdoc_configure(sphinxdoc)
-  endif()
-endif()
+include(libra/docs/docs)
 
 # ##############################################################################
 # Testing Options
@@ -322,35 +281,8 @@ endif()
 # Code coverage is included here because the way you get coverage info is
 # (presumably) by running some tests. Fits better here than in analyze/.
 # ##############################################################################
-if(LIBRA_TESTS)
-  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    include(libra/test/testing)
-  endif()
-  list(POP_BACK CMAKE_MESSAGE_INDENT)
-endif()
-
-if(LIBRA_CODE_COV)
-  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    libra_message(STATUS "Configuring code coverage")
-    include(libra/test/coverage)
-
-    if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
-                                                   MATCHES "Clang")
-      if(LIBRA_CODE_COV_NATIVE)
-        _libra_coverage_register_llvm()
-      else()
-        _libra_coverage_register_lcov()
-        _libra_coverage_register_gcovr()
-      endif()
-    elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
-                                                     MATCHES "GNU")
-      _libra_coverage_register_lcov()
-      _libra_coverage_register_gcovr()
-    else()
-      libra_error("Unsupported compiler for coverage")
-    endif()
-  endif()
-endif()
+include(libra/test/testing)
+include(libra/test/coverage)
 
 # ##############################################################################
 # Config Summary
@@ -359,7 +291,6 @@ set(_json_output "${CMAKE_BINARY_DIR}/libra_targets.json")
 _libra_create_targets_json(${_json_output})
 
 if(NOT TARGET help-targets)
-  message("OUTPUT: ${_json_output}")
   set(_this_script "${CMAKE_CURRENT_LIST_DIR}/help_targets.cmake")
   add_custom_target(
     help-targets

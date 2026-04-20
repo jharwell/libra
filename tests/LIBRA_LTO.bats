@@ -190,3 +190,73 @@ setup() {
     run cache_value_equals "$test_dir" "LIBRA_LTO" "OFF"
     [ "$status" -eq 0 ]
 }
+
+# ==============================================================================
+# RelWithDebInfo and MinSizeRel build types
+#
+# build-types.cmake iterates over all four cmake build types when propagating
+# the per-config optimisation level to the linker.  LTO must work correctly
+# in RelWithDebInfo (most common for profiling) and MinSizeRel.
+# ==============================================================================
+
+@test "LTO: GNU/C ON injects LTO flags in RelWithDebInfo build" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_LTO=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    run has_lto_flag "$test_dir"
+    [ "$status" -eq 0 ]
+}
+
+@test "LTO: GNU/C OFF does not inject LTO flags in RelWithDebInfo build" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_LTO=OFF \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    run has_lto_flag "$test_dir"
+    [ "$status" -ne 0 ]
+}
+
+@test "LTO: GNU/C ON injects LTO flags in MinSizeRel build" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_LTO=ON \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    run has_lto_flag "$test_dir"
+    [ "$status" -eq 0 ]
+}
+
+@test "LTO: GNU/C OFF does not inject LTO flags in MinSizeRel build" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_LTO=OFF \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    run has_lto_flag "$test_dir"
+    [ "$status" -ne 0 ]
+}
+
+@test "LTO: Clang/C ON injects LTO flags in RelWithDebInfo build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_LTO=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    run has_lto_flag "$test_dir"
+    [ "$status" -eq 0 ]
+}
+
+@test "LTO: Clang/C ON injects LTO flags in MinSizeRel build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_LTO=ON \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    run has_lto_flag "$test_dir"
+    [ "$status" -eq 0 ]
+}

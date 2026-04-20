@@ -178,15 +178,17 @@ assert_cov_flag_present() {
     [ "$status" -eq 0 ]
 
     # Run coverage targets to verify they work
-    # Run coverage targets to verify they work
     cd "$test_dir"
     for target in lcov-preinfo lcov-report gcovr-report gcovr-check; do
-        # Run binary again before each target
+        # Run binary again before each target to ensure fresh coverage data
         run "$test_dir/bin/sample_build_info"
         [ "$status" -eq 0 ]
 
-        echo "make $target output: $output" >&3
-        [ "$status" -eq 0 ]
+        run make "$target"
+        if [ "$status" -ne 0 ]; then
+            echo "$output" >&3
+            return 1
+        fi
     done
 }
 

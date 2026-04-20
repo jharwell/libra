@@ -78,6 +78,7 @@ fn main() -> Result<()> {
         Command::Analyze(args) => command::analyze::run(&ctx, args),
         Command::Coverage(args) => command::coverage::run(&ctx, args),
         Command::Docs(args) => command::docs::run(&ctx, args),
+        Command::Format(args) => command::format::run(&ctx, args),
         Command::Clean(args) => command::clean::run(&ctx, args),
         Command::Install(args) => command::install::run(&ctx, args),
         Command::Info(args) => command::info::run(&ctx, args),
