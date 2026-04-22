@@ -74,16 +74,16 @@ setup() {
 # Feature-disabled error message (real build required)
 # ==============================================================================
 
-@test "COVERAGE: fails with clear error when LIBRA_CODE_COV not enabled in preset" {
+@test "COVERAGE: fails with clear error when LIBRA_COVERAGE not enabled in preset" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
     run_clibra coverage --preset debug --html
     assert_clibra_failure
-    assert_output_contains "LIBRA_CODE_COV"
+    assert_output_contains "LIBRA_COVERAGE"
 }
 
-@test "COVERAGE: error message names the preset when LIBRA_CODE_COV disabled" {
+@test "COVERAGE: error message names the preset when LIBRA_COVERAGE disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
@@ -92,13 +92,13 @@ setup() {
     assert_output_contains "debug"
 }
 
-@test "COVERAGE: error message suggests fix when LIBRA_CODE_COV disabled" {
+@test "COVERAGE: error message suggests fix when LIBRA_COVERAGE disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
     run_clibra coverage --preset debug --html
     assert_clibra_failure
-    assert_output_contains "LIBRA_CODE_COV=ON"
+    assert_output_contains "LIBRA_COVERAGE=ON"
 }
 
 # ==============================================================================

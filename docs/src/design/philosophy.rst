@@ -12,9 +12,9 @@ within LIBRA.
 Using cmake Globbing
 ====================
 
-The general consensus is that globbing source files=bad in
-cmake, for some very valid reasons, listed below along with my experience in why
-the each reason isn't a dealbreaker for using globbing.
+The general consensus is that globbing source files is bad in CMake, for some
+very valid reasons. Each objection is addressed below, along with the reasoning
+for why none of them are dealbreakers.
 
 #. **Using globs can result in non-deterministic builds: the same cmake project
    might produce different results depending on the state of the filesystem. If
@@ -44,18 +44,19 @@ the each reason isn't a dealbreaker for using globbing.
 
    If you reference some functionality which doesn't get compiled in because you
    didn't re-run cmake, you get a linking error anyway, or a run-time error on
-   dynamic library load. I have never personally seen bad functionality make
-   it into a build as a result of globbing.
+   dynamic library load. In practice, bad functionality making it into a build as
+   a result of globbing is essentially unheard of — the linker or dynamic loader
+   will surface the problem first.
 
 #. **Performance overhead: Globbing can introduce performance overhead,
    especially in large projects. CMake has to perform the globbing operation
    every time it generates the build files, which can slow down the build
    process.**
 
-   100% true. BUT, it only matters at truly large scales (> 100,000 files); at
-   less than that, I have never really noticed a difference. Plus, if you have a
-   giant project with tens of thousands of source files, you probably need to
-   break it up anyway.
+   True, but it only matters at truly large scales (> 100,000 files); in
+   practice the overhead is negligible for the vast majority of projects. And if
+   a project has tens of thousands of source files, it likely needs to be broken
+   up regardless.
 
 #. **Readability and maintainability: Globbing can make CMake projects less
    readable and maintainable. Explicitly listing source files makes it clear
@@ -70,40 +71,22 @@ the each reason isn't a dealbreaker for using globbing.
    CMakeLists.txt changes that 99% of reviewers ignore, but still have to
    parse.
 
-   Globbing is also necessary if you want to create a re-usable cmake framework
-   that developers can drop in to a project, hook into, and then quickly get
-   back to developing; I can't tell you how many hours I've spent
-   copying/pasting cmake code across projects, and then later having to make the
-   SAME update in multiple repos because we needed to tweak some aspect of how
-   we built some of our projects.
+   Globbing is also necessary for a reusable CMake framework that developers can
+   drop into a project and immediately get to work. The alternative — manually
+   listed source files — creates a recurring maintenance burden: every
+   structural change (rename, move, new file) requires a CMakeLists.txt edit,
+   and in a multi-repo environment that same edit must be replicated across
+   every project that shares the framework.
 
 .. _design/philosophy/build-types:
 
 Build Types
 ===========
 
-CMake provides the following build types:
-
-.. list-table::
-   :header-rows: 1
-
-   * - Build type
-     - Compiler flags
-
-   * - Debug
-     - ``-O0 -g``
-
-   * - Release
-     - ``-O3 -DNDEBUG``
-
-   * - RelWithDebInfo
-     - ``-O2 -DNDEBUG -g``
-
-   * - MinSizeRel
-     - ``-Os -DNDEBUG``
-
-
-These build types cover a very large number of common use cases. E.g.:
+CMake provides the Debug,Release,RelWithDebInfo, and MinSizeRel build types. See
+`here <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>` for
+the full reference. These build types cover a very large number of common use
+cases. E.g.:
 
 .. list-table::
    :header-rows: 1

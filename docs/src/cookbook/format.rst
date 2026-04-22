@@ -1,9 +1,9 @@
 .. SPDX-License-Identifier: MIT
 
-.. _cookbook/analysis:
+.. _cookbook/format:
 
 ===============
-Static analysis
+Code Formatting
 ===============
 
 This page covers running LIBRA's formatting tools: running all
@@ -74,12 +74,14 @@ tools are available.
       .. code-block:: bash
 
          clibra format -c clang --preset format
+         clibra format -c cmake --preset format
 
    .. tab-item:: CMake
 
       .. code-block:: bash
 
          cmake --build --preset format --target format-check-clang
+         cmake --build --preset format --target format-check-cmake
 
 
 For the full list of per-tool and per-category targets, see

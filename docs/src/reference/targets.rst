@@ -80,9 +80,9 @@ rationale.
        and ``--test-dir build/`` are passed unconditionally.
 
    * - ``test``
-     - Run already-built tests via ``ctest``. Does *not* build the
-       tests first — use ``build-and-test`` to build and run in one
-       step.
+     - Run already-built tests via ``ctest``; this is CMake's/CTest's built-in
+       target. Does *not* build the tests first — use ``build-and-test`` to
+       build and run in one step.
 
 .. _usage/build-time/sw-eng:
 
@@ -141,7 +141,7 @@ for tools that are found on ``PATH`` are created — see
 Coverage targets
 ================
 
-Requires :cmake:variable:`LIBRA_CODE_COV` to be enabled.
+Requires :cmake:variable:`LIBRA_COVERAGE` to be enabled.
 
 .. list-table::
    :widths: 20 80
@@ -154,7 +154,7 @@ Requires :cmake:variable:`LIBRA_CODE_COV` to be enabled.
      - Capture baseline coverage data (0%) for all files before running
        tests. First step in generating an *absolute* report that shows
        untested files. Requires GNU format
-       (:cmake:variable:`LIBRA_CODE_COV_NATIVE` = NO).
+       (:cmake:variable:`LIBRA_COVERAGE_NATIVE` = NO).
 
    * - ``lcov-report``
      - Generate an **absolute** HTML coverage report using

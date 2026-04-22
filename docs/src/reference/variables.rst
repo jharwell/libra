@@ -42,7 +42,7 @@ General
 
 .. cmake:variable:: LIBRA_SUMMARY
 
-   :default: YES
+   :default: NO
    :type: CACHE BOOL
 
    Show a configuration summary after the configuration step finishes.
@@ -64,7 +64,7 @@ Quality Gates
    - ``make regression-tests`` (regression tests only)
    - ``make all-tests`` (all tests)
 
-.. cmake:variable:: LIBRA_CODE_COV
+.. cmake:variable:: LIBRA_COVERAGE
 
    :default: NO
    :type: CACHE BOOL
@@ -72,7 +72,7 @@ Quality Gates
    Build in runtime code-coverage instrumentation for report generation and
    coverage checking. See :ref:`reference/targets` for the targets enabled.
 
-.. cmake:variable:: LIBRA_CODE_COV_NATIVE
+.. cmake:variable:: LIBRA_COVERAGE_NATIVE
 
    :default: YES
    :type: CACHE BOOL
@@ -99,6 +99,14 @@ Quality Gates
 
    Enable documentation build via ``make apidoc`` and/or ``make sphinxdoc``.
 
+
+.. cmake:variable:: LIBRA_SPHINXDOC_COMMAND
+
+   :default: ``sphinx-build``
+   :type: STRING
+
+   The command to run sphinx and generate documentation. via ``make sphinxdoc``.
+
 .. cmake:variable:: LIBRA_FORMAT
 
    :default: NO
@@ -115,6 +123,82 @@ Quality Gates
    Pass ``-Werror`` to the selected compiler so that all warnings are treated as
    errors when building.
 
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered unit tests be included in the ``test`` target to run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered integration tests be included in the ``test`` target to
+   run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered regression tests be included in the ``test`` target to run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered unit tests be included in the ``test`` target to run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered integration tests be included in the ``test`` target to
+   run?
+
+.. cmake:variable:: LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+
+   :default: YES
+   :type: BOOL
+
+   Should registered regression tests be included in the ``test`` target to run?
+
+.. cmake:variable:: LIBRA_GCOVR_LINES_THRESH
+
+   :default: 95
+   :type: STRING
+
+   Threshold for line coverage under which the ``gcovr-check`` target will
+   return non-zero.
+
+.. cmake:variable:: LIBRA_GCOVR_FUNCTIONS_THRESH
+
+   :default: 60
+   :type: STRING
+
+   Threshold for functions coverage under which the ``gcovr-check`` target will
+   return non-zero.
+
+.. cmake:variable:: LIBRA_GCOVR_BRANCHES_THRESH
+
+   :default: 50
+   :type: STRING
+
+   Threshold for branches coverage under which the ``gcovr-check`` target
+   will return non-zero.
+
+.. cmake:variable:: LIBRA_GCOVR_DECISIONS_THRESH
+
+   :default: 50
+   :type: STRING
+
+   Threshold for decisions coverage under which the ``gcovr-check`` target will
+   return non-zero.
+
 Runtime Checking
 ================
 
@@ -126,7 +210,7 @@ Runtime Checking
    Build in runtime checking of code using any compiler. When passed, the
    value should be a semicolon-separated list of sanitizer groups to enable:
 
-   - ``MSAN`` - Memory checking/sanitization. Requires ``liblsan`` compatible
+   - ``MSAN`` - Memory checking/sanitization. Requires ``libmsan`` compatible
      with your compiler.
    - ``ASAN`` - Address sanitization. Requires ``libasan`` compatible with your
      compiler.

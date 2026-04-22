@@ -59,23 +59,27 @@ conan create "$LIBRA_SOURCE_ROOT" \
 
 export LIBRA_CONSUME_MODE="conan"
 
-# 2026-02-22 [JRH]: We don't test LIBRA_{C,CXX}_STANDARD because the
-# value of -std is set by conan, and LIBRA doesn't interfere with that.
+# 2026-02-22 [JRH]: We don't test LIBRA_{C,CXX}_STANDARD because the value of
+# -std is set by conan, and LIBRA doesn't interfere with that. Similarly for
+# LIBRA_{CPACK,ERL_EXPORT,FPC_EXPORT,EXPORT_INSTALL,DEP_ISOLATION,
+# COMPILER_VERSION}: that's packaging-y things which conan handles.
 
 exec bats -j $(nproc) "$@" \
-    "${TESTS_DIR}/LIBRA_ANALYSIS.bats" \
-    "${TESTS_DIR}/LIBRA_BUILD_PROF.bats" \
-    "${TESTS_DIR}/LIBRA_CODE_COV.bats" \
-    "${TESTS_DIR}/LIBRA_DOCS.bats" \
-    "${TESTS_DIR}/LIBRA_ERL.bats" \
-    "${TESTS_DIR}/LIBRA_FORTIFY.bats" \
-    "${TESTS_DIR}/LIBRA_FPC.bats" \
-    "${TESTS_DIR}/LIBRA_FPC_EXPORT.bats" \
-    "${TESTS_DIR}/LIBRA_LTO.bats" \
-    "${TESTS_DIR}/LIBRA_NATIVE_OPT.bats" \
-    "${TESTS_DIR}/LIBRA_OPT_REPORT.bats" \
-    "${TESTS_DIR}/LIBRA_PGO.bats" \
-    "${TESTS_DIR}/LIBRA_SAN.bats" \
-    "${TESTS_DIR}/LIBRA_STDLIB.bats" \
-    "${TESTS_DIR}/LIBRA_TESTS.bats" \
-    "${TESTS_DIR}/LIBRA_VALGRIND_COMPAT.bats"
+  "${TESTS_DIR}/LIBRA_ANALYSIS.bats" \
+  "${TESTS_DIR}/LIBRA_BUILD_PROF.bats" \
+  "${TESTS_DIR}/LIBRA_COVERAGE.bats" \
+  "${TESTS_DIR}/LIBRA_COMPILER_VERSION.bats" \
+  "${TESTS_DIR}/LIBRA_DOCS.bats" \
+  "${TESTS_DIR}/LIBRA_ERL.bats" \
+  "${TESTS_DIR}/LIBRA_FORMAT.bats" \
+  "${TESTS_DIR}/LIBRA_FORTIFY.bats" \
+  "${TESTS_DIR}/LIBRA_FPC.bats" \
+  "${TESTS_DIR}/LIBRA_LTO.bats" \
+  "${TESTS_DIR}/LIBRA_NATIVE_OPT.bats" \
+  "${TESTS_DIR}/LIBRA_NO_CCACHE.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_REPORT.bats" \
+  "${TESTS_DIR}/LIBRA_PGO.bats" \
+  "${TESTS_DIR}/LIBRA_SAN.bats" \
+  "${TESTS_DIR}/LIBRA_STDLIB.bats" \
+  "${TESTS_DIR}/LIBRA_TESTS.bats" \
+  "${TESTS_DIR}/LIBRA_VALGRIND_COMPAT.bats"

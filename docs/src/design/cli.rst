@@ -102,13 +102,13 @@ succeed, and the CMake targets it expects to be present.
      - ``LIBRA_TESTS=ON``
      - ``all-tests``
    * - ``ci``
-     - ``LIBRA_TESTS=ON``, ``LIBRA_CODE_COV=ON``
+     - ``LIBRA_TESTS=ON``, ``LIBRA_COVERAGE=ON``
      - ``all-tests``, ``gcovr-check``
    * - ``analyze``
      - ``LIBRA_ANALYSIS=ON``
      - ``analyze`` (or a tool-specific sub-target; see below)
    * - ``coverage``
-     - ``LIBRA_CODE_COV=ON``
+     - ``LIBRA_COVERAGE=ON``
      - ``gcovr-report`` or ``llvm-report`` (for ``--html``);
        ``gcovr-check`` (for ``--check``)
    * - ``docs``
@@ -243,14 +243,14 @@ chance.
   remember the preset name.
 
 ``coverage``
-  Inherits ``debug``, adds ``LIBRA_CODE_COV=ON``. A dedicated coverage
+  Inherits ``debug``, adds ``LIBRA_COVERAGE=ON``. A dedicated coverage
   preset is cleaner than adding a flag to the debug preset because
   coverage instrumentation measurably changes build output (object files
   are not reusable between coverage and non-coverage builds) and
   warrants its own build directory.
 
 ``ci``
-  Inherits ``debug``, adds ``LIBRA_CODE_COV=ON``. Nearly identical to
+  Inherits ``debug``, adds ``LIBRA_COVERAGE=ON``. Nearly identical to
   ``coverage`` in the current preset file. The separation is intentional:
   ``ci`` may diverge from ``coverage`` over time (e.g. adding
   ``LIBRA_ANALYSIS=ON`` to CI), and coupling them via inheritance from

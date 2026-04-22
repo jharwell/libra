@@ -57,7 +57,7 @@ pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
     }
 
     if !ctx.dry_run {
-        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_CODE_COV")?;
+        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_COVERAGE")?;
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_TESTS")?;
     }
 

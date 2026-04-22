@@ -86,7 +86,7 @@ are pure to get the docs to link unambiguously and are not present in the code.
      - Yes
      - Yes
 
-   * - :cmake:variable:`LIBRA_CODE_COV`
+   * - :cmake:variable:`LIBRA_COVERAGE`
      - Yes
      - Yes
      - No
@@ -103,6 +103,11 @@ are pure to get the docs to link unambiguously and are not present in the code.
 
    * - :cmake:variable:`LIBRA_OPT_REPORT`
      - No
+     - Yes
+     - Yes
+
+   * - :cmake:variable:`LIBRA_WERROR`
+     - Yes
      - Yes
      - Yes
 
@@ -125,5 +130,3 @@ Intel LLVM (icx/icpx)
 =====================
 
 .. cmake-module:: ../../../cmake/libra/compile/intel.cmake
-
-.. _design/philosophy:

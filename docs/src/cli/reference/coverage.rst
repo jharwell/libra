@@ -14,7 +14,7 @@ against configured thresholds.
    clibra coverage --preset coverage --check  # check thresholds
    clibra coverage --preset coverage --open   # generate and open in browser
 
-Requires :cmake:variable:`LIBRA_CODE_COV` to be ``ON`` in the preset's
+Requires :cmake:variable:`LIBRA_COVERAGE` to be ``ON`` in the preset's
 CMake cache.
 
 CMake equivalent

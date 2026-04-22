@@ -129,11 +129,11 @@ setup() {
 # Root coverage targets present + dep does not cause dup target error
 # ==============================================================================
 
-@test "DEP_ISOLATION: GNU/C CODE_COV=ON - root has lcov targets" {
+@test "DEP_ISOLATION: GNU/C COVERAGE=ON - root has lcov targets" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_dep_test "c" \
-        -DLIBRA_CODE_COV=ON \
-        -DLIBRA_CODE_COV_NATIVE=YES)
+        -DLIBRA_COVERAGE=ON \
+        -DLIBRA_COVERAGE_NATIVE=YES)
 
     assert_target_exists "$test_dir" "lcov-preinfo"
     assert_target_exists "$test_dir" "lcov-report"
@@ -141,29 +141,29 @@ setup() {
     assert_target_exists "$test_dir" "gcovr-check"
 }
 
-@test "DEP_ISOLATION: GNU/C CODE_COV=ON - no dup lcov target error" {
+@test "DEP_ISOLATION: GNU/C COVERAGE=ON - no dup lcov target error" {
     COMPILER_TYPE=gnu
     run run_libra_cmake_dep_test "c" \
-        -DLIBRA_CODE_COV=ON \
-        -DLIBRA_CODE_COV_NATIVE=YES
+        -DLIBRA_COVERAGE=ON \
+        -DLIBRA_COVERAGE_NATIVE=YES
     [ "$status" -eq 0 ]
 }
 
-@test "DEP_ISOLATION: GNU/C++ CODE_COV=ON - root has lcov targets" {
+@test "DEP_ISOLATION: GNU/C++ COVERAGE=ON - root has lcov targets" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_dep_test "cxx" \
-        -DLIBRA_CODE_COV=ON \
-        -DLIBRA_CODE_COV_NATIVE=YES)
+        -DLIBRA_COVERAGE=ON \
+        -DLIBRA_COVERAGE_NATIVE=YES)
 
     assert_target_exists "$test_dir" "lcov-preinfo"
     assert_target_exists "$test_dir" "gcovr-report"
 }
 
-@test "DEP_ISOLATION: GNU/C++ CODE_COV=ON - no dup lcov target error" {
+@test "DEP_ISOLATION: GNU/C++ COVERAGE=ON - no dup lcov target error" {
     COMPILER_TYPE=gnu
     run run_libra_cmake_dep_test "cxx" \
-        -DLIBRA_CODE_COV=ON \
-        -DLIBRA_CODE_COV_NATIVE=YES
+        -DLIBRA_COVERAGE=ON \
+        -DLIBRA_COVERAGE_NATIVE=YES
     [ "$status" -eq 0 ]
 }
 

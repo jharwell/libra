@@ -19,5 +19,6 @@ clibra Subcommand Reference
    coverage
    docs
    clean
+   format
    info
    doctor

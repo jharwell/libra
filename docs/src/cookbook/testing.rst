@@ -13,9 +13,7 @@ harness), see :ref:`reference/testing`.
 Building and running tests
 ==========================
 
-CMake does not allow adding dependencies to the built-in ``test``
-target, so ``make test`` runs already-built tests without building
-them first. To build and run in one step:
+To build and run in one step:
 
 .. tab-set::
 
@@ -25,6 +23,9 @@ them first. To build and run in one step:
 
          clibra test --preset debug
 
+      You can also add ``--no-build`` to avoid rebuilding before running tests,
+      which is the default.
+
    .. tab-item:: CMake
 
       .. code-block:: bash
@@ -32,17 +33,6 @@ them first. To build and run in one step:
          cmake --build --preset debug --target all-tests
          ctest --preset debug --output-on-failure
 
-.. NOTE:: All tests have their working directory set to
-          ``CMAKE_SOURCE_DIR``, which is usually the repository root.
-
-Two CTest behaviours are set unconditionally by the ``build-and-test``
-target:
-
-- ``--output-on-failure`` — shown when a test fails. If you run
-  ``ctest`` directly, add this yourself or configure it in a test preset.
-- ``--test-dir build/`` — CTest runs from the build directory. If you
-  invoke ``ctest`` directly without a preset, pass ``--test-dir``
-  explicitly.
 
 Filtering and running specific tests
 ======================================
@@ -91,25 +81,6 @@ Debugging failing tests
          ctest --output-on-failure
          ctest -V     # verbose
          ctest -VV    # extra verbose (shows exact commands)
-
-      Via a test preset in ``CMakeUserPresets.json``:
-
-      .. code-block:: json
-
-         "testPresets": [
-           {
-             "name": "debug",
-             "configurePreset": "debug",
-             "output": {
-               "outputOnFailure": true,
-               "verbosity": "verbose"
-             }
-           }
-         ]
-
-      ``verbosity`` accepts ``"default"``, ``"verbose"`` (``-V``), or
-      ``"extra"`` (``-VV``). Keep verbosity at ``"default"`` in
-      committed presets.
 
 Blessing test outputs
 =====================

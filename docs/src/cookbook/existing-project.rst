@@ -91,7 +91,7 @@ ensures every preset explicitly declares its LIBRA feature state:
          "hidden": true,
          "cacheVariables": {
            "LIBRA_TESTS":    "OFF",
-           "LIBRA_CODE_COV": "OFF",
+           "LIBRA_COVERAGE": "OFF",
            "LIBRA_ANALYSIS": "OFF",
            "LIBRA_DOCS":     "OFF"
          }

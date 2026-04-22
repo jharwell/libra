@@ -402,19 +402,19 @@ endif()
 # and linking, additional warning options like -fno-inline fail when linking
 # ##############################################################################
 #[[.rst:
-.. cmake:variable:: LIBRA_CODE_COV_GNU
+.. cmake:variable:: LIBRA_COVERAGE_GNU
 
 If enabled: ``-fprofile-arcs -ftest-coverage -fno-inline
 -fprofile-update=atomic`` to compiler, and ``-fprofile-arcs`` to linker.
 ]]
-if(LIBRA_CODE_COV)
-  if(NOT LIBRA_CODE_COV_NATIVE)
+if(LIBRA_COVERAGE)
+  if(NOT LIBRA_COVERAGE_NATIVE)
     libra_message(
       WARNING
       "Non-native code coverage instrumentation format selected for GNU; LIBRA's common format is GNU. Configuration error?"
     )
   endif()
-  set(_LIBRA_CODE_COV_COMPILE_OPTIONS
+  set(_LIBRA_COVERAGE_COMPILE_OPTIONS
       -fprofile-arcs
       -ftest-coverage
       # Suppress template inlining for more accurate coverage reports
@@ -422,7 +422,7 @@ if(LIBRA_CODE_COV)
       # Thread-safe updates to coverage counters
       -fprofile-update=atomic)
 
-  set(_LIBRA_CODE_COV_LINK_OPTIONS -fprofile-arcs)
+  set(_LIBRA_COVERAGE_LINK_OPTIONS -fprofile-arcs)
 endif()
 
 # ##############################################################################

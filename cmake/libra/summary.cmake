@@ -241,7 +241,6 @@ function(libra_config_summary)
       LIBRA_DRIVER
       CMAKE_INSTALL_PREFIX
       CMAKE_GENERATOR
-      LIBRA_DEPS_PREFIX
       CMAKE_BUILD_TYPE
       CMAKE_SYSTEM_PROCESSOR
       CMAKE_HOST_SYSTEM_PROCESSOR
@@ -260,7 +259,8 @@ function(libra_config_summary)
       LIBRA_NATIVE_OPT
       LIBRA_TESTS
       LIBRA_PGO
-      LIBRA_CODE_COV
+      LIBRA_COVERAGE
+      LIBRA_COVERAGE_NATIVE
       LIBRA_DOCS
       LIBRA_FPC
       LIBRA_FPC_EXPORT
@@ -294,7 +294,10 @@ function(libra_config_summary)
       LIBRA_GCOVR_LINES_THRESH
       LIBRA_GCOVR_FUNCTIONS_THRESH
       LIBRA_GCOVR_DECISIONS_THRESH
-      LIBRA_GCOVR_BRANCHES_THRESH)
+      LIBRA_GCOVR_BRANCHES_THRESH
+      LIBRA_FORMAT
+      LIBRA_WERROR
+      LIBRA_CLANG_TOOLS_USE_FIXED_DB)
 
   libra_config_summary_prepare_fields("${fields}")
 
@@ -327,10 +330,6 @@ function(libra_config_summary)
   # paths
   _libra_summary_row("Install prefix........................"
                      EMIT_CMAKE_INSTALL_PREFIX "[CMAKE_INSTALL_PREFIX]")
-  if("${LIBRA_DRIVER}" MATCHES "SELF")
-    _libra_summary_row("Project dependencies prefix..........."
-                       EMIT_LIBRA_DEPS_PREFIX "[LIBRA_DEPS_PREFIX]")
-  endif()
 
   message("")
 
@@ -376,7 +375,7 @@ function(libra_config_summary)
   _libra_summary_row("PGO..................................." EMIT_LIBRA_PGO
                      "[LIBRA_PGO]")
   _libra_summary_row("Code coverage instrumentation........."
-                     EMIT_LIBRA_CODE_COV "[LIBRA_CODE_COV]")
+                     EMIT_LIBRA_COVERAGE "[LIBRA_COVERAGE]")
   _libra_summary_row("Native optimization options..........."
                      EMIT_LIBRA_NATIVE_OPT "[LIBRA_NATIVE_OPT]")
   _libra_summary_row("Disable ccache........................"
@@ -405,10 +404,14 @@ function(libra_config_summary)
                      "[LIBRA_DOCS]")
   _libra_summary_row("Enable code analysis/format/fix......."
                      EMIT_LIBRA_ANALYSIS "[LIBRA_ANALYSIS]")
+  _libra_summary_row("Enable format checking/application...." EMIT_LIBRA_FORMAT
+                     "[LIBRA_FORMAT]")
   _libra_summary_row("Enable optimization reports..........."
                      EMIT_LIBRA_OPT_REPORT "[LIBRA_OPT_REPORT]")
   _libra_summary_row("Use compilation database.............."
                      EMIT_LIBRA_USE_COMPDB "[LIBRA_USE_COMPDB]")
+  _libra_summary_row("Treat warnings as errors.............." EMIT_LIBRA_WERROR
+                     "[LIBRA_WERROR]")
 
   message("")
   if(LIBRA_ANALYSIS)
@@ -429,6 +432,9 @@ function(libra_config_summary)
     _libra_summary_row(
       "clang-tidy checks....................."
       EMIT_LIBRA_CLANG_TIDY_CHECKS_CONFIG "[LIBRA_CLANG_TIDY_CHECKS_CONFIG]")
+    _libra_summary_row(
+      "clang tools use fixed DB.............."
+      EMIT_LIBRA_CLANG_TOOLS_USE_FIXED_DB "[LIBRA_CLANG_TOOLS_USE_FIXED_DB]")
 
   endif()
   if(LIBRA_TESTS)
@@ -461,7 +467,7 @@ function(libra_config_summary)
       "[LIBRA_CTEST_INCLUDE_REGRESSION_TESTS]")
   endif()
 
-  if(LIBRA_CODE_COV)
+  if(LIBRA_COVERAGE)
     _libra_summary_row(
       "gcovr lines threshold................." EMIT_LIBRA_GCOVR_LINES_THRESH
       "[LIBRA_GCOVR_LINES_THRESH]")

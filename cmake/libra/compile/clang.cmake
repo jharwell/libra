@@ -312,9 +312,9 @@ endif()
 # Code Coverage Options
 # ##############################################################################
 #[[.rst:
-.. cmake:variable:: LIBRA_CODE_COV_CLANG
+.. cmake:variable:: LIBRA_COVERAGE_CLANG
 
-If enabled and :cmake:variable:`LIBRA_CODE_COV_NATIVE` is true:
+If enabled and :cmake:variable:`LIBRA_COVERAGE_NATIVE` is true:
 ``-fprofile-instr-generate -fcoverage-mapping -fno-inline`` to compiler,
 -fprofile-instr-generate`` to linker. This makes clang use its native code
 coverage format, and enables processing with LLVM tools and the various
@@ -323,25 +323,25 @@ executables which have been defined as targets in
 :cmake:variable:`CMAKE_CURRENT_SOURCE_DIR` (recursively) are included for
 merging.
 
-If enabled and :cmake:variable:`LIBRA_CODE_COV_NATIVE` is false: ``--coverage
+If enabled and :cmake:variable:`LIBRA_COVERAGE_NATIVE` is false: ``--coverage
 -fno-inline`` to compiler, ``--coverage`` to linker. This makes clang emit .gcno
 files which are compatible with ``gcovr``, and therefore with the various
 ``gcovr-`` targets.
 
 ]]
 
-if(LIBRA_CODE_COV)
-  if(LIBRA_CODE_COV_NATIVE)
-    set(_LIBRA_CODE_COV_COMPILE_OPTIONS -fprofile-instr-generate
+if(LIBRA_COVERAGE)
+  if(LIBRA_COVERAGE_NATIVE)
+    set(_LIBRA_COVERAGE_COMPILE_OPTIONS -fprofile-instr-generate
                                         -fcoverage-mapping -fno-inline)
-    set(_LIBRA_CODE_COV_LINK_OPTIONS -fprofile-instr-generate)
+    set(_LIBRA_COVERAGE_LINK_OPTIONS -fprofile-instr-generate)
     libra_message(
       STATUS "Clang will generate code coverage instrumentation in LLVM format")
   else()
     libra_message(
       STATUS "Clang will generate code coverage instrumentation in GNU format")
-    set(_LIBRA_CODE_COV_COMPILE_OPTIONS --coverage)
-    set(_LIBRA_CODE_COV_LINK_OPTIONS --coverage)
+    set(_LIBRA_COVERAGE_COMPILE_OPTIONS --coverage)
+    set(_LIBRA_COVERAGE_LINK_OPTIONS --coverage)
   endif()
 endif()
 

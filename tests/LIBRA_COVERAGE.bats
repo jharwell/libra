@@ -1,21 +1,21 @@
 #!/usr/bin/env bats
 #
-# BATS tests for LIBRA_CODE_COV
+# BATS tests for LIBRA_COVERAGE
 #
-# LIBRA_CODE_COV enables code coverage instrumentation:
+# LIBRA_COVERAGE enables code coverage instrumentation:
 #   - OFF: No coverage instrumentation (default)
 #   - ON:  Adds coverage flags (compiler-specific, see below)
 #
-# LIBRA_CODE_COV_NATIVE controls output format (only relevant when ON):
+# LIBRA_COVERAGE_NATIVE controls output format (only relevant when ON):
 #   - YES: Use compiler's native format (default)
 #   - NO:  Use GNU gcov format (for cross-compiler compatibility)
 #
-# Supported compilers: gnu, clang only (Intel does not support LIBRA_CODE_COV).
+# Supported compilers: gnu, clang only (Intel does not support LIBRA_COVERAGE).
 # Build type: Debug (matches the shell test).
 #
 # Flags go to BOTH compile and link flags.
 #
-# Per-compiler flags when LIBRA_CODE_COV=ON and LIBRA_CODE_COV_NATIVE=YES:
+# Per-compiler flags when LIBRA_COVERAGE=ON and LIBRA_COVERAGE_NATIVE=YES:
 #
 #   GNU compile:  -fprofile-arcs -ftest-coverage -fno-inline -fprofile-update=atomic
 #   GNU link:     -fprofile-arcs
@@ -23,9 +23,9 @@
 #   Clang compile: -fprofile-instr-generate -fcoverage-mapping -fno-inline
 #   Clang link:    -fprofile-instr-generate
 #
-# When LIBRA_CODE_COV_NATIVE=NO, both compilers use GNU gcov format (--coverage).
+# When LIBRA_COVERAGE_NATIVE=NO, both compilers use GNU gcov format (--coverage).
 #
-# Makefile targets created when LIBRA_CODE_COV=ON:
+# Makefile targets created when LIBRA_COVERAGE=ON:
 #   GNU:   lcov-preinfo, lcov-report, gcovr-report, gcovr-check
 #   Clang: llvm-summary, llvm-report, llvm-show, llvm-export-lcov, llvm-coverage
 #
@@ -52,37 +52,37 @@ assert_cov_flag_present() {
 # OFF — no coverage
 # ==============================================================================
 
-@test "CODE_COV: GNU/C OFF does not add -fprofile-arcs" {
+@test "COVERAGE: GNU/C OFF does not add -fprofile-arcs" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-arcs"
 }
 
-@test "CODE_COV: GNU/C OFF does not add -ftest-coverage" {
+@test "COVERAGE: GNU/C OFF does not add -ftest-coverage" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_compile_flag_absent "$test_dir" "c" "-ftest-coverage"
 }
 
-@test "CODE_COV: GNU/C OFF does not add -fno-inline" {
+@test "COVERAGE: GNU/C OFF does not add -fno-inline" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_compile_flag_absent "$test_dir" "c" "-fno-inline"
 }
 
-@test "CODE_COV: GNU/C OFF does not add -fprofile-update=atomic" {
+@test "COVERAGE: GNU/C OFF does not add -fprofile-update=atomic" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-update=atomic"
 }
 
-@test "CODE_COV: GNU/C OFF does not create lcov targets" {
+@test "COVERAGE: GNU/C OFF does not create lcov targets" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_target_absent "$test_dir" "lcov-preinfo"
     assert_target_absent "$test_dir" "lcov-report"
@@ -90,26 +90,26 @@ assert_cov_flag_present() {
     assert_target_absent "$test_dir" "gcovr-check"
 }
 
-@test "CODE_COV: Clang/C OFF does not add -fprofile-instr-generate" {
+@test "COVERAGE: Clang/C OFF does not add -fprofile-instr-generate" {
     skip_if_compiler_missing "clang" "c"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-instr-generate"
 }
 
-@test "CODE_COV: Clang/C OFF does not add -fcoverage-mapping" {
+@test "COVERAGE: Clang/C OFF does not add -fcoverage-mapping" {
     skip_if_compiler_missing "clang" "c"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_compile_flag_absent "$test_dir" "c" "-fcoverage-mapping"
 }
 
-@test "CODE_COV: Clang/C OFF does not create llvm targets" {
+@test "COVERAGE: Clang/C OFF does not create llvm targets" {
     skip_if_compiler_missing "clang" "c"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=OFF)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=OFF)
 
     assert_target_absent "$test_dir" "llvm-summary"
     assert_target_absent "$test_dir" "llvm-report"
@@ -119,12 +119,12 @@ assert_cov_flag_present() {
 }
 
 # ==============================================================================
-# GNU - native format (LIBRA_CODE_COV=ON, LIBRA_CODE_COV_NATIVE=YES)
+# GNU - native format (LIBRA_COVERAGE=ON, LIBRA_COVERAGE_NATIVE=YES)
 # ==============================================================================
 
-@test "CODE_COV: GNU/C native ON - full workflow" {
+@test "COVERAGE: GNU/C native ON - full workflow" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON -DLIBRA_CODE_COV_NATIVE=YES)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
     assert_cov_flag_present "$test_dir" "c" "-fprofile-arcs"
@@ -157,9 +157,9 @@ assert_cov_flag_present() {
     done
 }
 
-@test "CODE_COV: GNU/C++ native ON - full workflow" {
+@test "COVERAGE: GNU/C++ native ON - full workflow" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CODE_COV=ON -DLIBRA_CODE_COV_NATIVE=YES)
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
     assert_cov_flag_present "$test_dir" "cxx" "-fprofile-arcs"
@@ -193,13 +193,13 @@ assert_cov_flag_present() {
 }
 
 # ==============================================================================
-# Clang - native format (LIBRA_CODE_COV=ON, LIBRA_CODE_COV_NATIVE=YES)
+# Clang - native format (LIBRA_COVERAGE=ON, LIBRA_COVERAGE_NATIVE=YES)
 # ==============================================================================
 
-@test "CODE_COV: Clang/C native ON - full workflow" {
+@test "COVERAGE: Clang/C native ON - full workflow" {
     skip_if_compiler_missing "clang" "c"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON -DLIBRA_CODE_COV_NATIVE=YES)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
     assert_cov_flag_present "$test_dir" "c" "-fprofile-instr-generate"
@@ -228,10 +228,10 @@ assert_cov_flag_present() {
     done
 }
 
-@test "CODE_COV: Clang/C++ native ON - full workflow" {
+@test "COVERAGE: Clang/C++ native ON - full workflow" {
     skip_if_compiler_missing "clang" "cxx"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CODE_COV=ON -DLIBRA_CODE_COV_NATIVE=YES)
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
     assert_cov_flag_present "$test_dir" "cxx" "-fprofile-instr-generate"
@@ -261,13 +261,13 @@ assert_cov_flag_present() {
 }
 
 # ==============================================================================
-# Clang - non-native format (LIBRA_CODE_COV_NATIVE=NO uses GNU gcov format)
+# Clang - non-native format (LIBRA_COVERAGE_NATIVE=NO uses GNU gcov format)
 # ==============================================================================
 
-@test "CODE_COV: Clang/C non-native ON - verify GNU format" {
+@test "COVERAGE: Clang/C non-native ON - verify GNU format" {
     skip_if_compiler_missing "clang" "c"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON -DLIBRA_CODE_COV_NATIVE=NO)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=NO)
 
     # Verify --coverage flag (GNU gcov format)
     assert_cov_flag_present "$test_dir" "c" "--coverage"
@@ -291,10 +291,10 @@ assert_cov_flag_present() {
     # execute successfully
 }
 
-@test "CODE_COV: Clang/C++ non-native ON - verify GNU format" {
+@test "COVERAGE: Clang/C++ non-native ON - verify GNU format" {
     skip_if_compiler_missing "clang" "cxx"
     COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_CODE_COV=ON -DLIBRA_CODE_COV_NATIVE=NO)
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=NO)
 
     # Verify --coverage flag (GNU gcov format)
     assert_cov_flag_present "$test_dir" "cxx" "--coverage"
@@ -307,8 +307,8 @@ assert_cov_flag_present() {
 # Default behaviour
 # ==============================================================================
 
-@test "CODE_COV: Default (OFF) does not add coverage flags" {
-    # LIBRA_CODE_COV defaults to OFF
+@test "COVERAGE: Default (OFF) does not add coverage flags" {
+    # LIBRA_COVERAGE defaults to OFF
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c")
 
@@ -316,7 +316,7 @@ assert_cov_flag_present() {
     assert_compile_flag_absent "$test_dir" "c" "-ftest-coverage"
 }
 
-@test "CODE_COV: Default (OFF) does not create coverage targets" {
+@test "COVERAGE: Default (OFF) does not create coverage targets" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c")
 
@@ -324,32 +324,32 @@ assert_cov_flag_present() {
     assert_target_absent "$test_dir" "gcovr-report"
 }
 
-@test "CODE_COV: Cache variable persists across reconfiguration" {
+@test "COVERAGE: Cache variable persists across reconfiguration" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "ON"
+    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "ON"
     [ "$status" -eq 0 ]
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
     [ "$status" -eq 0 ]
 
-    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "ON"
+    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "ON"
     [ "$status" -eq 0 ]
 }
 
-@test "CODE_COV: Can change value on reconfiguration" {
+@test "COVERAGE: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_CODE_COV=ON)
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "ON"
+    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "ON"
     [ "$status" -eq 0 ]
 
     cd "$test_dir"
-    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_CODE_COV=OFF --log-level=ERROR
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_COVERAGE=OFF --log-level=ERROR
     [ "$status" -eq 0 ]
 
-    run cache_value_equals "$test_dir" "LIBRA_CODE_COV" "OFF"
+    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "OFF"
     [ "$status" -eq 0 ]
 }
