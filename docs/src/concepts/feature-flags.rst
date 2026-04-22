@@ -34,46 +34,6 @@ CMake cache of the resolved build directory and fails early with an
 actionable message if it is ``OFF``, rather than letting the build fail
 mid-way with a cryptic "no rule to make target" error.
 
-.. list-table:: Feature flags and what they enable
-   :header-rows: 1
-   :widths: 30 20 50
-
-   * - Flag
-     - Default
-     - Enables
-
-   * - :cmake:variable:`LIBRA_TESTS`
-     - ``OFF``
-     - Test discovery, CTest registration, test build targets
-
-   * - :cmake:variable:`LIBRA_CODE_COV`
-     - ``OFF``
-     - Coverage instrumentation, ``gcovr-*`` and ``llvm-*`` targets
-
-   * - :cmake:variable:`LIBRA_ANALYSIS`
-     - ``OFF``
-     - Static analysis and formatting targets (clang-tidy, cppcheck, etc.)
-
-   * - :cmake:variable:`LIBRA_DOCS`
-     - ``OFF``
-     - Documentation build targets (``apidoc``, ``sphinxdoc``)
-
-   * - :cmake:variable:`LIBRA_SAN`
-     - ``NONE``
-     - Runtime sanitizer instrumentation (ASAN, UBSAN, TSAN, MSAN)
-
-   * - :cmake:variable:`LIBRA_LTO`
-     - ``OFF``
-     - Link-time optimisation
-
-   * - :cmake:variable:`LIBRA_FORTIFY`
-     - ``NONE``
-     - Security hardening (stack protection, ``_FORTIFY_SOURCE``, etc.)
-
-   * - :cmake:variable:`LIBRA_PGO`
-     - ``NONE``
-     - Profile-guided optimisation (``GEN`` or ``USE`` phase)
-
 The explicit-off pattern
 ========================
 

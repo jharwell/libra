@@ -89,7 +89,7 @@ pub enum Command {
     /// `cmake --workflow --preset <n>`. Otherwise sequences individual
     /// cmake/ctest invocations and emits a warning.
     ///
-    /// The fallback requires `LIBRA_TESTS=ON` and `LIBRA_CODE_COV=ON`
+    /// The fallback requires `LIBRA_TESTS=ON` and `LIBRA_COVERAGE=ON`
     /// and the targets `all-tests` and `gcovr-check` to be present.
     Ci(ci::CiArgs),
 
@@ -109,7 +109,7 @@ pub enum Command {
     /// coverage.
     ///
     /// Fails if neither of those operations are possible. Requires
-    /// `LIBRA_CODE_COV=ON` in the preset's CMake cache. The preset defaults to
+    /// `LIBRA_COVERAGE=ON` in the preset's CMake cache. The preset defaults to
     /// `coverage` if not given.
     ///
     Coverage(coverage::CoverageArgs),

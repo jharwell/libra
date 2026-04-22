@@ -28,7 +28,7 @@ these. If not, add them:
          "cacheVariables": {
            "CMAKE_BUILD_TYPE": "Debug",
            "LIBRA_TESTS":    "ON",
-           "LIBRA_CODE_COV": "ON"
+           "LIBRA_COVERAGE": "ON"
          }
        },
        {

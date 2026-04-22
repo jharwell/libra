@@ -47,7 +47,16 @@ include(libra/policies)
 # Project Cmdline Configuration
 # ##############################################################################
 option(LIBRA_TESTS "Build tests." OFF)
-option(LIBRA_CODE_COV "Compile with code coverage instrumentation" OFF)
+if(DEFINED LIBRA_CODE_COV)
+  libra_message(
+    WARNING "LIBRA_CODE_COV is deprecated, use LIBRA_COVERAGE instead. "
+    "LIBRA_CODE_COV will be removed in a future release.")
+  set(LIBRA_COVERAGE
+      ${LIBRA_CODE_COV}
+      CACHE BOOL "" FORCE)
+endif()
+option(LIBRA_COVERAGE "Compile with code coverage instrumentation" OFF)
+
 option(LIBRA_DOCS "Enable documentation build" OFF)
 option(
   LIBRA_VALGRIND_COMPAT
@@ -65,7 +74,16 @@ option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
 option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
-option(LIBRA_CODE_COV_NATIVE
+if(DEFINED LIBRA_CODE_COV_NATIVE)
+  libra_message(
+    WARNING
+    "LIBRA_CODE_COV_NATIVE is deprecated, use LIBRA_COVERAGE_NATIVE instead. "
+    "LIBRA_CODE_COV_NATIVE will be removed in a future release.")
+  set(LIBRA_COVERAGE_NATIVE
+      ${LIBRA_CODE_COV_NATIVE}
+      CACHE BOOL "" FORCE)
+endif()
+option(LIBRA_COVERAGE_NATIVE
        "Should code coverage be emitted in the compiler's native format?" YES)
 option(LIBRA_USE_COMPDB "Should analysis tools use a compilation database?" YES)
 option(

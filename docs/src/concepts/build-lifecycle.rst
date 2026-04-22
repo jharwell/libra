@@ -64,6 +64,11 @@ The phases
      - ``cmake --build --preset <n> --target apidoc``
      - ``clibra docs``
 
+   * - **Formatting**
+     - Checking/applying formatting to source code
+     - ``cmake --build --preset <n> --target format``
+     - ``clibra format``
+
 Phase dependencies
 ==================
 
@@ -84,11 +89,11 @@ The phases have natural ordering constraints:
   ``gcovr-report`` before running tests produces an empty or stale
   report.
 
-- **Analysis and docs are independent.** These phases do not depend on
-  a prior test run and can run after configure and build only. The
+- **Analysis, docs and formatting are independent.** These phases do not depend
+  on a prior test run and can run after configure and build only. The
   ``analyze`` build preset sets ``"targets": ["analyze"]`` so that
-  ``cmake --build --preset analyze`` runs analysis without building
-  the full project first.
+  ``cmake --build --preset analyze`` runs analysis without building the full
+  project first.
 
 The CI pipeline
 ===============
@@ -115,47 +120,14 @@ preset exists.
 Cold start vs. incremental builds
 ==================================
 
-The configure phase is expensive relative to an incremental build. LIBRA
-and ``clibra`` treat it as a one-time cost per preset:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 60
-
-   * - Situation
-     - What happens
-
-   * - No build directory exists
-     - Full configure + build.
-
-   * - Build directory exists, inputs unchanged
-     - Build only. CMake's internal re-run check handles any
-       ``CMakeLists.txt`` or preset changes transparently.
-
-   * - ``--reconfigure`` given
-     - Configure + build, preserving the existing cache.
-
-   * - ``--fresh`` given
-     - Wipes the cache, runs a full configure + build. Use when
-       switching compilers or making cache variable changes that
-       cannot be applied incrementally.
-
-Each preset has its own build directory (when using
-``"binaryDir": "${sourceDir}/build/${presetName}"``), so switching
-between ``debug`` and ``coverage`` is a directory switch, not a
-reconfigure. This is the main practical benefit of the per-preset
-``binaryDir`` convention.
+The configure phase is expensive relative to an incremental build.  Each preset
+has its own build directory (when using ``"binaryDir":
+"${sourceDir}/build/${presetName}"``), so switching between ``debug`` and
+``coverage`` is a directory switch, not a reconfigure. This is the main
+practical benefit of the per-preset ``binaryDir`` convention.
 
 Presets and the lifecycle
 ==========================
-
-CMake preset schema version 6 supports four preset types, each
-corresponding to a lifecycle phase:
-
-- ``configurePresets`` — the configure phase
-- ``buildPresets`` — the build phase
-- ``testPresets`` — the test phase
-- ``workflowPresets`` — a named sequence of the above
 
 ``clibra`` requires configure and build presets to exist for a given
 name. Test presets are used by ``clibra test`` when present. Workflow
@@ -164,18 +136,6 @@ resolved name) is found.
 
 See :ref:`concepts/project-setup/presets` for the recommended preset
 hierarchy, and :ref:`cli/presets` for how ``clibra`` resolves preset
-names.
-
-CTest and the ``build-and-test`` target
------------------------------------------
-
-Two CTest behaviours are set unconditionally when running tests via
-the ``build-and-test`` target:
-
-- ``--output-on-failure`` is always passed. If you use ``ctest``
-  directly rather than ``build-and-test``, configure this in a test
-  preset's ``output.outputOnFailure`` field.
-
-- ``--test-dir`` is set to the ``build/`` directory so that CTest does
-  not pollute the repository root. If you invoke ``ctest`` directly
-  without a preset, pass ``--test-dir`` explicitly.
+names. See the `CMake
+preset docs<https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html>`
+for more info on presets.

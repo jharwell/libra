@@ -12,7 +12,7 @@ coverage thresholds.
 
    clibra ci --preset ci
 
-Requires :cmake:variable:`LIBRA_TESTS` and :cmake:variable:`LIBRA_CODE_COV`
+Requires :cmake:variable:`LIBRA_TESTS` and :cmake:variable:`LIBRA_COVERAGE`
 to be ``ON`` in the preset's CMake cache.
 
 CMake equivalent

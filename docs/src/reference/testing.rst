@@ -2,8 +2,6 @@
 
 .. _reference/testing:
 
-.. _usage/testing:
-
 =================
 Testing Reference
 =================
@@ -66,9 +64,6 @@ LIBRA uses its built-in default.
 
    * - :cmake:variable:`LIBRA_REGRESSION_TEST_MATCHER`
      - Regression tests (default: ``-rtest``)
-
-   * - :cmake:variable:`LIBRA_NEGATIVE_TEST_MATCHER`
-     - Negative compilation tests (see below)
 
    * - :cmake:variable:`LIBRA_TEST_HARNESS_MATCHER`
      - Test harness sources (default: ``_test``)
@@ -137,3 +132,4 @@ Both libraries link against the main project target so that all project
 includes, defines, and transitive dependencies are propagated.
 ``-Wno-old-style-cast`` and ``-Wno-useless-cast`` are added for C
 projects to silence common C-style cast warnings in test code.
+

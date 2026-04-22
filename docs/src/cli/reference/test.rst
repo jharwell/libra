@@ -22,11 +22,8 @@ CMake equivalent
 .. code-block:: bash
 
    cmake --build --preset <n> --target all-tests
-   ctest --preset <n> [--parallel <N>] [-L <type>] [-R <pattern>]
-         [--stop-on-failure] [--rerun-failed]
+   ctest --preset <n>
 
-For filtering and running specific tests directly with ``ctest``, see
-:ref:`usage/testing/builtin/filtering`.
 
 Flag reference
 --------------

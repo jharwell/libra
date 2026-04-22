@@ -148,11 +148,10 @@ Analysis
 
 .. cmake:variable:: LIBRA_CLANG_TIDY_EXTRA_ARGS
 
-   Additional flags appended verbatim to every clang-tidy invocation,
-   on all paths (compdb, fixed-DB, and extra-arg). Useful for flags
-   that LIBRA does not otherwise expose, such as
-   ``--allow-enabling-analyzer-alpha-checkers``. Passed as-is; no
-   separators are added.
+   Additional flags appended verbatim to every clang-tidy invocation. Useful for
+   flags that LIBRA does not otherwise expose, such as
+   ``--allow-enabling-analyzer-alpha-checkers``. Passed as-is; no separators are
+   added.
 
    .. versionadded:: 0.8.15
 
@@ -214,70 +213,6 @@ Testing
    tests under ``tests/`` will have so LIBRA can glob them. If not specified,
    defaults to ``_test``; valid test harness would then be, e.g.,
    ``tests/thing_test{.cpp,.hpp}``. Does not apply to interpreted tests.
-
-.. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
-
-   :default: YES
-   :type: BOOL
-
-   Should registered unit tests be included in the ``test`` target to run?
-
-.. cmake:variable:: LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
-
-   :default: YES
-   :type: BOOL
-
-   Should registered integration tests be included in the ``test`` target to
-   run?
-
-.. cmake:variable:: LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
-
-   :default: YES
-   :type: BOOL
-
-   Should registered regression tests be included in the ``test`` target to run?
-
-Code Coverage
---------------
-
-.. cmake:variable:: LIBRA_GCOVR_LINES_THRESH
-
-   :default: 95
-   :type: STRING
-
-   Threshold for line coverage under which the ``gcovr-check`` target will
-   return non-zero.
-
-.. cmake:variable:: LIBRA_GCOVR_FUNCTIONS_THRESH
-
-   :default: 60
-   :type: STRING
-
-   Threshold for functions coverage under which the ``gcovr-check`` target will
-   return non-zero.
-
-.. cmake:variable:: LIBRA_GCOVR_BRANCHES_THRESH
-
-   :default: 50
-   :type: STRING
-
-   Threshold for branches coverage under which the ``gcovr-check`` target
-   will return non-zero.
-
-.. cmake:variable:: LIBRA_GCOVR_DECISIONS_THRESH
-
-   :default: 50
-   :type: STRING
-
-   Threshold for decisions coverage under which the ``gcovr-check`` target will
-   return non-zero.
-
-.. cmake:variable:: LIBRA_SPHINXDOC_COMMAND
-
-   :default: ``sphinx-build``
-   :type: STRING
-
-   The command to run sphinx and generate documentation. via ``make sphinxdoc``.
 
 .. _usage/project-local/diagnostics:
 

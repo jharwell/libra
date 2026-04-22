@@ -113,10 +113,10 @@ necessary ``LIBRA_*`` flag enabled before running. The full mapping is:
      - ``LIBRA_TESTS=ON``
 
    * - ``ci``
-     - ``LIBRA_TESTS=ON``, ``LIBRA_CODE_COV=ON``
+     - ``LIBRA_TESTS=ON``, ``LIBRA_COVERAGE=ON``
 
    * - ``coverage``
-     - ``LIBRA_CODE_COV=ON``
+     - ``LIBRA_COVERAGE=ON``
 
    * - ``analyze``
      - ``LIBRA_ANALYSIS=ON``

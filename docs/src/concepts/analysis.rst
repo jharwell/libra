@@ -54,9 +54,9 @@ unreliable; ``LIBRA_USE_COMPDB=YES`` (the default) is strongly preferred.
 .. NOTE:: For best results, set the compiler to clang when using clang-based
           tools such as ``clang-tidy``. If the compiler is not clang, the
           compilation database may contain flags that clang does not understand,
-          causing analysis to fail even if the project builds cleanly. Disable
-          the compilation database with :cmake:variable:`LIBRA_USE_COMPDB`
-          ``=NO`` if needed
+          causing analysis to fail even if the project builds cleanly. Using
+          :cmake:variable:`LIBRA_USE_COMPDB` ``=YES`` is strongly recommended if
+          GCC for builds and clang for analysis.
 
 .. _concepts/analysis/header-files:
 

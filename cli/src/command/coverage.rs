@@ -65,7 +65,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
         anyhow::bail!("No coverage target specified: either --html or --check must be given");
     }
     if args.html {
-        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_CODE_COV")?;
+        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_COVERAGE")?;
         debug!("Checking ['gcovr-report','llvm-report'] existence");
 
         let target = if ctx.dry_run {
@@ -98,7 +98,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
         success = true;
     }
     if args.check {
-        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_CODE_COV")?;
+        cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_COVERAGE")?;
         debug!("Checking ['gcovr-check'] existence");
 
         let target = if ctx.dry_run {

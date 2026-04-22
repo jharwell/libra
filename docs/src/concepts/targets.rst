@@ -31,19 +31,24 @@ group requires the same feature flag to be enabled:
        ``regression-tests``, ``build-and-test``
 
    * - **Coverage**
-     - :cmake:variable:`LIBRA_CODE_COV`
+     - :cmake:variable:`LIBRA_COVERAGE`
      - ``gcovr-report``, ``gcovr-check``, ``llvm-report``,
        ``llvm-summary``, ``lcov-report``
 
    * - **Analysis**
      - :cmake:variable:`LIBRA_ANALYSIS`
      - ``analyze``, ``analyze-clang-tidy``, ``analyze-cppcheck``,
-       ``analyze-clang-format``, ``format``, ``fix-clang-tidy``
+       ``fix-clang-tidy``
 
    * - **Docs**
      - :cmake:variable:`LIBRA_DOCS`
      - ``apidoc``, ``sphinxdoc``, ``apidoc-check-doxygen``,
        ``apidoc-check-clang``
+
+   * - **Formatting**
+     - :cmake:variable:`LIBRA_FORMAT`
+     - ``format``, ``format-check``, ``format-check-clang``,
+       ``format-check-cmake``
 
 Targets are only defined for the top-level CMake ``project()``. Dependent
 sub-projects that also use LIBRA are not affected.
@@ -88,8 +93,8 @@ the exact reason:
        build-and-test ......... YES
 
      Coverage
-       gcovr-report ........... NO  (LIBRA_CODE_COV is OFF)
-       llvm-report ............ NO  (LIBRA_CODE_COV is OFF)
+       gcovr-report ........... NO  (LIBRA_COVERAGE is OFF)
+       llvm-report ............ NO  (LIBRA_COVERAGE is OFF)
 
      Analysis
        analyze ................ NO  (LIBRA_ANALYSIS is OFF)

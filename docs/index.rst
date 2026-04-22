@@ -44,7 +44,7 @@ What LIBRA is (and is not)
 ==========================
 
 LIBRA **is** a thin, declarative layer on top of CMake — a set of conventions
-for structuring C++ projects and a unified interface for build, test, analysis,
+for structuring C/C++ projects and a unified interface for build, test, analysis,
 and documentation workflows.
 
 LIBRA **is not** a replacement for CMake, a new build system, or a tool that
@@ -55,7 +55,7 @@ otherwise; your existing ``add_executable()`` / ``add_library()`` calls are
 unaffected.
 
 LIBRA is a good fit if you use CMake but want less boilerplate, maintain
-multiple C++ projects, or want consistent CI workflows across repositories.
+multiple C/C++ projects, or want consistent CI workflows across repositories.
 It may not be a good fit if you want a completely new build system (see Bazel
 or Meson), need full control over every CMake detail, or your project is very
 small.

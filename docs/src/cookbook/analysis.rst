@@ -65,9 +65,6 @@ building the full project first.
          cmake --preset analyze
          cmake --build --preset analyze --target analyze
 
-For the full list of per-tool and per-category targets, see
-:ref:`reference/targets`.
-
 Only tools found on ``PATH`` are run. If ``cppcheck`` is not
 installed, ``analyze-cppcheck`` does not exist and is silently skipped
 by the umbrella ``analyze`` target. Run ``clibra info`` or
@@ -91,9 +88,6 @@ tools are available.
 
          cmake --build --preset analyze --target analyze-clang-tidy
 
-For the full list of per-tool and per-category targets, see
-:ref:`reference/targets`.
-
 4. Auto-fix warnings
 ====================
 
@@ -114,24 +108,6 @@ For the full list of per-tool and per-category targets, see
          cmake --build --preset analyze --target fix-clang-tidy
          cmake --build --preset analyze --target fix-clang-check
 
-Format code in place (clang-format and cmake-format):
-
-.. tab-set::
-
-   .. tab-item:: CLI
-
-      .. code-block:: bash
-
-         clibra analyze --format --preset analyze
-
-   .. tab-item:: CMake
-
-      .. code-block:: bash
-
-         cmake --build --preset analyze --target format
-
-For the full list of per-tool and per-category targets, see
-:ref:`reference/targets`.
 
 5. Run a specific clang-tidy check category
 ============================================
@@ -207,8 +183,5 @@ across all targets, use ``LIBRA_CLANG_TIDY_CHECKS_CONFIG`` in
 .. code-block:: cmake
 
    # In project-local.cmake
-   set(LIBRA_CLANG_FORMAT_FILEPATH
-       ${CMAKE_SOURCE_DIR}/.clang-format)
-
    set(LIBRA_CLANG_TIDY_FILEPATH
        ${CMAKE_SOURCE_DIR}/.clang-tidy)

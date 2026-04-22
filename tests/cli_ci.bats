@@ -100,7 +100,7 @@ setup() {
 
 @test "CI: fallback fails with error when LIBRA_TESTS not enabled in preset" {
     skip_if_compiler_missing gnu c
-    # 'release' preset has neither LIBRA_TESTS nor LIBRA_CODE_COV
+    # 'release' preset has neither LIBRA_TESTS nor LIBRA_COVERAGE
     run_clibra build --preset release $CLI_CMAKE_DEFINES
     assert_clibra_success
     run_clibra ci --preset release
@@ -108,13 +108,13 @@ setup() {
     assert_output_contains "LIBRA"
 }
 
-@test "CI: fallback fails with error when LIBRA_CODE_COV not enabled in preset" {
+@test "CI: fallback fails with error when LIBRA_COVERAGE not enabled in preset" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset release $CLI_CMAKE_DEFINES
     assert_clibra_success
     run_clibra ci --preset release
     assert_clibra_failure
-    assert_output_contains "CODE_COV"
+    assert_output_contains "COVERAGE"
 }
 
 # ==============================================================================

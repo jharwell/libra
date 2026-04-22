@@ -41,7 +41,7 @@
       "inherits": "base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "LIBRA_CODE_COV": "ON",
+        "LIBRA_COVERAGE": "ON",
         "LIBRA_TESTS": "ON"
       }
     },

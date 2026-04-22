@@ -41,7 +41,7 @@ Choosing a tool
      - You are building with Clang and want source-level coverage
        highlighting or integration with LLVM tooling.
 
-Set :cmake:variable:`LIBRA_CODE_COV_NATIVE` to control which format
+Set :cmake:variable:`LIBRA_COVERAGE_NATIVE` to control which format
 is generated. The default (``YES``) means GCC uses GNU format and
 Clang uses LLVM format. Set it to ``NO`` to force GNU format from
 both compilers.
@@ -59,7 +59,7 @@ both compilers.
          "cacheVariables": {
            "CMAKE_BUILD_TYPE": "Debug",
            "LIBRA_TESTS":    "ON",
-           "LIBRA_CODE_COV": "ON"
+           "LIBRA_COVERAGE": "ON"
          }
        }
      ],
@@ -134,7 +134,7 @@ new project.
 
    .. tab-item:: CMake (llvm-cov)
 
-      Requires Clang and ``LIBRA_CODE_COV_NATIVE=YES`` (the default):
+      Requires Clang and ``LIBRA_COVERAGE_NATIVE=YES`` (the default):
 
       .. code-block:: bash
 

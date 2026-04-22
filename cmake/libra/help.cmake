@@ -96,7 +96,7 @@ function(_libra_help_option_to_category _option _out_var)
     set(${_out_var}
         "docs"
         PARENT_SCOPE)
-  elseif(_option STREQUAL "LIBRA_CODE_COV")
+  elseif(_option STREQUAL "LIBRA_COVERAGE")
     set(${_out_var}
         "coverage"
         PARENT_SCOPE)

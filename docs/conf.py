@@ -120,7 +120,7 @@ cmake_doc_dirs = ["../cmake"]
 
 SUBCOMMANDS = [
     "build", "test", "ci", "analyze", "coverage",
-    "docs", "clean", "info", "doctor",
+    "docs", "clean", "info", "doctor", "format"
 ]
 
 GLOBAL_FLAG_PREFIXES = {

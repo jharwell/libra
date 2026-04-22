@@ -129,7 +129,8 @@ conventions:
    ├── include/                  ← .hpp / .h headers (auto-discovered)
    ├── tests/                    ← test files (auto-discovered by suffix)
    └── docs/
-       └── Doxyfile.in           ← required if LIBRA_DOCS=ON
+       ├── Doxyfile.in           ← doxygen configuration (LIBRA_DOCS=ON)
+       └── conf.py               ← sphinx configuration (LIBRA_DOCS=ON)
 
 **Mandatory file extension conventions:**
 
@@ -137,8 +138,7 @@ conventions:
 - C source files must end in ``.c``; C headers in ``.h``
 
 If your structure differs from the above, you can disable globbing and
-list files manually in ``project-local.cmake``. See
-:ref:`reference/variables` for the relevant variables.
+list files manually in ``project-local.cmake``.
 
 In addition, build outputs in the binary directory follow these conventions. The
 build directory can of course be wherever you like.
@@ -146,12 +146,6 @@ build directory can of course be wherever you like.
 - libraries -> ``${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}`` (usually lib or
   lib64)
 - executables -> ``${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}`` (usually bin)
-
-.. code-block:: text
-
-my_project/
-   ├── build/ (can be anywhere you want)
-   └──└── lib   ← target definitions (required)
 
 .. _concepts/project-setup/test-naming:
 
@@ -210,7 +204,7 @@ explanation of every preset and the rationale behind the structure.
          "binaryDir": "${sourceDir}/build/${presetName}",
          "cacheVariables": {
            "LIBRA_TESTS":    "OFF",
-           "LIBRA_CODE_COV": "OFF",
+           "LIBRA_COVERAGE": "OFF",
            "LIBRA_ANALYSIS": "OFF",
            "LIBRA_DOCS":     "OFF"
          }
@@ -237,7 +231,7 @@ explanation of every preset and the rationale behind the structure.
          "cacheVariables": {
            "CMAKE_BUILD_TYPE": "Debug",
            "LIBRA_TESTS": "ON",
-           "LIBRA_CODE_COV": "ON"
+           "LIBRA_COVERAGE": "ON"
          }
        },
        {
@@ -278,20 +272,4 @@ explanation of every preset and the rationale behind the structure.
          "output": { "outputOnFailure": true }
        }
      ]
-   }
-
-To set a personal default preset without committing it, create
-``CMakeUserPresets.json`` (git-ignored) with:
-
-.. code-block:: json
-
-   {
-     "version": 6,
-     "vendor": {
-       "libra": {
-         "defaultConfigurePreset": "debug"
-       }
-     }
-   }
-
-Both ``clibra`` and the CMake preset system respect this file.
+}

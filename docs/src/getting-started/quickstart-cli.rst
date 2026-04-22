@@ -47,7 +47,7 @@ Optionally, you can define:
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
-              "LIBRA_TESTS": "OFF", "LIBRA_CODE_COV": "OFF",
+              "LIBRA_TESTS": "OFF", "LIBRA_COVERAGE": "OFF",
               "LIBRA_ANALYSIS": "OFF", "LIBRA_DOCS": "OFF"
             }
           },

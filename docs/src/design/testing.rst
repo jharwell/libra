@@ -1,3 +1,5 @@
+.. _concepts/testing:
+
 =============
 Testing LIBRA
 =============
@@ -27,7 +29,7 @@ mode:
 .. code-block:: bash
 
    LIBRA_CONSUME_MODE=add_subdirectory bats LIBRA_SAN.bats
-   LIBRA_CONSUME_MODE=add_subdirectory bats LIBRA_CODE_COV.bats
+   LIBRA_CONSUME_MODE=add_subdirectory bats LIBRA_COVERAGE.bats
 
 Suite scripts forward bats options:
 
