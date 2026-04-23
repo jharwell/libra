@@ -1,9 +1,5 @@
 .. SPDX-License-Identifier: MIT
 
-   cmake_minimum_required(VERSION 3.31)
-   project(myproj)
-   find_package(libra REQUIRED)
-
 .. |docs| image:: https://img.shields.io/badge/docs-github.io-blue
    :target: https://jharwell.github.io/libra
    :alt: Documentation
