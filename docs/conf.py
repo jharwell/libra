@@ -79,7 +79,6 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinxcontrib.moderncmakedomain",
     "pydata_sphinx_theme",
-    "sphinx_book_theme",
     "sphinx_design",
     "sphinxcontrib.plantuml",
     "myst_parser"
@@ -286,6 +285,7 @@ def _generate_cli_reference(app):
         cleaned = _clean_md(result.stdout)
         (out_dir / f"{sub}.md").write_text(cleaned)
 
+        
 def setup(app):
     app.connect("builder-inited", _generate_cli_reference)
 
@@ -295,15 +295,6 @@ def setup(app):
 # a list of builtin themes.
 #
 html_theme = "pydata_sphinx_theme"
-
-plantuml = "java -jar /tmp/plantuml.jar"
-plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
-
-if not os.path.exists("/tmp/plantuml.jar"):
-    print("DOCS: Downloading latest plantuml...")
-    response = requests.get(plantuml_url)
-    with open("/tmp/plantuml.jar", "wb") as file:
-        file.write(response.content)
 
 plantuml = "java -jar /tmp/plantuml.jar"
 plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
