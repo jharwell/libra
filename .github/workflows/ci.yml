@@ -199,13 +199,13 @@ jobs:
           echo "version=v${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Set release tag
-        if: github.ref == 'refs/heads/master'
+        if: github.ref_name == 'master'
         shell: bash
         run: |
           echo "RELEASE_TAG=${{ steps.version.outputs.version }}" >> $GITHUB_ENV
 
       - name: Github release
-        if: github.ref == 'refs/heads/master'
+        if: github.ref_name == ''
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           # 2025-04-29 [JRH]: This is NOT the usual secrets.GITHUB_TOKEN because

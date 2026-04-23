@@ -20,7 +20,7 @@ jobs:
   publish:
     # Only publish clibra on master to avoid having HUNDREDS of beta release
     # on crates.io which are of limited utility.
-    if: github.ref == 'refs/heads/master'
+    if: github.event.release.target_commitish == 'master'
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16

@@ -1,4 +1,4 @@
-.. _concepts/testing:
+.. _design/testing:
 
 =============
 Testing LIBRA

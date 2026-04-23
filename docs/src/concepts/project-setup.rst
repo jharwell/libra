@@ -272,4 +272,4 @@ explanation of every preset and the rationale behind the structure.
          "output": { "outputOnFailure": true }
        }
      ]
-}
+   }
