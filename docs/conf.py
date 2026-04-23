@@ -272,7 +272,7 @@ def _generate_cli_reference(app):
 
     for sub in SUBCOMMANDS:
         result = subprocess.run(
-            ["uv", "run", "clibra", "generate", "--markdown",
+            ["clibra", "generate", "--markdown",
              f"--subcommand={sub}"],
             capture_output=True,
             text=True,
@@ -285,7 +285,7 @@ def _generate_cli_reference(app):
         cleaned = _clean_md(result.stdout)
         (out_dir / f"{sub}.md").write_text(cleaned)
 
-        
+
 def setup(app):
     app.connect("builder-inited", _generate_cli_reference)
 
