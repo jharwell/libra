@@ -24,7 +24,7 @@ Smallest possible project
    project(hello CXX)
 
    include(libra/project)
-   libra_add_executable(my_app ${my_app_CXX_SOURCES})
+   libra_add_executable(my_app ${hello_CXX_SOURCES})
 
 No source lists.  No test wiring.  No flags.
 

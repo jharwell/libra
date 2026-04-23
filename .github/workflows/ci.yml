@@ -12,6 +12,7 @@ on:
       - "cmake/**"
       - "cli/**"
       - ".github/**"
+      - "docs/**"
 
   schedule:
     - cron: '0 0 1 * *'
@@ -205,7 +206,7 @@ jobs:
           echo "RELEASE_TAG=${{ steps.version.outputs.version }}" >> $GITHUB_ENV
 
       - name: Github release
-        if: github.ref_name == ''
+        if: github.ref_name == 'master'
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           # 2025-04-29 [JRH]: This is NOT the usual secrets.GITHUB_TOKEN because
