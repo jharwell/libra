@@ -3,27 +3,28 @@
 #
 # SPDX-License Identifier:  MIT
 #
-# ##############################################################################
-# Custom messaging
-# ##############################################################################
 include(libra/messaging)
 include(libra/defaults)
 
-# ##############################################################################
-# Configure CFLAGS and whatnot for different C/C++ compilers.
-# ##############################################################################
-# Project options
-set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
 
+# ##############################################################################
+# ccache
+# ##############################################################################
 if(NOT LIBRA_NO_CCACHE)
   # Configure CCache if available
-  find_program(CCACHE_FOUND ccache)
+  find_program(CCACHE_EXECUTABLE ccache)
 
-  if(CCACHE_FOUND)
-    libra_message(STATUS "Using ccache")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  if(CCACHE_EXECUTABLE)
+    # 2026-02-20 [JRH]: You can't set CMAKE_{C,CXX}_COMPILER_LAUNCHER set,
+    # because for those to work they have to be set BEFORE project(), and this
+    # file is included after that. Also, using those launcher variables can
+    # result in the LINKER_LANGUAGE not being correctly detected in some cases,
+    # so this is a much better way of doing it.
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_EXECUTABLE})
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_EXECUTABLE})
+
+    libra_message(STATUS "Using ccache=${CCACHE_EXECUTABLE}")
   else()
     libra_message(STATUS "Not using ccache [disabled=notfound]")
   endif()
@@ -42,11 +43,10 @@ set(CMAKE_C_FLAGS_RELEASE
 # ##############################################################################
 # Profile-Guided Optimization (PGO)
 # ##############################################################################
-set(LIBRA_PGO_MODES NONE GEN USE)
+set(_LIBRA_PGO_MODES NONE GEN USE)
 
-if(NOT ${LIBRA_PGO} IN_LIST LIBRA_PGO_MODES)
-  libra_message(FATAL_ERROR
-                "Bad PGO specification '${LIBRA_PGO}'. Must be {NONE,GEN,USE}.")
+if(NOT ${LIBRA_PGO} IN_LIST _LIBRA_PGO_MODES)
+  libra_error("Bad PGO specification '${LIBRA_PGO}'. Must be {NONE,GEN,USE}.")
 endif()
 
 # ##############################################################################
@@ -90,8 +90,7 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "Intel"
 endif()
 
 if(NOT _SUPPORTED_COMPILER)
-  libra_message(
-    FATAL_ERROR
+  libra_error(
     "C/C++ compiler ${CMAKE_C_COMPILER_ID}/${CMAKE_CXX_COMPILER_ID} not supported"
   )
 endif()
@@ -112,8 +111,7 @@ macro(_gen_fpc_defs DEFS)
   elseif("${LIBRA_FPC}" MATCHES "INHERIT")
 
   else()
-    libra_message(
-      FATAL_ERROR "Bad Function Precondition Checking (FPC) specification
+    libra_error("Bad Function Precondition Checking (FPC) specification
     '${LIBRA_FPC}'. Must be {NONE,ABORT,RETURN,INHERIT}")
   endif()
 endmacro()
@@ -138,52 +136,27 @@ macro(_gen_erl_defs DEFS)
   elseif("${LIBRA_ERL}" MATCHES "INHERIT")
 
   else()
-    libra_message(
-      FATAL_ERROR "Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
+    libra_error("Bad Event Reporting (ER) specification '${LIBRA_ERL}'.
     Must be {ALL,FATAL,ERROR,WARN,INFO,DEBUG,TRACE,NONE,INHERIT}")
   endif()
 
 endmacro()
 
-set(LIBRA_PUBLIC_DEFS)
-set(LIBRA_PRIVATE_DEFS)
+set(_LIBRA_PUBLIC_DEFS)
+set(_LIBRA_PRIVATE_DEFS)
 
 if(LIBRA_FPC_EXPORT)
-  _gen_fpc_defs(LIBRA_PUBLIC_DEFS)
+  _gen_fpc_defs(_LIBRA_PUBLIC_DEFS)
 else()
-  _gen_fpc_defs(LIBRA_PRIVATE_DEFS)
+  _gen_fpc_defs(_LIBRA_PRIVATE_DEFS)
 endif()
 
 if(LIBRA_ERL_EXPORT)
-  _gen_erl_defs(LIBRA_PUBLIC_DEFS)
+  _gen_erl_defs(_LIBRA_PUBLIC_DEFS)
 else()
-  _gen_erl_defs(LIBRA_PRIVATE_DEFS)
+  _gen_erl_defs(_LIBRA_PRIVATE_DEFS)
 endif()
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  list(APPEND LIBRA_PUBLIC_DEFS -D__nostdlib__)
-endif()
-
-set(LIBRA_PRIVATE_DEV_DEFS ${LIBRA_PRIVATE_DEFS})
-set(LIBRA_PUBLIC_DEV_DEFS ${LIBRA_PUBLIC_DEFS})
-set(LIBRA_PRIVATE_OPT_DEFS ${LIBRA_PRIVATE_DEFS})
-set(LIBRA_PUBLIC_OPT_DEFS ${LIBRA_PUBLIC_DEFS})
-
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  list(APPEND LIBRA_PRIVATE_OPT_DEFS -DNDEBUG)
-endif()
-
-libra_message(STATUS "Configuring compiler diagnostics")
-# set(CMAKE_REQUIRED_QUIET ON) # Don't emit diagnostics for EVERY flag tested...
-
-get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
-
-# Only warn about mismatch if both languages are enabled
-if("C" IN_LIST languages AND "CXX" IN_LIST languages)
-  if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "${CMAKE_C_COMPILER_ID}")
-    libra_message(
-      WARNING
-      "Mixing compiler families: C=${CMAKE_C_COMPILER_ID}, CXX=${CMAKE_CXX_COMPILER_ID}"
-    )
-  endif()
+  list(APPEND _LIBRA_PUBLIC_DEFS -D__nostdlib__)
 endif()

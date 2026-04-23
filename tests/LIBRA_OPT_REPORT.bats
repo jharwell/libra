@@ -196,3 +196,158 @@ setup() {
 
     assert_compile_flag_absent "$test_dir" "cxx" "-qopt-report-phase=all"
 }
+
+# ==============================================================================
+# Clang — link flags with LIBRA_LTO=ON
+#
+# clang.cmake only sets _LIBRA_OPT_REPORT_LINK_OPTIONS when LIBRA_LTO is also
+# enabled.  With LIBRA_LTO=OFF (default) the link flags are empty even when
+# LIBRA_OPT_REPORT=ON.
+# ==============================================================================
+
+@test "OPT_REPORT: Clang/C ON+LTO adds -Rpass=.* to link flags" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DLIBRA_LTO=ON \
+        -DCMAKE_BUILD_TYPE=Release)
+
+    assert_link_flag_present "$test_dir" "c" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C++ ON+LTO adds -Rpass=.* to link flags" {
+    skip_if_compiler_missing "clang" "cxx"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "cxx" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DLIBRA_LTO=ON \
+        -DCMAKE_BUILD_TYPE=Release)
+
+    assert_link_flag_present "$test_dir" "cxx" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C ON without LTO does not add -Rpass to link flags" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DLIBRA_LTO=OFF \
+        -DCMAKE_BUILD_TYPE=Release)
+
+    assert_link_flag_absent "$test_dir" "c" "-Rpass=.*"
+}
+
+# ==============================================================================
+# GNU — documented no-op
+#
+# The GNU compiler has no optimisation-report flag equivalent.
+# LIBRA_OPT_REPORT=ON with GNU must not add any extra flags.
+# ==============================================================================
+
+@test "OPT_REPORT: GNU/C ON does not add any optimisation-report flags" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_absent "$test_dir" "c" "-Rpass"
+    assert_compile_flag_absent "$test_dir" "c" "-fsave-optimization-record"
+    assert_compile_flag_absent "$test_dir" "c" "-qopt-report"
+}
+
+@test "OPT_REPORT: GNU/C++ ON does not add any optimisation-report flags" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_REPORT=ON)
+
+    assert_compile_flag_absent "$test_dir" "cxx" "-Rpass"
+    assert_compile_flag_absent "$test_dir" "cxx" "-fsave-optimization-record"
+    assert_compile_flag_absent "$test_dir" "cxx" "-qopt-report"
+}
+
+@test "OPT_REPORT: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_OPT_REPORT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_OPT_REPORT" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "OPT_REPORT: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_REPORT=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_OPT_REPORT" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_OPT_REPORT=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_OPT_REPORT" "OFF"
+    [ "$status" -eq 0 ]
+}
+
+# ==============================================================================
+# RelWithDebInfo and MinSizeRel build types
+#
+# Clang emits -Rpass=.* in compile flags for all build types when
+# LIBRA_OPT_REPORT=ON.  The link-flag path is conditional on LIBRA_LTO, which
+# is independent of build type, but the compile flag must be present in
+# RelWithDebInfo and MinSizeRel just as it is in Release.
+# ==============================================================================
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass=.* in RelWithDebInfo build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C ON adds -Rpass=.* in MinSizeRel build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    assert_compile_flag_present "$test_dir" "c" "-Rpass=.*"
+}
+
+@test "OPT_REPORT: Clang/C OFF does not add -Rpass in RelWithDebInfo build" {
+    skip_if_compiler_missing "clang" "c"
+    COMPILER_TYPE=clang
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=OFF \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    assert_compile_flag_absent "$test_dir" "c" "-Rpass"
+}
+
+@test "OPT_REPORT: Intel/C ON adds -qopt-report=3 in RelWithDebInfo build" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo)
+
+    assert_compile_flag_present "$test_dir" "c" "-qopt-report=3"
+}
+
+@test "OPT_REPORT: Intel/C ON adds -qopt-report=3 in MinSizeRel build" {
+    skip_if_compiler_missing "intel" "c"
+    COMPILER_TYPE=intel
+    test_dir=$(run_libra_cmake_test "c" \
+        -DLIBRA_OPT_REPORT=ON \
+        -DCMAKE_BUILD_TYPE=MinSizeRel)
+
+    assert_compile_flag_present "$test_dir" "c" "-qopt-report=3"
+}

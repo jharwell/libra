@@ -26,7 +26,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu22.04:2023-04-12
+      image: jharwell/ubuntu24.04-libra:2026-03-16
     steps:
       - name: Checkout
         uses: actions/checkout@v3

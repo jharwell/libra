@@ -4,9 +4,13 @@
  * SPDX-License-Identifier: MIT
  */
 
+#ifndef __nostdlib__
 #include <stdio.h>
+#endif
 
 int main(int argc, char** argv) {
+  (void)argc;
+  (void)argv;
   int i;
   // initialize first and second terms
   int t1 = 0, t2 = 1;

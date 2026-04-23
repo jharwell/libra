@@ -50,5 +50,15 @@ compile_options.json
 build
 node_modules
 docs/_build
+docs/_generated
+
 __pycache__/
 tests/cmake-pkg/build
+*.profraw
+*.prodata
+tests/*.json
+CMakeUserPresets.json
+
+
+# Added by cargo
+target

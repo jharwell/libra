@@ -3,7 +3,7 @@
 # ##############################################################################
 
 # CMake version
-cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
 
 # This will be set when LIBRA is used as a conan backend (we can't test directly
 # for that at this point in the file, because that option isn't defined yet).
@@ -29,6 +29,16 @@ include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
 include(libra/diagnostics_pre)
+include(libra/targets)
+include(libra/defaults)
+include(libra/compile/version) # To be available in project-local.cmake
+
+# 2026-02-26 [JRH]: Some of the variables used in here are undefined at this
+# point, but that's OK because libra_config_summary() isn't called until the end
+# of this file. It needs to be here so libra_config_summary_prepare_fields() is
+# available in project-local.cmake.
+include(libra/summary)
+include(libra/help)
 
 # Set policies
 include(libra/policies)
@@ -37,29 +47,50 @@ include(libra/policies)
 # Project Cmdline Configuration
 # ##############################################################################
 option(LIBRA_TESTS "Build tests." OFF)
-option(LIBRA_CODE_COV "Compile with code coverage instrumentation" OFF)
+if(DEFINED LIBRA_CODE_COV)
+  libra_message(
+    WARNING "LIBRA_CODE_COV is deprecated, use LIBRA_COVERAGE instead. "
+    "LIBRA_CODE_COV will be removed in a future release.")
+  set(LIBRA_COVERAGE
+      ${LIBRA_CODE_COV}
+      CACHE BOOL "" FORCE)
+endif()
+option(LIBRA_COVERAGE "Compile with code coverage instrumentation" OFF)
+
 option(LIBRA_DOCS "Enable documentation build" OFF)
 option(
   LIBRA_VALGRIND_COMPAT
   "Disable some compiler instructions so 64-bit code can robustly be run under valgrind"
   OFF)
 option(LIBRA_ANALYSIS "Enable static analysis checkers" OFF)
+option(LIBRA_FORMAT "Enable format checking/application" OFF)
 option(LIBRA_SUMMARY "Show a configuration summary" OFF)
 option(LIBRA_LTO "Enable Link-Time Optimization" OFF)
 option(LIBRA_NATIVE_OPT "Enable native optimization options" OFF)
 option(LIBRA_OPT_REPORT "Emit-generated reports related to optimizations" OFF)
-option(LIBRA_DEBUG_INFO
-       "Enable inclusion of debug info, independent of build type" ON)
 option(LIBRA_NO_CCACHE "Disable usage of ccache, even if found" OFF)
 option(LIBRA_BUILD_PROF "Enable build profiling" OFF)
 option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
-option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally?" OFF)
-option(LIBRA_GLOBAL_C_STANDARD "Should LIBRA set the C standard globally?" OFF)
-option(LIBRA_GLOBAL_CXX_STANDARD "Should LIBRA set C++ standard globally?" OFF)
+option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
-option(LIBRA_CODE_COV_NATIVE
-       "Should code coverage be emitted in the compiler's native format??" YES)
+if(DEFINED LIBRA_CODE_COV_NATIVE)
+  libra_message(
+    WARNING
+    "LIBRA_CODE_COV_NATIVE is deprecated, use LIBRA_COVERAGE_NATIVE instead. "
+    "LIBRA_CODE_COV_NATIVE will be removed in a future release.")
+  set(LIBRA_COVERAGE_NATIVE
+      ${LIBRA_CODE_COV_NATIVE}
+      CACHE BOOL "" FORCE)
+endif()
+option(LIBRA_COVERAGE_NATIVE
+       "Should code coverage be emitted in the compiler's native format?" YES)
+option(LIBRA_USE_COMPDB "Should analysis tools use a compilation database?" YES)
+option(
+  LIBRA_CLANG_TOOLS_USE_FIXED_DB
+  "Use the '--' separator (fixed compilation database for clang-based tools)"
+  YES)
+option(LIBRA_WERROR "Add -Werror to the list of compiler options" NO)
 
 # 2026-02-02 [JRH]: All of these are cache variables, because option() does not
 # support non-boolean things.
@@ -71,19 +102,11 @@ set(LIBRA_DRIVER
 set(LIBRA_PGO
     "NONE"
     CACHE STRING "{NONE,GEN,USE} Compiler PGO generation/use ")
-set_property(CACHE LIBRA_PGO PROPERTY STRINGS NONE GEN USE)
 
 set(LIBRA_FPC
     "INHERIT"
     CACHE STRING
           "{RETURN,ABORT,NONE,INHERIT} Function Predcondition Checking (FPC)")
-set_property(
-  CACHE LIBRA_FPC
-  PROPERTY STRINGS
-           RETURN
-           ABORT
-           NONE
-           INHERIT)
 
 set(LIBRA_ERL
     "INHERIT"
@@ -93,40 +116,33 @@ set(LIBRA_ERL
 )
 
 set(LIBRA_FORTIFY
-    "NONE"
+    ${LIBRA_FORTIFY_DEFAULT}
     CACHE STRING "{NONE, STACK, SOURCE, ALL")
-set(LIBRA_TARGETS CACHE INTERNAL "List of target to apply LIBRA magic to")
+set(LIBRA_SAN
+    ${LIBRA_SAN_DEFAULT}
+    CACHE STRING "{NONE,MSAN,ASAN,SSAN,UBSAN,TSAN")
+set(LIBRA_STDLIB
+    ${LIBRA_STDLIB_DEFAULT}
+    CACHE STRING "{NONE, CXX, STDCXX")
 
-set(LIBRA_CONFIGURED_SOURCE_FILES_SRC
-    CACHE INTERNAL
-          "List of source files to configure and add to ${PROJECT_NAME}")
-
-set(LIBRA_CONFIGURED_SOURCE_FILES_DEST
-    CACHE INTERNAL
-          "List of dest files for configured source files for ${PROJECT_NAME}")
-
-set_property(
-  CACHE LIBRA_FORTIFY
-  PROPERTY STRINGS NONE STACK
-  SOURCE CFI
-         GOT
-         FORMAT
-         LIBCXX_FAST
-         LIBCXX_EXTENSIVE
-         LIBCXX_DEBUG
-         ALL)
-
-set_property(
-  CACHE LIBRA_ERL
-  PROPERTY STRINGS
-           NONE
-           ERROR
-           WARN
-           INFO
-           DEBUG
-           TRACE
-           ALL
-           INHERIT)
+# Unlike the MATCHER variables (which encode naming conventions and belong in
+# project-local.cmake), these control whether tests are registered with CTest
+# and are legitimate per-build knobs — e.g. a CI job that wants to skip slow
+# integration tests can pass -DLIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO.
+set(LIBRA_CTEST_INCLUDE_UNIT_TESTS
+    ${LIBRA_CTEST_INCLUDE_UNIT_TESTS_DEFAULT}
+    CACHE STRING "Register discovered unit tests with CTest (YES/NO)")
+set(LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
+    ${LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS_DEFAULT}
+    CACHE STRING "Register discovered integration tests with CTest (YES/NO)")
+set(LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
+    ${LIBRA_CTEST_INCLUDE_REGRESSION_TESTS_DEFAULT}
+    CACHE STRING "Register discovered regression tests with CTest (YES/NO)")
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(_LIBRA_TARGETS
+      ""
+      CACHE INTERNAL "List of target to apply LIBRA magic to" FORCE)
+endif()
 
 # ##############################################################################
 # Conan Configuration
@@ -180,44 +196,31 @@ if("${LIBRA_DRIVER}" MATCHES "CONAN")
     set(LIBRA_TESTS OFF)
   endif()
 
-  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
 else()
-  include(libra/package/components)
-  include(libra/package/install)
-  include(libra/package/deploy)
-  include(libra/package/uninstall)
-
-  # Conan handles this too via the conan cache
-  if(NOT DEFINED LIBRA_DEPS_PREFIX)
-    if(CMAKE_CROSSCOMPILING)
-      set(CMAKE_INSTALL_PREFIX
-          ${CMAKE_INSTALL_PREFIX}/${CMAKE_SYSTEM_PROCESSOR})
-      set(LIBRA_DEPS_PREFIX $ENV{HOME}/.local/${CMAKE_SYSTEM_PROCESSOR}/system)
-    else()
-      set(LIBRA_DEPS_PREFIX $ENV{HOME}/.local/system)
-    endif()
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    include(libra/package/components)
+    include(libra/package/install)
+    include(libra/package/deploy)
+    include(libra/package/uninstall)
   endif()
-
-  set(LIBRA_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(LIBRA_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-  set(LIBRA_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBRA_ARCHIVE_OUTPUT_DIRECTORY})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBRA_LIBRARY_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${LIBRA_RUNTIME_OUTPUT_DIRECTORY})
+# We do this even under conan, because a conan-specific flat layout is
+# unnecessary — conan doesn't care where the build outputs land, it only cares
+# about the install layout (what goes where after cmake --install). The build
+# output directory is purely a developer convenience.
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
 # ##############################################################################
 # Source Definitions
 # ##############################################################################
-# Project name is set via CMAKE_SOURCE_DIR to get the name of the directory that
-# LIBRA is used in, not the name of the directory where LIBRA resides (which can
-# be anywhere).
+# Project name is set via CMAKE_CURRENT_SOURCE_DIR to get the name of the
+# directory that LIBRA is used in, not the name of the directory where LIBRA
+# resides (which can be anywhere).
 if(NOT "${${PROJECT_NAME}_DIR}")
-  set(${PROJECT_NAME}_DIR ${CMAKE_SOURCE_DIR})
+  set(${PROJECT_NAME}_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 set(${PROJECT_NAME}_SRC_PATH ${${PROJECT_NAME}_DIR}/src)
@@ -236,7 +239,7 @@ file(GLOB_RECURSE ${PROJECT_NAME}_CXX_TESTS_HEADERS
      ${${PROJECT_NAME}_TESTS_PATH}/*.hpp)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_TESTS_SRC ${${PROJECT_NAME}_TESTS_PATH}/*.c)
 file(GLOB_RECURSE ${PROJECT_NAME}_C_TESTS_HEADERS
-     ${${PROJECT_NAME}_TESTS_PATH}/*.)
+     ${${PROJECT_NAME}_TESTS_PATH}/*.h)
 
 file(GLOB ${PROJECT_NAME}_CMAKE_SRC ${PROJECT_SOURCE_DIR}/CMakeLists.txt
      ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
@@ -258,29 +261,23 @@ set(${PROJECT_NAME}_SRC ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_CXX_SRC})
 # ##############################################################################
 # Target Definitions
 # ##############################################################################
-# 2025-10-17 [JRH]: This has to be BEFORE including the project-local stuff so
-# that any targets defined in there get the correct standard set automatically.
-# This only applies when LIBRA is setting global things. This file is included
-# AFTER project-local stuff in the general case.
-if(${LIBRA_GLOBAL_C_STANDARD} OR ${LIBRA_GLOBAL_CXX_STANDARD})
-  include(libra/compile/standard)
-endif()
-
-# Add project-local config. We use CMAKE_SOURCE_DIR, because this file MUST be
-# located in under cmake/project-local.cmake in the root of whatever
-# directory/repo is using LIBRA.
-include(${CMAKE_SOURCE_DIR}/cmake/project-local.cmake)
+# Add project-local config.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/project-local.cmake)
 
 # ##############################################################################
 # Build/Compiler Configuration
 # ##############################################################################
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "Release")
 endif()
+libra_message(STATUS
+              "Configuring ${PROJECT_NAME} for ${CMAKE_BUILD_TYPE} build")
 
 # Must be before build types to populate options
 include(libra/compile/compiler)
-include(libra/compile/build-types)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  include(libra/compile/build-types)
+endif()
 
 # Must be after compile options are populated
 include(libra/diagnostics_post)
@@ -288,119 +285,13 @@ include(libra/diagnostics_post)
 # ##############################################################################
 # Code Checking/Analysis Options
 # ##############################################################################
-function(libra_calculate_srcs SOURCE RET)
-  # Prefer C++ over C if a project enables both languages.
-  if(CMAKE_CXX_COMPILER_LOADED)
-    set(LIBRA_CODE_LANGUAGE CXX)
-    libra_message(STATUS "Detected language C++ for project")
-  elseif(CMAKE_C_COMPILER_LOADED)
-    set(LIBRA_CODE_LANGUAGE C)
-    libra_message(STATUS "Detected language C project")
-  endif()
-
-  if(NOT LIBRA_CODE_LANGUAGE)
-    libra_message(
-      WARNING "Unable to autodetect languages for static analysis--assuming CXX.
-      Set LIBRA_CODE_LANGUAGE in project-local.cmake to remove this warning.")
-    set(LIBRA_CODE_LANGUAGE CXX)
-  endif()
-
-  if("${LIBRA_CODE_LANGUAGE}" STREQUAL "C")
-    if("${SOURCE}" STREQUAL "APIDOC")
-      set(${RET}
-          ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_C_HEADERS}
-          PARENT_SCOPE)
-    else()
-      set(${RET}
-          ${${PROJECT_NAME}_C_SRC} ${${PROJECT_NAME}_C_HEADERS}
-          ${${PROJECT_NAME}_C_TESTS_SRC} ${${PROJECT_NAME}_C_TESTS_HEADERS}
-          PARENT_SCOPE)
-    endif()
-  elseif("${LIBRA_CODE_LANGUAGE}" STREQUAL "CXX")
-    if("${SOURCE}" STREQUAL "APIDOC")
-      set(${RET}
-          ${${PROJECT_NAME}_CXX_SRC} ${${PROJECT_NAME}_CXX_HEADERS}
-          PARENT_SCOPE)
-    else()
-      set(${RET}
-          ${${PROJECT_NAME}_CXX_SRC} ${${PROJECT_NAME}_CXX_HEADERS}
-          ${${PROJECT_NAME}_CXX_TESTS_SRC} ${${PROJECT_NAME}_CXX_TESTS_HEADERS}
-          PARENT_SCOPE)
-    endif()
-  else()
-    libra_message(
-      FATAL_ERROR
-      "Bad language '${LIBRA_CODE_LANGUAGE}' for project: must be {C,CXX}")
-  endif()
-endfunction()
-
-if(${LIBRA_ANALYSIS})
-  include(libra/analyze/analyze)
-
-  libra_calculate_srcs("STATIC_ANALYSIS" ${PROJECT_NAME}_ANALYSIS_SRC)
-  # Should not be needed, but just for safety
-  if("${LIBRA_DRIVER}" MATCHES "CONAN")
-    list(
-      FILTER
-      ${PROJECT_NAME}_ANALYSIS_SRC
-      EXCLUDE
-      REGEX
-      "\.conan2")
-  endif()
-
-  # Multi-funtion tools
-  libra_toggle_clang_tidy(ON)
-  libra_toggle_clang_format(ON)
-  libra_toggle_cmake_format(ON)
-  libra_toggle_clang_check(ON)
-
-  # Handy checking tools
-  libra_message(STATUS "Enabling analysis tools: checkers")
-  libra_toggle_checker_cppcheck(ON)
-  libra_register_code_checkers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
-
-  libra_register_cmake_checkers(${${PROJECT_NAME}_CMAKE_SRC})
-
-  # Handy formatting tools
-  libra_message(STATUS "Enabling analysis tools: formatters")
-  libra_register_code_formatters(${${PROJECT_NAME}_ANALYSIS_SRC})
-  libra_register_cmake_formatters(${${PROJECT_NAME}_CMAKE_SRC})
-
-  # Handy fixing tools
-  libra_message(STATUS "Enabling analysis tools: fixers")
-  libra_register_code_fixers(${PROJECT_NAME} ${${PROJECT_NAME}_ANALYSIS_SRC})
-
-endif()
+include(libra/analyze/analyze)
+include(libra/format/format)
 
 # ##############################################################################
 # Documentation Options
 # ##############################################################################
-# Put this AFTER sourcing the project-local.cmake to enable disabling
-# documentation builds for projects that don't have docs.
-if(LIBRA_DOCS)
-  include(libra/apidoc)
-
-  add_custom_target(apidoc-check)
-  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-  libra_calculate_srcs("APIDOC" ${PROJECT_NAME}_DOCS_SRC)
-  # Should not be needed, but just for safety
-  if("${LIBRA_DRIVER}" MATCHES "CONAN")
-    list(
-      FILTER
-      ${PROJECT_NAME}_DOCS_SRC
-      EXCLUDE
-      REGEX
-      "\.conan2")
-  endif()
-
-  libra_apidoc_configure_doxygen()
-  libra_toggle_clang(ON)
-
-  # Handy checking tools
-  libra_message(STATUS "Enabling apidoc tools: checkers")
-  libra_apidoc_register_clang(apidoc-check-clang ${${PROJECT_NAME}_DOCS_SRC})
-endif()
+include(libra/docs/docs)
 
 # ##############################################################################
 # Testing Options
@@ -408,27 +299,41 @@ endif()
 # Code coverage is included here because the way you get coverage info is
 # (presumably) by running some tests. Fits better here than in analyze/.
 # ##############################################################################
-if(LIBRA_TESTS)
-  include(libra/test/testing)
-endif()
-
-if(LIBRA_CODE_COV)
-  include(libra/test/coverage)
-  libra_coverage_register_lcov()
-  libra_coverage_register_gcovr()
-endif()
+include(libra/test/testing)
+include(libra/test/coverage)
 
 # ##############################################################################
 # Config Summary
 # ##############################################################################
+set(_json_output "${CMAKE_BINARY_DIR}/libra_targets.json")
+_libra_create_targets_json(${_json_output})
+
+if(NOT TARGET help-targets)
+  set(_this_script "${CMAKE_CURRENT_LIST_DIR}/help_targets.cmake")
+  add_custom_target(
+    help-targets
+    COMMAND
+      ${CMAKE_COMMAND} -DLIBRA_JSON_FILE=${_json_output}
+      -D_LIBRA_SUMMARY_COL_TARGET=${_LIBRA_SUMMARY_COL_TARGET}
+      -D_LIBRA_SUMMARY_SEP_WIDTH=${_LIBRA_SUMMARY_SEP_WIDTH} -P${_this_script}
+    VERBATIM
+    COMMENT "LIBRA target availability"
+    USES_TERMINAL)
+endif()
+
 if(${LIBRA_SUMMARY})
-  if(NOT ${LIBRA_SHOWED_SUMMARY})
+  if(NOT ${_LIBRA_SHOWED_SUMMARY})
     libra_config_summary()
   endif()
 else()
   libra_message(
     STATUS
-    "Configuration complete. To see a detailed configuration summary, re-run with -DLIBRA_SUMMARY=YES."
+    "Configuration complete for ${PROJECT_NAME}. To see a detailed configuration summary, re-run with -DLIBRA_SUMMARY=YES."
   )
 
 endif()
+
+get_filename_component(MAKE_NAME ${CMAKE_MAKE_PROGRAM} NAME)
+
+libra_message(STATUS
+              "Run '${MAKE_NAME} help-targets' to see available build targets.")

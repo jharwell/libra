@@ -3,11 +3,14 @@
 #
 # SPDX-License Identifier:  MIT
 #
-# make uninstall
-add_custom_target("uninstall" COMMENT "Uninstall installed files")
+
+# This avoids namespace collisions in when using LIBRA to build dependency
+# chains across multiple repos.
+
+add_custom_target("uninstall" COMMENT "Uninstall all installed files")
 add_custom_command(
   TARGET "uninstall"
   POST_BUILD
   COMMENT "Uninstall files installed with install_manifest.txt"
-  COMMAND xargs rm -f < install_manifest.txt || echo "Nothing in install_manifest.txt to be uninstalled!"
-  )
+  COMMAND xargs rm -f < install_manifest.txt || echo
+          "Nothing in install_manifest.txt to be uninstalled!")

@@ -5,6 +5,19 @@
 #
 
 include(libra/messaging)
+include(libra/defaults)
+include(libra/utils)
+
+_libra_register_custom_target(lcov-preinfo LIBRA_COVERAGE lcov_EXECUTABLE)
+_libra_register_custom_target(lcov-report LIBRA_COVERAGE lcov_EXECUTABLE)
+_libra_register_custom_target(gcovr-check LIBRA_COVERAGE gcovr_EXECUTABLE)
+_libra_register_custom_target(gcovr-report LIBRA_COVERAGE gcovr_EXECUTABLE)
+_libra_register_custom_target(llvm-profdata LIBRA_COVERAGE LLVM_PROFDATA)
+_libra_register_custom_target(llvm-summary LIBRA_COVERAGE LLVM_COV)
+_libra_register_custom_target(llvm-show LIBRA_COVERAGE LLVM_COV)
+_libra_register_custom_target(llvm-report LIBRA_COVERAGE LLVM_COV)
+_libra_register_custom_target(llvm-export-lcov LIBRA_COVERAGE LLVM_COV)
+_libra_register_custom_target(llvm-coverage LIBRA_COVERAGE NONE)
 
 set(COVERAGE_DIR ${PROJECT_BINARY_DIR}/coverage)
 file(MAKE_DIRECTORY ${COVERAGE_DIR})
@@ -12,26 +25,34 @@ file(MAKE_DIRECTORY ${COVERAGE_DIR})
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)
 set(CMAKE_C_OUTPUT_EXTENSION_REPLACE ON)
 
-# ##############################################################################
-# Helper Functions
-# ##############################################################################
-# Detect coverage tool based on compiler
-#
+#[[.rst
+.. cmake:command:: _libra_detect_gcov_tool
+
+  Try to find a suitable gcov tool for coverage calculations. For GNU compilers,
+  this looks for gcov-XX, where XX is the compiler version. For clang compilers,
+  this looks for llvm-cov-XX, where XX is the compiler version.
+
+  :param OUTPUT_VAR: The output variable to set if a suitable tool is found.
+]]
 function(_libra_detect_gcov_tool OUTPUT_VAR)
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES
                                               "Clang")
-    # Extract Clang version
-    if(CMAKE_CXX_COMPILER)
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                      OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+
+    # Use whichever compiler IS actually clang for version detection
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+      set(_detect_compiler ${CMAKE_C_COMPILER})
     else()
-      execute_process(COMMAND ${CMAKE_C_COMPILER} --version
-                      OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+      set(_detect_compiler ${CMAKE_CXX_COMPILER})
     endif()
-    string(REGEX MATCH "clang version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
+
+    execute_process(
+      COMMAND ${_detect_compiler} --version
+      OUTPUT_VARIABLE _clang_stdout
+      ERROR_VARIABLE _clang_stderr)
+    set(CLANG_VERSION_OUTPUT "${_clang_stdout}${_clang_stderr}")
+    string(REGEX MATCH "version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
     set(CLANG_MAJOR ${CMAKE_MATCH_1})
 
-    # Try versioned llvm-cov first, fall back to unversioned
     find_program(LLVM_COV NAMES llvm-cov-${CLANG_MAJOR} llvm-cov REQUIRED)
     set(${OUTPUT_VAR}
         "${LLVM_COV} gcov"
@@ -40,12 +61,13 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
 
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES
                                                 "GNU")
-    if(CMAKE_CXX_COMPILER)
-      get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
-    else()
+    # Use whichever compiler IS actually GNU
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU")
       get_filename_component(COMPILER_NAME ${CMAKE_C_COMPILER} NAME)
+    else()
+      get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
     endif()
-    # Extract GCC version from compiler name (e.g., gcc-13 -> gcov-13)
+
     string(REPLACE "g++" "gcov" GCOV_NAME ${COMPILER_NAME})
     string(REPLACE "gcc" "gcov" GCOV_NAME ${GCOV_NAME})
 
@@ -56,29 +78,40 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
     libra_message(STATUS "Using GCC coverage for GNU format: ${GCOV_TOOL}")
 
   else()
-    libra_message(FATAL_ERROR
-                  "Unsupported compiler for coverage: ${CMAKE_CXX_COMPILER_ID}")
+    libra_error("Unsupported compiler for coverage: ${CMAKE_CXX_COMPILER_ID}")
   endif()
 endfunction()
 
-# Detect llvm-cov and llvm-profdata for native Clang coverage
+#[[.rst
+.. cmake:command:: _libra_detect_llvm_tools
+
+  Detect llvm-cov and llvm-profdata for native Clang coverage.
+
+  :param LLVM_COV_VAR: The output variable to set if a suitable llvm-cov tool is
+   found.
+
+  :param LLVM_PROFDATA_VAR: The output variable to set if a suitable
+   llvm-profdata tool is found.
+]]
 function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
-  # Extract Clang version
-  if(CMAKE_CXX_COMPILER)
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
+  # Use whichever compiler IS actually clang for version detection
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(_detect_compiler ${CMAKE_C_COMPILER})
   else()
-    execute_process(COMMAND ${CMAKE_C_COMPILER} --version
-                    OUTPUT_VARIABLE CLANG_VERSION_OUTPUT)
+    set(_detect_compiler ${CMAKE_CXX_COMPILER})
   endif()
 
-  string(REGEX MATCH "clang version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
+  execute_process(
+    COMMAND ${_detect_compiler} --version
+    OUTPUT_VARIABLE _clang_stdout
+    ERROR_VARIABLE _clang_stderr)
+  set(CLANG_VERSION_OUTPUT "${_clang_stdout}${_clang_stderr}")
+  string(REGEX MATCH "version ([0-9]+)" _ "${CLANG_VERSION_OUTPUT}")
   set(CLANG_MAJOR ${CMAKE_MATCH_1})
 
-  # Find llvm-cov
   find_program(LLVM_COV_TOOL NAMES llvm-cov-${CLANG_MAJOR} llvm-cov REQUIRED)
-
-  # Find llvm-profdata
   find_program(LLVM_PROFDATA_TOOL NAMES llvm-profdata-${CLANG_MAJOR}
                                         llvm-profdata REQUIRED)
 
@@ -91,9 +124,17 @@ function(_libra_detect_llvm_tools LLVM_COV_VAR LLVM_PROFDATA_VAR)
 
   libra_message(STATUS "Using llvm-cov=${LLVM_COV_TOOL}")
   libra_message(STATUS "Using llvm-profdata=${LLVM_PROFDATA_TOOL}")
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# Get all test executables for coverage
+#[[.rst
+.. cmake:command:: _libra_get_test_executables
+
+  Get all executables for coverage calculations by searching through the
+  current directory.
+
+  :param OUTPUT_VAR: The output variable to set with the result.
+]]
 function(_libra_get_test_executables OUTPUT_VAR)
   # Get all targets in the project
   set(test_executables "")
@@ -114,7 +155,7 @@ function(_libra_get_test_executables OUTPUT_VAR)
   endmacro()
 
   set(all_targets "")
-  get_all_targets_recursive(all_targets ${CMAKE_SOURCE_DIR})
+  get_all_targets_recursive(all_targets ${CMAKE_CURRENT_SOURCE_DIR})
 
   # Filter for test executables
   foreach(target ${all_targets})
@@ -131,24 +172,34 @@ function(_libra_get_test_executables OUTPUT_VAR)
       PARENT_SCOPE)
 endfunction()
 
-# ##############################################################################
-# LCOV Coverage (GCC-compatible format)
-# ##############################################################################
-function(libra_coverage_register_lcov)
-  find_program(LCOV_EXECUTABLE NAMES lcov REQUIRED)
+#[[.rst
+.. cmake:command:: _libra_coverage_register_lcov
+
+  Register lcov for covareg (GNU compatible format).
+]]
+function(_libra_coverage_register_lcov)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
+  find_program(lcov_EXECUTABLE NAMES lcov REQUIRED)
   find_program(GENHTML_EXECUTABLE NAMES genhtml REQUIRED)
 
-  _libra_detect_gcov_tool(GCOV_TOOL)
+  _libra_detect_gcov_tool(LLVM_COV_TOOL)
+  set(LLVM_COV_TOOL
+      ${LLVM_COV_TOOL}
+      PARENT_SCOPE)
 
-  libra_message(STATUS "Using lcov=${LCOV_EXECUTABLE}")
+  libra_message(STATUS "Using lcov=${lcov_EXECUTABLE}")
   libra_message(STATUS "Using genhtml=${GENHTML_EXECUTABLE}")
 
-  # Common lcov flags
+  # 2026-02-23 [JRH]: The geninfo_intermediate=on is required to get things to
+  # work with newer versions of lcov/gcov/gcovr.
   set(LCOV_COMMON_FLAGS
       --gcov-tool
-      ${GCOV_TOOL}
+      ${LLVM_COV_TOOL}
       --rc
       branch_coverage=1
+      --rc
+      geninfo_intermediate=1
       --directory
       ${PROJECT_BINARY_DIR}
       --quiet)
@@ -163,27 +214,29 @@ function(libra_coverage_register_lcov)
     # Pre-coverage: Capture baseline before running tests
     add_custom_target(
       lcov-preinfo
-      COMMAND ${LCOV_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --initial
+      COMMAND ${lcov_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --initial
               --output-file ${COVERAGE_DIR}/pre.info
       COMMENT "Capturing baseline coverage for ${PROJECT_NAME}"
       VERBATIM)
+    set_target_properties(lcov-preinfo PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                  EXCLUDE_FROM_ALL 1)
 
     # Post-coverage: Capture after running tests, merge with baseline, strip,
     # generate HTML
     add_custom_target(
       lcov-report
       # Capture post-test coverage
-      COMMAND ${LCOV_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --output-file
+      COMMAND ${lcov_EXECUTABLE} ${LCOV_COMMON_FLAGS} --capture --output-file
               ${COVERAGE_DIR}/post.info
       # Merge pre/post if pre.info exists, otherwise use post.info
       COMMAND
-        test -e ${COVERAGE_DIR}/pre.info && ${LCOV_EXECUTABLE}
+        test -e ${COVERAGE_DIR}/pre.info && ${lcov_EXECUTABLE}
         ${LCOV_COMMON_FLAGS} -a ${COVERAGE_DIR}/pre.info -a
         ${COVERAGE_DIR}/post.info --output-file ${COVERAGE_DIR}/coverage.info ||
         cp ${COVERAGE_DIR}/post.info ${COVERAGE_DIR}/coverage.info
       # Strip excluded directories
       COMMAND
-        ${LCOV_EXECUTABLE} ${LCOV_COMMON_FLAGS} --remove
+        ${lcov_EXECUTABLE} ${LCOV_COMMON_FLAGS} --remove
         ${COVERAGE_DIR}/coverage.info ${EXCLUDE_PATTERNS} --ignore-errors unused
         --output-file ${COVERAGE_DIR}/coverage-stripped.info
       # Generate HTML report
@@ -191,22 +244,32 @@ function(libra_coverage_register_lcov)
               --output-directory ${COVERAGE_DIR} --branch-coverage --legend
       COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}"
       VERBATIM)
+    set_target_properties(lcov-report PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
     libra_message(STATUS "Created lcov coverage targets")
   endif()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# ##############################################################################
-# GCOVR Coverage (GCC-compatible format with gcovr)
-# ##############################################################################
-function(libra_coverage_register_gcovr)
-  _libra_detect_gcov_tool(GCOV_TOOL)
+#[[.rst
+.. cmake:command:: _libra_coverage_register_gcovr
 
-  libra_message(STATUS "Using gcovr=${GCOV_TOOL}")
+  Register gcovr for coverage (GNU compatible format).
+]]
+function(_libra_coverage_register_gcovr)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
+  _libra_detect_gcov_tool(gcovr_EXECUTABLE)
+
+  libra_message(STATUS "Using gcovr=${gcovr_EXECUTABLE}")
+  set(gcovr_EXECUTABLE
+      ${gcovr_EXECUTABLE}
+      PARENT_SCOPE)
 
   # Base gcovr command
   set(GCOVR_BASE_CMD
       gcovr
-      --gcov-executable=${GCOV_TOOL}
+      --gcov-executable=${gcovr_EXECUTABLE}
       --root=${PROJECT_SOURCE_DIR}
       --object-directory=${PROJECT_BINARY_DIR}
       --decisions
@@ -219,11 +282,13 @@ function(libra_coverage_register_gcovr)
   set(THRESHOLDS LINES FUNCTIONS BRANCHES DECISIONS)
   foreach(THRESH ${THRESHOLDS})
     if(NOT DEFINED LIBRA_GCOVR_${THRESH}_THRESH)
-      set(LIBRA_GCOVR_${THRESH}_THRESH 0)
+      set(LIBRA_GCOVR_${THRESH}_THRESH
+          ${LIBRA_GCOVR_${THRESH}_THRESH_DEFAULT}
+          CACHE STRING "" FORCE)
     endif()
+
   endforeach()
 
-  # Coverage check target (fails if below thresholds)
   if(NOT TARGET gcovr-check)
     add_custom_target(
       gcovr-check
@@ -235,6 +300,8 @@ function(libra_coverage_register_gcovr)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       COMMENT "Checking coverage thresholds"
       VERBATIM)
+    set_target_properties(gcovr-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
     # HTML report target
     add_custom_target(
       gcovr-report
@@ -242,17 +309,24 @@ function(libra_coverage_register_gcovr)
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}/index.html"
       VERBATIM)
+    set_target_properties(gcovr-report PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                  EXCLUDE_FROM_ALL 1)
     libra_message(STATUS "Created gcovr coverage targets")
   endif()
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-# ##############################################################################
-# LLVM-COV Coverage (Native Clang source-based coverage)
-# ##############################################################################
-function(libra_coverage_register_llvm)
+#[[.rst
+.. cmake:command:: _libra_coverage_register_llvm
+
+  Register llvm-cov for coverage. Requires clang compiler.
+]]
+function(_libra_coverage_register_llvm)
+  list(APPEND CMAKE_MESSAGE_INDENT " ")
+
   if(NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES
                                                  "Clang"))
-    libra_message(FATAL_ERROR "llvm-cov coverage requires clang compiler")
+    libra_error("llvm-cov coverage requires clang compiler")
   endif()
 
   _libra_detect_llvm_tools(LLVM_COV LLVM_PROFDATA)
@@ -301,6 +375,8 @@ function(libra_coverage_register_llvm)
       -ignore-filename-regex='tests/.*' -use-color
     COMMENT "Generating coverage summary"
     VERBATIM)
+  set_target_properties(llvm-summary PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                EXCLUDE_FROM_ALL 1)
 
   # Generate detailed text coverage report
   add_custom_target(
@@ -313,6 +389,8 @@ function(libra_coverage_register_llvm)
       -show-instantiations -use-color -Xdemangler c++filt -Xdemangler -n
     COMMENT "Generating detailed coverage report"
     VERBATIM)
+  set_target_properties(llvm-show PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                             EXCLUDE_FROM_ALL 1)
 
   # Generate HTML coverage report
   add_custom_target(
@@ -326,6 +404,8 @@ function(libra_coverage_register_llvm)
       -Xdemangler c++filt -Xdemangler -n
     COMMENT "Generating HTML coverage report in ${COVERAGE_DIR}"
     VERBATIM)
+  set_target_properties(llvm-report PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                               EXCLUDE_FROM_ALL 1)
 
   # Export coverage in lcov format (for compatibility with other tools)
   add_custom_target(
@@ -337,27 +417,35 @@ function(libra_coverage_register_llvm)
       -ignore-filename-regex='tests/.*' > ${COVERAGE_DIR}/coverage.lcov
     COMMENT "Exporting coverage in lcov format"
     VERBATIM)
+  set_target_properties(llvm-export-lcov PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                    EXCLUDE_FROM_ALL 1)
 
   # All-in-one target: merge + report + summary
   add_custom_target(
     llvm-coverage
     DEPENDS llvm-profdata llvm-report llvm-summary
     COMMENT "Generating complete LLVM coverage report")
-  libra_message(STATUS "Created LLVM coverage targets")
+  set_target_properties(llvm-coverage PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                 EXCLUDE_FROM_ALL 1)
+  list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
-if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
-                                               MATCHES "Clang")
-  if(LIBRA_CODE_COV_NATIVE)
-    libra_coverage_register_llvm()
+if(LIBRA_COVERAGE AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  libra_message(STATUS "Configuring code coverage")
+
+  if("${CMAKE_C_COMPILER_ID}" MATCHES "Clang" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                 MATCHES "Clang")
+    if(LIBRA_COVERAGE_NATIVE)
+      _libra_coverage_register_llvm()
+    else()
+      _libra_coverage_register_lcov()
+      _libra_coverage_register_gcovr()
+    endif()
+  elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
+                                                   MATCHES "GNU")
+    _libra_coverage_register_lcov()
+    _libra_coverage_register_gcovr()
   else()
-    libra_coverage_register_lcov()
-    libra_coverage_register_gcovr()
+    libra_error("Unsupported compiler for coverage")
   endif()
-elseif("${CMAKE_C_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}"
-                                                 MATCHES "GNU")
-  libra_coverage_register_lcov()
-  libra_coverage_register_gcovr()
-else()
-  libra_message(FATAL_ERROR "Unsupported compiler for coverage")
 endif()

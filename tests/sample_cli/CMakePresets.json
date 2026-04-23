@@ -1,0 +1,91 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}/install"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LIBRA_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "coverage",
+      "displayName": "Coverage",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LIBRA_COVERAGE": "ON",
+        "LIBRA_TESTS": "ON"
+      }
+    },
+    {
+      "name": "docs",
+      "displayName": "Docs",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LIBRA_DOCS": "ON"
+      }
+    },
+    {
+      "name": "analyze",
+      "displayName": "Analyze",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LIBRA_ANALYSIS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "debug",    "configurePreset": "debug" },
+    { "name": "release",  "configurePreset": "release" },
+    { "name": "ci",       "configurePreset": "ci" },
+    { "name": "coverage", "configurePreset": "coverage" },
+    { "name": "docs",     "configurePreset": "docs" },
+    { "name": "analyze",  "configurePreset": "analyze" }
+  ],
+  "testPresets": [
+    { "name": "debug",    "configurePreset": "debug" },
+    { "name": "release",  "configurePreset": "release" },
+    { "name": "ci",       "configurePreset": "ci" },
+    { "name": "coverage", "configurePreset": "coverage" }
+  ],
+  "workflowPresets": [
+    {
+      "name": "ci",
+      "displayName": "CI pipeline",
+      "steps": [
+        { "type": "configure", "name": "ci" },
+        { "type": "build",     "name": "ci" }
+      ]
+    }
+  ]
+}

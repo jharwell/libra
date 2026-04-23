@@ -1,18 +1,8 @@
-# The Episci License
 #
-# Copyright (c) 2025 EpiSys Science, Inc.
+# Copyright 2026 John Harwell, All rights reserved.
 #
-# The software provided is the sole and exclusive property of EpiSys Science,
-# Inc. The user shall use the software only in support of the agreed upon
-# experimental purpose only and shall preserve and protect the software from
-# disclosure to any person or persons, other than employees, consultants, and
-# contracted staff of the corporation with a need to know, through an exercise
-# of care equivalent to the degree of care it uses to preserve and protect its
-# own intellectual property. Unauthorized use of the software is prohibited
-# without written consent.
+# SPDX-License Identifier: MIT
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
 
 set(LIBRA_SAN_DEFAULT "NONE")
 set(LIBRA_FORTIFY_DEFAULT "NONE")
@@ -24,16 +14,18 @@ set(LIBRA_TEST_HARNESS_MATCHER_DEFAULT _test)
 set(LIBRA_CTEST_INCLUDE_UNIT_TESTS_DEFAULT YES)
 set(LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS_DEFAULT YES)
 set(LIBRA_CTEST_INCLUDE_REGRESSION_TESTS_DEFAULT YES)
+set(LIBRA_SPHINXDOC_COMMAND_DEFAULT sphinx-build)
 
 set(LIBRA_STDLIB_DEFAULT "UNDEFINED")
 set(LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT --library=googletest)
 set(LIBRA_CPPCHECK_SUPPRESSIONS_DEFAULT unusedStructMember)
+set(LIBRA_CLANG_TOOLS_USE_FIXED_DB YES)
 
 # 2025-07-21 [JRH]: readability-identifier-naming checks disabled so that we can
 # run the other readability checks and be able to just do 'make
 # analyze-clang-tidy'.
 set(LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT
-    ,-cppcoreguidelines-avoid-do-while,-cppcoreguidelines-pro-bounds-constant-array-index,-clang-diagnostic-*,-fuchsia-default-argument-calls,-fuchsia-overloaded-operator,-modernize-pass-by-value,-portability-template-virtual-member-function,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-portability-avoid-pragma-once,-readability-redundant-member-init,-bugprone-crtp-constructor-accessibility
+    ,-cppcoreguidelines-avoid-do-while,-cppcoreguidelines-pro-bounds-constant-array-index,-clang-diagnostic-*,-fuchsia-default-argument-calls,-fuchsia-overloaded-operator,-modernize-pass-by-value,-portability-template-virtual-member-function,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-portability-avoid-pragma-once,-readability-redundant-member-init,-bugprone-crtp-constructor-accessibility,-google-readability-avoid-underscore-in-googletest-name,-readability-named-parameter,-readability-implicit-bool-conversion,-readability-uppercase-literal-suffix,-cppcoreguidelines-avoid-goto
 )
 
 set(LIBRA_GCOVR_LINES_THRESH_DEFAULT 95)

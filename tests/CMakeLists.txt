@@ -1,77 +1,50 @@
 cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
-project(LibraPackageTests NONE)
+project(LibraSmokeTests NONE)
 
-# Point to real libra
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
-message("CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+# LIBRA source root is one level above this file
+set(LIBRA_SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
+set(CMAKE_MODULE_PATH "${LIBRA_SOURCE_ROOT}/cmake")
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
 enable_testing()
 
 # ##############################################################################
-# BATS Tests (New Framework)
+# CMake Function Tests
+#
+# These invoke cmake directly on each sample project to verify that LIBRA's
+# CMake API functions work correctly.  Each sample now uses libra_consume.cmake
+# so we must pass -DLIBRA_SOURCE_ROOT to provide the in_situ fallback path.
 # ##############################################################################
 
-find_program(BATS_EXECUTABLE bats)
+# Common args passed to every sample cmake invocation
+set(SAMPLE_CMAKE_ARGS -DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT})
 
-if(BATS_EXECUTABLE)
-  message(STATUS "Found BATS: ${BATS_EXECUTABLE}")
+add_test(NAME libra.sample_basic
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_basic -B
+                 ${CMAKE_BINARY_DIR}/sample_basic ${SAMPLE_CMAKE_ARGS})
 
-  # Discover all .bats files
-  message("${CMAKE_CURRENT_LIST_DIR}")
-  file(GLOB BATS_TEST_FILES "${CMAKE_CURRENT_LIST_DIR}/*.bats")
+add_test(NAME libra.sample_keywords
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_keywords
+                 -B ${CMAKE_BINARY_DIR}/sample_keywords ${SAMPLE_CMAKE_ARGS})
 
-  foreach(bats_file ${BATS_TEST_FILES})
-    get_filename_component(test_name ${bats_file} NAME_WE)
+add_test(NAME libra.sample_export
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_export -B
+                 ${CMAKE_BINARY_DIR}/sample_export ${SAMPLE_CMAKE_ARGS})
 
-    # Add single test (uses default compiler: gnu)
-    add_test(
-      NAME bats-${test_name}
-      COMMAND ${BATS_EXECUTABLE} ${bats_file}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+add_test(NAME libra.sample_consumer
+         COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_consumer
+                 -B ${CMAKE_BINARY_DIR}/sample_consumer ${SAMPLE_CMAKE_ARGS})
 
-    # Set test properties
-    set_tests_properties(bats-${test_name} PROPERTIES TIMEOUT 300 LABELS "bats")
+add_test(
+  NAME libra.error.missing_name
+  COMMAND
+    ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_errors/missing_name -B
+    ${CMAKE_BINARY_DIR}/err_missing_name ${SAMPLE_CMAKE_ARGS})
+set_tests_properties(libra.error.missing_name PROPERTIES WILL_FAIL TRUE)
 
-    # Run each BATS test with gnu, clang, and intel compilers foreach(compiler
-    # gnu clang intel) add_test( NAME bats-${test_name}-${compiler} COMMAND
-    # ${BATS_EXECUTABLE} ${bats_file} WORKING_DIRECTORY
-    # ${CMAKE_CURRENT_LIST_DIR}) set_tests_properties(
-    # bats-${test_name}-${compiler} PROPERTIES ENVIRONMENT
-    # "COMPILER_TYPE=${compiler}" TIMEOUT 300 LABELS "bats;${compiler}")
-    # endforeach()
-  endforeach()
-
-  message(STATUS "Registered ${CMAKE_MATCH_COUNT} BATS test files")
-else()
-  message(WARNING "BATS not found - BATS tests will not be available")
-  message(WARNING "Install BATS: https://github.com/bats-core/bats-core")
-endif()
-
-# ##############################################################################
-# CMake Package Tests
-# ##############################################################################
-
-# Each function test is a separate CMake project
-add_subdirectory(test1_package_configure_exports)
-add_subdirectory(test2_package_register_target)
-add_subdirectory(test3_package_register_headers)
-add_subdirectory(test4_package_register_copyright)
-add_subdirectory(test5_package_register_extra_configs)
-add_subdirectory(test6_package_requested_components)
-
-# ##############################################################################
-# Test Organization
-# ##############################################################################
-
-# Print test summary
-message(STATUS "")
-message(STATUS "Test Summary:")
-message(STATUS "  BATS tests: ${CMAKE_MATCH_COUNT} files")
-message(STATUS "  Legacy shell tests: 19 features")
-message(STATUS "  Package tests: 6 subdirectories")
-message(STATUS "")
-message(STATUS "Run tests with:")
-message(STATUS "  ctest                    # All tests")
-message(STATUS "  ctest -L bats           # BATS tests only")
-message(STATUS "  ctest -L optimization   # Optimization tests")
-message(STATUS "  ctest -R LIBRA_FPC      # Specific feature")
-message(STATUS "")
+add_test(
+  NAME libra.error.bad_target
+  COMMAND
+    ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_LIST_DIR}/sample_errors/bad_target -B
+    ${CMAKE_BINARY_DIR}/err_bad_target ${SAMPLE_CMAKE_ARGS})
+set_tests_properties(libra.error.bad_target PROPERTIES WILL_FAIL TRUE)

@@ -11,52 +11,47 @@ include(libra/compile/standard)
 include(libra/defaults)
 
 # ##############################################################################
-# Debugging Options
-# ##############################################################################
-#[[.rst:
-.. cmake:variable:: LIBRA_DEBUG_INFO_INTEL
-
-  If enabled: ``-g2``. If disabled: ``-g0``.
-]]
-if(LIBRA_DEBUG_INFO)
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g2")
-else()
-  set(LIBRA_DEBUG_INFO_OPTIONS "-g0")
-endif()
-
-# cmake-format: off
-# ##############################################################################
 # Diagnostic Options
-#
-# 2259 - warnings about converting uint16_t to uint8_t losing precision
-# 10382 - Telling me what option xHost was setting
-# 2015 - One of the effective C++ warnings for always using // for comments
-# 2012 - Another effective C++ warnings for not using #defines
-# 11071 - Warnings about inlines not being honored
-# 1476- Tail padding of a base class
-# 1505 - Size of class affected by tail padding
-# 383 - Value copied to temporary; reference to temporary used
-# 411 - Class/struct defines no constructor to initialize member
-# 3180 - Warnings about unknown OpenMP pragmas
-# 177,869,593 - Unused variable/parameters
 # ##############################################################################
-# cmake-format: on
-
-set(LIBRA_BASE_DIAG_CANDIDATES
-    -w5
+set(_LIBRA_BASE_DIAG_CANDIDATES
     -Wabi
-    -Winline
     -Wshadow
     -Wremarks
     -Wcomment
-    -wd10382
-    -wd177
-    -wd869
-    -wd593)
+    -Wall
+    -Wintrinsic-promote
+    -Wdeprecated
+    -Wformat
+    -Wunknown-pragmas
+    -Wrecommended-option
+    -Wreorder
+    -Wshadow
+    -Wextra-tokens
+    -Weverything
+    -fdiagnostics-color=always
+    -Wno-reserved-id-macro
+    -Wno-padded
+    -Wno-packed
+    -Wno-gnu-zero-variadic-macro-arguments
+    -Wno-language-extension-token
+    -Wno-gnu-statement-expression
+    -Wshorten-64-to-32
+    -Wno-cast-align
+    -Wno-weak-vtables
+    -Wno-documentation
+    -Wno-extra-semi-stmt
+    -Wno-extra-semi
+    -Wno-global-constructors
+    -Wno-exit-time-destructors
+    -fcomment-block-commands=internal,endinternal)
+
+if(LIBRA_WERROR)
+  list(APPEND _LIBRA_BASE_DIAG_CANDIDATES -Werror)
+endif()
 
 if(NOT DEFINED LIBRA_C_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C compiler")
-  set(LIBRA_C_DIAG_CANDIDATES ${LIBRA_BASE_DIAG_CANDIDATES})
+  set(LIBRA_C_DIAG_CANDIDATES ${_LIBRA_BASE_DIAG_CANDIDATES})
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C compiler")
 endif()
@@ -64,21 +59,17 @@ endif()
 if(NOT DEFINED LIBRA_CXX_DIAG_CANDIDATES)
   libra_message(STATUS "Using LIBRA diagnostic candidates for C++ compiler")
   set(LIBRA_CXX_DIAG_CANDIDATES
-      ${LIBRA_BASE_DIAG_CANDIDATES}
-      -Weffc++
-      -wd2015
-      -wd2012
-      -wd11071
-      -wd1476
-      -wd1505
-      -wd383
-      -wd411)
+      ${_LIBRA_BASE_DIAG_CANDIDATES}
+      -fdiagnostics-show-template-tree
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Wno-c99-extensions)
 
 else()
   libra_message(STATUS "Using provided diagnostic candidates for C++ compiler")
 endif()
 
-set(LIBRA_C_DIAG_OPTIONS)
+set(_LIBRA_C_DIAG_OPTIONS)
 foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
@@ -88,15 +79,15 @@ foreach(flag ${LIBRA_C_DIAG_CANDIDATES})
   # A project can be C/C++ only
   if(CMAKE_C_COMPILER_LOADED)
     check_c_compiler_flag(${flag}
-                          LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
+                          _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
-    list(APPEND LIBRA_C_DIAG_OPTIONS ${flag})
+  if(_LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
+    list(APPEND _LIBRA_C_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
-set(LIBRA_CXX_DIAG_OPTIONS)
+set(_LIBRA_CXX_DIAG_OPTIONS)
 foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # Options of the form -foption=value confuse the cmake flag checker and result
   # in multiple flags being checked on each invocation. So change the variable
@@ -106,38 +97,24 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
   # A project can be C/C++ only
   if(CMAKE_CXX_COMPILER_LOADED)
     check_cxx_compiler_flag(${flag}
-                            LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+                            _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
   endif()
 
-  if(LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
-    list(APPEND LIBRA_CXX_DIAG_OPTIONS ${flag})
+  if(_LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+    list(APPEND _LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
 
 # ##############################################################################
-# Optimization Options                                                         #
+# Optimization Options
 # ##############################################################################
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O0)
-  endif()
-elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  if(NOT DEFINED LIBRA_OPT_LEVEL)
-    set(LIBRA_OPT_LEVEL -O3)
-  endif()
-else()
-  libra_message(
-    FATAL_ERROR
-    "Intel compiler plugin is only configured for {Debug, Release} builds")
-endif()
-
 #[[.rst:
 .. cmake:variable:: LIBRA_NATIVE_OPT_INTEL
 
 If enabled: ``-xHost``.
 ]]
 if(LIBRA_NATIVE_OPT)
-  list(APPEND LIBRA_OPT_OPTIONS -xHost)
+  list(APPEND _LIBRA_OPT_OPTIONS -xHost)
 endif()
 
 # ##############################################################################
@@ -187,45 +164,41 @@ set(SSAN_OPTIONS -fno-omit-frame-pointer -fstack-protector-all
 set(UBSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=undefined)
 set(TSAN_OPTIONS -fno-omit-frame-pointer -fsanitize=thread)
 
-if(NOT LIBRA_SAN)
-  set(LIBRA_SAN ${LIBRA_SAN_DEFAULT})
-endif()
-
-set(LIBRA_SAN_COMPILE_OPTIONS)
-set(LIBRA_SAN_LINK_OPTIONS)
-set(LIBRA_SAN_MATCH NO)
+set(_LIBRA_SAN_COMPILE_OPTIONS)
+set(_LIBRA_SAN_LINK_OPTIONS)
+set(_LIBRA_SAN_MATCH NO)
 
 if("${LIBRA_SAN}" MATCHES "MSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${MSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${MSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "ASAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${ASAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${ASAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "SSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${SSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${SSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "UBSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${UBSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${UBSAN_OPTIONS})
 endif()
 
 if("${LIBRA_SAN}" MATCHES "TSAN")
-  set(LIBRA_SAN_MATCH YES)
-  list(APPEND LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
-  list(APPEND LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
+  set(_LIBRA_SAN_MATCH YES)
+  list(APPEND _LIBRA_SAN_COMPILE_OPTIONS ${TSAN_OPTIONS})
+  list(APPEND _LIBRA_SAN_LINK_OPTIONS ${TSAN_OPTIONS})
 endif()
 
-if(NOT ${LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
+if(NOT ${_LIBRA_SAN_MATCH} AND NOT "${LIBRA_SAN}" STREQUAL "NONE")
   libra_message(WARNING "Bad LIBRA_SAN setting ${LIBRA_SAN}: Must be subset of \
 {MSAN,ASAN,SSAN,UBSAN,TSAN} or set to NONE")
 endif()
@@ -246,13 +219,13 @@ ready for prime time yet.
 ]]
 
 if("${LIBRA_PGO}" MATCHES "GEN")
-  set(LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
-  set(LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
 endif()
 
 if("${LIBRA_PGO}" MATCHES "USE")
-  set(LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
-  set(LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
+  set(_LIBRA_PGO_USE_COMPILE_OPTIONS -fprofile-use)
+  set(_LIBRA_PGO_USE_LINK_OPTIONS -fprofile-use)
 endif()
 
 # ##############################################################################
@@ -273,24 +246,28 @@ if(NOT LIBRA_STDLIB)
   set(LIBRA_STDLIB ${LIBRA_STDLIB_DEFAULT})
 endif()
 
-set(LIBRA_STDLIB_LINK_OPTIONS)
-set(LIBRA_STDLIB_MATCH NO)
+set(_LIBRA_STDLIB_LINK_OPTIONS)
+set(_LIBRA_STDLIB_MATCH NO)
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  set(LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_C_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -nostdlib)
+  set(_LIBRA_STDLIB_MATCH YES)
 elseif("${LIBRA_STDLIB}" MATCHES "STDCXX")
-  set(LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libstdc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 elseif("${LIBRA_STDLIB}" MATCHES "CXX")
-  set(LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
-  set(LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
+  set(_LIBRA_CXX_STDLIB_COMPILE_OPTIONS -stdlib=libc++)
+  set(_LIBRA_CXX_STDLIB_LINK_OPTIONS -stdlib=libc++)
+  set(_LIBRA_STDLIB_MATCH YES)
 endif()
 
-if(NOT ${LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
+if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
-    WARNING "Bad LIBRA_STDLIB setting ${LIBRA_STDLIB}: Must be one of
-{NONE,STDCXX,CXX}")
+    WARNING
+    "Bad LIBRA_STDLIB setting '${LIBRA_STDLIB}': Must be one of {NONE,STDCXX,CXX}"
+  )
 endif()
 
 # ##############################################################################
@@ -303,16 +280,19 @@ If enabled: ``-qopt-report=3 -qopt-report-phase=all`` at compile.
 
 ]]
 if(LIBRA_OPT_REPORT)
-  set(LIBRA_OPT_REPORT_COMPILE_OPTIONS -qopt-report=3 -qopt-report-phase=all)
+  set(_LIBRA_OPT_REPORT_COMPILE_OPTIONS -qopt-report=3 -qopt-report-phase=all)
   if(LIBRA_LTO)
-    set(LIBRA_OPT_REPORT_LINK_OPTIONS -qopt-report=3 -qopt-report-phase=all)
+    set(_LIBRA_OPT_REPORT_LINK_OPTIONS -qopt-report=3 -qopt-report-phase=all)
   endif()
 endif()
 
 # ##############################################################################
 # Filtering build flags for versioning
 #
-# * No warnings, since they have no effect on the build
+# * No warnings
+# * No -fdiagnostics-XX options
+# * No -fcomment-XX options
 # ##############################################################################
-set(LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-w")
-set(LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "^q")
+set(_LIBRA_TARGET_FLAGS_COMPILE_FILTER_REGEX "^-W|diagnostics|comment")
+# Regex intentionally matches nothing
+set(_LIBRA_TARGET_FLAGS_LINK_FILTER_REGEX "XXXXNOMATCHXXXX")

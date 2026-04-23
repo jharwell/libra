@@ -18,8 +18,8 @@ include(libra/messaging)
   detects license type, configures package metadata, and sets up format-specific
   options.
 
-  To use, ``include(libra/package/deploy.cmake)``.
-
+  This is a MACRO (not function) intentionally so that all CPACK_* variables
+  propagate to parent scope as required by CPack.
 
   .. code-block:: cmake
 
@@ -80,7 +80,8 @@ include(libra/messaging)
 
   **Expected Files:**
 
-  The function automatically searches for these files in ``CMAKE_SOURCE_DIR``:
+  The function automatically searches for these files in
+  ``CMAKE_CURRENT_SOURCE_DIR``:
 
   - ``LICENSE*`` - License file (used for package and license detection)
   - ``README*`` - README file
@@ -130,8 +131,7 @@ macro(
 )
   # Validate required arguments
   if(ARGC LESS 6)
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "libra_configure_cpack: Requires 6 arguments: GENERATORS SUMMARY DESCRIPTION VENDOR HOMEPAGE CONTACT\n"
       "  Usage: libra_configure_cpack(<generators> <summary> <description> <vendor> <homepage> <contact>)"
     )
@@ -141,8 +141,7 @@ macro(
   if(NOT DEFINED PROJECT_VERSION_MAJOR
      OR NOT DEFINED PROJECT_VERSION_MINOR
      OR NOT DEFINED PROJECT_VERSION_PATCH)
-    libra_message(
-      FATAL_ERROR
+    libra_error(
       "libra_configure_cpack: PROJECT_VERSION variables not set\n"
       "  Set version in project() command: project(${PROJECT_NAME} VERSION x.y.z)"
     )
@@ -152,15 +151,16 @@ macro(
   string(REPLACE ";" "|" VALID_GENERATORS_REGEX "DEB|RPM|TGZ|ZIP|STGZ|TBZ2|TXZ")
   foreach(GENERATOR ${GENERATORS})
     if(NOT "${GENERATOR}" MATCHES "^(${VALID_GENERATORS_REGEX})$")
-      libra_message(
-        FATAL_ERROR "libra_configure_cpack: Invalid GENERATOR '${GENERATOR}'\n"
-        "  Valid options: DEB, RPM, TGZ, ZIP, STGZ, TBZ2, TXZ")
+      string(CONCAT _msg
+                    "libra_configure_cpack: Invalid GENERATOR '${GENERATOR}'."
+                    "Valid options: DEB, RPM, TGZ, ZIP, STGZ, TBZ2, TXZ")
+      libra_error("${_msg}")
     endif()
   endforeach()
 
   # Find common package files
-  file(GLOB LICENSE "${CMAKE_SOURCE_DIR}/LICENSE*")
-  file(GLOB README "${CMAKE_SOURCE_DIR}/README*")
+  file(GLOB LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE*")
+  file(GLOB README "${CMAKE_CURRENT_SOURCE_DIR}/README*")
 
   if(NOT LICENSE)
     libra_message(
@@ -225,7 +225,8 @@ macro(
   # DEB-specific settings
   # ============================================================================
   if("${GENERATORS}" MATCHES "DEB")
-    libra_message(STATUS "Configuring DEB package generator")
+    libra_message(STATUS
+                  "Configuring DEB package generator for ${PROJECT_NAME}")
 
     # Use default naming (includes architecture)
     set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
@@ -267,7 +268,8 @@ macro(
   # RPM-specific settings
   # ============================================================================
   if("${GENERATORS}" MATCHES "RPM")
-    libra_message(STATUS "Configuring RPM package generator")
+    libra_message(STATUS
+                  "Configuring RPM package generator for ${PROJECT_NAME}")
 
     # Use default naming (includes version, release, architecture)
     set(CPACK_RPM_FILE_NAME RPM-DEFAULT)

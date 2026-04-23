@@ -1,8 +1,0 @@
-.. SPDX-License-Identifier:  MIT
-
-.. toctree::
-   :maxdepth: 1
-
-   conan.rst
-   philosophy.rst
-   customizing.rst

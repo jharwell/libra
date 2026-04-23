@@ -22,6 +22,12 @@ import sys
 import subprocess
 import datetime
 import requests
+import pathlib
+import re
+
+# conf.py — add near the top after imports
+from sphinx.builders.html import StandaloneHTMLBuilder
+StandaloneHTMLBuilder.dark_highlighter = None
 
 # -- Path setup --------------------------------------------------------------
 
@@ -52,7 +58,7 @@ git_branch = stdout.decode("ascii").strip("\n")
 
 # The full version, including alpha/beta/rc tags.
 if git_branch == "devel":
-    version = f"{version}.beta"
+    version = f"{version}-beta"
 
 release = version
 
@@ -72,9 +78,11 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.ifconfig",
     "sphinxcontrib.moderncmakedomain",
-    "sphinx_rtd_theme",
-    'sphinx_tabs.tabs',
+    "pydata_sphinx_theme",
+    "sphinx_book_theme",
+    "sphinx_design",
     "sphinxcontrib.plantuml",
+    "myst_parser"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,8 +91,7 @@ templates_path = ["_templates"]
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = ".rst"
+source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = "index"
@@ -102,19 +109,201 @@ language = None
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = "sphinx"
+# pygments_style = "sphinx"
+# pygments_light_style = "monokai"
+# pygments_dark_style = "monokai"
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
 cmake_doc_dirs = ["../cmake"]
 
+SUBCOMMANDS = [
+    "build", "test", "ci", "analyze", "coverage",
+    "docs", "clean", "info", "doctor", "format"
+]
+
+GLOBAL_FLAG_PREFIXES = {
+    "--preset", "--log", "--dry-run", "--color",
+    "-V", "--version", "-h", "--help",
+}
+
+TOOL_NAMES = {
+    "clang-tidy", "clang-check", "clang-format",
+    "cmake-format", "cppcheck",
+}
+
+
+def _fix_cmd_name(raw: str) -> str:
+    parts = raw.strip().split()
+    last = next((p for p in reversed(parts) if p.startswith("clibra")), parts[-1])
+    if last == "clibra":
+        return "clibra"
+    m = re.match(r"clibra-(.*)", last)
+    if not m:
+        return last
+    rest = m.group(1)
+    tokens = []
+    remaining = rest
+    while remaining:
+        matched = False
+        for tool in sorted(TOOL_NAMES, key=len, reverse=True):
+            if remaining == tool or remaining.startswith(tool + "-"):
+                tokens.append(tool)
+                remaining = remaining[len(tool):].lstrip("-")
+                matched = True
+                break
+        if not matched:
+            idx = remaining.find("-")
+            if idx == -1:
+                tokens.append(remaining)
+                remaining = ""
+            else:
+                tokens.append(remaining[:idx])
+                remaining = remaining[idx + 1:]
+    return "clibra " + " ".join(tokens)
+
+
+def _fix_usage_line(line: str) -> str:
+    m = re.search(r"`([^`]+)`", line)
+    if not m:
+        return line
+    inner = m.group(1)
+    idx = inner.find("clibra ")
+    fixed = inner[idx:] if idx != -1 else re.sub(r"^clibra-\S+\s+", "", inner)
+    return line[: m.start()] + "`" + fixed + "`" + line[m.end():]
+
+
+def _is_global_flag_bullet(line: str) -> bool:
+    flags = re.findall(r"`(-[\w-]+)(?:\s+[^`]*)?`", line)
+    return bool(flags) and any(f in GLOBAL_FLAG_PREFIXES for f in flags)
+
+
+def _clean_md(text: str) -> str:
+    lines = text.splitlines()
+    out = []
+    i = 0
+    in_subsection = False
+
+    while i < len(lines):
+        line = lines[i]
+
+        if line.startswith("# "):
+            i += 1
+            continue
+        if line.startswith("This document contains"):
+            i += 1
+            continue
+        if line.strip() == "**Command Overview:**":
+            i += 1
+            while i < len(lines) and not lines[i].startswith("## "):
+                i += 1
+            continue
+        if re.match(r"^#{2,}\s+`.*\bhelp\b.*`", line, re.IGNORECASE):
+            depth = len(re.match(r"^(#+)", line).group(1))
+            i += 1
+            while i < len(lines):
+                m = re.match(r"^(#+)\s", lines[i])
+                if m and len(m.group(1)) <= depth:
+                    break
+                i += 1
+            continue
+        if re.search(r"`[^`]*-help[^`]*`", line) and line.strip().startswith("*"):
+            i += 1
+            continue
+        # Demote ## → # (myst requires H1 as first heading in a standalone doc)
+        if line.startswith("## "):
+            backtick = re.search(r"`([^`]+)`", line)
+            if backtick:
+                fixed = _fix_cmd_name(backtick.group(1))
+                line = "# `" + fixed + "`"
+            else:
+                line = "# " + line[3:]
+            in_subsection = True
+            out.append(line)
+            i += 1
+            continue
+
+        # Escape bare "# Heading" lines inside bullet continuation (e.g. -D examples)
+        if re.match(r"^   #+ ", line):
+            line = line.replace("#", "\\#", 1)
+
+        # Fix ###### (H6) Options/Subcommands labels → ## (H2)
+        if line.startswith("###### "):
+            out.append("## " + line[7:])
+            i += 1
+            continue
+        if line.strip().startswith("* `clibra-"):
+            line = re.sub(
+                r"`(clibra-[\w-]+(?:\s+clibra-[\w-]+)*)`",
+                lambda m: "`" + _fix_cmd_name(m.group(1)) + "`",
+                line,
+            )
+        if "**Usage:**" in line:
+            line = _fix_usage_line(line)
+        if re.match(r"\s+Default value: `?false`?$", line):
+            i += 1
+            continue
+        # Strip global flag bullets from all sections
+        # Strip global flag bullets from all sections
+        if line.strip().startswith("* `") and _is_global_flag_bullet(line):
+            i += 1
+            while i < len(lines):
+                l = lines[i]
+                if l.startswith("  ") or l.strip() == "":
+                    if l.strip() == "" and i + 1 < len(lines) and lines[i+1].strip() != "" and not lines[i+1].startswith("  "):
+                        break
+                    i += 1
+                else:
+                    break
+            continue
+        if line.strip() in ("<hr/>", "<hr />"):
+            break
+
+        out.append(line)
+        i += 1
+
+    result = "\n".join(out).strip()
+    result = re.sub(r"\n{3,}", "\n\n", result)
+    return result + "\n"
+
+def _generate_cli_reference(app):
+    out_dir = pathlib.Path(app.srcdir) / "_generated"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    for sub in SUBCOMMANDS:
+        result = subprocess.run(
+            ["uv", "run", "clibra", "generate", "--markdown",
+             f"--subcommand={sub}"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"clibra generate --markdown --subcommand={sub} "
+                f"failed:\n{result.stderr}"
+            )
+        cleaned = _clean_md(result.stdout)
+        (out_dir / f"{sub}.md").write_text(cleaned)
+
+def setup(app):
+    app.connect("builder-inited", _generate_cli_reference)
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
+
+plantuml = "java -jar /tmp/plantuml.jar"
+plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
+
+if not os.path.exists("/tmp/plantuml.jar"):
+    print("DOCS: Downloading latest plantuml...")
+    response = requests.get(plantuml_url)
+    with open("/tmp/plantuml.jar", "wb") as file:
+        file.write(response.content)
 
 plantuml = "java -jar /tmp/plantuml.jar"
 plantuml_url = "https://downloads.sourceforge.net/project/plantuml/plantuml.jar"
@@ -130,8 +319,19 @@ if not os.path.exists("/tmp/plantuml.jar"):
 # documentation.
 #
 html_theme_options = {
-    'display_version': True,
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    "navigation_depth": 3,
+    "show_toc_level": 2,
+    "header_links_before_dropdown": 8,
+    "logo": {
+        "image_light": "_static/logo-only-small-with-name.png",
+        "image_dark": "_static/logo-only-small-with-name-dark.png",
+        "text": f"{version}",
+    },
 }
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -139,16 +339,16 @@ html_theme_options = {
 html_static_path = ["_static"]
 
 html_css_files = [
-    'css/overrides.css'
+    'custom.css'
 ]
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
 #
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    "**": [
-        "relations.html",  # needs 'show_related': True theme option to display
-        "searchbox.html",
-    ]
-}
+# html_sidebars = {
+#     "**": [
+#         "relations.html",  # needs 'show_related': True theme option to display
+#         "searchbox.html",
+#     ]
+# }

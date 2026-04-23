@@ -1,22 +1,33 @@
 name: Build and test
 
+# Run:
+#
+# - Every month. Scheduling helps keep drift/issues with updates
+#   to runners at bay.
+# - On pushes to relevant paths.
+#
 on:
   push:
-    branches:
-      - master
-      - devel
+    paths:
+      - "cmake/**"
+      - "cli/**"
+      - ".github/**"
+
+  schedule:
+    - cron: '0 0 1 * *'
+
 
 concurrency:
   group: "build-and-test"
   cancel-in-progress: true
 
 jobs:
-  smoke-tests:
+  cmake-funcs-smoke-tests:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-02-09
+      image: jharwell/ubuntu24.04-libra:2026-03-16
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run smoke tests
         shell: bash
         run: |
@@ -24,55 +35,190 @@ jobs:
           cmake ..
           ctest --output-on-failure -j $(nproc)
 
+  cmake-add-subdirectory-smoke-tests:
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_add_subdirectory.sh
+
+  cmake-installed-pkg-smoke-tests:
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_installed_package.sh
+
+  cmake-cpm-smoke-tests:
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_cpm.sh
+
+  cmake-conan-smoke-tests:
+    uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
+    with:
+      suite-script: ./suites/run_suite_conan.sh
+      pip-install-conan: true
+
+  schema-help-targets:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Run LIBRA install
+        shell: bash
+        run: |
+          cd tests/sample_basic
+          cmake .
+          uv run check-jsonschema --schemafile ../../schema/help-targets.yaml libra_targets.json
+
+
+  cmake-self-install-test:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run LIBRA install
+        shell: bash
+        run: |
+          mkdir -p build && cd build
+          cmake ..
+          make install
+
+  cli-build:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build CLI
+        run: cargo build
+        working-directory: .
+
+  cli-unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    needs:
+      - cli-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run Rust unit tests
+        run: cargo test
+        working-directory: .
+
+  cli-smoke-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    needs:
+      - cli-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run CLI BATS smoke tests
+        shell: bash
+        run: |
+          cargo build
+          bats tests/cli_*.bats -j $(nproc)
+        working-directory: ${{ github.workspace }}
+        env:
+          CLIBRA_BIN: ${{ github.workspace }}/target/debug/clibra
+
   docs:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/pages.yml
-    needs: [smoke-tests]
+    needs:
+      - cmake-funcs-smoke-tests
+      - cmake-add-subdirectory-smoke-tests
+      - cmake-cpm-smoke-tests
+      - cmake-conan-smoke-tests
+      - cmake-installed-pkg-smoke-tests
+      - cmake-self-install-test
+      - cli-smoke-tests
+      - cli-unit-tests
+      - schema-help-targets
     secrets: inherit
 
   create-conan-pkg:
+    # Only publish packages from master
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    needs: [smoke-tests]
+    needs:
+      - cmake-funcs-smoke-tests
+      - cmake-add-subdirectory-smoke-tests
+      - cmake-cpm-smoke-tests
+      - cmake-conan-smoke-tests
+      - cmake-installed-pkg-smoke-tests
+      - cmake-self-install-test
+      - cli-smoke-tests
+      - cli-unit-tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Create package
         shell: bash
         run: |
           pip3 install conan
           conan profile detect
-
           conan create \
-          --user jharwell \
-          --lockfile-out=package.lock \
-          .
+            --user jharwell \
+            --lockfile-out=package.lock \
+            .
 
-  tag-release:
+  create-release:
+    # Only create releases from master (stable). Gettings beta releases on every
+    # merge to devel is more noisy than useful.
+    if: |
+      github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    needs: [smoke-tests]
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    needs:
+      - cmake-funcs-smoke-tests
+      - cmake-add-subdirectory-smoke-tests
+      - cmake-cpm-smoke-tests
+      - cmake-conan-smoke-tests
+      - cmake-installed-pkg-smoke-tests
+      - cmake-self-install-test
+      - cli-smoke-tests
+      - cli-unit-tests
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Push tag
+      - uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep -oP '(?<=set\(LIBRA_VERSION )[^)]+' cmake/libra/version.cmake)
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Set release tag
+        if: github.ref == 'refs/heads/master'
         shell: bash
         run: |
-          git config --global --add safe.directory $PWD
-          git config --global user.email "${{ github.event.pusher.email }}"
-          git config --global user.name "${{ github.event.pusher.name }}"
+          echo "RELEASE_TAG=${{ steps.version.outputs.version }}" >> $GITHUB_ENV
 
-          git submodule update --init --remote --recursive
-
-          PACKAGE_VERSION=$(sed -nE 's/.*LIBRA_VERSION ([0-9]+.[0-9]+.[0-9]+).*/\1/p' cmake/libra/version.cmake)
-
-          if [ "${{ github.ref }}" = "refs/heads/devel" ]; then
-            TAG_VERSION=${PACKAGE_VERSION}.beta
-            TAG_MESSAGE="Development release ${TAG_VERSION}"
-            git tag ${TAG_VERSION} -m "${TAG_MESSAGE}" -f
-            git push -o ci.skip origin ${TAG_VERSION} -f
-          else
-            TAG_VERSION=${PACKAGE_VERSION}
-            TAG_MESSAGE="Release ${TAG_VERSION}"
-            git tag ${TAG_VERSION} -m "${TAG_MESSAGE}"
-            git push -o ci.skip origin ${TAG_VERSION}
-          fi
+      - name: Github release
+        if: github.ref == 'refs/heads/master'
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          # 2025-04-29 [JRH]: This is NOT the usual secrets.GITHUB_TOKEN because
+          # as of now, you can't trigger a workflow (such as the publish
+          # workflow) with the same token that THIS workflow was triggered with,
+          # because...reasons.
+          #
+          # The workaround is to create a fine-grained token for my account,
+          # give it permissions only for the LIBRA repo, and set it as a CI
+          # secret. THEN the publish workflow will be triggered on successful
+          # release publishing.
+          repo_token: ${{ secrets.BOT_RELEASE_TOKEN }}
+          automatic_release_tag: ${{ env.RELEASE_TAG }}
+          prerelease: false
+          title: "Release ${{ env.RELEASE_TAG }}"

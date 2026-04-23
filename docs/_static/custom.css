@@ -1,0 +1,17 @@
+.wy-table-responsive table td, .wy-table-responsive table th {
+    white-space: normal;
+    /* white-space-collapse: collapse; This property is deprecated and not needed */
+    /* text-wrap: normal; This property is experimental and not needed */
+}
+
+.navbar-brand img {
+    height: calc(var(--pst-header-height) * 0.7) !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+@media (min-width: 800px) {
+    .navbar-brand img {
+        height: calc(var(--pst-header-height)) !important;
+    }
+}

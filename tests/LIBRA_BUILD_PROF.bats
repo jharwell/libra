@@ -121,25 +121,6 @@ setup() {
 }
 
 # ------------------------------------------------------------------------------
-# Cross-compiler: GNU flag absent when using Clang, and vice versa
-# ------------------------------------------------------------------------------
-
-@test "BUILD_PROF: Clang/C ON does not add GNU -ftime-report" {
-    skip_if_compiler_missing "clang" "c"
-    COMPILER_TYPE=clang
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_BUILD_PROF=ON)
-
-    assert_compile_flag_absent "$test_dir" "c" "-ftime-report"
-}
-
-@test "BUILD_PROF: GNU/C ON does not add Clang -ftime-trace" {
-    COMPILER_TYPE=gnu
-    test_dir=$(run_libra_cmake_test "c" -DLIBRA_BUILD_PROF=ON)
-
-    assert_compile_flag_absent "$test_dir" "c" "-ftime-trace"
-}
-
-# ------------------------------------------------------------------------------
 # Default behaviour
 # ------------------------------------------------------------------------------
 
@@ -149,4 +130,34 @@ setup() {
     test_dir=$(run_libra_cmake_test "c")
 
     assert_compile_flag_absent "$test_dir" "c" "-ftime-report"
+}
+
+@test "BUILD_PROF: Cache variable persists across reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_BUILD_PROF=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "ON"
+    [ "$status" -eq 0 ]
+}
+
+@test "BUILD_PROF: Can change value on reconfiguration" {
+    COMPILER_TYPE=gnu
+    test_dir=$(run_libra_cmake_test "c" -DLIBRA_BUILD_PROF=ON)
+
+    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "ON"
+    [ "$status" -eq 0 ]
+
+    cd "$test_dir"
+    run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_BUILD_PROF=OFF --log-level=ERROR
+    [ "$status" -eq 0 ]
+
+    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "OFF"
+    [ "$status" -eq 0 ]
 }

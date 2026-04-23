@@ -1,0 +1,65 @@
+name: Smoke tests (compiler matrix)
+
+# Reusable workflow called by build-and-test.yml for each consumption mode.
+# Runs the given test suite script against all supported compiler versions.
+#
+# Compiler matrix:
+#   - GNU:   oldest (9) and newest (14) installed versions
+#   - Clang: oldest (14) and newest (19) installed versions
+#   - Intel: single installed version (no versioned suffix needed)
+#
+on:
+  workflow_call:
+    inputs:
+      suite-script:
+        description: >
+          Path to the suite runner script relative to the tests/ directory,
+          e.g. ./suites/run_suite_add_subdirectory.sh
+        required: true
+        type: string
+      suite-args:
+        description: Additional arguments to pass to the suite script
+        required: false
+        type: string
+        default: ""
+      pip-install-conan:
+        description: Install conan via pip before running the suite
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-02-28
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - gcc: gcc-9
+            gxx: g++-9
+            clang: clang-14
+            clangxx: clang++-14
+          - gcc: gcc-14
+            gxx: g++-14
+            clang: clang-19
+            clangxx: clang++-19
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure compiler
+        shell: bash
+        run: |
+          update-alternatives --set gcc /usr/bin/${{ matrix.compiler.gcc }}
+          update-alternatives --set clang /usr/bin/${{ matrix.compiler.clang }}
+
+      - name: Install conan
+        if: inputs.pip-install-conan
+        shell: bash
+        run: pip3 install conan --break-system-packages
+
+      - name: Run smoke tests
+        shell: bash
+        run: |
+          cd tests && ${{ inputs.suite-script }} ${{ inputs.suite-args }}

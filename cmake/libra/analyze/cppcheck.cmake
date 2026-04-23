@@ -4,24 +4,23 @@
 # SPDX-License Identifier:  MIT
 #
 include(libra/messaging)
+include(libra/utils)
 
-# ##############################################################################
-# Register a target for cppcheck
-#
-# Since cppcheck can work without a compilation database, you have to manually
-# get the includes, #defines, etc. for the target and add them to the cppcheck
-# command if one isn't found.
-# ##############################################################################
-function(do_register_cppcheck CHECK_TARGET TARGET)
-  set(INCLUDES $<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>)
-  set(INTERFACE_INCLUDES
-      $<TARGET_PROPERTY:${TARGET},INTERFACE_INCLUDE_DIRECTORIES>)
-  set(INTERFACE_SYSTEM_INCLUDES
-      $<TARGET_PROPERTY:${TARGET},INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>)
-  set(DEFS $<TARGET_PROPERTY:${TARGET},COMPILE_DEFINITIONS>)
-  set(INTERFACE_DEFS $<TARGET_PROPERTY:${TARGET},INTERFACE_COMPILE_DEFINITIONS>)
-  get_target_property(TARGET_TYPE ${TARGET} TYPE)
+_libra_register_custom_target(analyze-cppcheck LIBRA_ANALYSIS
+                              cppcheck_EXECUTABLE)
 
+#[[.rst
+.. cmake:command: _libra_register_cppcheck
+
+  Register cppcheck on a target in a specific mode for all configured source
+  files.
+
+  :param ANALYSIS_TARGET: The name of the umbrella analysis target to create.
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+]]
+function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
   if(NOT DEFINED LIBRA_CPPCHECK_SUPPRESSIONS)
     set(LIBRA_CPPCHECK_SUPPRESSIONS "${LIBRA_CPPCHECK_SUPPRESSIONS_DEFAULT}")
   endif()
@@ -30,32 +29,44 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
     set(LIBRA_CPPCHECK_EXTRA_ARGS "${LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT}")
   endif()
 
-  # See docs for LIBRA_USE_COMPDB for why we default to not using a compdb.
-  if(NOT LIBRA_USE_COMPDB)
-    set(USE_DATABASE NO)
-  else()
-    set(USE_DATABASE ${LIBRA_USE_COMPDB})
+  # This may be required
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND LIBRA_CPPCHECK_EXTRA_ARGS -D__linux__)
   endif()
 
-  get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
+  _libra_get_project_language(_LANG)
+  if("${_LANG}" STREQUAL "CXX")
+    set(STD_ARGS --std=c++${LIBRA_CXX_STANDARD})
+  else()
+    set(STD_ARGS --std=c${LIBRA_C_STANDARD})
+  endif()
+
+  set(_suppr_args "")
+  foreach(_s ${LIBRA_CPPCHECK_SUPPRESSIONS})
+    list(APPEND _suppr_args "--suppress=${_s}")
+  endforeach()
+
+  set(_ignore_args "")
+  foreach(_i ${LIBRA_CPPCHECK_IGNORES})
+    list(APPEND _ignore_args "-i${_i}")
+  endforeach()
 
   # If a compilation database is used, cppcheck doesn't let you check a specific
   # file.
-  if(USE_DATABASE)
+  if(LIBRA_USE_COMPDB)
     add_custom_target(
-      ${CHECK_TARGET}
+      ${ANALYSIS_TARGET}
       COMMAND
         ${cppcheck_EXECUTABLE}
         --project=${PROJECT_BINARY_DIR}/compile_commands.json
         --enable=warning,style,performance,portability --verbose
-        --check-level=exhaustive --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
-        "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
-        "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
-        "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1
+        --check-level=exhaustive ${STD_ARGS} --inline-suppr ${_suppr_args}
+        ${_ignore_args} ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
       COMMENT "Running ${cppcheck_NAME} with compdb")
   else()
-    add_custom_target(${CHECK_TARGET})
+    add_custom_target(${ANALYSIS_TARGET})
+
     foreach(file ${ARGN})
       # We create one target per file we want to analyze so that we can do
       # analysis in parallel if desired. Targets can't have '/' on '.' in their
@@ -63,61 +74,44 @@ function(do_register_cppcheck CHECK_TARGET TARGET)
       string(REPLACE "/" "_" file_target "${file}")
       string(REPLACE "." "_" file_target "${file_target}")
 
+      analyze_build_fixeddb_for_target(${TARGET} EXTRACTED_ARGS)
+
       add_custom_target(
-        ${CHECK_TARGET}-${file_target}
+        ${ANALYSIS_TARGET}-${file_target}
         COMMAND
-          ${cppcheck_EXECUTABLE}
-          "$<$<BOOL:${INCLUDES}>:-I$<JOIN:${INCLUDES},\t-I>>"
-          "$<$<BOOL:${INTERFACE_INCLUDES}>:-I$<JOIN:${INTERFACE_INCLUDES},\t-I>>"
-          "$<$<BOOL:${INTERFACE_SYSTEM_INCLUDES}>:-isystem$<JOIN:${INTERFACE_SYSTEMINCLUDES},\t-isystem>>"
-          "$<$<BOOL:${DEFS}>:-D$<JOIN:${DEFS},\t-D>>"
-          "$<$<BOOL:${INTERFACE_DEFS}>:-D$<JOIN:${INTERFACE_DEFS},\t-D>>"
-          --enable=warning,style,performance,portability --verbose
-          --std=c++${LIBRA_CXX_STANDARD} --inline-suppr
-          "$<$<BOOL:${LIBRA_CPPCHECK_SUPPRESSIONS}>:--suppress=$<JOIN:${LIBRA_CPPCHECK_SUPPRESSIONS},\t--suppress=>>"
-          "$<$<BOOL:${LIBRA_CPPCHECK_IGNORES}>:-i$<JOIN:${LIBRA_CPPCHECK_IGNORES},\t-i>>"
-          "${LIBRA_CPPCHECK_EXTRA_ARGS}" --error-exitcode=1 ${file}
+          ${cppcheck_EXECUTABLE} ${EXTRACTED_ARGS}
+          --enable=warning,style,performance,portability --verbose ${STD_ARGS}
+          --inline-suppr ${_suppr_args} ${_ignore_args}
+          ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1 ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Running ${cppcheck_NAME} without compdb on ${file}")
-      add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})
+      add_dependencies(${ANALYSIS_TARGET} ${ANALYSIS_TARGET}-${file_target})
     endforeach()
   endif()
 
-  set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1)
+  set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
+                                                      1 EXCLUDE_FROM_ALL 1)
+endfunction()
+
+#[[.rst
+.. cmake:command: _libra_register_checker_cppcheck
+
+  Calls :cmake:command:`_libra_register_cppcheck` in CHECK mode: analyze
+  only.
+
+  :param TARGET: The name of the target which "owns" the source files to
+   analyze.
+]]
+function(_libra_register_checker_cppcheck TARGET)
+  if(NOT cppcheck_EXECUTABLE)
+    return()
+  endif()
+  _libra_register_cppcheck(analyze-cppcheck ${TARGET} ${ARGN})
+
+  add_dependencies(analyze analyze-cppcheck)
+
+  get_filename_component(cppcheck_NAME ${cppcheck_EXECUTABLE} NAME)
 
   list(LENGTH ARGN LEN)
   libra_message(STATUS "Registered ${LEN} files with ${cppcheck_NAME}")
-endfunction()
-
-# ##############################################################################
-# Register all sources from the target with the cppcheck checker
-# ##############################################################################
-function(libra_register_checker_cppcheck TARGET)
-  if(NOT cppcheck_EXECUTABLE)
-    return()
-  endif()
-  do_register_cppcheck(analyze-cppcheck ${TARGET} ${ARGN})
-
-  add_dependencies(analyze analyze-cppcheck)
-endfunction()
-
-# ##############################################################################
-# Enable or disable cppcheck checking for a project
-# ##############################################################################
-function(libra_toggle_checker_cppcheck request)
-  if(NOT request)
-    libra_message(STATUS "Disabling cppcheck checker by request")
-    set(cppcheck_EXECUTABLE)
-    return()
-  endif()
-
-  find_program(
-    cppcheck_EXECUTABLE
-    NAMES cppcheck
-    PATHS "${cppcheck_DIR}" "$ENV{CPPCHECK_DIR}")
-
-  if(NOT cppcheck_EXECUTABLE)
-    libra_message(STATUS "cppcheck [disabled=not found]")
-    return()
-  endif()
 endfunction()

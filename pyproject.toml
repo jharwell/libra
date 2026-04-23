@@ -8,7 +8,7 @@ version = "0.0.1"
 
 description = "LIBRA"
 authors = [
-    {name= "John Harwell", email = "john.r.harwell@gmail.com"},
+  {name= "John Harwell", email = "john.r.harwell@gmail.com"},
 ]
 dependencies = [
 
@@ -22,36 +22,24 @@ classifiers = [
 
 [dependency-groups]
 docs = [
-     # This matching results in badly formatted tables in some
-     # manpages, so will need to be updated with a later version that
-     # has a fix.
-    "sphinx==7.4.0",
-    "docutils>=0.18.1,<0.21",
-
-    # 2025-10-08 [JRH]: # In versions >= 3.0, the only way to get the
-    # version to appear at the top of the main page is to host the
-    # docs on readthedocs and use their version selector. Pinning to
-    # the previous major release is a temporary workaround. Hopefully
-    # this will eventually be fixed.
-    "sphinx_rtd_theme==2.0.0",
-    "sphinx_immaterial",
-    "pydata-sphinx-theme",
-    "furo",
-    "sphinx-argparse==0.4.0",
-    "sphinx-tabs",
-    "tomli",
-    "sphinxcontrib-napoleon",
-    "sphinxcontrib-moderncmakedomain",
-    "psutil",
-    "sphinx-last-updated-by-git",
-    "graphviz",
-    "sphinx-autoapi",
-    "toml",
-    "sphinx-autobuild",
-    "sphinxcontrib-plantuml"
+  "sphinx",
+  "docutils",
+  "pydata-sphinx-theme",
+  "sphinx-design",
+  "tomli",
+  "sphinxcontrib-moderncmakedomain",
+  "psutil",
+  "sphinx-last-updated-by-git",
+  "graphviz",
+  "toml",
+  "sphinx-autobuild",
+  "sphinxcontrib-plantuml",
+  "myst-parser"
 ]
+
 dev = [
     {include-group ="docs"},
+    "check-jsonschema"
 ]
 
 [project.urls]

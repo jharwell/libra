@@ -1,0 +1,57 @@
+name: Publishing
+description: Publish LIBRA CLI to crates.io
+
+# Publish LIBRA CLI to crates.io on release.
+#
+# 2025-04-29 [JRH]: Per GitHub Actions guidance, the publish job must be in a
+# separate workflow from the build-and-test workflow. If it is in the same
+# workflow it is unsupported and may not work reliably.
+#
+# The 'published' release type triggers for both prerelease (beta) and formal
+# releases, so both stable and beta builds are published to crates.io.
+# Beta releases carry a pre-release version suffix (e.g. 0.9.5-beta) so they
+# are not selected by default during `cargo install`.
+#
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    # Only publish clibra on master to avoid having HUNDREDS of beta release
+    # on crates.io which are of limited utility.
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-edit
+
+        # 2026-03-17 [JRH]: This keeps version.cmake as the single source of
+        # truth for the LIBRA version.
+      - name: Set version from tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"   # e.g. v1.2.3 -> 1.2.3
+          cargo set-version $VERSION
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: Publish to crates.io
+        # --no-verify skips the redundant package rebuild that cargo publish
+        # does by default — the binary was already verified by the CI suite
+        # that gated the release. --allow-dirty is needed because we modified
+        # Cargo.toml to set the version.
+        run: cargo publish --no-verify --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
