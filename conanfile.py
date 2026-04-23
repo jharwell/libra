@@ -42,8 +42,7 @@ class LIBRAConan(ConanFile):
              pattern="*.cmake",
              src=self.source_folder,
              dst=self.package_folder,
-             excludes=["*/package/*.cmake",
-                       "*/arm-*.cmake"])
+             excludes=["*/package/*.cmake"])
 
         copy(self,
              pattern="*.clang-format",
