@@ -133,7 +133,7 @@ jobs:
           CLIBRA_BIN: ${{ github.workspace }}/target/debug/clibra
 
   docs:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref_name == 'master'
     uses: ./.github/workflows/pages.yml
     needs:
       - cmake-funcs-smoke-tests
@@ -149,7 +149,7 @@ jobs:
 
   create-conan-pkg:
     # Only publish packages from master
-    if: github.ref == 'refs/heads/master'
+    if: github.ref_name == 'master'
     runs-on: ubuntu-latest
     needs:
       - cmake-funcs-smoke-tests
@@ -175,8 +175,7 @@ jobs:
   create-release:
     # Only create releases from master (stable). Gettings beta releases on every
     # merge to devel is more noisy than useful.
-    if: |
-      github.ref == 'refs/heads/master'
+    if: github.ref_name == 'master'
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16

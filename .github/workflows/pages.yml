@@ -36,6 +36,11 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+
+      - name: Build CLI
+        run: cargo install --path .
+        working-directory: .
+
       - shell: bash
         run: |
 
