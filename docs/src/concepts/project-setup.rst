@@ -188,88 +188,10 @@ This keeps the root ``CMakeLists.txt`` clean and portable:
 CMakePresets.json
 =================
 
-LIBRA and ``clibra`` are preset-driven. The following is the recommended
-starting-point preset hierarchy. See :ref:`concepts/feature-flags` for a detailed
-explanation of every preset and the rationale behind the structure.
+LIBRA and ``clibra`` are driven by CMake presets, which are a very powerful and
+flexible configuration feature of modern CMake . The following is the
+recommended starting-point preset hierarchy. See :ref:`concepts/feature-flags`
+for a detailed explanation of every preset and the rationale behind the
+structure.
 
-.. code-block:: json
-
-   {
-     "version": 6,
-     "configurePresets": [
-       {
-         "name": "base",
-         "hidden": true,
-         "generator": "Ninja",
-         "binaryDir": "${sourceDir}/build/${presetName}",
-         "cacheVariables": {
-           "LIBRA_TESTS":    "OFF",
-           "LIBRA_COVERAGE": "OFF",
-           "LIBRA_ANALYSIS": "OFF",
-           "LIBRA_DOCS":     "OFF"
-         }
-       },
-       {
-         "name": "debug",
-         "inherits": "base",
-         "cacheVariables": {
-           "CMAKE_BUILD_TYPE": "Debug",
-           "LIBRA_TESTS": "ON"
-         }
-       },
-       {
-         "name": "release",
-         "inherits": "base",
-         "cacheVariables": {
-           "CMAKE_BUILD_TYPE": "Release",
-           "LIBRA_LTO": "ON"
-         }
-       },
-       {
-         "name": "coverage",
-         "inherits": "base",
-         "cacheVariables": {
-           "CMAKE_BUILD_TYPE": "Debug",
-           "LIBRA_TESTS": "ON",
-           "LIBRA_COVERAGE": "ON"
-         }
-       },
-       {
-         "name": "ci",
-         "inherits": "coverage"
-       },
-       {
-         "name": "analyze",
-         "inherits": "base",
-         "cacheVariables": {
-           "CMAKE_BUILD_TYPE": "Debug",
-           "LIBRA_ANALYSIS": "ON"
-         }
-       }
-     ],
-     "buildPresets": [
-       { "name": "debug",    "configurePreset": "debug" },
-       { "name": "release",  "configurePreset": "release" },
-       { "name": "coverage", "configurePreset": "coverage" },
-       { "name": "ci",       "configurePreset": "ci" },
-       { "name": "analyze",  "configurePreset": "analyze",
-         "targets": ["analyze"] }
-     ],
-     "testPresets": [
-       {
-         "name": "debug",
-         "configurePreset": "debug",
-         "output": { "outputOnFailure": true }
-       },
-       {
-         "name": "coverage",
-         "configurePreset": "coverage",
-         "output": { "outputOnFailure": true }
-       },
-       {
-         "name": "ci",
-         "configurePreset": "ci",
-         "output": { "outputOnFailure": true }
-       }
-     ]
-   }
+.. include:: /src/ex-cmake-presets.rst

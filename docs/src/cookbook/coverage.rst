@@ -43,8 +43,7 @@ Choosing a tool
 
 Set :cmake:variable:`LIBRA_COVERAGE_NATIVE` to control which format
 is generated. The default (``YES``) means GCC uses GNU format and
-Clang uses LLVM format. Set it to ``NO`` to force GNU format from
-both compilers.
+Clang uses LLVM format. Set it to ``NO`` when using class to force GNU format.
 
 1. Add a coverage preset
 =========================

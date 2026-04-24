@@ -8,8 +8,7 @@ Concepts
 
 Mental models that apply equally to the CLI and CMake interfaces.
 Read these once — the quickstarts and reference pages assume this
-knowledge. Day-to-day test workflows (filtering, debugging) are in
-:ref:`cookbook/testing`.
+knowledge.
 
 .. toctree::
    :maxdepth: 1

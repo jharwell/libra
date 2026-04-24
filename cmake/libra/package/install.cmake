@@ -374,9 +374,9 @@ endfunction()
 
   The target is installed with:
 
-    - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
-    - Public headers: ``${CMAKE_INSTALL_INCLUDEDIR}``
-    - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
+  - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
+  - Public headers: ``${CMAKE_INSTALL_INCLUDEDIR}``
+  - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
 
