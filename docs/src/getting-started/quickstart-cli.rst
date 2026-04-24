@@ -17,7 +17,7 @@ If you have not installed ``clibra`` yet, start at
 1. Set up your project
 ======================
 
-You must define:
+You must define the CMake base layer:
 
 .. tab-set::
 
@@ -32,35 +32,11 @@ You must define:
 
       .. include:: /src/ex-project-local.rst
 
-Optionally, you can define:
+You also must define CMake presets; ``clibra`` is entirely preset driven:
 
 .. dropdown:: CMakePresets.json:
 
-   .. code-block:: json
-
-      {
-        "version": 6,
-        "configurePresets": [
-          {
-            "name": "base",
-            "hidden": true,
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "cacheVariables": {
-              "LIBRA_TESTS": "OFF", "LIBRA_COVERAGE": "OFF",
-              "LIBRA_ANALYSIS": "OFF", "LIBRA_DOCS": "OFF"
-            }
-          },
-          {
-            "name": "debug",
-            "inherits": "base",
-            "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug", "LIBRA_TESTS": "ON" }
-          }
-        ],
-        "buildPresets": [{ "name": "debug", "configurePreset": "debug" }],
-        "testPresets": [{ "name": "debug", "configurePreset": "debug",
-                          "output": { "outputOnFailure": true } }]
-      }
+   .. include:: /src/ex-cmake-presets.rst
 
 3. Build and test
 =================

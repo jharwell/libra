@@ -94,9 +94,9 @@ LIBRA provides a unified interface across three compiler families:
 Optional tools
 ==============
 
-The following tools are not required for basic builds but each enables
-specific LIBRA features: **Ninja** (faster builds), **ccache** (build
-caching), **doxygen** + **graphviz** (API docs), **lcov** / **gcovr**
+The following tools are not required for basic builds but each enables specific
+LIBRA features: **Ninja** (faster builds), **ccache** (build caching),
+**doxygen** (API docs) **sphinx** (hosted documentation), **lcov** / **gcovr**
 (GNU coverage reports), **llvm-cov** (Clang coverage), **cppcheck**,
 **clang-tidy**, **clang-format** (static analysis and formatting),
 **cmake-format** (CMake formatting).
@@ -175,7 +175,7 @@ Example output:
 - ``⚠``: Optional or recommended; missing it limits specific features but does
   not prevent basic builds.
 
-- ``✗``: Required; must be resolved before proceeding.
+- ``✗``: Required; should be resolved before proceeding.
 
 Shell completions
 =================
@@ -195,12 +195,3 @@ Shell completions
 
    # elvish
    clibra generate --shell=elvish >> ~/.config/elvish/rc.elv
-
-   # PowerShell
-   clibra generate --shell=powershell >> $PROFILE
-
-Next steps
-==========
-
-- New project using ``clibra``? → :ref:`getting-started/quickstart-cli`
-- No Rust / CMake only? → :ref:`getting-started/quickstart-cmake`

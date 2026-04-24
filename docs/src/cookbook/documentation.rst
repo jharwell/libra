@@ -116,7 +116,7 @@ Two checkers are available with complementary strengths:
 
       Runs Doxygen with ``WARN_AS_ERROR=FAIL_ON_WARNINGS``. Detects
       missing documentation and malformed tags. Does *not* check that
-      documentation matches the code.
+      documentation matches the code. This is a limitation of doxygen, not LIBRA.
 
       .. tab-set::
 
@@ -137,7 +137,7 @@ Two checkers are available with complementary strengths:
       AST-aware: detects mismatches between documentation and code
       (wrong parameter names, missing ``@param`` for an existing
       parameter, etc.). Only checks *existing* documentation — does not
-      flag undocumented symbols.
+      flag undocumented symbols. This is a limitation of clang, not LIBRA.
 
       .. tab-set::
 
