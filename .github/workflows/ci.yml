@@ -19,7 +19,7 @@ on:
 
 
 concurrency:
-  group: "build-and-test"
+  group: "build-and-test-${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
