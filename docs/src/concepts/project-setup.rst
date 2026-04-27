@@ -140,12 +140,10 @@ conventions:
 If your structure differs from the above, you can disable globbing and
 list files manually in ``project-local.cmake``.
 
-In addition, build outputs in the binary directory follow these conventions. The
-build directory can of course be wherever you like.
-
-- libraries -> ``${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}`` (usually lib or
-  lib64)
-- executables -> ``${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}`` (usually bin)
+In addition, build outputs in the binary directory follow the same conventions
+used during :ref:`target installation
+<reference/project-local/install/what-goes-where>`. The build directory can of
+course be wherever you like.
 
 .. _concepts/project-setup/test-naming:
 

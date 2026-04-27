@@ -19,5 +19,6 @@ details, follow the cross-references into :ref:`cli` and :ref:`reference`.
    sanitizers
    coverage
    analysis
-   documentation
    pgo
+   documentation
+   packaging

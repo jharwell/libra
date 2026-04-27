@@ -94,15 +94,14 @@ function(libra_configure_exports)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: libra_register_extra_configs_for_install
+.. cmake:command:: libra_install_cmake_modules
 
-  Register extra .cmake files for a TARGET to be installed at
+  Install .cmake files for a TARGET to be installed at
   ``${CMAKE_INSTALL_PREFIX}``.
 
-  Configure additional ``.cmake`` files/directories for export. Useful if your
-  project provides reusable CMake functionality that you want downstream
-  projects to access. Supports both individual files and directories (processed
-  recursively).
+  Useful if your project provides reusable CMake functionality that you want
+  downstream projects to access. Supports both individual files and directories
+  (processed recursively).
 
   :param TARGET: The target name (used for install destination). Must be a
    target for which :cmake:command:`libra_configure_exports` has already been
@@ -117,29 +116,31 @@ endfunction()
   .. code-block:: cmake
 
     # Install individual files
-    libra_register_extra_configs_for_install(mylib
+    libra_install_cmake_modules(mylib
       cmake/MyLibHelpers.cmake
       cmake/MyLibUtils.cmake)
 
     # Install entire directory (recursive, structure preserved)
-    libra_register_extra_configs_for_install(mylib
+    libra_install_cmake_modules(mylib
       cmake/modules)
 
     # Mix files and directories
-    libra_register_extra_configs_for_install(mylib
+    libra_install_cmake_modules(mylib
       cmake/special.cmake
       cmake/modules)
 
   .. versionchanged:: 0.9.26
      Can now handle files OR directories of extra configs.
 ]]
-function(libra_register_extra_configs_for_install)
+function(libra_install_cmake_modules)
   # Track total number of files
   set(TOTAL_FILES 0)
 
-  # Support both: 1. libra_register_extra_configs_for_install(TARGET mylib
-  # FILES_OR_DIRS dir1) 2. libra_register_extra_configs_for_install(mylib dir1
-  # dir2)
+  # Support both:
+  #
+  # * libra_install_cmake_modules(TARGET mylib FILES_OR_DIRS dir1)
+  #
+  # * libra_install_cmake_modules(mylib dir1 dir2)
   cmake_parse_arguments(
     ARG
     ""
@@ -157,14 +158,12 @@ function(libra_register_extra_configs_for_install)
   endif()
 
   if(NOT ARG_TARGET)
-    libra_error(
-      "libra_register_extra_configs_for_install: TARGET argument is required")
+    libra_error("libra_install_cmake_modules: TARGET argument is required")
   endif()
 
   if(NOT ARG_FILES_OR_DIRS)
     libra_error(
-      "libra_register_extra_configs_for_install: No files or directories specified."
-    )
+      "libra_install_cmake_modules: No files or directories specified.")
   endif()
 
   foreach(ITEM ${ARG_FILES_OR_DIRS})
@@ -207,19 +206,18 @@ function(libra_register_extra_configs_for_install)
       else()
         libra_message(
           WARNING
-          "libra_register_extra_configs_for_install: '${ITEM}' is not a .cmake file\n"
-          "  Only .cmake files can be registered. This file will be skipped.")
+          "libra_install_cmake_modules: '${ITEM}' is not a .cmake file\n"
+          "  Only .cmake files can be installed. This file will be skipped.")
       endif()
     else()
-      libra_error(
-        "libra_register_extra_configs_for_install: '${ITEM}' does not exist\n"
-        "  Verify the path is correct and the file/directory exists")
+      libra_error("libra_install_cmake_modules: '${ITEM}' does not exist\n"
+                  "  Verify the path is correct and the file/directory exists")
     endif()
   endforeach()
 
   if(TOTAL_FILES EQUAL 0)
     libra_error(
-      "libra_register_extra_configs_for_install: No .cmake files found to install\n"
+      "libra_install_cmake_modules: No .cmake files found to install\n"
       "  Check that your files/directories contain .cmake files")
   endif()
 
@@ -229,10 +227,9 @@ function(libra_register_extra_configs_for_install)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: libra_register_copyright_for_install
+.. cmake:command:: libra_install_copyright
 
-  Register a copyright notice file to be installed at
-  :cmake:variable:`CMAKE_INSTALL_DOCDIR`.
+  Install a copyright notice file at :cmake:variable:`CMAKE_INSTALL_DOCDIR`.
 
   The file is automatically renamed to ``copyright`` during installation, which
   is the standard name expected by Debian package tools (``lintian``). This
@@ -252,11 +249,12 @@ endfunction()
 
   .. code-block:: cmake
 
-    libra_register_copyright_for_install(mylib ${PROJECT_SOURCE_DIR}/LICENSE)
+    libra_install_copyright(mylib ${PROJECT_SOURCE_DIR}/LICENSE)
 ]]
-function(libra_register_copyright_for_install)
-  # Support both: 1. libra_register_copyright_for_install(TARGET mylib FILE
-  # LICENSE) 2. libra_register_copyright_for_install(mylib LICENSE)
+function(libra_install_copyright)
+  # Support both:
+  # 1. libra_install_copyright(TARGET mylib FILE LICENSE)
+  # 2. libra_install_copyright(mylib LICENSE)
   cmake_parse_arguments(
     ARG
     ""
@@ -274,8 +272,7 @@ function(libra_register_copyright_for_install)
   endif()
 
   if(NOT ARG_TARGET OR NOT ARG_FILE)
-    libra_error(
-      "libra_register_copyright_for_install: TARGET and FILE are required")
+    libra_error("libra_install_copyright: TARGET and FILE are required")
   endif()
 
   if(NOT IS_ABSOLUTE "${ARG_FILE}")
@@ -293,14 +290,16 @@ function(libra_register_copyright_for_install)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: libra_register_headers_for_install
+.. cmake:command:: libra_install_headers
 
-  Register header files from a DIRECTORY to be installed at
-  ``${CMAKE_INSTALL_PREFIX}``.
+  Install header files from a DIRECTORY at ``${CMAKE_INSTALL_PREFIX}``.
 
   Recursively finds and installs all ``.hpp`` and ``.h`` files from the
   specified directory, preserving the directory structure. These can be from
   your project, a header-only dependency, etc.
+
+  Useful if you need to selectively install only SOME headers from a project,
+  add some third party headers from another dir, etc.
 
   :param DIRECTORY: The directory containing header files to install. Searched
    recursively for ``.hpp`` and ``.h`` files.
@@ -310,36 +309,46 @@ endfunction()
   .. code-block:: cmake
 
     # Install headers from include/ to ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
-    libra_register_headers_for_install(
-      ${PROJECT_SOURCE_DIR}/include
-      )
+    libra_install_headers(${PROJECT_SOURCE_DIR}/include)
 
     # This installs: include/mylib/foo.hpp -> ${CMAKE_INSTALL_PREFIX}/include/mylib/foo.hpp
 ]]
-function(libra_register_headers_for_install DIRECTORY)
-  # Validate arguments
-  if(NOT DIRECTORY)
-    libra_error("libra_register_headers_for_install: DIRECTORY is required")
+function(libra_install_headers)
+  # Support both:
+  # 1. libra_install_headers(DIRECTORY include/)
+  # 2. libra_install_headers(include/)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "DIRECTORY"
+    ""
+    ${ARGN})
+
+  if(NOT ARG_DIRECTORY AND ARG_UNPARSED_ARGUMENTS)
+    list(GET ARG_UNPARSED_ARGUMENTS 0 ARG_DIRECTORY)
+  endif()
+
+  if(NOT ARG_DIRECTORY)
+    libra_error("libra_install_headers: DIRECTORY is required")
   endif()
 
   # Make the path absolute if it's relative
-  if(NOT IS_ABSOLUTE "${DIRECTORY}")
-    set(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${DIRECTORY}")
+  if(NOT IS_ABSOLUTE "${ARG_DIRECTORY}")
+    set(ARG_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_DIRECTORY}")
   endif()
 
-  if(NOT IS_DIRECTORY "${DIRECTORY}")
-    libra_error(
-      "libra_register_headers_for_install: Not a directory: ${DIRECTORY}\n"
-      "  Verify the path is correct and points to a directory")
+  if(NOT IS_DIRECTORY "${ARG_DIRECTORY}")
+    libra_error("libra_install_headers: Not a directory: ${ARG_DIRECTORY}\n"
+                "  Verify the path is correct and points to a directory")
   endif()
 
   # Check if directory contains any headers
-  file(GLOB_RECURSE HEADER_CHECK "${DIRECTORY}/*.hpp" "${DIRECTORY}/*.h")
+  file(GLOB_RECURSE HEADER_CHECK "${ARG_DIRECTORY}/*.hpp" "${ARG_DIRECTORY}/*.h")
 
   if(NOT HEADER_CHECK)
     libra_message(
       WARNING
-      "libra_register_headers_for_install: No .hpp or .h files found in ${DIRECTORY}\n"
+      "libra_install_headers: No .hpp or .h files found in ${ARG_DIRECTORY}\n"
       "  This directory will be installed but appears to be empty")
   else()
     list(LENGTH HEADER_CHECK NUM_HEADERS)
@@ -348,34 +357,39 @@ function(libra_register_headers_for_install DIRECTORY)
   set(INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
 
   install(
-    DIRECTORY ${DIRECTORY}
+    DIRECTORY ${ARG_DIRECTORY}
     DESTINATION ${INSTALL_PATH}
     FILES_MATCHING
     PATTERN "*.hpp"
     PATTERN "*.h")
+
   libra_message(
     STATUS "Registered ${NUM_HEADERS} headers for install from ${DIRECTORY}")
 endfunction()
 
 #[[.rst:
-.. cmake:command:: libra_register_target_for_install
+.. cmake:command:: libra_install_target
 
-  Register a TARGET for installation with proper export configuration.
+  Install a TARGET with proper export configuration.
 
-  Installs the target's library files (.so, .a) and public headers, and creates
-  an export file (``<TARGET>-exports.cmake``) that allows downstream projects to
-  use the target with ``find_package()``. The target is associated with the
-  necessary exports file so child projects can find it.
+  Installs the target's library or executable files and creates an export file
+  (``<TARGET>-exports.cmake``) that allows downstream projects to use the target
+  with ``find_package()``.
 
-  :param TARGET: The CMake target to install. Must be a valid library target
-   created with :cmake:command:`add_library` or :cmake:command:`add_executable`.
-   Must be a target for which :cmake:command:`libra_configure_exports` has
-   already been called.
+  :param TARGET: The CMake target to install. Must be a valid target created
+   with :cmake:command:`add_library` or :cmake:command:`add_executable`. Must be
+   a target for which :cmake:command:`libra_configure_exports` has already been
+   called.
+
+  :param INCLUDE_DIR: (Optional) Path to directory containing header files to
+   install. If omitted, no headers are installed. Use for libraries; omit for
+   executables.
 
   The target is installed with:
 
   - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
-  - Public headers: ``${CMAKE_INSTALL_INCLUDEDIR}``
+  - Executables: ``${CMAKE_INSTALL_BINDIR}``
+  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}`` (if ``INCLUDE_DIR`` provided)
   - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
@@ -383,72 +397,136 @@ endfunction()
   - Shared libraries (.so, .dylib, .dll)
   - Static libraries (.a, .lib)
   - Executables (if applicable)
-  - Public headers (as specified by target properties)
+  - Headers (if ``INCLUDE_DIR`` provided)
   - CMake export file for use with ``find_package()``
 
   **Example:**
 
   .. code-block:: cmake
 
+    # Library with headers
     add_library(mylib src/mylib.cpp)
-    set_target_properties(mylib PROPERTIES PUBLIC_HEADER "include/mylib.hpp")
+    libra_install_target(mylib INCLUDE_DIR include/)
 
-    libra_register_target_for_install(mylib)
+    # Executable, no headers
+    add_executable(mytool src/main.cpp)
+    libra_install_target(mytool)
 
     # Downstream projects can now use:
     # find_package(mylib REQUIRED)
     # target_link_libraries(their_target mylib::mylib)
 
 ]]
-function(libra_register_target_for_install TARGET)
-  if(NOT TARGET)
-    libra_error("libra_register_target_for_install: Valid TARGET is required")
+function(libra_install_target)
+  # Support:
+  # 1. libra_install_target(TARGET mylib)
+  # 2. libra_install_target(mylib)
+  # 3. libra_install_target(mylib INCLUDE_DIR include/)
+  # 4. libra_install_target(TARGET mylib INCLUDE_DIR include/)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "TARGET;INCLUDE_DIR"
+    ""
+    ${ARGN})
+
+  if(NOT ARG_TARGET AND ARG_UNPARSED_ARGUMENTS)
+    list(GET ARG_UNPARSED_ARGUMENTS 0 ARG_TARGET)
+    list(REMOVE_AT ARG_UNPARSED_ARGUMENTS 0)
   endif()
 
-  if(NOT TARGET ${TARGET})
-    libra_error(
-      "libra_register_target_for_install: Target '${TARGET}' does not exist.\n")
+  if(NOT ARG_INCLUDE_DIR AND ARG_UNPARSED_ARGUMENTS)
+    list(GET ARG_UNPARSED_ARGUMENTS 0 ARG_INCLUDE_DIR)
   endif()
 
-  get_target_property(_type ${TARGET} TYPE)
+  if(NOT ARG_TARGET)
+    libra_error("libra_install_target: TARGET is required")
+  endif()
+
+  if(NOT TARGET ${ARG_TARGET})
+    libra_error("libra_install_target: Target '${ARG_TARGET}' does not exist.")
+  endif()
+
+  get_target_property(_type ${ARG_TARGET} TYPE)
 
   if(NOT _type STREQUAL "STATIC_LIBRARY"
      AND NOT _type STREQUAL "SHARED_LIBRARY"
      AND NOT _type STREQUAL "MODULE_LIBRARY"
      AND NOT _type STREQUAL "EXECUTABLE")
     libra_error(
-      "libra_register_target_for_install: Target '${TARGET}' has unsupported type '${_type}'."
+      "libra_install_target: Target '${ARG_TARGET}' has unsupported type '${_type}'."
     )
-  endif() # Verify target exists
+  endif()
+
+  if(ARG_INCLUDE_DIR)
+    libra_install_headers(${ARG_INCLUDE_DIR})
+  endif()
 
   # Install .so and .a libraries
   install(
-    # Install the target
-    TARGETS ${TARGET}
-    # Associate target with <target>-exports.cmake
-    EXPORT ${TARGET}-exports
+    TARGETS ${ARG_TARGET}
+    EXPORT ${ARG_TARGET}-exports
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER
-      DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   install(
-    EXPORT ${TARGET}-exports
-    FILE ${TARGET}-exports.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}
-    NAMESPACE ${TARGET}::)
+    EXPORT ${ARG_TARGET}-exports
+    FILE ${ARG_TARGET}-exports.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}
+    NAMESPACE ${ARG_TARGET}::)
 
-  libra_message(STATUS "Registered target for install: ${TARGET}")
+  libra_message(STATUS "Installed target: ${ARG_TARGET}")
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
   libra_message(STATUS
                 "Libraries -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-  libra_message(
-    STATUS "Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+  if(ARG_INCLUDE_DIR)
+    libra_message(
+      STATUS "Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
+  endif()
   libra_message(
     STATUS
-    "Exports -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake"
+    "Exports -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${ARG_TARGET}-exports.cmake"
   )
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
+
+# ##############################################################################
+# Deprecated function wrappers
+#
+# These are the old function names, kept for backwards compatibility. They will
+# be removed in a future version of libra. Use the new names instead.
+# ##############################################################################
+
+macro(libra_register_extra_configs_for_install)
+  libra_message(
+    DEPRECATION
+    "libra_register_extra_configs_for_install() is deprecated. Use libra_install_cmake_modules() instead."
+  )
+  libra_install_cmake_modules(${ARGN})
+endmacro()
+
+macro(libra_register_copyright_for_install)
+  libra_message(
+    DEPRECATION
+    "libra_register_copyright_for_install() is deprecated. Use libra_install_copyright() instead."
+  )
+  libra_install_copyright(${ARGN})
+endmacro()
+
+macro(libra_register_headers_for_install)
+  libra_message(
+    DEPRECATION
+    "libra_register_headers_for_install() is deprecated. Use libra_install_headers() instead."
+  )
+  libra_install_headers(${ARGN})
+endmacro()
+
+macro(libra_register_target_for_install)
+  libra_message(
+    DEPRECATION
+    "libra_register_target_for_install() is deprecated. Use libra_install_target() instead."
+  )
+  libra_install_target(${ARGN})
+endmacro()
