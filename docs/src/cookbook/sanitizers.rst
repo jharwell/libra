@@ -198,27 +198,3 @@ test preset's ``environment`` field to control sanitizer behaviour:
        }
      }
    ]
-
-Adding sanitizers to CI
-========================
-
-Add a sanitizer job to your pipeline after the basic test job. See
-:ref:`cookbook/ci-setup` for the full pipeline context:
-
-.. code-block:: yaml
-
-   # GitHub Actions
-   sanitizers:
-     name: Sanitizers (ASAN/UBSAN)
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v4
-       - name: Install
-         run: |
-           sudo apt-get update
-           sudo apt-get install -y cmake ninja-build gcc g++ libasan8 libubsan1
-       - name: Test with ASAN+UBSAN
-         run: |
-           cmake --preset asan
-           cmake --build --preset asan --target all-tests
-           ctest --preset asan --output-on-failure

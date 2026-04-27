@@ -74,20 +74,18 @@ Phase dependencies
 
 The phases have natural ordering constraints:
 
-- **Configure must precede build.** ``clibra build`` detects a missing
-  build directory and runs configure automatically. Subsequent builds
-  skip configure unless ``--reconfigure`` or ``--fresh`` is given, or
-  CMake's internal dependency tracking detects that inputs have changed.
+- **Configure must precede build.** ``clibra build`` detects a missing build
+  directory and runs configure automatically. Subsequent builds skip configure
+  unless ``--reconfigure`` or ``--fresh`` is given, or CMake's internal
+  dependency tracking detects that inputs have changed.
 
-- **Build must precede test.** ``clibra test`` always builds
-  ``all-tests`` first unless ``--no-build`` is given. Running ``ctest``
-  directly against stale or absent test binaries is a common source of
-  confusing failures.
+- **Build must precede test.** ``clibra test`` always builds ``all-tests`` first
+  unless :option:`--no-build` is given. Running ``ctest`` directly against stale
+  or absent test binaries is a common source of confusing failures.
 
-- **Test must precede coverage.** Coverage reports are generated from
-  data produced by running instrumented test binaries. Running
-  ``gcovr-report`` before running tests produces an empty or stale
-  report.
+- **Test must precede coverage.** Coverage reports are generated from data
+  produced by running instrumented test binaries. Running ``gcovr-report``
+  before running tests produces an empty or stale report.
 
 - **Analysis, docs and formatting are independent.** These phases do not depend
   on a prior test run and can run after configure and build only. The

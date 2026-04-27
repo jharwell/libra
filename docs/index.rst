@@ -142,5 +142,5 @@ See :ref:`reference/variables` for the relevant variables.
    src/concepts/index
    src/cookbook/index
    src/cli/index
-   src/design/index
    src/reference/index
+   src/design/index

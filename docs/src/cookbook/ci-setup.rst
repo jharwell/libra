@@ -1,3 +1,4 @@
+
 .. SPDX-License-Identifier: MIT
 
 .. _cookbook/ci-setup:

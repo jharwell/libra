@@ -15,7 +15,6 @@ details, follow the cross-references into :ref:`cli` and :ref:`reference`.
 
    new-project
    existing-project
-   ci-setup
    testing
    sanitizers
    coverage
