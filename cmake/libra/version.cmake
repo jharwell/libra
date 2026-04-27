@@ -4,4 +4,4 @@
 # SPDX-License Identifier: MIT
 #
 # The current version of LIBRA, to make debugging strange build problems easier.
-set(LIBRA_VERSION 0.12.7)
+set(LIBRA_VERSION 0.13.1)

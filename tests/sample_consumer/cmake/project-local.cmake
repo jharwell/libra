@@ -15,7 +15,7 @@ libra_add_library(NAME producer ${CMAKE_BINARY_DIR}/lib.cpp)
 libra_configure_exports(TARGET producer)
 
 # Register the target for install so it gets an export set.
-libra_register_target_for_install(producer)
+libra_install_target(producer)
 
 # Verify the generated config file exists in the build directory.
 assert_file_exists("${CMAKE_BINARY_DIR}/producer-config.cmake")

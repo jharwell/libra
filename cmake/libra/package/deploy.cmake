@@ -13,111 +13,40 @@ include(libra/messaging)
 
   Configure CPack to generate packages via ``make package``.
 
-  Supports multiple package formats including Debian archives (.deb), RPM packages
-  (.rpm), and various compressed archives (tar.gz, zip, etc.). Automatically
-  detects license type, configures package metadata, and sets up format-specific
-  options.
+  Implemented as a ``macro`` (not a function) so that all ``CPACK_*`` variables
+  propagate to the calling scope as required by CPack's ``include(CPack)``
+  machinery.
 
-  This is a MACRO (not function) intentionally so that all CPACK_* variables
-  propagate to parent scope as required by CPack.
+  Requires ``project(... VERSION x.y.z)`` to have been called so that
+  ``PROJECT_VERSION_MAJOR/MINOR/PATCH`` are defined.
 
-  .. code-block:: cmake
+  :param GENERATORS: Semicolon-separated list of CPack generators. Valid values:
+   ``DEB``, ``RPM``, ``TGZ``, ``ZIP``, ``STGZ``, ``TBZ2``, ``TXZ``.
 
-    libra_configure_cpack(<GENERATORS>
-                         <SUMMARY>
-                         <DESCRIPTION>
-                         <VENDOR>
-                         <HOMEPAGE>
-                         <CONTACT>)
-
-  :param GENERATORS: One or more CPack generators, separated by semicolons.
-    Valid options are:
-
-    - ``DEB`` - Debian archive. Packages are set to always install into ``/usr``
-      unless ``CPACK_PACKAGE_INSTALL_DIRECTORY`` is set prior to calling this
-      function.
-    - ``RPM`` - RPM archive. Packages are set to always install into ``/usr``
-      unless ``CPACK_PACKAGE_INSTALL_DIRECTORY`` is set prior to calling this
-      function.
-    - ``TGZ`` - Compressed tar archive (.tar.gz)
-    - ``ZIP`` - ZIP archive
-    - ``STGZ`` - Self-extracting tar.gz archive
-    - ``TBZ2`` - Compressed tar archive (.tar.bz2)
-    - ``TXZ`` - Compressed tar archive (.tar.xz)
-
-    Multiple generators can be specified, e.g., ``"DEB;RPM;TGZ"``.
-
-  :param SUMMARY: One line package summary.
+  :param SUMMARY: One-line package summary.
 
   :param DESCRIPTION: Detailed package description.
 
-  :param VENDOR: Package vendor/maintainer organization.
+  :param VENDOR: Package vendor or maintainer organisation.
 
   :param HOMEPAGE: Project home page URL.
 
-  :param CONTACT: Project contact. Email address for DEB packages, name for RPM
-    packages.
+  :param CONTACT: Package contact. Email address for DEB; name for RPM.
 
-  **Automatic Features:**
-
-  - License type detection from LICENSE file (supports MIT, Apache, GPL, BSD)
-  - Version information from ``PROJECT_VERSION_*`` variables
-  - Automatic dependency detection (``SHLIBDEPS`` for DEB, ``AUTOREQ``/``AUTOPROV`` for RPM)
-  - Standard directory permissions to satisfy lintian/rpmlint
-  - Architecture detection
-
-  **Respects Pre-set Variables:**
-
-  - ``CPACK_PACKAGE_FILE_NAME`` - If set, used as-is. Otherwise defaults to
-    ``${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_PROCESSOR}``
-  - ``CPACK_PACKAGE_INSTALL_DIRECTORY`` - If set, used as-is. Otherwise defaults
-    to ``${CMAKE_INSTALL_PREFIX}``
-  - ``CPACK_DEBIAN_PACKAGE_SECTION`` - Package section (defaults to "devel")
-  - ``CPACK_DEBIAN_PACKAGE_PRIORITY`` - Package priority (defaults to "optional")
-  - ``CPACK_RPM_PACKAGE_GROUP`` - RPM group (defaults to "Development/Libraries")
-  - ``CPACK_RPM_PACKAGE_LICENSE`` - RPM license (auto-detected if not set)
-  - ``CPACK_RPM_PACKAGE_RELEASE`` - RPM release number (defaults to "1")
-
-  **Expected Files:**
-
-  The function automatically searches for these files in
-  ``CMAKE_CURRENT_SOURCE_DIR``:
-
-  - ``LICENSE*`` - License file (used for package and license detection)
-  - ``README*`` - README file
-
-  Warnings are emitted if these files are not found, but package generation
-  continues.
+  Any ``CPACK_*`` variable set before calling this macro is preserved; see
+  :ref:`cookbook/packaging/cpack` for the full list of overridable defaults.
 
   **Example:**
 
   .. code-block:: cmake
 
-    project(mylib VERSION 1.0.0)
-
     libra_configure_cpack(
-      "DEB;RPM"
-      "A short project description"
-      "Long description of the project features and capabilities."
-      "John Doe"
+      "DEB;RPM;TGZ"
+      "One-line summary"
+      "Full description."
+      "Your Organisation"
       "https://example.com/mylib"
-      "John Doe <john@example.com>")
-
-    # Generate packages with: make package
-
-  **DEB-Specific Configuration:**
-
-  - File naming: ``DEB-DEFAULT`` (includes architecture)
-  - Automatic shared library dependency detection
-  - Strict control file permissions
-  - Debug output enabled for troubleshooting
-
-  **RPM-Specific Configuration:**
-
-  - File naming: ``RPM-DEFAULT`` (includes version, release, architecture)
-  - Relocatable packages (allows installation to different prefixes)
-  - Standard system directories excluded from package
-
+      "maintainer@example.com")
 ]]
 macro(
   libra_configure_cpack

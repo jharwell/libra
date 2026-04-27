@@ -16,6 +16,9 @@ include(libra/compile/standard)
    Thin wrapper around :cmake:command:`add_library()` which forwards all
    arguments to the built in function, and adds the target name to
    the list of targets to apply the LIBRA magic to.
+
+   It also adds the ``include/`` directory as a public dependency for
+   building/consuming downstream.
 ]]
 function(libra_add_library)
   # Keyword form: NAME <name> ...
@@ -50,6 +53,11 @@ function(libra_add_library)
 
   endif()
   add_library(${NAME} ${_rest})
+
+  target_include_directories(
+    ${NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                   $<INSTALL_INTERFACE:include>)
+
   set(_LIBRA_TARGET_OWNER_${NAME}
       "${PROJECT_NAME}"
       CACHE INTERNAL "")

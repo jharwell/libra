@@ -2,8 +2,6 @@
 
 .. _reference/project-local:
 
-.. _usage/project-local:
-
 ===========================================
 project-local.cmake: How To Hook Into LIBRA
 ===========================================
@@ -28,7 +26,7 @@ Target Declaration Wrappers
 
 .. cmake-module:: ../../../cmake/libra/targets.cmake
 
-.. _usage/project-local/variables:
+.. _reference/project-local/variables:
 
 Variables
 =========
@@ -214,7 +212,7 @@ Testing
    defaults to ``_test``; valid test harness would then be, e.g.,
    ``tests/thing_test{.cpp,.hpp}``. Does not apply to interpreted tests.
 
-.. _usage/project-local/diagnostics:
+.. _reference/project-local/diagnostics:
 
 Configure-time Utilities
 ========================
@@ -230,23 +228,96 @@ am?". Some useful functions available in ``project-local.cmake`` are:
 .. cmake-module:: ../../../cmake/libra/diagnostics_pre.cmake
 
 
-.. _usage/project-local/install:
+.. _reference/project-local/packaging:
 
-Installation
-============
+Packaging
+=========
 
 All functions in this section are only available if
 :cmake:variable:`LIBRA_DRIVER` is ``SELF``.
 
+The installation API is split across two areas: installing build outputs
+(libraries, headers, executables, and CMake config files) and defining
+components for use with ``find_package()`` COMPONENTS.
+
+For worked examples and common patterns, see :ref:`cookbook/packaging`.
+
+.. _reference/project-local/install/functions:
+
+Install functions
+-----------------
+
 .. cmake-module:: ../../../cmake/libra/package/install.cmake
 
-.. _usage/project-local/deploy:
+.. _reference/project-local/install/call-order:
+
+Call order
+----------
+
+The install functions must be called in this order in
+``cmake/project-local.cmake``:
+
+#. :cmake:command:`libra_configure_exports` — generates the
+   ``<target>-config.cmake`` file. Must be called before any
+   ``libra_install_*`` call.
+#. :cmake:command:`libra_install_target` — installs the compiled library
+   or executable and its export file.
+#. :cmake:command:`libra_install_headers` — install headers (only needed
+   if not passing ``INCLUDE_DIR`` to :cmake:command:`libra_install_target`).
+#. :cmake:command:`libra_install_cmake_modules` — optional; only if your
+   project ships reusable ``.cmake`` modules.
+#. :cmake:command:`libra_install_copyright` — optional but required for
+   ``.deb`` lintian compliance.
+
+.. _reference/project-local/install/what-goes-where:
+
+What gets installed where
+-------------------------
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Artifact
+     - Destination
+
+   * - Shared/static libraries
+     - ``${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}``
+
+   * - Executables
+     - ``${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}``
+
+   * - Headers
+     - ``${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}``
+
+   * - CMake config file
+     - ``${CMAKE_INSTALL_LIBDIR}/cmake/<target>/``
+
+   * - CMake export file
+     - ``${CMAKE_INSTALL_LIBDIR}/cmake/<target>/``
+
+   * - Extra ``.cmake`` modules
+     - ``${CMAKE_INSTALL_LIBDIR}/cmake/<target>/``
+
+   * - Copyright file
+     - ``${CMAKE_INSTALL_DATAROOTDIR}/doc/<target>/copyright``
+
+.. _reference/project-local/components:
+
+Components
+----------
+
+Components allow downstream projects to request subsets of your library
+via ``find_package(mylib REQUIRED COMPONENTS networking)``. LIBRA
+provides two strategies: folding component sources into the main target,
+or building each component as a separate library.
+
+.. cmake-module:: ../../../cmake/libra/package/components.cmake
+
+.. _reference/project-local/deploy:
 
 Deployment
-==========
-
-All functions in this section are only available if :cmake:variable:`LIBRA_DRIVER`
-is ``SELF``.
+----------
 
 .. cmake-module:: ../../../cmake/libra/package/deploy.cmake
 
@@ -255,13 +326,29 @@ Complete Example
 
 Here's a full-featured ``cmake/project-local.cmake`` showing common patterns::
 
-    # Library target
-    libra_add_library(my_library STATIC
-        src/core.cpp
-        src/utils.cpp
-    )
-    target_include_directories(my_library PUBLIC include)
+    # ── Targets ────────────────────────────────────────────────────────────────
+    libra_add_library(my_library ${${PROJECT_NAME}_CXX_SRC})
 
     # Application target
     libra_add_executable(my_app src/main.cpp)
     target_link_libraries(my_app PRIVATE my_library)
+
+    # ── Installation (LIBRA_DRIVER=SELF only) ──────────────────────────────────
+    libra_configure_exports(my_library)
+
+    libra_install_target(my_library
+      INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+
+    libra_install_copyright(my_library ${PROJECT_SOURCE_DIR}/LICENSE)
+
+    # ── Packaging (LIBRA_DRIVER=SELF only) ─────────────────────────────────────
+    libra_configure_cpack(
+      "DEB;TGZ"
+      "One-line summary"
+      "Full description."
+      "My Organisation"
+      "https://example.com/my_library"
+      "maintainer@example.com")
+
+See :ref:`cookbook/packaging` for a complete walk-through of all
+installation and packaging options.

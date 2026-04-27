@@ -109,6 +109,5 @@ Next steps
 
 - Add a ``coverage`` preset and generate reports: :ref:`cookbook/coverage`
 - Add an ``analyze`` preset and run static analysis: :ref:`cookbook/analysis`
-- Set up CI: :ref:`cookbook/ci-setup`
 - Set a personal default preset so you can omit ``--preset``:
   :ref:`cli/presets`

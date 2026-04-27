@@ -185,28 +185,3 @@ headers so clang passes them as ``-isystem`` rather than ``-I``.
 Option 1 is less invasive and handles transitively-included headers
 automatically. Use Option 2 only when you cannot modify the CMake
 target (e.g., for a system-installed library with no CMake target).
-
-6. Documentation in CI
-=======================
-
-Documentation targets do not depend on the main project build, so they
-can run independently — even before the build step if desired. See
-:ref:`cookbook/ci-setup` for the full pipeline context:
-
-.. code-block:: yaml
-
-   # GitHub Actions
-   docs:
-     name: Documentation
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v4
-       - name: Install
-         run: |
-           sudo apt-get update
-           sudo apt-get install -y cmake ninja-build doxygen graphviz python3-sphinx
-       - name: Build and check docs
-         run: |
-           cmake --preset docs
-           cmake --build --preset docs --target apidoc-check-doxygen
-           cmake --build --preset docs --target sphinxdoc

@@ -16,7 +16,7 @@ endfunction(set_policy)
 
 # Function that extract entries matching a given regex from a list. ${OUTPUT}
 # will store the list of matching filenames.
-function(list_extract OUTPUT REGEX)
+function(_libra_list_extract OUTPUT REGEX)
   foreach(FILENAME ${ARGN})
     if(${FILENAME} MATCHES "${REGEX}")
       list(APPEND ${OUTPUT} ${FILENAME})
@@ -27,7 +27,7 @@ function(list_extract OUTPUT REGEX)
       ${${OUTPUT}}
       PARENT_SCOPE)
 
-endfunction(list_extract)
+endfunction(_libra_list_extract)
 
 macro(dual_scope_set name value)
   # Set a variable in parent scope and make it visible in current scope
