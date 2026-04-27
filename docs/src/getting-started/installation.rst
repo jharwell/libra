@@ -136,47 +136,6 @@ Verify the installation:
    The ``clibra`` CLI is optional. You can use LIBRA as a pure CMake
    framework without it. See :ref:`getting-started/quickstart-cmake`.
 
-Verifying your environment
-==========================
-
-Run ``clibra doctor`` from the root of a LIBRA project (a directory
-containing ``CMakeLists.txt``) to check tool availability and minimum
-versions:
-
-.. code-block:: bash
-
-   clibra doctor
-
-Example output:
-
-.. code-block:: text
-
-   Checking LIBRA environment...
-
-   Tools:
-     ✓ cmake       -> /usr/bin/cmake (3.31.2)
-     ✓ ninja       -> /usr/bin/ninja (1.11.1)
-     ✓ gcc         -> /usr/bin/gcc (13.2.0)
-     ✓ g++         -> /usr/bin/g++ (13.2.0)
-     ⚠ clang       not found (optional)
-     ⚠ gcovr       not found (optional)
-     ⚠ cppcheck    not found (optional)
-
-   Project structure:
-     ✓ CMakePresets.json exists
-     ✓ src/ exists
-     ⚠ tests/ does not exist
-     ⚠ docs/Doxyfile.in does not exist
-
-   Checked 14 items: 0 errors, 5 warnings, 9 ok
-
-- ``✓``:  Present and meets the minimum version.
-
-- ``⚠``: Optional or recommended; missing it limits specific features but does
-  not prevent basic builds.
-
-- ``✗``: Required; should be resolved before proceeding.
-
 Shell completions
 =================
 

@@ -2,12 +2,13 @@
 
 .. _design:
 
-======
-Design
-======
+===============
+Internal Design
+===============
 
 This page documents LIBRA's internal design from an architecture and
-implementation point of view.
+implementation point of view. You should only need to read this if you are
+contributing to LIBRA/clibra.
 
 .. toctree::
    :maxdepth: 1
