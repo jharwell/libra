@@ -4,7 +4,7 @@
 # SPDX-License Identifier: MIT
 #
 file(WRITE ${CMAKE_BINARY_DIR}/a.cpp "int f(){return 0;}")
-file(WRITE ${CMAKE_BINARY_DIR}/b.cpp "int g(){return 0;}")
+file(WRITE ${CMAKE_BINARY_DIR}/b.cpp "int main(){return 0;}")
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
 file(WRITE ${CMAKE_BINARY_DIR}/include/test.h "#pragma once")
@@ -16,10 +16,20 @@ libra_add_library(NAME mylib ${CMAKE_BINARY_DIR}/a.cpp)
 libra_add_executable(NAME myexe ${CMAKE_BINARY_DIR}/b.cpp)
 
 libra_configure_exports(mylib)
-libra_register_headers_for_install(${CMAKE_BINARY_DIR}/include)
-libra_register_target_for_install(mylib)
-libra_register_extra_configs_for_install(TARGET mylib FILES_OR_DIRS
-                                         ${CMAKE_BINARY_DIR}/cmake/foo.cmake)
+if(LIBRA_TEST_USE_DEPRECATED_NAMES)
+  libra_register_headers_for_install(${CMAKE_BINARY_DIR}/include)
+  libra_register_target_for_install(mylib)
+  libra_register_extra_configs_for_install(TARGET mylib FILES_OR_DIRS
+                                           ${CMAKE_BINARY_DIR}/cmake/foo.cmake)
+elseif(LIBRA_TEST_INSTALL_BAD_TARGET)
+  libra_register_target_for_install(nonexistent)
+
+else()
+  libra_install_headers(${CMAKE_BINARY_DIR}/include)
+  libra_install_target(mylib)
+  libra_install_cmake_modules(TARGET mylib FILES_OR_DIRS
+                              ${CMAKE_BINARY_DIR}/cmake/foo.cmake)
+endif()
 if(LIBRA_TEST_CPACK_LICENSE_TYPE)
   set(CPACK_RPM_PACKAGE_LICENSE ${LIBRA_TEST_CPACK_LICENSE_TYPE})
 endif()

@@ -11,7 +11,7 @@ file(WRITE ${CMAKE_BINARY_DIR}/b.cpp "int g(){return 0;}")
 libra_add_library(mylib ${CMAKE_BINARY_DIR}/a.cpp)
 libra_add_executable(myexe ${CMAKE_BINARY_DIR}/b.cpp)
 
-libra_register_target_for_install(mylib)
+libra_install_target(mylib)
 
 assert_target_exists(mylib)
 assert_target_exists(myexe)

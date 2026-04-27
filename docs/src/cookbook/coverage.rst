@@ -184,7 +184,7 @@ The recommended CI coverage sequence:
 
          clibra ci --preset ci   # build + test + gcovr-check in one command
 
-      Requires a ``ci`` workflow preset. See :ref:`cookbook/ci-setup`.
+      Requires a ``ci`` workflow preset.
 
    .. tab-item:: CMake
 

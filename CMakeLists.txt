@@ -37,8 +37,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/deploy.cmake)
 # Configure cmake config export for install
 libra_configure_exports(${PROJECT_NAME})
 
-libra_register_extra_configs_for_install(
-  TARGET ${PROJECT_NAME} FILES_OR_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra)
+libra_install_cmake_modules(TARGET ${PROJECT_NAME} FILES_OR_DIRS
+                            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra)
 
 # The ../ is necessary to get the dotfiles to be found in the various places.
 # Easier to make the change here than to try and figure out how to get conan to
