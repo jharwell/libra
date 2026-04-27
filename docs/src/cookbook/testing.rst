@@ -23,8 +23,8 @@ To build and run in one step:
 
          clibra test --preset debug
 
-      You can also add ``--no-build`` to avoid rebuilding before running tests,
-      which is the default.
+      You can also add :option:`--no-build` to avoid rebuilding before running
+      tests, which is the default.
 
    .. tab-item:: CMake
 

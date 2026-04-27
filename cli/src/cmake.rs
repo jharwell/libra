@@ -131,16 +131,10 @@ pub fn generator(preset: &str) -> anyhow::Result<String> {
 /// directory is perfectly valid in a cold start.
 pub fn binary_dir(preset: &str) -> Option<std::path::PathBuf> {
     let path = {
-        let from_user =
-            preset::read_configure_preset_field("CMakeUserPresets.json", preset, "binaryDir")
-                .unwrap_or(None);
+        let from_json =
+            preset::read_configure_preset_field(".", preset, "binaryDir").unwrap_or(None);
 
-        let from_project =
-            preset::read_configure_preset_field("CMakePresets.json", preset, "binaryDir")
-                .unwrap_or(None);
-        from_user
-            .or(from_project)
-            .unwrap_or_else(|| "./build".to_string())
+        from_json.unwrap_or_else(|| "./build".to_string())
     };
     let bdir = expand_binary_dir(&path, preset);
     if bdir.exists() {

@@ -38,7 +38,7 @@ You also must define CMake presets; ``clibra`` is entirely preset driven:
 
    .. include:: /src/ex-cmake-presets.rst
 
-3. Build and test
+2. Build and test
 =================
 
 .. code-block:: bash
@@ -46,7 +46,7 @@ You also must define CMake presets; ``clibra`` is entirely preset driven:
    clibra build --preset debug   # configure + build
    clibra test  --preset debug   # build tests + run
 
-4. Inspect your build
+3. Inspect your build
 =====================
 
 .. code-block:: bash
