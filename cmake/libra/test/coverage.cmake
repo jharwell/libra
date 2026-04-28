@@ -76,6 +76,14 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
       get_filename_component(COMPILER_NAME ${_real_compiler} NAME)
     endif()
 
+    # CMAKE_C_COMPILER may point to a symlink (e.g. /usr/bin/cc -> gcc-12).
+    # get_filename_component() does not follow symlinks, so COMPILER_NAME would
+    # be "cc", causing the gcc->gcov substitution below to silently no-op and
+    # find_program() to locate "cc" instead of the real gcov binary.
+    # file(REAL_PATH) resolves the full symlink chain first.
+    file(REAL_PATH ${CMAKE_C_COMPILER} _real_compiler)
+    get_filename_component(COMPILER_NAME ${_real_compiler} NAME)
+
     string(REPLACE "g++" "gcov" GCOV_NAME ${COMPILER_NAME})
     string(REPLACE "gcc" "gcov" GCOV_NAME ${GCOV_NAME})
 
