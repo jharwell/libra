@@ -142,8 +142,9 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
                    ${LIBRA_test_harness})
 
   # Tests depend on the project library (DUH)
-  target_link_libraries(${PROJECT_NAME}-${test_name} ${PROJECT_NAME}
-                        ${LIBRA_test_harness} ${LIBRA_TEST_HARNESS_LIBS})
+  target_link_libraries(
+    ${PROJECT_NAME}-${test_name} PUBLIC ${PROJECT_NAME} ${LIBRA_test_harness}
+                                        ${LIBRA_TEST_HARNESS_LIBS})
 
   # If the project is a C project, then we will probably be casting in the C
   # way, so turn off the usual compile warnings about this.
@@ -461,8 +462,8 @@ function(configure_test_harness)
                                PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Have to link with the main project to propagate includes, defines, etc.
-    target_link_libraries(${PROJECT_NAME}-c-harness ${PROJECT_NAME}
-                          ${LIBRA_TEST_HARNESS_LIBS})
+    target_link_libraries(${PROJECT_NAME}-c-harness
+                          PUBLIC ${PROJECT_NAME} ${LIBRA_TEST_HARNESS_LIBS})
   endif()
 
   # Create C++ test harness
@@ -480,8 +481,8 @@ function(configure_test_harness)
                                PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
     # Have to link with the main project to propagate includes, defines, etc.
-    target_link_libraries(${PROJECT_NAME}-cxx-harness ${PROJECT_NAME}
-                          ${LIBRA_TEST_HARNESS_LIBS})
+    target_link_libraries(${PROJECT_NAME}-cxx-harness
+                          PUBLIC ${PROJECT_NAME} ${LIBRA_TEST_HARNESS_LIBS})
 
     # If the project is a C project, then we will probably be casting in the C
     # way, so turn off the usual compile warnings about this.
