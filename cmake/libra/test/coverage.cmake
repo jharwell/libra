@@ -62,10 +62,18 @@ function(_libra_detect_gcov_tool OUTPUT_VAR)
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES
                                                 "GNU")
     # Use whichever compiler IS actually GNU
+    #
+    # The compiler may point to a symlink (e.g. /usr/bin/cc -> gcc-12).
+    # get_filename_component() does not follow symlinks, so COMPILER_NAME would
+    # be "cc", causing the gcc->gcov substitution below to silently no-op and
+    # find_program() to locate "cc" instead of the real gcov binary.
+    # file(REAL_PATH) resolves the full symlink chain first.
     if(CMAKE_C_COMPILER_ID MATCHES "GNU")
-      get_filename_component(COMPILER_NAME ${CMAKE_C_COMPILER} NAME)
+      file(REAL_PATH ${CMAKE_C_COMPILER} _real_compiler)
+      get_filename_component(COMPILER_NAME ${_real_compiler} NAME)
     else()
-      get_filename_component(COMPILER_NAME ${CMAKE_CXX_COMPILER} NAME)
+      file(REAL_PATH ${CMAKE_CXX_COMPILER} _real_compiler)
+      get_filename_component(COMPILER_NAME ${_real_compiler} NAME)
     endif()
 
     string(REPLACE "g++" "gcov" GCOV_NAME ${COMPILER_NAME})
