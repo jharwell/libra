@@ -283,9 +283,8 @@ endfunction()
     libra_install_copyright(mylib ${PROJECT_SOURCE_DIR}/LICENSE)
 ]]
 function(libra_install_copyright)
-  # Support both:
-  # 1. libra_install_copyright(TARGET mylib FILE LICENSE)
-  # 2. libra_install_copyright(mylib LICENSE)
+  # Support both: 1. libra_install_copyright(TARGET mylib FILE LICENSE) 2.
+  # libra_install_copyright(mylib LICENSE)
   cmake_parse_arguments(
     ARG
     ""
@@ -345,9 +344,8 @@ endfunction()
     # This installs: include/mylib/foo.hpp -> ${CMAKE_INSTALL_PREFIX}/include/mylib/foo.hpp
 ]]
 function(libra_install_headers)
-  # Support both:
-  # 1. libra_install_headers(DIRECTORY include/)
-  # 2. libra_install_headers(include/)
+  # Support both: 1. libra_install_headers(DIRECTORY include/) 2.
+  # libra_install_headers(include/)
   cmake_parse_arguments(
     ARG
     ""
@@ -374,7 +372,8 @@ function(libra_install_headers)
   endif()
 
   # Check if directory contains any headers
-  file(GLOB_RECURSE HEADER_CHECK "${ARG_DIRECTORY}/*.hpp" "${ARG_DIRECTORY}/*.h")
+  file(GLOB_RECURSE HEADER_CHECK "${ARG_DIRECTORY}/*.hpp"
+       "${ARG_DIRECTORY}/*.h")
 
   if(NOT HEADER_CHECK)
     libra_message(
@@ -395,7 +394,8 @@ function(libra_install_headers)
     PATTERN "*.h")
 
   libra_message(
-    STATUS "Registered ${NUM_HEADERS} headers for install from ${DIRECTORY}")
+    STATUS
+    "Registered ${NUM_HEADERS} headers for install from ${ARG_DIRECTORY}")
 endfunction()
 
 #[[.rst:
@@ -449,11 +449,9 @@ endfunction()
 
 ]]
 function(libra_install_target)
-  # Support:
-  # 1. libra_install_target(TARGET mylib)
-  # 2. libra_install_target(mylib)
-  # 3. libra_install_target(mylib INCLUDE_DIR include/)
-  # 4. libra_install_target(TARGET mylib INCLUDE_DIR include/)
+  # Support: 1. libra_install_target(TARGET mylib) 2.
+  # libra_install_target(mylib) 3. libra_install_target(mylib INCLUDE_DIR
+  # include/) 4. libra_install_target(TARGET mylib INCLUDE_DIR include/)
   cmake_parse_arguments(
     ARG
     ""
@@ -507,7 +505,7 @@ function(libra_install_target)
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}
     NAMESPACE ${ARG_TARGET}::)
 
-  libra_message(STATUS "Installed target: ${ARG_TARGET}")
+  libra_message(STATUS "Registered target ${ARG_TARGET} for install")
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
   libra_message(STATUS

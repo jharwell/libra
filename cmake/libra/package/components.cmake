@@ -44,7 +44,7 @@ function(libra_add_component_library)
   cmake_parse_arguments(
     ARG
     ""
-    "TARGET;COMPONENT;REGEX;TYPE"
+    "TARGET;COMPONENT;REGEX"
     "SOURCES"
     ${ARGN})
 
@@ -72,12 +72,27 @@ function(libra_add_component_library)
 
   set(_lib_name ${ARG_TARGET}_${ARG_COMPONENT})
 
-  libra_add_library(${_lib_name} SHARED ${_component_src})
+  if(TARGET ${ARG_TARGET})
+    get_target_property(target_type ${ARG_TARGET} TYPE)
+
+    if(target_type STREQUAL SHARED_LIBRARY)
+      libra_add_library(${_lib_name} SHARED ${_component_src})
+    else()
+      libra_add_library(${_lib_name} STATIC ${_component_src})
+    endif()
+  else()
+    libra_add_library(${_lib_name} SHARED ${_component_src})
+    libra_message(
+      WARNING
+      "Cannot infer libtype from non-existing target ${ARG_TARGET}--assuming SHARED"
+    )
+  endif()
   dual_scope_set(${ARG_TARGET}_${ARG_COMPONENT}_FOUND 1)
 
+  list(LENGTH _component_src LEN)
   libra_message(
     STATUS
-    "Defined component '${ARG_COMPONENT}' for ${ARG_TARGET} (SHARED library target: ${_lib_name})"
+    "Defined component '${ARG_COMPONENT}' for ${ARG_TARGET} (${target_type} target: ${_lib_name}, ${LEN} files)"
   )
 endfunction()
 
