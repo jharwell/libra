@@ -9,7 +9,7 @@
 extern "C" int dep_value();
 
 int main(int, char**) {
-#ifndef __nostdlib__
+#ifndef LIBRA_NOSTDLIB
   std::cout << "dep_value=" << dep_value() << std::endl;
 #endif
   return 0;

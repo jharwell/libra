@@ -150,5 +150,5 @@ else()
 endif()
 
 if("${LIBRA_STDLIB}" MATCHES "NONE")
-  list(APPEND _LIBRA_PUBLIC_DEFS -D__nostdlib__)
+  list(APPEND _LIBRA_PUBLIC_DEFS -DLIBRA_NOSTDLIB)
 endif()

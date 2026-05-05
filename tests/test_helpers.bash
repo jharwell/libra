@@ -1086,7 +1086,7 @@ get_install_libdir() {
   mkdir -p "$tmp_src"
   printf 'cmake_minimum_required(VERSION 3.5)\nproject(probe C)\ninclude(GNUInstallDirs)\nmessage(STATUS "LIBDIR=${CMAKE_INSTALL_LIBDIR}")' > "$tmp_src/CMakeLists.txt"
   
-  cmake -S "$tmp_src" -B "$tmp_build" 2>&1 \
+  cmake -S "$tmp_src" -B "$tmp_build" 2>&3 \
     | grep 'LIBDIR=' \
     | grep -o '[^=]*$'
 }

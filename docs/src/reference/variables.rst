@@ -371,7 +371,7 @@ Build optimization
 
    Select which standard library to use. Valid values:
 
-   - ``NONE`` - No stdlib. Defines ``__nostdlib__`` for all source files.
+   - ``NONE`` - No stdlib. Defines ``LIBRA_NOSTDLIB`` for all source files.
      For bare-metal builds.
    - ``CXX`` - Use libc++, if the compiler supports it.
    - ``STDCXX`` - Use libstdc++, if the compiler supports it.
