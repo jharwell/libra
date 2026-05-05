@@ -253,53 +253,53 @@ setup() {
 }
 
 # ==============================================================================
-# __nostdlib__ preprocessor define
+# LIBRA_NOSTDLIB preprocessor define
 #
-# When LIBRA_STDLIB=NONE, compiler.cmake adds -D__nostdlib__ to the PUBLIC
+# When LIBRA_STDLIB=NONE, compiler.cmake adds -DLIBRA_NOSTDLIB to the PUBLIC
 # compile definitions so downstream consumers can detect the freestanding
 # environment.  This is distinct from the -nostdlib linker flag.
 # ==============================================================================
 
-@test "STDLIB: GNU/C NONE sets __nostdlib__ define on target" {
+@test "STDLIB: GNU/C NONE sets LIBRA_NOSTDLIB define on target" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_STDLIB=NONE)
 
-    assert_define_present "$test_dir" "c" "__nostdlib__"
+    assert_define_present "$test_dir" "c" "LIBRA_NOSTDLIB"
 }
 
-@test "STDLIB: GNU/C++ NONE sets __nostdlib__ define on target" {
+@test "STDLIB: GNU/C++ NONE sets LIBRA_NOSTDLIB define on target" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=NONE)
 
-    assert_define_present "$test_dir" "cxx" "__nostdlib__"
+    assert_define_present "$test_dir" "cxx" "LIBRA_NOSTDLIB"
 }
 
-@test "STDLIB: Clang/C NONE sets __nostdlib__ define on target" {
+@test "STDLIB: Clang/C NONE sets LIBRA_NOSTDLIB define on target" {
     skip_if_compiler_missing "clang" "c"
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_STDLIB=NONE)
 
-    assert_define_present "$test_dir" "c" "__nostdlib__"
+    assert_define_present "$test_dir" "c" "LIBRA_NOSTDLIB"
 }
 
-@test "STDLIB: Clang/C++ NONE sets __nostdlib__ define on target" {
+@test "STDLIB: Clang/C++ NONE sets LIBRA_NOSTDLIB define on target" {
     skip_if_compiler_missing "clang" "cxx"
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=NONE)
 
-    assert_define_present "$test_dir" "cxx" "__nostdlib__"
+    assert_define_present "$test_dir" "cxx" "LIBRA_NOSTDLIB"
 }
 
-@test "STDLIB: Default (UNDEFINED) does not set __nostdlib__ define" {
+@test "STDLIB: Default (UNDEFINED) does not set LIBRA_NOSTDLIB define" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx")
 
-    assert_define_absent "$test_dir" "cxx" "__nostdlib__"
+    assert_define_absent "$test_dir" "cxx" "LIBRA_NOSTDLIB"
 }
 
-@test "STDLIB: GNU/C++ STDCXX does not set __nostdlib__ define" {
+@test "STDLIB: GNU/C++ STDCXX does not set LIBRA_NOSTDLIB define" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=STDCXX)
 
-    assert_define_absent "$test_dir" "cxx" "__nostdlib__"
+    assert_define_absent "$test_dir" "cxx" "LIBRA_NOSTDLIB"
 }

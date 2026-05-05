@@ -11,7 +11,7 @@ extern int dep_value(void);
 int main(int argc, char** argv) {
   (void)argc;
   (void)argv;
-#ifndef __nostdlib__
+#ifndef LIBRA_NOSTDLIB
   printf("dep_value=%d\n", dep_value());
 #endif
   return 0;

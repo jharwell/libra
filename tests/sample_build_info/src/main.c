@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef __nostdlib__
+#ifndef LIBRA_NOSTDLIB
 #include <stdio.h>
 #endif
 
@@ -19,19 +19,19 @@ int main(int argc, char** argv) {
 
   int n = 14;
 
-#ifndef __nostdlib__
+#ifndef LIBRA_NOSTDLIB
   printf("Fibonacci Series: %d, %d, ", t1, t2); // print the first two terms
 #endif
   // print 3rd to nth terms
   for (i = 3; i <= n; ++i) {
-#ifndef __nostdlib__
+#ifndef LIBRA_NOSTDLIB
     printf("%d, ", nextTerm);
 #endif
     t1 = t2;
     t2 = nextTerm;
     nextTerm = t1 + t2;
   }
-#ifndef __nostdlib__
+#ifndef LIBRA_NOSTDLIB
   printf("\n");
 #endif
   return 0;
