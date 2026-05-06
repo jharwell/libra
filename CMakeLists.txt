@@ -35,7 +35,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/install.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/deploy.cmake)
 
 # Configure cmake config export for install
-libra_configure_exports(${PROJECT_NAME})
+libra_configure_exports(TARGET ${PROJECT_NAME} COMPATIBILITY SameMinorVersion)
 
 libra_register_extra_configs_for_install(
   TARGET ${PROJECT_NAME} FILES_OR_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra)

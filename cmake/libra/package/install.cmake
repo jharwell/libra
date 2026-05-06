@@ -31,12 +31,17 @@ include(GNUInstallDirs)
    *not* add said dependencies to your ``config.cmake.in`` file via
    ``find_dependency()``, as that will cause an infinite loop.
 
+  :param COMPATIBILITY: The name of the CMake compatibility strategy for this
+  exported target. If not specified, defaults to ``ExactVersion`` for safety.
+
   **Requirements:**
 
   The function expects a template file at
   ``${PROJECT_SOURCE_DIR}/cmake/config.cmake.in``. This template is processed by
   ``configure_package_config_file()`` to generate the final config file that
   defines everything necessary to use the project with ``find_package()``.
+
+  The function expects :cmake:variable:`PROJECT_VERSION` to be defined.
 
   **Example:**
 
@@ -50,12 +55,18 @@ function(libra_configure_exports)
   cmake_parse_arguments(
     ARG
     ""
-    "TARGET"
+    "TARGET;COMPATIBILITY"
     ""
     ${ARGN})
 
-  if(NOT ARG_TARGET AND ARGN)
-    list(GET ARGN 0 ARG_TARGET)
+  if(NOT ARG_TARGET AND ARG_UNPARSED_ARGUMENTS)
+    list(GET ARG_UNPARSED_ARGUMENTS 0 ARG_TARGET)
+  endif()
+  if(NOT ARG_COMPATIBILITY AND ARG_UNPARSED_ARGUMENTS)
+    list(LENGTH ARG_UNPARSED_ARGUMENTS _len)
+    if(_len GREATER 1)
+      list(GET ARG_UNPARSED_ARGUMENTS 1 ARG_COMPATIBILITY)
+    endif()
   endif()
 
   if(NOT ARG_TARGET)
@@ -63,6 +74,17 @@ function(libra_configure_exports)
   endif()
 
   set(TARGET ${ARG_TARGET})
+  if(NOT ARG_COMPATIBILITY)
+    set(ARG_COMPATIBILITY "ExactVersion")
+    libra_message(
+      WARNING
+      "COMPATABILITY not specified for ${ARG_TARGET}--defaulting to ExactVersion. Pass COMPATIBILITY <mode> to suppress this warning."
+    )
+  endif()
+  set(COMPATIBILITY ${ARG_COMPATIBILITY})
+
+  set(TARGET ${ARG_TARGET})
+  set(COMPATIBILITY ${ARG_COMPATIBILITY})
 
   include(CMakePackageConfigHelpers)
 
@@ -82,6 +104,15 @@ function(libra_configure_exports)
   configure_package_config_file(
     ${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-configVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY ${COMPATIBILITY} # or AnyNewerVersion, ExactVersion, etc.
+  )
+
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-configVersion.cmake"
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET})
 
   # Install the configured exports file
   install(FILES "${OUTPUT_FILE}"
