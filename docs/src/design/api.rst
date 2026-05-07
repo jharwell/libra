@@ -42,5 +42,5 @@ Formatting
 Documentation
 -------------
 
-.. cmake-module:: ../../../cmake/libra/apidoc.cmake
-.. cmake-module:: ../../../cmake/libra/sphinxdoc.cmake
+.. cmake-module:: ../../../cmake/libra/docs/doxygen.cmake
+.. cmake-module:: ../../../cmake/libra/docs/sphinx.cmake

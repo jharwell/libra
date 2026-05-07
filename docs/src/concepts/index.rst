@@ -17,6 +17,7 @@ knowledge.
    feature-flags
    targets
    build-lifecycle
+   versioning
    testing
    analysis
    docs
