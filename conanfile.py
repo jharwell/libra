@@ -23,7 +23,7 @@ class LIBRAConan(ConanFile):
 
     def set_version(self):
         self.version = subprocess.run(
-            (f"grep LIBRA_VERSION {self.recipe_folder}/cmake/libra/version.cmake |"
+            (f"grep LIBRA_VERSION {self.recipe_folder}/cmake/libra/self.cmake |"
              "grep -Eo [0-9]+.[0-9]+.[0-9]+"),
             shell=True,
             check=True,

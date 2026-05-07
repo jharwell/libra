@@ -34,7 +34,7 @@ fi
 # Determine version
 LIBRA_SOURCE_ROOT="$(cd "${TESTS_DIR}/.." && pwd)"
 LIBRA_CONAN_VERSION=$(
-    grep LIBRA_VERSION "${LIBRA_SOURCE_ROOT}/cmake/libra/version.cmake" \
+    grep LIBRA_VERSION "${LIBRA_SOURCE_ROOT}/cmake/libra/self.cmake" \
         | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' \
         | head -1
                    )

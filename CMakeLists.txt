@@ -13,21 +13,23 @@ cmake_policy(SET CMP0177 NEW) # Normalize paths
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+include(cmake/libra/self.cmake)
 include(cmake/libra/version.cmake)
+libra_extract_version()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Top-level/when LIBRA itself is being installed: need a language for
   # GNUInstallDirs architecture detection
   project(
     libra
-    VERSION ${LIBRA_VERSION}
+    VERSION ${LIBRA_PROJECT_VERSION_NUMERIC}
     LANGUAGES C)
 else()
   # Consumed downstream: no language detection needed or wanted since LIBRA is
   # already installed and is pure cmake.
   project(
     libra
-    VERSION ${LIBRA_VERSION}
+    VERSION ${LIBRA_PROJECT_VERSION_NUMERIC}
     LANGUAGES NONE)
 endif()
 
@@ -43,8 +45,7 @@ libra_install_cmake_modules(TARGET ${PROJECT_NAME} FILES_OR_DIRS
 # The ../ is necessary to get the dotfiles to be found in the various places.
 # Easier to make the change here than to try and figure out how to get conan to
 # conform to what cmake does by default.
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dots
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/..)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dots DESTINATION lib/cmake/..)
 
 # ##############################################################################
 # Deployment

@@ -164,6 +164,22 @@ endfunction()
 # These are the old function names, kept for backwards compatibility. They will
 # be removed in a future version of libra. Use the new names instead.
 # ##############################################################################
+function(
+  libra_component_register_as_src
+  enabled_component_SRC
+  TARGET
+  TARGET_SRC
+  component_name
+  REGEX)
+  libra_message(DEPRECATION "libra_component_register_as_src() is deprecated.")
+  list_extract(enabled_component_SRC "${REGEX}" "${TARGET_SRC}")
+  set(${TARGET}_${component_name}_FOUND
+      1
+      PARENT_SCOPE)
+  set(${enabled_component_SRC}
+      ${${enabled_component_SRC}}
+      PARENT_SCOPE)
+endfunction()
 
 macro(libra_component_register_as_lib)
   libra_message(

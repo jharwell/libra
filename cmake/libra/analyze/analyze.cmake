@@ -176,25 +176,18 @@ function(_libra_prune_stale_stubs TARGET STUB_DIR)
   endif()
 
   # Duplicates in this list can result in multiple analysis target definitions.
-  list(REMOVE_DUPLICATES IFACE_INCLUDES)
+  _libra_normalize_includes("${IFACE_INCLUDES}" NORMALIZED_INCLUDES)
 
   # Build the set of expected stub filenames -- one per header that has no
   # .c/.cpp coverage (matching the logic in _libra_generate_header_stubs)
   set(EXPECTED_STUBS "")
-
-  foreach(INCLUDE_DIR IN LISTS IFACE_INCLUDES)
-    if(INCLUDE_DIR MATCHES "\\$<INSTALL_INTERFACE:.*>")
-      continue()
-    endif()
-    string(REGEX REPLACE "\\$<BUILD_INTERFACE:(.+)>" "\\1" INCLUDE_DIR2
-                         "${INCLUDE_DIR}")
-
+  foreach(INCLUDE_DIR IN LISTS NORMALIZED_INCLUDES)
     foreach(HEADER IN LISTS ${PROJECT_NAME}_C_HEADERS
                             ${PROJECT_NAME}_CXX_HEADERS)
-      libra_message(DEBUG "Checking ${INCLUDE_DIR2} + ${HEADER} for staleness")
-      _libra_header_needs_stub(${HEADER} ${INCLUDE_DIR2} NEEDS_STUB)
+      libra_message(DEBUG "Checking ${INCLUDE_DIR} + ${HEADER} for staleness")
+      _libra_header_needs_stub(${HEADER} ${INCLUDE_DIR} NEEDS_STUB)
       if(NEEDS_STUB)
-        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR2}" "${HEADER}")
+        file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR}" "${HEADER}")
         string(REPLACE "/" "__" STUB_NAME "${REL_HEADER}")
         string(REPLACE "." "_" STUB_NAME "${STUB_NAME}")
         list(APPEND EXPECTED_STUBS "${STUB_DIR}/${STUB_NAME}.${_STUB_EXT}")
@@ -261,24 +254,18 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
   set(stub_count 0)
 
   # Duplicates in this list can result in multiple analysis target definitions.
-  list(REMOVE_DUPLICATES IFACE_INCLUDES)
+  _libra_normalize_includes("${IFACE_INCLUDES}" NORMALIZED_INCLUDES)
 
-  foreach(INCLUDE_DIR IN LISTS IFACE_INCLUDES)
-    if(INCLUDE_DIR MATCHES "\\$<INSTALL_INTERFACE:.*>")
-      continue()
-    endif()
-    string(REGEX REPLACE "\\$<BUILD_INTERFACE:(.+)>" "\\1" INCLUDE_DIR2
-                         "${INCLUDE_DIR}")
-
+  foreach(INCLUDE_DIR IN LISTS NORMALIZED_INCLUDES)
     foreach(HEADER IN LISTS ${PROJECT_NAME}_C_HEADERS
                             ${PROJECT_NAME}_CXX_HEADERS)
-      _libra_header_needs_stub(${HEADER} ${INCLUDE_DIR2} NEEDS_STUB)
+      _libra_header_needs_stub(${HEADER} ${INCLUDE_DIR} NEEDS_STUB)
       if(NOT NEEDS_STUB)
         math(EXPR skipped_count "${skipped_count} + 1")
         continue()
       endif()
 
-      file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR2}" "${HEADER}")
+      file(RELATIVE_PATH REL_HEADER "${INCLUDE_DIR}" "${HEADER}")
       string(REPLACE "/" "__" STUB_NAME "${REL_HEADER}")
       string(REPLACE "." "_" STUB_NAME "${STUB_NAME}")
       set(STUB_FILE "${STUB_DIR}/${STUB_NAME}.${_STUB_EXT}")
@@ -307,7 +294,38 @@ function(_libra_generate_header_stubs TARGET STUB_DIR STUBS_VAR)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: analyze_build_fixeddb_for_target
+.. cmake:command:: _libra_normalize_includes
+
+  Normalize a list of includes for the purposes of stub file generation.
+
+  - Strip BUILD_INTERFACE genex, since we only want the actual dir
+  - Ignore INSTALL_INTERFACE dirs
+
+  After the above, remove duplicates.
+]]
+function(_libra_normalize_includes INCLUDES OUTVAR)
+  set(_normalized "")
+  foreach(_dir IN LISTS INCLUDES)
+    if(_dir MATCHES "^\\$<BUILD_INTERFACE:(.+)>$")
+      # Unwrap BUILD_INTERFACE -- plain path is what analysis tools need
+      list(APPEND _normalized "${CMAKE_MATCH_1}")
+    elseif(_dir MATCHES "^\\$<INSTALL_INTERFACE:")
+      # Skip -- not meaningful at build time for analysis
+    elseif(_dir MATCHES "^\\$<")
+      # Other genex -- keep as-is, can't resolve at configure time
+      list(APPEND _normalized "${_dir}")
+    else()
+      list(APPEND _normalized "${_dir}")
+    endif()
+  endforeach()
+  list(REMOVE_DUPLICATES _normalized)
+  set(${OUTVAR}
+      ${_normalized}
+      PARENT_SCOPE)
+endfunction()
+
+#[[.rst:
+.. cmake:command:: _libra_analyze_build_fixeddb_for_target
 
   Build a fixed compilation database (LLVM/clang terminology) for a target. A
   fixed compdb is the set of includes and #define which would otherwise be
@@ -325,7 +343,7 @@ endfunction()
   :param RET: Name of variable to set in parent scope with the args to add to
    the analysis tool.
 ]]
-function(analyze_build_fixeddb_for_target TARGET RET)
+function(_libra_analyze_build_fixeddb_for_target TARGET RET)
   # Create a scratch interface target to force transitive resolution
   set(PROBE_TARGET _libra_probe_${TARGET})
   if(NOT TARGET ${PROBE_TARGET})
@@ -359,9 +377,9 @@ function(analyze_build_fixeddb_for_target TARGET RET)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: analyze_build_adhocdb_for_target
+.. cmake:command:: libra_analyze_build_adhocdb_for_target
 
-  Same as :cmake:command:`analyze_build_fixeddb_for_target`, but
+  Same as :cmake:command:`_libra_analyze_build_fixeddb_for_target`, but
   clang tools only. Instead of fixeddb, we build a set of ``--extra-arg`` arguments
   which are passed en masse to clang tools. In theory this should be the same as a
   compilation database, but isn't necessarily guaranteed to be.
@@ -371,7 +389,7 @@ endfunction()
   :param RET: Name of variable to set in parent scope with the args to add to
    the analysis tool.
 ]]
-function(analyze_clang_build_adhocdb_for_target TARGET RET)
+function(libra_analyze_clang_build_adhocdb_for_target TARGET RET)
   # Create a scratch interface target to force transitive resolution
   set(PROBE_TARGET _libra_probe_${TARGET})
   if(NOT TARGET ${PROBE_TARGET})
@@ -406,7 +424,7 @@ function(analyze_clang_build_adhocdb_for_target TARGET RET)
 endfunction()
 
 #[[.rst:
-.. cmake:command:: analyze_clang_extract_args_from_target
+.. cmake:command:: _libra_analyze_clang_extract_args_from_target
 
   For clang-based analysis tools, extract necessary args for a target so that
   analysis will work on all input files.
@@ -424,7 +442,7 @@ endfunction()
   :param RET: Name of variable to set in parent scope with the args to add to
    the analysis tool.
 ]]
-function(analyze_clang_extract_args_from_target TARGET RET)
+function(_libra_analyze_clang_extract_args_from_target TARGET RET)
   set(USE_DATABASE ${LIBRA_USE_COMPDB})
   if(USE_DATABASE)
     set(${RET}
@@ -432,12 +450,12 @@ function(analyze_clang_extract_args_from_target TARGET RET)
         PARENT_SCOPE)
   else()
     if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
-      analyze_build_fixeddb_for_target(${TARGET} TMP)
+      _libra_analyze_build_fixeddb_for_target(${TARGET} TMP)
       set(${RET}
           ${TMP}
           PARENT_SCOPE)
     else()
-      analyze_clang_build_adhocdb_for_target(${TARGET} TMP)
+      _libra_analyze_clang_build_adhocdb_for_target(${TARGET} TMP)
       set(${RET}
           ${TMP}
           PARENT_SCOPE)

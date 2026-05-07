@@ -173,13 +173,33 @@ jobs:
             --lockfile-out=package.lock \
             .
 
-  create-release:
-    # Only create releases from master (stable). Gettings beta releases on every
-    # merge to devel is more noisy than useful.
-    if: github.ref_name == 'master'
+  tag-dev-release:
+    # Runs after every merge to devel. Computes the next dev.N tag and
+    # pushes it so downstream repos can consume a stable reference to
+    # this integration state without pinning to a raw commit hash.
+    #
+    # Tag selection algorithm:
+    #   1. If a dev tag series exists for the next version (e.g.
+    #      v1.5.0-dev.3) and no stable release for that base exists yet:
+    #      increment N  ->  v1.5.0-dev.4
+    #   2. If the latest dev tag's base version has since been released
+    #      as stable (v1.5.0 exists): start a new patch series
+    #      ->  v1.5.1-dev.1
+    #   3. No dev tags at all: find latest stable and start new patch
+    #      series  ->  v(X.Y.Z+1)-dev.1
+    #   4. No tags at all: bootstrap at v0.0.1-dev.1
+    #
+    # GITHUB_TOKEN is sufficient here -- dev tag pushes do not need to
+    # trigger publish.yml (which only fires on GitHub releases from
+    # master). The tag push will re-trigger this workflow but all jobs
+    # guard on ref_type == 'branch' so only create-release re-evaluates
+    # (and its !contains('-') guard excludes dev tags).
+    if: github.ref_type == 'branch' && github.ref_name == 'devel'
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16
+    permissions:
+      contents: write
     needs:
       - cmake-funcs-smoke-tests
       - cmake-add-subdirectory-smoke-tests
@@ -189,36 +209,53 @@ jobs:
       - cmake-self-install-test
       - cli-smoke-tests
       - cli-unit-tests
-
+      - schema-help-targets
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history required to inspect all existing tags.
+          fetch-depth: 0
 
-      - name: Get version
-        id: version
-        run: |
-          VERSION=$(grep -oP '(?<=set\(LIBRA_VERSION )[^)]+' cmake/libra/version.cmake)
-          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Set release tag
-        if: github.ref_name == 'master'
+      - name: Compute and push next dev tag
         shell: bash
         run: |
-          echo "RELEASE_TAG=${{ steps.version.outputs.version }}" >> $GITHUB_ENV
+          git fetch --tags
 
-      - name: Github release
-        if: github.ref_name == 'master'
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          # 2025-04-29 [JRH]: This is NOT the usual secrets.GITHUB_TOKEN because
-          # as of now, you can't trigger a workflow (such as the publish
-          # workflow) with the same token that THIS workflow was triggered with,
-          # because...reasons.
-          #
-          # The workaround is to create a fine-grained token for my account,
-          # give it permissions only for the LIBRA repo, and set it as a CI
-          # secret. THEN the publish workflow will be triggered on successful
-          # release publishing.
-          repo_token: ${{ secrets.BOT_RELEASE_TOKEN }}
-          automatic_release_tag: ${{ env.RELEASE_TAG }}
-          prerelease: false
-          title: "Release ${{ env.RELEASE_TAG }}"
+          # Locate the most recent dev tag across all series.
+          LATEST_DEV=$(git tag --list --sort=-v:refname \
+            | grep -P '^v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]+$' \
+            | head -1)
+
+          if [ -n "$LATEST_DEV" ]; then
+            BASE=$(echo "$LATEST_DEV" | sed 's/^v//; s/-dev\..*//')
+            N=$(echo "$LATEST_DEV" | grep -oP '(?<=-dev\.)\d+')
+
+            # If a stable release for this base already exists, the dev
+            # series has been promoted -- start a new patch series.
+            if git tag --list | grep -qxP "v${BASE}"; then
+              IFS='.' read -r MAJ MIN PAT <<< "$BASE"
+              NEW_TAG="v${MAJ}.${MIN}.$((PAT + 1))-dev.1"
+            else
+              NEW_TAG="v${BASE}-dev.$((N + 1))"
+            fi
+          else
+            # No dev tags yet -- derive base from latest stable tag.
+            LATEST_STABLE=$(git tag --list --sort=-v:refname \
+              | grep -P '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+              | head -1)
+            if [ -n "$LATEST_STABLE" ]; then
+              BASE=$(echo "$LATEST_STABLE" | sed 's/^v//')
+              IFS='.' read -r MAJ MIN PAT <<< "$BASE"
+              NEW_TAG="v${MAJ}.${MIN}.$((PAT + 1))-dev.1"
+            else
+              NEW_TAG="v0.0.1-dev.1"
+            fi
+          fi
+
+          echo "New dev tag: ${NEW_TAG}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"
+

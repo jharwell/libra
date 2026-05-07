@@ -101,9 +101,8 @@ function(libra_configure_exports)
 
   set(OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-config.cmake")
 
-  configure_package_config_file(
-    ${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
+  configure_package_config_file(${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
+                                INSTALL_DESTINATION "lib/cmake/${TARGET}")
 
   write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-configVersion.cmake"
@@ -112,16 +111,13 @@ function(libra_configure_exports)
   )
 
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-configVersion.cmake"
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET})
+          DESTINATION lib/cmake/${TARGET})
 
   # Install the configured exports file
-  install(FILES "${OUTPUT_FILE}"
-          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
+  install(FILES "${OUTPUT_FILE}" DESTINATION "lib/cmake/${TARGET}")
 
-  libra_message(
-    STATUS
-    "Configured cmake exports for ${TARGET} -> ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}"
-  )
+  libra_message(STATUS
+                "Configured cmake exports for ${TARGET} -> lib/cmake/${TARGET}")
 endfunction()
 
 #[[.rst:
@@ -215,13 +211,11 @@ function(libra_install_cmake_modules)
         foreach(REL_FILE ${DIR_CMAKE_FILES})
           get_filename_component(REL_DIR "${REL_FILE}" DIRECTORY)
           if(REL_DIR)
-            install(
-              FILES "${ITEM}/${REL_FILE}"
-              DESTINATION
-                "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${REL_DIR}")
+            install(FILES "${ITEM}/${REL_FILE}"
+                    DESTINATION "lib/cmake/${ARG_TARGET}/${REL_DIR}")
           else()
             install(FILES "${ITEM}/${REL_FILE}"
-                    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}")
+                    DESTINATION "lib/cmake/${ARG_TARGET}")
           endif()
           math(EXPR TOTAL_FILES "${TOTAL_FILES} + 1")
         endforeach()
@@ -231,8 +225,7 @@ function(libra_install_cmake_modules)
     elseif(EXISTS "${ITEM}")
       # It's a file - validate and add it
       if(ITEM MATCHES "\\.cmake$")
-        install(FILES "${ITEM}"
-                DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}")
+        install(FILES "${ITEM}" DESTINATION "lib/cmake/${ARG_TARGET}")
         math(EXPR TOTAL_FILES "${TOTAL_FILES} + 1")
       else()
         libra_message(
@@ -421,7 +414,7 @@ endfunction()
   - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
   - Executables: ``${CMAKE_INSTALL_BINDIR}``
   - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}`` (if ``INCLUDE_DIR`` provided)
-  - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
+  - Export file: ``lib/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
 
@@ -502,7 +495,7 @@ function(libra_install_target)
   install(
     EXPORT ${ARG_TARGET}-exports
     FILE ${ARG_TARGET}-exports.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}
+    DESTINATION lib/cmake/${ARG_TARGET}
     NAMESPACE ${ARG_TARGET}::)
 
   libra_message(STATUS "Registered target ${ARG_TARGET} for install")

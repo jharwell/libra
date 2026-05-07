@@ -18,12 +18,11 @@
 
 fn main() {
     let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let version_file = std::path::Path::new(&dir).join("cmake/libra/version.cmake");
+    let version_file = std::path::Path::new(&dir).join("cmake/libra/self.cmake");
 
     eprintln!("path: {:?}", version_file);
 
-    let cmake =
-        std::fs::read_to_string(&version_file).expect("cmake/libra/version.cmake not found");
+    let cmake = std::fs::read_to_string(&version_file).expect("cmake/libra/self.cmake not found");
 
     let version = cmake
         .lines()
@@ -33,5 +32,5 @@ fn main() {
         .expect("LIBRA_VERSION not found");
 
     println!("cargo:rustc-env=CARGO_PKG_VERSION={}", version);
-    println!("cargo:rerun-if-changed=cmake/libra/version.cmake");
+    println!("cargo:rerun-if-changed=cmake/libra/self.cmake");
 }
