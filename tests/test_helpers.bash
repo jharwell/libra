@@ -163,19 +163,23 @@ _consume_mode_cmake_args() {
         in_situ)
             # Pass source root so libra_consume.cmake can use it even in in_situ
             echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}"
+            echo "-D_LIBRA_COMPUTE_SELF_VERSION=YES"
             ;;
         add_subdirectory)
             echo "-DLIBRA_CONSUME_MODE=add_subdirectory"
             echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}"
+            echo "-D_LIBRA_COMPUTE_SELF_VERSION=YES"
             ;;
         installed_package)
             echo "-DLIBRA_CONSUME_MODE=installed_package"
             echo "-DCMAKE_PREFIX_PATH=${LIBRA_INSTALL_PREFIX}"
+            echo "-D_LIBRA_COMPUTE_SELF_VERSION=YES"
             ;;
         cpm)
             echo "-DLIBRA_CONSUME_MODE=cpm"
             echo "-DLIBRA_CPM_CMAKE=${LIBRA_CPM_CMAKE}"
             echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}"
+            echo "-D_LIBRA_COMPUTE_SELF_VERSION=YES"
             ;;
         conan)
             # Signal the mode; the toolchain path is injected separately in
@@ -184,6 +188,7 @@ _consume_mode_cmake_args() {
             # build directory path.
             echo "-DLIBRA_CONSUME_MODE=conan"
             echo "-DLIBRA_CONAN_VERSION=${LIBRA_CONAN_VERSION}"
+            echo "-D_LIBRA_COMPUTE_SELF_VERSION=YES"
             ;;
         # Unknown modes are caught in setup_libra_test; nothing to do here
     esac

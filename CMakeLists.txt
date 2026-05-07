@@ -16,6 +16,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/libra/version.cmake)
 libra_extract_version()
 
+message("${LIBRA_PROJECT_VERSION_NUMERIC}")
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Top-level/when LIBRA itself is being installed: need a language for
   # GNUInstallDirs architecture detection
@@ -36,17 +37,13 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/install.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/deploy.cmake)
 
 configure_file("${CMAKE_CURRENT_LIST_DIR}/cmake/self.cmake.in"
-               "${CMAKE_CURRENT_BINARY_DIR}/self.cmake")
+               "${CMAKE_CURRENT_LIST_DIR}/cmake/libra/self.cmake")
 
 # Configure cmake config export for install
 libra_configure_exports(TARGET ${PROJECT_NAME} COMPATIBILITY SameMinorVersion)
 
-libra_install_cmake_modules(
-  TARGET
-  ${PROJECT_NAME}
-  FILES_OR_DIRS
-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra
-  ${CMAKE_CURRENT_BINARY_DIR}/self.cmake)
+libra_install_cmake_modules(TARGET ${PROJECT_NAME} FILES_OR_DIRS
+                            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra)
 libra_install_files(DESTINATION lib/cmake/libra FILES_OR_DIRS
                     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/version.py)
 

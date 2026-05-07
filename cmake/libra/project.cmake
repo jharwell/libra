@@ -27,15 +27,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # This makes ninja add stuff for C++20 modules, which confuses clang-tidy.
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-# Only include when we are being used in another project to avoid bootstrapping
-# issues
 include(libra/self OPTIONAL)
+
 if(NOT DEFINED LIBRA_VERSION)
-  # self.cmake not present -- running from source tree without a prior
-  # configure/install (e.g. BATS tests, CPM source consumption). Derive libra's
-  # own version from git directly.
-  libra_extract_version()
-  set(LIBRA_VERSION "${LIBRA_PROJECT_VERSION}")
+  # This is only allowed if explicitly enabled, and is gated by a non-API
+  # variable so no one should ever use it outside of LIBRA.
+  if(_LIBRA_COMPUTE_SELF_VERSION)
+    libra_extract_version()
+    set(LIBRA_VERSION "${LIBRA_PROJECT_VERSION}")
+  else()
+    message(FATAL_ERROR "Missing LIBRA_VERSION. "
+                        "self.cmake is required for this build.")
+  endif()
 endif()
 
 # ##############################################################################

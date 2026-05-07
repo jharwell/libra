@@ -13,56 +13,95 @@
 #   version.py --prerelease     # prints prerelease suffix only
 
 # Core packages
+import subprocess
+import argparse
+import re
 
 # 3rd party packages
 
 # Project packages
 
 
-import subprocess
-import argparse
-
-
 def git(*args):
     try:
         result = subprocess.run(
-            ["git", *args], capture_output=True, text=True, check=True
+            ["git", *args],
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return result.stdout.strip() or None
     except subprocess.CalledProcessError:
         return None
 
 
+# Matches:
+# v1.2.3
+# v1.2.3-dev.4
+# v1.2.3-dev.4-2-gabcdef
+SEMVER_GIT_RE = re.compile(
+    r"""
+    ^v?
+    (?P<version>\d+\.\d+\.\d+)
+    (?:-(?P<prerelease>[^-]+))?
+    (?:-(?P<distance>\d+)-g(?P<sha>[0-9a-f]+))?
+    $
+    """,
+    re.VERBOSE,
+)
+
+
 def extract():
-    # Priority 1: exact tag
+    # 1. exact tag
     tag = git("describe", "--exact-match", "--tags")
     if tag:
         return parse(tag)
 
-    # Priority 2: nearest ancestor tag + distance
+    # 2. nearest tag + distance
     described = git("describe", "--tags", "--long")
     if described:
-        # v1.5.0-dev.2-5-gabcdef1 -> base, distance, sha
-        sha = described.rsplit("-g", 1)[1]
-        rest = described.rsplit("-g", 1)[0]
-        base, dist = rest.rsplit("-", 1)
-        base = base.lstrip("v")
-        dist = int(dist)
-        if dist == 0:
-            return parse("v" + base)
-        sep = "." if "-" in base else "-"
-        return base, f"{base}{sep}untagged.{dist}+g{sha}", f"untagged.{dist}+g{sha}"
+        m = SEMVER_GIT_RE.match(described)
+        if not m:
+            raise ValueError(f"Unrecognized git describe format: {described}")
+
+        version = m.group("version")
+        prerelease = m.group("prerelease")
+        distance = m.group("distance")
+        sha = m.group("sha")
+
+        # exact tag match (no commits ahead)
+        if distance is None:
+            return (
+                version,
+                f"{version}" + (f"-{prerelease}" if prerelease else ""),
+                prerelease or "",
+            )
+
+        # build metadata per SemVer 2.0
+        build = f"{distance}.g{sha}"
+
+        full = version
+        if prerelease:
+            full += f"-{prerelease}"
+        full += f"+{build}"
+
+        prerelease_str = prerelease or ""
+
+        return version, full, prerelease_str
 
     return "0.0.0", "0.0.0", ""
 
 
 def parse(tag):
     tag = tag.lstrip("v")
+
+    # Split into semver + prerelease only (NO git parsing here)
     if "-" in tag:
         numeric, prerelease = tag.split("-", 1)
     else:
         numeric, prerelease = tag, ""
-    full = f"{numeric}-{prerelease}" if prerelease else numeric
+
+    full = numeric + (f"-{prerelease}" if prerelease else "")
     return numeric, full, prerelease
 
 

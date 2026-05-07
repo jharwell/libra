@@ -106,7 +106,7 @@ run_libra_cmake_install_test() {
     cmake --install . > /dev/null 2>&1
     popd > /dev/null
 
-    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/mylib/mylib-config.cmake" ]
+    [ -f "$test_dir/install/lib/cmake/mylib/mylib-config.cmake" ]
 }
 
 @test "INSTALL: libra_install_target installs exports file under lib/cmake/<target>/" {
@@ -117,7 +117,7 @@ run_libra_cmake_install_test() {
     cmake --install . > /dev/null 2>&1
     popd > /dev/null
 
-    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/mylib/mylib-exports.cmake" ]
+    [ -f "$test_dir/install/lib/cmake/mylib/mylib-exports.cmake" ]
 }
 
 @test "INSTALL: libra_install_target with INCLUDE_DIR installs headers under include/" {
@@ -174,7 +174,7 @@ run_libra_cmake_install_test() {
     cmake --install . > /dev/null 2>&1
     popd > /dev/null
 
-    [ -f "$test_dir/install/${INSTALL_LIBDIR}/cmake/mylib/foo.cmake" ]
+    [ -f "$test_dir/install/lib/cmake/mylib/foo.cmake" ]
 }
 
 # ==============================================================================

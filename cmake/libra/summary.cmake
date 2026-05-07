@@ -444,7 +444,7 @@ function(libra_config_summary)
       "Test harness packages................." EMIT_LIBRA_TEST_HARNESS_PACKAGES
       "[LIBRA_TEST_HARNESS_PACKAGES]")
     _libra_summary_row(
-      "Test harness matchere................." EMIT_LIBRA_TEST_HARNESS_MATCHER
+      "Test harness matcher.................." EMIT_LIBRA_TEST_HARNESS_MATCHER
       "[LIBRA_TEST_HARNESS_MATCHER]")
     _libra_summary_row("Unit test matcher....................."
                        EMIT_LIBRA_UNIT_TEST_MATCHER "[LIBRA_UNIT_TEST_MATCHER]")
