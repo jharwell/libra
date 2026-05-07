@@ -28,7 +28,7 @@ pub enum ColorMode {
 #[derive(Parser, Debug)]
 #[command(
     name = "clibra",
-    version,
+    version = env!("LIBRA_VERSION"),
     about,
     propagate_version = true,
     term_width = 120

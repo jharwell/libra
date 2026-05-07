@@ -33,11 +33,8 @@ fi
 
 # Determine version
 LIBRA_SOURCE_ROOT="$(cd "${TESTS_DIR}/.." && pwd)"
-LIBRA_CONAN_VERSION=$(
-    grep LIBRA_VERSION "${LIBRA_SOURCE_ROOT}/cmake/libra/version.cmake" \
-        | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+' \
-        | head -1
-                   )
+LIBRA_CONAN_VERSION=$(python3 "${LIBRA_SOURCE_ROOT}/cmake/libra/version.py" --numeric)
+
 # Write version to a file so bats workers can read it regardless of
 # how the parallel job pool handles environment inheritance
 export LIBRA_CONAN_VERSION

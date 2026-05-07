@@ -1,0 +1,38 @@
+name: Release
+
+# Triggered by a manually-pushed stable tag (e.g. v1.5.0).
+#
+# Keeping this in a dedicated workflow rather than in ci.yml avoids the
+# GitHub Actions footgun where mixing `tags:` and `paths:` under the same
+# `push:` trigger changes evaluation semantics and can suppress branch push
+# runs unexpectedly.
+#
+# The human is responsible for verifying that CI passed on master before
+# pushing the tag. No test jobs here -- the tag itself is the assertion.
+#
+# Uses BOT_RELEASE_TOKEN rather than GITHUB_TOKEN so that creating the
+# GitHub release triggers the publish workflow. A workflow cannot trigger
+# another workflow with the same token it was invoked with.
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+jobs:
+  create-release:
+    # Exclude prerelease tags (v1.5.0-dev.3, v1.5.0-rc.1).
+    # Only clean vX.Y.Z tags produce GitHub releases.
+    if: "!contains(github.ref_name, '-')"
+    runs-on: ubuntu-latest
+    container:
+      image: jharwell/ubuntu24.04-libra:2026-03-16
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Github release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: ${{ secrets.BOT_RELEASE_TOKEN }}
+          automatic_release_tag: ${{ github.ref_name }}
+          prerelease: false
+          title: "Release ${{ github.ref_name }}"

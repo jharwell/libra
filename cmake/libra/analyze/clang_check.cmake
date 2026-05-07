@@ -23,7 +23,7 @@ _libra_register_custom_target(fix-clang-check LIBRA_ANALYSIS NONE)
    do.
 ]]
 function(_libra_register_clang_check ANALYSIS_TARGET TARGET JOB)
-  analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
+  _libra_analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
 
   if(JOB STREQUAL "FIX")
     set(JOB_ARGS --fixit)

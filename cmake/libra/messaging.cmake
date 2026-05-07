@@ -3,17 +3,19 @@
 #
 # SPDX-License Identifier: MIT
 #
-function(libra_message type msg)
+function(libra_message _type)
   list(JOIN CMAKE_MESSAGE_INDENT "" indent)
+  list(JOIN ARGN " " _msg)
   if(indent STREQUAL "")
-    message(${type} "[LIBRA] ${msg}")
+    message(${_type} "[LIBRA] ${_msg}")
   else()
-    message(${type} "${indent}${msg}")
+    message(${_type} "${indent}${_msg}")
   endif()
 endfunction()
 
-function(libra_error MSG)
+function(libra_error)
+  list(JOIN ARGN " " _msg)
   libra_message(
-    FATAL_ERROR "${MSG}\n" "  Source dir: ${CMAKE_CURRENT_SOURCE_DIR}\n"
+    FATAL_ERROR "${_msg}\n" "  Source dir: ${CMAKE_CURRENT_SOURCE_DIR}\n"
     "  Called from: ${CMAKE_CURRENT_LIST_DIR}")
 endfunction()
