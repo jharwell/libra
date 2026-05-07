@@ -221,11 +221,11 @@ LIBRA provides a number of functions/macros to simplify the complexity of cmake,
 and answer questions such as "am I really building/running what I think I
 am?". Some useful functions available in ``project-local.cmake`` are:
 
-.. cmake-module:: ../../../cmake/libra/compile/version.cmake
+.. cmake-module:: ../../../cmake/libra/compile/require.cmake
 
 .. cmake-module:: ../../../cmake/libra/summary.cmake
 
-.. cmake-module:: ../../../cmake/libra/diagnostics_pre.cmake
+.. cmake-module:: ../../../cmake/libra/build_meta.cmake
 
 
 .. _reference/project-local/packaging:

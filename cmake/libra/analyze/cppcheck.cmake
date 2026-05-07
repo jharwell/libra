@@ -74,7 +74,7 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
       string(REPLACE "/" "_" file_target "${file}")
       string(REPLACE "." "_" file_target "${file_target}")
 
-      analyze_build_fixeddb_for_target(${TARGET} EXTRACTED_ARGS)
+      _libra_analyze_build_fixeddb_for_target(${TARGET} EXTRACTED_ARGS)
 
       add_custom_target(
         ${ANALYSIS_TARGET}-${file_target}

@@ -87,7 +87,7 @@ function(_libra_apidoc_register_clang CHECK_TARGET)
   add_custom_target(${CHECK_TARGET})
   set_target_properties(${CHECK_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
                                                    EXCLUDE_FROM_ALL 1)
-  analyze_build_fixeddb_for_target(${PROJECT_NAME} EXTRACTED_ARGS)
+  _libra_analyze_build_fixeddb_for_target(${PROJECT_NAME} EXTRACTED_ARGS)
 
   get_filename_component(clang_NAME ${clang_EXECUTABLE} NAME)
 

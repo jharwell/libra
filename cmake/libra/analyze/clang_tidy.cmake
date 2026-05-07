@@ -59,7 +59,7 @@ function(
   SRCS
   HEADERS
   STUBS)
-  analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
+  _libra_analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
 
   if(JOB STREQUAL "FIX")
     set(JOB_ARGS --fix --fix-errors)

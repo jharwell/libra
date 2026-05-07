@@ -51,11 +51,7 @@
 
   You can also use any standard CMake variables (e.g.,
   ``CMAKE_C_FLAGS_RELEASE``, ``PROJECT_VERSION``, ``CMAKE_BUILD_TYPE``,
-  etc.). Note that if you consume LIBRA in a chained fashion via CPM (i.e., have
-  multiple local repos which are built using LIBRA), then the version info will
-  correspond to the top-level repo for all sub-repos, since when they are
-  poplated into the build/ directory in the root repo, they are not git repos,
-  and so versioning info can't be extracted.
+  etc.).
 
   **Example:**
 

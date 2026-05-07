@@ -27,6 +27,15 @@ on:
         required: false
         type: boolean
         default: false
+      full-matrix:
+        description: >
+          Run against all supported compiler versions. When false, only the
+          newest compiler pair (gcc-14/clang-19) is used. Set to true for
+          devel and master branches; false for feature branches to reduce
+          CI time.
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   run:
@@ -36,15 +45,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler:
-          - gcc: gcc-9
-            gxx: g++-9
-            clang: clang-14
-            clangxx: clang++-14
-          - gcc: gcc-14
-            gxx: g++-14
-            clang: clang-19
-            clangxx: clang++-19
+        compiler: >-
+          ${{
+            inputs.full-matrix &&
+            fromJSON('[
+              {"gcc":"gcc-9",  "gxx":"g++-9",  "clang":"clang-14","clangxx":"clang++-14"},
+              {"gcc":"gcc-14", "gxx":"g++-14", "clang":"clang-19","clangxx":"clang++-19"}
+            ]') ||
+            fromJSON('[
+              {"gcc":"gcc-14", "gxx":"g++-14", "clang":"clang-19","clangxx":"clang++-19"}
+            ]')
+          }}
 
     steps:
       - uses: actions/checkout@v3

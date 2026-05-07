@@ -1,20 +1,25 @@
 # ##############################################################################
 # CMake Configuration
 # ##############################################################################
-
 # CMake version
 cmake_minimum_required(VERSION 3.31 FATAL_ERROR)
+include(libra/version)
 
 # This will be set when LIBRA is used as a conan backend (we can't test directly
 # for that at this point in the file, because that option isn't defined yet).
 if(NOT PROJECT_NAME)
+  # Extract project version from git before project() so the numeric component
+  # is available for project(VERSION ...).
+  libra_extract_version()
+
   # I define the current target as the same as the directory that the
   # CMakeLists.txt resides in--simpler that way.
   get_filename_component(LIBRA_TARGET ${CMAKE_CURRENT_LIST_DIR} NAME)
-  project(${LIBRA_TARGET} C CXX)
+  project(
+    ${LIBRA_TARGET}
+    VERSION ${LIBRA_PROJECT_VERSION_NUMERIC}
+    LANGUAGES C CXX)
 endif()
-
-include(libra/version)
 
 # This should generally be set undconditionally.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -22,16 +27,27 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # This makes ninja add stuff for C++20 modules, which confuses clang-tidy.
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
+# Only include when we are being used in another project to avoid bootstrapping
+# issues
+include(libra/self OPTIONAL)
+if(NOT DEFINED LIBRA_VERSION)
+  # self.cmake not present -- running from source tree without a prior
+  # configure/install (e.g. BATS tests, CPM source consumption). Derive libra's
+  # own version from git directly.
+  libra_extract_version()
+  set(LIBRA_VERSION "${LIBRA_PROJECT_VERSION}")
+endif()
+
 # ##############################################################################
 # Cmake Environment
 # ##############################################################################
 include(libra/messaging)
 include(libra/colorize)
 include(libra/utils)
-include(libra/diagnostics_pre)
+include(libra/build_meta)
 include(libra/targets)
 include(libra/defaults)
-include(libra/compile/version) # To be available in project-local.cmake
+include(libra/compile/require) # To be available in project-local.cmake
 
 # 2026-02-26 [JRH]: Some of the variables used in here are undefined at this
 # point, but that's OK because libra_config_summary() isn't called until the end
@@ -42,6 +58,8 @@ include(libra/help)
 
 # Set policies
 include(libra/policies)
+
+libra_message(STATUS "This is LIBRA v${LIBRA_VERSION}")
 
 # ##############################################################################
 # Project Cmdline Configuration
@@ -280,7 +298,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 # Must be after compile options are populated
-include(libra/diagnostics_post)
+include(libra/build_meta_finalize)
 
 # ##############################################################################
 # Code Checking/Analysis Options

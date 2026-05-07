@@ -44,7 +44,7 @@ Before running, each subcommand:
    flags enabled (e.g. ``LIBRA_TESTS=ON`` for ``clibra test``).
 4. Checks that the required CMake targets exist.
 
-Steps 3 and 4 are skipped when :option:`--dry-run` is given.
+Steps 3 and 4 are skipped when ``--dry-run`` is given.
 
 .. _cli/overview/global-flags:
 
@@ -102,4 +102,4 @@ and drive the build with plain ``cmake`` / ``ctest`` — no cleanup
 required.
 
 To see the exact commands ``clibra`` would run for any operation, use
-:option:`--dry-run`.
+``--dry-run``.
