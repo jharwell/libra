@@ -12,10 +12,10 @@ which build directory, generator, and ``LIBRA_*`` flags to use.
 Resolution order
 ================
 
-When :option:`--preset` is not given, ``clibra`` resolves a preset name
+When ``--preset`` is not given, ``clibra`` resolves a preset name
 in this order:
 
-1. :option:`--preset` on the current invocation.
+1. ``--preset`` on the current invocation.
 2. ``vendor.libra.defaultConfigurePreset`` in ``CMakeUserPresets.json``.
 3. ``vendor.libra.defaultConfigurePreset`` in ``CMakePresets.json``.
 4. A subcommand-specific default (see table below).
@@ -84,7 +84,7 @@ the ``vendor.libra`` namespace:
 
 With this in place, ``clibra build``, ``clibra test``, and other
 subcommands without a built-in default all resolve to ``debug`` without
-requiring :option:`--preset`.
+requiring ``--preset``.
 
 The ``vendor`` namespace is used rather than a top-level field because it
 is the correct CMake extension mechanism for tool-specific metadata that

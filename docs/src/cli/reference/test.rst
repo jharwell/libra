@@ -13,7 +13,7 @@ Build (if needed) and run tests via ``ctest``.
 
 Requires :cmake:variable:`LIBRA_TESTS` to be ``ON`` in the preset's CMake
 cache. ``clibra test`` first builds the ``all-tests`` target, then runs
-``ctest``. Use :option:`--no-build` to skip the build step and run
+``ctest``. Use ``--no-build`` to skip the build step and run
 ``ctest`` directly against already-built test binaries.
 
 CMake equivalent

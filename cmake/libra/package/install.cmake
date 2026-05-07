@@ -32,7 +32,7 @@ include(GNUInstallDirs)
    ``find_dependency()``, as that will cause an infinite loop.
 
   :param COMPATIBILITY: The name of the CMake compatibility strategy for this
-  exported target. If not specified, defaults to ``ExactVersion`` for safety.
+   exported target. If not specified, defaults to ``ExactVersion`` for safety.
 
   **Requirements:**
 
@@ -101,9 +101,8 @@ function(libra_configure_exports)
 
   set(OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-config.cmake")
 
-  configure_package_config_file(
-    ${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
+  configure_package_config_file(${CONFIG_TEMPLATE} "${OUTPUT_FILE}"
+                                INSTALL_DESTINATION "lib/cmake/${TARGET}")
 
   write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-configVersion.cmake"
@@ -112,35 +111,33 @@ function(libra_configure_exports)
   )
 
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}-configVersion.cmake"
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET})
+          DESTINATION lib/cmake/${TARGET})
 
   # Install the configured exports file
-  install(FILES "${OUTPUT_FILE}"
-          DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}")
+  install(FILES "${OUTPUT_FILE}" DESTINATION "lib/cmake/${TARGET}")
 
-  libra_message(
-    STATUS
-    "Configured cmake exports for ${TARGET} -> ${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}"
-  )
+  libra_message(STATUS
+                "Configured cmake exports for ${TARGET} -> lib/cmake/${TARGET}")
 endfunction()
 
 #[[.rst:
 .. cmake:command:: libra_install_cmake_modules
 
-  Install .cmake files for a TARGET to be installed at
-  ``${CMAKE_INSTALL_PREFIX}``.
+  Install ``.cmake`` files for a TARGET to ``lib/cmake/<TARGET>``.
 
   Useful if your project provides reusable CMake functionality that you want
-  downstream projects to access. Supports both individual files and directories
-  (processed recursively).
+  downstream projects to access. Supports both individual ``.cmake`` files and
+  directories (searched recursively for ``.cmake`` files). Directory structure
+  is preserved during installation.
 
-  :param TARGET: The target name (used for install destination). Must be a
-   target for which :cmake:command:`libra_configure_exports` has already been
-   called.
+  Non-``.cmake`` files are skipped with a warning.
 
-  :param FILES_OR_DIRS: One or more .cmake files or directories containing
-   .cmake files. Directories are searched recursively, and the directory
-   structure is preserved during installation (not flattened).
+  :param TARGET: The target name, used to derive the install destination
+   ``lib/cmake/<TARGET>``. Must be a target for which
+   :cmake:command:`libra_configure_exports` has already been called.
+
+  :param FILES_OR_DIRS: One or more ``.cmake`` files or directories containing
+   ``.cmake`` files.
 
   **Examples:**
 
@@ -164,14 +161,6 @@ endfunction()
      Can now handle files OR directories of extra configs.
 ]]
 function(libra_install_cmake_modules)
-  # Track total number of files
-  set(TOTAL_FILES 0)
-
-  # Support both:
-  #
-  # * libra_install_cmake_modules(TARGET mylib FILES_OR_DIRS dir1)
-  #
-  # * libra_install_cmake_modules(mylib dir1 dir2)
   cmake_parse_arguments(
     ARG
     ""
@@ -189,72 +178,246 @@ function(libra_install_cmake_modules)
   endif()
 
   if(NOT ARG_TARGET)
-    libra_error("libra_install_cmake_modules: TARGET argument is required")
+    libra_error("libra_install_cmake_modules: TARGET is required")
   endif()
-
   if(NOT ARG_FILES_OR_DIRS)
-    libra_error(
-      "libra_install_cmake_modules: No files or directories specified.")
+    libra_error("libra_install_cmake_modules: FILES_OR_DIRS is required")
   endif()
 
-  foreach(ITEM ${ARG_FILES_OR_DIRS})
-    # Make the path absolute if it's relative
-    if(NOT IS_ABSOLUTE "${ITEM}")
-      set(ITEM "${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}")
-    endif()
+  _libra_install_items(
+    DESTINATION
+    "lib/cmake/${ARG_TARGET}"
+    ITEMS
+    ${ARG_FILES_OR_DIRS}
+    GLOB_PATTERN
+    "*.cmake"
+    CALLER
+    "libra_install_cmake_modules"
+    RESULT_COUNT
+    _count)
 
-    if(IS_DIRECTORY "${ITEM}")
-      # It's a directory - find all .cmake files recursively
-      file(
-        GLOB_RECURSE DIR_CMAKE_FILES
-        RELATIVE "${ITEM}"
-        "${ITEM}/*.cmake")
-
-      if(DIR_CMAKE_FILES)
-        # Install each file maintaining directory structure
-        foreach(REL_FILE ${DIR_CMAKE_FILES})
-          get_filename_component(REL_DIR "${REL_FILE}" DIRECTORY)
-          if(REL_DIR)
-            install(
-              FILES "${ITEM}/${REL_FILE}"
-              DESTINATION
-                "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${REL_DIR}")
-          else()
-            install(FILES "${ITEM}/${REL_FILE}"
-                    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}")
-          endif()
-          math(EXPR TOTAL_FILES "${TOTAL_FILES} + 1")
-        endforeach()
-        libra_message(STATUS "Found .cmake file(s) in directory: ${ITEM}")
-      endif()
-
-    elseif(EXISTS "${ITEM}")
-      # It's a file - validate and add it
-      if(ITEM MATCHES "\\.cmake$")
-        install(FILES "${ITEM}"
-                DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}")
-        math(EXPR TOTAL_FILES "${TOTAL_FILES} + 1")
-      else()
-        libra_message(
-          WARNING
-          "libra_install_cmake_modules: '${ITEM}' is not a .cmake file\n"
-          "  Only .cmake files can be installed. This file will be skipped.")
-      endif()
-    else()
-      libra_error("libra_install_cmake_modules: '${ITEM}' does not exist\n"
-                  "  Verify the path is correct and the file/directory exists")
-    endif()
-  endforeach()
-
-  if(TOTAL_FILES EQUAL 0)
+  if(_count EQUAL 0)
     libra_error(
       "libra_install_cmake_modules: No .cmake files found to install\n"
       "  Check that your files/directories contain .cmake files")
   endif()
 
-  # Print what was registered
+  libra_message(STATUS "Registered ${_count} .cmake file(s) for ${ARG_TARGET}")
+endfunction()
+
+#[[.rst:
+.. cmake:command:: libra_install_files
+
+  Install one or more files of any type to an explicit destination.
+
+  Unlike :cmake:command:`libra_install_cmake_modules`, this function imposes
+  no restriction on file type and takes an explicit ``DESTINATION`` rather than
+  deriving one from a target name. Use it for scripts, data files, templates,
+  or any other content that needs to reach the install tree.
+
+  Passing a directory is an error; use :cmake:command:`libra_install_dir`
+  for directory installation.
+
+  :param DESTINATION: Install destination relative to
+   :cmake:variable:`CMAKE_INSTALL_PREFIX`.
+
+  :param FILES: One or more files to install.
+
+  **Example:**
+
+  .. code-block:: cmake
+
+    libra_install_files(
+      DESTINATION lib/cmake/mylib
+      FILES       cmake/mylib/version.py cmake/mylib/utils.py)
+
+]]
+function(libra_install_files)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "DESTINATION"
+    "FILES"
+    ${ARGN})
+
+  if(NOT ARG_DESTINATION)
+    libra_error("libra_install_files: DESTINATION is required")
+  endif()
+  if(NOT ARG_FILES)
+    libra_error("libra_install_files: FILES is required")
+  endif()
+
+  _libra_install_items(
+    DESTINATION
+    "${ARG_DESTINATION}"
+    ITEMS
+    ${ARG_FILES}
+    FILES_ONLY
+    CALLER
+    "libra_install_files"
+    RESULT_COUNT
+    _count)
+
+  if(_count EQUAL 0)
+    libra_error("libra_install_files: No files were installed")
+  endif()
+
   libra_message(
-    STATUS "Registered ${TOTAL_FILES} extra .cmake file(s) for ${ARG_TARGET}")
+    STATUS "Registered ${_count} file(s) for install -> ${ARG_DESTINATION}")
+endfunction()
+
+#[[.rst:
+.. cmake:command:: libra_install_dir
+
+  Install one or more directories to an explicit destination.
+
+  Directories are searched recursively and their structure is preserved.
+  Passing a plain file is an error; use :cmake:command:`libra_install_files`
+  for individual file installation.
+
+  :param DESTINATION: Install destination relative to
+   :cmake:variable:`CMAKE_INSTALL_PREFIX`.
+
+  :param DIRS: One or more directories to install.
+
+  **Example:**
+
+  .. code-block:: cmake
+
+    libra_install_dir(
+      DESTINATION share/mylib
+      DIRS        data/templates data/schemas)
+
+]]
+function(libra_install_dir)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "DESTINATION"
+    "DIRS"
+    ${ARGN})
+
+  if(NOT ARG_DESTINATION)
+    libra_error("libra_install_dir: DESTINATION is required")
+  endif()
+  if(NOT ARG_DIRS)
+    libra_error("libra_install_dir: DIRS is required")
+  endif()
+
+  _libra_install_items(
+    DESTINATION
+    "${ARG_DESTINATION}"
+    ITEMS
+    ${ARG_DIRS}
+    DIRS_ONLY
+    CALLER
+    "libra_install_dir"
+    RESULT_COUNT
+    _count)
+
+  if(_count EQUAL 0)
+    libra_error("libra_install_dir: No files were installed")
+  endif()
+
+  libra_message(
+    STATUS "Registered ${_count} file(s) for install -> ${ARG_DESTINATION}")
+endfunction()
+
+#[[.rst:
+.. cmake:command:: libra_install_files
+
+  Install arbitrary files or directories at ``${CMAKE_INSTALL_PREFIX}``.
+
+  Unlike :cmake:command:`libra_install_cmake_modules`, this function imposes
+  no restriction on file type. Use it to install scripts, data files,
+  templates, or any other content that needs to be present in the install
+  tree.
+
+  Supports both individual files and directories (processed recursively).
+  Directory structure is preserved during installation.
+
+  :param DESTINATION: Install destination relative to
+   :cmake:variable:`CMAKE_INSTALL_PREFIX`.
+
+  :param FILES_OR_DIRS: One or more files or directories to install.
+   Directories are searched recursively and their structure is preserved.
+
+  **Examples:**
+
+  .. code-block:: cmake
+
+    # Install a single script
+    libra_install_files(
+      DESTINATION lib/cmake/libra
+      FILES_OR_DIRS cmake/libra/version.py)
+
+    # Install an entire directory (structure preserved)
+    libra_install_files(
+      DESTINATION share/mylib/data
+      FILES_OR_DIRS data/templates)
+
+    # Mix files and directories
+    libra_install_files(
+      DESTINATION share/mylib
+      FILES_OR_DIRS data/config.json data/templates)
+
+]]
+function(libra_install_files)
+  cmake_parse_arguments(
+    ARG
+    ""
+    "DESTINATION"
+    "FILES_OR_DIRS"
+    ${ARGN})
+
+  if(NOT ARG_DESTINATION)
+    libra_error("libra_install_files: DESTINATION is required")
+  endif()
+
+  if(NOT ARG_FILES_OR_DIRS)
+    libra_error("libra_install_files: FILES_OR_DIRS is required")
+  endif()
+
+  set(_total 0)
+
+  foreach(ITEM ${ARG_FILES_OR_DIRS})
+    if(NOT IS_ABSOLUTE "${ITEM}")
+      set(ITEM "${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}")
+    endif()
+
+    if(IS_DIRECTORY "${ITEM}")
+      file(
+        GLOB_RECURSE _dir_files
+        RELATIVE "${ITEM}"
+        "${ITEM}/*")
+
+      foreach(_rel_file ${_dir_files})
+        get_filename_component(_rel_dir "${_rel_file}" DIRECTORY)
+        if(_rel_dir)
+          install(FILES "${ITEM}/${_rel_file}"
+                  DESTINATION "${ARG_DESTINATION}/${_rel_dir}")
+        else()
+          install(FILES "${ITEM}/${_rel_file}" DESTINATION "${ARG_DESTINATION}")
+        endif()
+        math(EXPR _total "${_total} + 1")
+      endforeach()
+
+    elseif(EXISTS "${ITEM}")
+      install(FILES "${ITEM}" DESTINATION "${ARG_DESTINATION}")
+      math(EXPR _total "${_total} + 1")
+
+    else()
+      libra_error("libra_install_files: '${ITEM}' does not exist\n"
+                  "  Verify the path is correct")
+    endif()
+  endforeach()
+
+  if(_total EQUAL 0)
+    libra_error("libra_install_files: No files found to install")
+  endif()
+
+  libra_message(
+    STATUS "Registered ${_total} file(s) for install -> ${ARG_DESTINATION}")
 endfunction()
 
 #[[.rst:
@@ -421,7 +584,7 @@ endfunction()
   - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
   - Executables: ``${CMAKE_INSTALL_BINDIR}``
   - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}`` (if ``INCLUDE_DIR`` provided)
-  - Export file: ``${CMAKE_INSTALL_LIBDIR}/cmake/${TARGET}/${TARGET}-exports.cmake``
+  - Export file: ``lib/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
 
@@ -502,7 +665,7 @@ function(libra_install_target)
   install(
     EXPORT ${ARG_TARGET}-exports
     FILE ${ARG_TARGET}-exports.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}
+    DESTINATION lib/cmake/${ARG_TARGET}
     NAMESPACE ${ARG_TARGET}::)
 
   libra_message(STATUS "Registered target ${ARG_TARGET} for install")
@@ -516,9 +679,107 @@ function(libra_install_target)
   endif()
   libra_message(
     STATUS
-    "Exports -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/cmake/${ARG_TARGET}/${ARG_TARGET}-exports.cmake"
+    "Exports -> ${CMAKE_INSTALL_PREFIX}/lib/cmake/${ARG_TARGET}/${ARG_TARGET}-exports.cmake"
   )
   list(POP_BACK CMAKE_MESSAGE_INDENT)
+endfunction()
+
+# cmake-format: off
+# ##############################################################################
+# Internal implementation shared by libra_install_cmake_modules,
+# libra_install_files, and libra_install_dir.
+#
+# Parameters:
+#   DESTINATION    - install destination relative to CMAKE_INSTALL_PREFIX
+#   ITEMS          - list of files and/or directories to install
+#   GLOB_PATTERN   - (optional) glob pattern applied when scanning directories
+#                    and used to validate individual files (e.g. "*.cmake").
+#                    If omitted, all files are accepted.
+#   FILES_ONLY     - (flag) error if any item is a directory
+#   DIRS_ONLY      - (flag) error if any item is a plain file
+#   CALLER         - calling function name, used in error/warning messages
+#   RESULT_COUNT   - output variable receiving the number of files installed
+# ##############################################################################
+# cmake-format: on
+function(_libra_install_items)
+  cmake_parse_arguments(
+    ARG
+    "FILES_ONLY;DIRS_ONLY"
+    "DESTINATION;GLOB_PATTERN;CALLER;RESULT_COUNT"
+    "ITEMS"
+    ${ARGN})
+
+  set(_count 0)
+
+  foreach(_item ${ARG_ITEMS})
+    if(NOT IS_ABSOLUTE "${_item}")
+      set(_item "${CMAKE_CURRENT_SOURCE_DIR}/${_item}")
+    endif()
+
+    if(NOT EXISTS "${_item}")
+      libra_error("${ARG_CALLER}: '${_item}' does not exist\n"
+                  "  Verify the path is correct and the file/directory exists")
+    endif()
+
+    if(IS_DIRECTORY "${_item}")
+      if(ARG_FILES_ONLY)
+        libra_error(
+          "${ARG_CALLER}: '${_item}' is a directory -- only files are accepted\n"
+          "  Use libra_install_dir() to install directories")
+      endif()
+
+      if(ARG_GLOB_PATTERN)
+        file(
+          GLOB_RECURSE _dir_files
+          RELATIVE "${_item}"
+          "${_item}/${ARG_GLOB_PATTERN}")
+      else()
+        file(
+          GLOB_RECURSE _dir_files
+          RELATIVE "${_item}"
+          "${_item}/*")
+      endif()
+
+      foreach(_rel_file ${_dir_files})
+        get_filename_component(_rel_dir "${_rel_file}" DIRECTORY)
+        if(_rel_dir)
+          install(FILES "${_item}/${_rel_file}"
+                  DESTINATION "${ARG_DESTINATION}/${_rel_dir}")
+        else()
+          install(FILES "${_item}/${_rel_file}"
+                  DESTINATION "${ARG_DESTINATION}")
+        endif()
+        math(EXPR _count "${_count} + 1")
+      endforeach()
+
+    else()
+      if(ARG_DIRS_ONLY)
+        libra_error(
+          "${ARG_CALLER}: '${_item}' is a file -- only directories are accepted\n"
+          "  Use libra_install_files() to install individual files")
+      endif()
+
+      if(ARG_GLOB_PATTERN)
+        # Convert the glob pattern to a regex suffix check.
+        string(REPLACE "." "\\." _pat_re "${ARG_GLOB_PATTERN}")
+        string(REPLACE "*" ".*" _pat_re "${_pat_re}")
+        if(NOT _item MATCHES "${_pat_re}$")
+          libra_message(
+            WARNING
+            "${ARG_CALLER}: '${_item}' does not match '${ARG_GLOB_PATTERN}' -- skipping"
+          )
+          continue()
+        endif()
+      endif()
+
+      install(FILES "${_item}" DESTINATION "${ARG_DESTINATION}")
+      math(EXPR _count "${_count} + 1")
+    endif()
+  endforeach()
+
+  set(${ARG_RESULT_COUNT}
+      ${_count}
+      PARENT_SCOPE)
 endfunction()
 
 # ##############################################################################

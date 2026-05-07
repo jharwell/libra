@@ -80,7 +80,7 @@ The phases have natural ordering constraints:
   dependency tracking detects that inputs have changed.
 
 - **Build must precede test.** ``clibra test`` always builds ``all-tests`` first
-  unless :option:`--no-build` is given. Running ``ctest`` directly against stale
+  unless ``--no-build`` is given. Running ``ctest`` directly against stale
   or absent test binaries is a common source of confusing failures.
 
 - **Test must precede coverage.** Coverage reports are generated from data

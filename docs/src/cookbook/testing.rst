@@ -23,7 +23,7 @@ To build and run in one step:
 
          clibra test --preset debug
 
-      You can also add :option:`--no-build` to avoid rebuilding before running
+      You can also add ``--no-build`` to avoid rebuilding before running
       tests, which is the default.
 
    .. tab-item:: CMake
@@ -86,7 +86,7 @@ Blessing test outputs
 =====================
 
 If your tests compare output against known-good references, pass
-``BLESS=1`` to update all blessed outputs at once:
+```BLESS=1`` to update all blessed outputs at once:
 
 .. code-block:: bash
 
