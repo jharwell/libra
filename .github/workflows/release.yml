@@ -26,8 +26,39 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bake version into self.cmake
+        shell: bash
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+
+          cat > cmake/libra/self.cmake << EOF
+          # GENERATED FILE -- do not edit.
+          # Updated automatically by CI in the create-release job.
+          # Any manual changes will be overwritten on the next release.
+          set(LIBRA_VERSION "${VERSION}")
+          EOF
+
+          # Move the tag to include the self.cmake commit so CPM
+          # consumers get the correct version from the source tree.
+          git add cmake/libra/self.cmake
+          git commit -m "chore: update LIBRA_VERSION to ${{ github.ref_name }}"
+          git tag -f "${{ github.ref_name }}"
+          git push origin HEAD:master --force-with-lease
+          git push origin "${{ github.ref_name }}" --force
 
       - name: Github release
         uses: "marvinpinto/action-automatic-releases@latest"

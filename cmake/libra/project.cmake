@@ -30,15 +30,8 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(libra/self OPTIONAL)
 
 if(NOT DEFINED LIBRA_VERSION)
-  # This is only allowed if explicitly enabled, and is gated by a non-API
-  # variable so no one should ever use it outside of LIBRA.
-  if(_LIBRA_COMPUTE_SELF_VERSION)
-    libra_extract_version()
-    set(LIBRA_VERSION "${LIBRA_PROJECT_VERSION}")
-  else()
-    message(FATAL_ERROR "Missing LIBRA_VERSION. "
-                        "self.cmake is required for this build.")
-  endif()
+  libra_extract_version()
+  set(LIBRA_VERSION "${LIBRA_PROJECT_VERSION}")
 endif()
 
 # ##############################################################################

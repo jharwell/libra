@@ -4,8 +4,7 @@
 #
 # SPDX-License-Identifier: MIT
 #
-# Single source of truth for git-based version extraction.
-# Mirrors the logic in libra_extract_version() and build.rs.
+# Note: This is vendored from the forge repo (https://github.com/jharwell/forge).
 #
 # Usage:
 #   version.py                  # prints full version

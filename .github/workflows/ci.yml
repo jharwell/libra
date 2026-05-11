@@ -41,26 +41,26 @@ jobs:
     uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
     with:
       suite-script: ./suites/run_suite_add_subdirectory.sh
-      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' }}
+      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' || github.event_name == 'schedule' }}
 
   cmake-installed-pkg-smoke-tests:
     uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
     with:
       suite-script: ./suites/run_suite_installed_package.sh
-      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' }}
+      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' || github.event_name == 'schedule' }}
 
   cmake-cpm-smoke-tests:
     uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
     with:
       suite-script: ./suites/run_suite_cpm.sh
-      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' }}
+      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' || github.event_name == 'schedule' }}
 
   cmake-conan-smoke-tests:
     uses: ./.github/workflows/smoke-tests-compiler-matrix.yml
     with:
       suite-script: ./suites/run_suite_conan.sh
-      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' }}
       pip-install-conan: true
+      full-matrix: ${{ github.ref_name == 'devel' || github.ref_name == 'master' || github.event_name == 'schedule' }}
 
   schema-help-targets:
     runs-on: ubuntu-latest
@@ -221,13 +221,17 @@ jobs:
           # Full history required to inspect all existing tags.
           fetch-depth: 0
 
-      - name: Compute and push next dev tag
-        shell: bash
+      - name: Configure git
         run: |
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Ensure full history + tags are available.
-          git fetch --force --tags
+      - name: Compute next dev tag
+        id: tag
+        shell: bash
+        run: |
+          git fetch --tags
 
           # Locate the most recent dev tag across all series.
           LATEST_DEV=$(
@@ -270,15 +274,33 @@ jobs:
           fi
 
           echo "New dev tag: ${NEW_TAG}"
+          echo "new_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
 
-          # Fail clearly if another workflow already created the tag.
-          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
-            echo "Tag already exists: $NEW_TAG"
-            exit 1
-          fi
+      - name: Bake version into self.cmake
+        shell: bash
+        run: |
+          VERSION="${{ steps.tag.outputs.new_tag }}"
+          # Strip leading 'v' for the CMake set() call
+          VERSION="${VERSION#v}"
 
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cat > cmake/libra/self.cmake << EOF
+          # GENERATED FILE -- do not edit.
+          # Updated automatically by CI in the tag-dev-release job.
+          # Any manual changes will be overwritten on the next devel merge.
+          set(LIBRA_VERSION "${VERSION}")
+          EOF
 
-          git tag "$NEW_TAG"
-          git push origin "refs/tags/$NEW_TAG"
+      - name: Commit and tag
+        shell: bash
+        run: |
+          NEW_TAG="${{ steps.tag.outputs.new_tag }}"
+
+          git add cmake/libra/self.cmake
+          git commit -m "chore: update LIBRA_VERSION to ${NEW_TAG}"
+
+          # Tag the new commit, not the pre-commit HEAD
+          git tag "${NEW_TAG}"
+
+          # Push the version bump commit to devel and the tag together
+          git push origin HEAD:devel "${NEW_TAG}"
+

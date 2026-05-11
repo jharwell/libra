@@ -36,9 +36,6 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/install.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/package/deploy.cmake)
 
-configure_file("${CMAKE_CURRENT_LIST_DIR}/cmake/self.cmake.in"
-               "${CMAKE_CURRENT_LIST_DIR}/cmake/libra/self.cmake")
-
 # Configure cmake config export for install
 libra_configure_exports(TARGET ${PROJECT_NAME} COMPATIBILITY SameMinorVersion)
 

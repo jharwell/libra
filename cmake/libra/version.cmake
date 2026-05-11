@@ -110,7 +110,7 @@ function(libra_extract_version)
     set(_numeric "0.0.0")
     set(_prerelease "")
   else()
-    libra_message(STATUS "Extracted package version ${_full}")
+    libra_message(STATUS "Extracted git project version ${_full}")
   endif()
 
   set(LIBRA_PROJECT_VERSION

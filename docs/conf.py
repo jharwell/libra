@@ -56,11 +56,6 @@ version = (
     .strip("\n")
 )
 
-stdout = subprocess.run(
-    ["git", "rev-parse", "--abbrev-ref", "HEAD"], stdout=subprocess.PIPE, check=True
-).stdout
-git_branch = stdout.decode("ascii").strip("\n")
-
 release = version
 
 # -- General configuration ------------------------------------------------

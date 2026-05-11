@@ -55,7 +55,7 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   if("${LIBRA_GIT_REV}" STREQUAL "")
     libra_message(
       WARNING
-      "libra_configure_source_file: Not in a git repository - stubbing version information\n"
+      "libra_configure_source_file: Not in a git repository - stubbing version information."
       "  Git-related variables will be set to 'N/A'")
     set(LIBRA_GIT_REV "N/A")
     set(LIBRA_GIT_DIFF "")
@@ -81,11 +81,10 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   # Collect compile flags.
   #
   # build-types.cmake now emits one genex per flag:
-  #   $<$<COMPILE_LANGUAGE:X>:flag>
-  # so COMPILE_OPTIONS contains individual well-formed entries with no embedded
-  # semicolons. We can safely iterate with foreach(IN LISTS ...) and join with
-  # spaces. file(GENERATE ...) resolves the COMPILE_LANGUAGE wrappers correctly
-  # when TARGET is supplied.
+  # $<$<COMPILE_LANGUAGE:X>:flag> so COMPILE_OPTIONS contains individual
+  # well-formed entries with no embedded semicolons. We can safely iterate with
+  # foreach(IN LISTS ...) and join with spaces. file(GENERATE ...) resolves the
+  # COMPILE_LANGUAGE wrappers correctly when TARGET is supplied.
   #
   # LINK_OPTIONS entries are $<$<LINK_LANGUAGE:X>:flag> which file(GENERATE ...)
   # forbids entirely. Instead we build LIBRA_TARGET_FLAGS_LINK directly from the
@@ -100,15 +99,15 @@ function(_libra_configure_source_file_post TARGET INFILE OUTFILE)
   # Helper macro: append items from a list, unwrapping genex guards that
   # file(GENERATE ...) cannot handle:
   #
-  #   $<$<COMPILE_LANGUAGE:X>:flag>  — unwrap, keep flag value. The language
-  #     guard is only needed for the compiler invocation; for embedding all
-  #     flags are relevant. Leaving the wrapper causes "written multiple times
-  #     with different content" because file(GENERATE ...) evaluates the genex
-  #     differently per language context.
+  # $<$<COMPILE_LANGUAGE:X>:flag>  — unwrap, keep flag value. The language guard
+  # is only needed for the compiler invocation; for embedding all flags are
+  # relevant. Leaving the wrapper causes "written multiple times with different
+  # content" because file(GENERATE ...) evaluates the genex differently per
+  # language context.
   #
-  #   $<COMPILE_LANGUAGE:X> (bare/empty) — drop, nothing useful to embed.
+  # $<COMPILE_LANGUAGE:X> (bare/empty) — drop, nothing useful to embed.
   #
-  #   Everything else — keep as-is (plain flags, other genexes).
+  # Everything else — keep as-is (plain flags, other genexes).
   macro(_libra_collect_compile _items)
     foreach(_item IN LISTS ${_items})
       string(STRIP "${_item}" _item)
