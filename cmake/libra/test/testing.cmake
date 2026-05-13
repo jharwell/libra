@@ -127,24 +127,28 @@ endif()
 # ##############################################################################
 function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   # Tests are named the same thing as their source file, sans extension, in the
-  # spirit of the Principle of Least Surprise.
+  # spirit of the Principle of Least Surprise. Directory structure w.r.t. tests
+  # is preserved.
   get_filename_component(test_name ${t} NAME_WE)
   get_filename_component(test_file ${t} NAME)
+  get_filename_component(test_dir ${t} DIRECTORY)
+  file(RELATIVE_PATH test_path ${CMAKE_CURRENT_SOURCE_DIR}/tests ${test_dir})
 
   # Define the test executable
-  add_executable(${PROJECT_NAME}-${test_name} EXCLUDE_FROM_ALL ${t})
-  _libra_configure_standard(${PROJECT_NAME}-${test_name})
-  set_target_properties(${PROJECT_NAME}-${test_name} PROPERTIES LINKER_LANGUAGE
-                                                                CXX)
+  add_executable(${test_name} EXCLUDE_FROM_ALL ${t})
+  _libra_configure_standard(${test_name})
+  set_target_properties(
+    ${test_name}
+    PROPERTIES LINKER_LANGUAGE CXX RUNTIME_OUTPUT_DIRECTORY
+                                   ${CMAKE_BINARY_DIR}/bin/${test_path})
 
   # Tests depend on the test harness
-  add_dependencies(${PROJECT_NAME}-${test_name} ${PROJECT_NAME}
-                   ${LIBRA_test_harness})
+  add_dependencies(${test_name} ${PROJECT_NAME} ${LIBRA_test_harness})
 
   # Tests depend on the project library (DUH)
   target_link_libraries(
-    ${PROJECT_NAME}-${test_name} PUBLIC ${PROJECT_NAME} ${LIBRA_test_harness}
-                                        ${LIBRA_TEST_HARNESS_LIBS})
+    ${test_name} PUBLIC ${PROJECT_NAME} ${LIBRA_test_harness}
+                        ${LIBRA_TEST_HARNESS_LIBS})
 
   # If the project is a C project, then we will probably be casting in the C
   # way, so turn off the usual compile warnings about this.
@@ -154,14 +158,13 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   # requiring more exotic compilers.
   get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
   if("C" IN_LIST LANGUAGES_LIST)
-    target_compile_options(${PROJECT_NAME}-${test_name}
-                           PUBLIC -Wno-old-style-cast -Wno-useless-cast)
+    target_compile_options(${test_name} PUBLIC -Wno-old-style-cast
+                                               -Wno-useless-cast)
   endif()
 
   # Add the test executable to CTest
   if(INCLUDE_IN_CTEST)
-    add_test(${test_name}
-             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PROJECT_NAME}-${test_name})
+    add_test(${test_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_name})
     # Set target properties:
     #
     # * Propagate BLESS through to the interpreter if set on the ctest
@@ -184,11 +187,11 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   endif()
 
   # Add to global umbrella target
-  add_dependencies(${UMBRELLA_TARGET} ${PROJECT_NAME}-${test_name})
+  add_dependencies(${UMBRELLA_TARGET} ${test_name})
 
   # Add to global "build-and-test" target to build library+test harness+unit
   # tests and then run the unit tests
-  add_dependencies(build-and-test ${PROJECT_NAME}-${test_name})
+  add_dependencies(build-and-test ${test_name})
 endfunction()
 
 # ##############################################################################
@@ -247,11 +250,11 @@ function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   endif()
 
   # No-op target — named handle for build-and-test only
-  add_custom_target(${PROJECT_NAME}-${test_name})
+  add_custom_target(${test_name})
 
   # NOT added to umbrella (unit-tests/integration-tests/regression-tests) since
   # there's nothing to build -- only build-and-test runs them via ctest
-  add_dependencies(build-and-test ${PROJECT_NAME}-${test_name})
+  add_dependencies(build-and-test ${test_name})
 endfunction()
 
 # ##############################################################################
@@ -398,7 +401,7 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   endif()
 
   add_custom_target(
-    ${PROJECT_NAME}-${test_name}
+    ${test_name}
     COMMAND sh -c "${_shell_cmd}"
     COMMENT "Negative compile test: ${test_name}"
     VERBATIM)
@@ -406,7 +409,7 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   if(INCLUDE_IN_CTEST)
     add_test(NAME ${test_name}
              COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target
-                     ${PROJECT_NAME}-${test_name})
+                     ${test_name})
 
     string(REPLACE "-tests" "" test_label ${UMBRELLA_TARGET})
 
@@ -422,8 +425,8 @@ function(enable_single_negative_compile_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
 
   # Negative tests participate in the umbrella target so "make unit-tests"
   # builds and validates them alongside positive tests.
-  add_dependencies(${UMBRELLA_TARGET} ${PROJECT_NAME}-${test_name})
-  add_dependencies(build-and-test ${PROJECT_NAME}-${test_name})
+  add_dependencies(${UMBRELLA_TARGET} ${test_name})
+  add_dependencies(build-and-test ${test_name})
 endfunction()
 
 # ##############################################################################

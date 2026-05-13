@@ -43,3 +43,11 @@ follows the natural rhythm of development:
 Use ``make all-tests`` or ``clibra test`` explicitly when you want
 tests built. Use ``make build-and-test`` or ``clibra test`` when you
 want them built and run.
+
+Test naming
+===========
+
+The directory structure under ``tests/`` for all test types is preserved for
+compiled tests (Principle of Least Surprise). E.g.,
+``tests/mymodule/myclass-utest.cpp`` -> ``bin/mymodule/myclass-utest`` assuming
+a default :cmake:variable:`LIBRA_CTEST_UTEST_MATCHER`.

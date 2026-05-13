@@ -16,7 +16,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/libra/version.cmake)
 libra_extract_version()
 
-message("${LIBRA_PROJECT_VERSION_NUMERIC}")
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Top-level/when LIBRA itself is being installed: need a language for
   # GNUInstallDirs architecture detection

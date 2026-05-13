@@ -130,6 +130,3 @@ binary automatically:
 
 Both libraries link against the main project target so that all project
 includes, defines, and transitive dependencies are propagated.
-``-Wno-old-style-cast`` and ``-Wno-useless-cast`` are added for C
-projects to silence common C-style cast warnings in test code.
-
