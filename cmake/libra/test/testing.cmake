@@ -132,23 +132,25 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   get_filename_component(test_name ${t} NAME_WE)
   get_filename_component(test_file ${t} NAME)
   get_filename_component(test_dir ${t} DIRECTORY)
-  file(RELATIVE_PATH test_path ${CMAKE_CURRENT_SOURCE_DIR}/tests ${test_dir})
+  file(RELATIVE_PATH test_parent ${CMAKE_CURRENT_SOURCE_DIR}/tests ${test_dir})
+  set(test_path ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_parent}/${test_name})
 
   # Define the test executable
   add_executable(${test_name} EXCLUDE_FROM_ALL ${t})
   _libra_configure_standard(${test_name})
   set_target_properties(
     ${test_name}
-    PROPERTIES LINKER_LANGUAGE CXX RUNTIME_OUTPUT_DIRECTORY
-                                   ${CMAKE_BINARY_DIR}/bin/${test_path})
+    PROPERTIES LINKER_LANGUAGE CXX
+               RUNTIME_OUTPUT_DIRECTORY
+               ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_parent})
 
-  # Tests depend on the test harness
-  add_dependencies(${test_name} ${PROJECT_NAME} ${LIBRA_test_harness})
-
-  # Tests depend on the project library (DUH)
+  # Tests depend on the project library, test harness, and any declared test
+  # harness libs. Order is intentional: the test harness must come last, because
+  # there may be e.g. weak symbols in the test harness static libs which need to
+  # be resolved by the test harness.
   target_link_libraries(
-    ${test_name} PUBLIC ${PROJECT_NAME} ${LIBRA_test_harness}
-                        ${LIBRA_TEST_HARNESS_LIBS})
+    ${test_name} PUBLIC ${PROJECT_NAME} ${LIBRA_TEST_HARNESS_LIBS}
+                        ${LIBRA_test_harness})
 
   # If the project is a C project, then we will probably be casting in the C
   # way, so turn off the usual compile warnings about this.
@@ -164,7 +166,7 @@ function(enable_single_compiled_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
 
   # Add the test executable to CTest
   if(INCLUDE_IN_CTEST)
-    add_test(${test_name} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${test_name})
+    add_test(${test_name} ${test_path})
     # Set target properties:
     #
     # * Propagate BLESS through to the interpreter if set on the ctest
