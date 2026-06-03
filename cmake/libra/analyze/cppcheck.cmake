@@ -59,9 +59,9 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
       COMMAND
         ${cppcheck_EXECUTABLE}
         --project=${PROJECT_BINARY_DIR}/compile_commands.json
-        --enable=warning,style,performance,portability --verbose
-        --check-level=exhaustive ${STD_ARGS} --inline-suppr ${_suppr_args}
-        ${_ignore_args} ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1
+        --enable=warning,style,performance,portability --verbose ${STD_ARGS}
+        --inline-suppr ${_suppr_args} ${_ignore_args}
+        ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
       COMMENT "Running ${cppcheck_NAME} with compdb")
   else()

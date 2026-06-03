@@ -380,13 +380,14 @@ endif()
 #[[.rst:
 .. cmake:variable:: LIBRA_PGO_GNU
 
-If GEN: ``-fprofile-generate``.
+If GEN: ``-fprofile-generate -fprofile-update=prefer-atomic`` to compiler,
+``-fprofile-generate`` to linker.
 
-If USE: ``-fprofile-use``.
+If USE: ``-fprofile-use`` to compiler and linker.
 ]]
 
 if("${LIBRA_PGO}" MATCHES "GEN")
-  set(_LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate)
+  set(_LIBRA_PGO_GEN_COMPILE_OPTIONS -fprofile-generate -fprofile-update=atomic)
   set(_LIBRA_PGO_GEN_LINK_OPTIONS -fprofile-generate)
 endif()
 

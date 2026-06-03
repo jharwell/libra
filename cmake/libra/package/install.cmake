@@ -583,7 +583,9 @@ endfunction()
 
   - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
   - Executables: ``${CMAKE_INSTALL_BINDIR}``
-  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}`` (if ``INCLUDE_DIR`` provided)
+  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}`` (if ``INCLUDE_DIR`` provided, OR
+    the ``PUBLIC_HEADER`` property is set on the target if ``INCLUDE_DIR`` is
+    omitted).
   - Export file: ``lib/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
@@ -660,7 +662,12 @@ function(libra_install_target)
     EXPORT ${ARG_TARGET}-exports
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            # If the target sets the PUBLIC_HEADER property, then this will
+            # install the
+            # headers. But most targets don't set this property, so the
+            # libra_install_headers() call above is needed.
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(
     EXPORT ${ARG_TARGET}-exports
