@@ -37,6 +37,30 @@ latest_matching_tag() {
         | grep -m1 -E "${regex}" || true
 }
 
+# Return the highest stable tag that is >= the given base version (MAJ.MIN.PAT),
+# or empty string if none exists.
+superseding_stable_tag() {
+    local base="$1"
+    local bmaj bmin bpat
+
+    IFS='.' read -r bmaj bmin bpat <<< "${base}"
+
+    git tag --list \
+        | grep -E "${SEMVER_STABLE_RE}" \
+        | sed 's/^v//' \
+        | sort -V \
+        | awk -F. \
+            -v bmaj="${bmaj}" \
+            -v bmin="${bmin}" \
+            -v bpat="${bpat}" \
+            '
+            ($1+0 > bmaj+0) ||
+            ($1+0 == bmaj+0 && $2+0 > bmin+0) ||
+            ($1+0 == bmaj+0 && $2+0 == bmin+0 && $3+0 >= bpat+0)
+            ' \
+        | tail -1
+}
+
 
 LATEST_DEV=$(latest_matching_tag "${SEMVER_DEV_RE}")
 
@@ -54,14 +78,16 @@ if [[ -n "${LATEST_DEV}" ]]; then
     )
 
     #
-    # If a stable release for this base already exists, the dev
-    # series has been promoted. Start the next patch development
-    # series.
+    # If any stable release >= this base exists, the dev series has been
+    # promoted (possibly to a higher version on another branch). Start the
+    # next patch development series from the highest such stable release.
     #
-    if git tag --list | grep -qx "v${BASE}"; then
-        echo "Stable release for ${BASE} exists; advancing patch series" >&2
+    SUPERSEDING=$(superseding_stable_tag "${BASE}")
 
-        IFS='.' read -r MAJ MIN PAT <<< "${BASE}"
+    if [[ -n "${SUPERSEDING}" ]]; then
+        echo "Stable release v${SUPERSEDING} supersedes ${BASE}; advancing patch series" >&2
+
+        IFS='.' read -r MAJ MIN PAT <<< "${SUPERSEDING}"
 
         NEW_TAG="v${MAJ}.${MIN}.$((PAT + 1))-dev.1"
     else

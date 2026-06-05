@@ -50,6 +50,10 @@ pub struct BuildArgs {
     /// Run the build in verbose mode, printing build commands
     #[arg(short, long)]
     pub verbose: bool,
+
+    /// Enable LTO via LIBRA.
+    #[arg(long)]
+    pub lto: bool,
 }
 
 // Traits
@@ -57,24 +61,38 @@ pub struct BuildArgs {
 // Implementation
 
 // Public API
-pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
+pub fn run(ctx: &runner::Context, mut args: BuildArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     debug!("Begin");
 
     let preset = preset::resolve(ctx, None)?;
     let bdir = cmake::binary_dir(&preset);
 
-    if args.reconfigure || args.fresh || bdir.is_none() {
-        debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
     if bdir.is_some() && !args.defines.is_empty() && !args.reconfigure && !args.fresh {
         anyhow::bail!(
-            "{} -D values given but build directory exists and no --reconfigure;
-            values will not be applied",
+            "{} -D values given but build directory exists and no --reconfigure; values will not be applied. This is probably a configuration error.",
             args.defines.len()
         );
     }
+
+    // 2026-06-03 [JRH]: This is here so that people who want to just tack on
+    // LTO to whatever their current build config is can use clibra + LTO
+    // without having to define CMake presets with LTO.
+    let needs_lto = args.lto
+        && !bdir.as_ref().is_some_and(|b| {
+            cmake::cache_bool(b.as_ref(), "LIBRA_LTO")
+                .unwrap_or(Some(false))
+                .unwrap_or(false)
+        });
+
+    if args.reconfigure || args.fresh || bdir.is_none() || needs_lto {
+        debug!("Begin reconfigure");
+        if needs_lto {
+            args.defines.push("LIBRA_LTO=YES".to_string());
+        }
+        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
+    }
+
     let mut cmd = cmake::base_build(&preset);
     cmd.args(["--parallel", &args.jobs.to_string()]);
 

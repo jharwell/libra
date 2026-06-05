@@ -215,7 +215,7 @@ endfunction()
   deriving one from a target name. Use it for scripts, data files, templates,
   or any other content that needs to reach the install tree.
 
-  Passing a directory is an error; use :cmake:command:`libra_install_dir`
+  Passing a directory is an error; use :cmake:command:`libra_install_dir()`
   for directory installation.
 
   :param DESTINATION: Install destination relative to
@@ -223,20 +223,31 @@ endfunction()
 
   :param FILES: One or more files to install.
 
-  **Example:**
+  :param RENAME: (Optional) Rename the file at the destination. May only be
+   used when exactly one file is given in ``FILES``. An error is raised if
+   ``RENAME`` is specified alongside multiple files.
+
+  **Examples:**
 
   .. code-block:: cmake
 
+    # Install multiple files
     libra_install_files(
       DESTINATION lib/cmake/mylib
       FILES       cmake/mylib/version.py cmake/mylib/utils.py)
+
+    # Install and rename a single file
+    libra_install_files(
+      DESTINATION bin
+      FILES       scripts/start.sh.in
+      RENAME      start.sh)
 
 ]]
 function(libra_install_files)
   cmake_parse_arguments(
     ARG
     ""
-    "DESTINATION"
+    "DESTINATION;RENAME"
     "FILES"
     ${ARGN})
 
@@ -245,6 +256,22 @@ function(libra_install_files)
   endif()
   if(NOT ARG_FILES)
     libra_error("libra_install_files: FILES is required")
+  endif()
+  if(ARG_RENAME)
+    list(LENGTH ARG_FILES _nfiles)
+    if(NOT _nfiles EQUAL 1)
+      libra_error(
+        "libra_install_files: RENAME requires exactly one file, got ${_nfiles}\n"
+        "  Remove RENAME or reduce FILES to a single file")
+    endif()
+    install(
+      FILES ${ARG_FILES}
+      DESTINATION "${ARG_DESTINATION}"
+      RENAME "${ARG_RENAME}")
+    libra_message(
+      STATUS
+      "Registered 1 file for install -> ${ARG_DESTINATION}/${ARG_RENAME}")
+    return()
   endif()
 
   _libra_install_items(
@@ -321,103 +348,6 @@ function(libra_install_dir)
 
   libra_message(
     STATUS "Registered ${_count} file(s) for install -> ${ARG_DESTINATION}")
-endfunction()
-
-#[[.rst:
-.. cmake:command:: libra_install_files
-
-  Install arbitrary files or directories at ``${CMAKE_INSTALL_PREFIX}``.
-
-  Unlike :cmake:command:`libra_install_cmake_modules`, this function imposes
-  no restriction on file type. Use it to install scripts, data files,
-  templates, or any other content that needs to be present in the install
-  tree.
-
-  Supports both individual files and directories (processed recursively).
-  Directory structure is preserved during installation.
-
-  :param DESTINATION: Install destination relative to
-   :cmake:variable:`CMAKE_INSTALL_PREFIX`.
-
-  :param FILES_OR_DIRS: One or more files or directories to install.
-   Directories are searched recursively and their structure is preserved.
-
-  **Examples:**
-
-  .. code-block:: cmake
-
-    # Install a single script
-    libra_install_files(
-      DESTINATION lib/cmake/libra
-      FILES_OR_DIRS cmake/libra/version.py)
-
-    # Install an entire directory (structure preserved)
-    libra_install_files(
-      DESTINATION share/mylib/data
-      FILES_OR_DIRS data/templates)
-
-    # Mix files and directories
-    libra_install_files(
-      DESTINATION share/mylib
-      FILES_OR_DIRS data/config.json data/templates)
-
-]]
-function(libra_install_files)
-  cmake_parse_arguments(
-    ARG
-    ""
-    "DESTINATION"
-    "FILES_OR_DIRS"
-    ${ARGN})
-
-  if(NOT ARG_DESTINATION)
-    libra_error("libra_install_files: DESTINATION is required")
-  endif()
-
-  if(NOT ARG_FILES_OR_DIRS)
-    libra_error("libra_install_files: FILES_OR_DIRS is required")
-  endif()
-
-  set(_total 0)
-
-  foreach(ITEM ${ARG_FILES_OR_DIRS})
-    if(NOT IS_ABSOLUTE "${ITEM}")
-      set(ITEM "${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}")
-    endif()
-
-    if(IS_DIRECTORY "${ITEM}")
-      file(
-        GLOB_RECURSE _dir_files
-        RELATIVE "${ITEM}"
-        "${ITEM}/*")
-
-      foreach(_rel_file ${_dir_files})
-        get_filename_component(_rel_dir "${_rel_file}" DIRECTORY)
-        if(_rel_dir)
-          install(FILES "${ITEM}/${_rel_file}"
-                  DESTINATION "${ARG_DESTINATION}/${_rel_dir}")
-        else()
-          install(FILES "${ITEM}/${_rel_file}" DESTINATION "${ARG_DESTINATION}")
-        endif()
-        math(EXPR _total "${_total} + 1")
-      endforeach()
-
-    elseif(EXISTS "${ITEM}")
-      install(FILES "${ITEM}" DESTINATION "${ARG_DESTINATION}")
-      math(EXPR _total "${_total} + 1")
-
-    else()
-      libra_error("libra_install_files: '${ITEM}' does not exist\n"
-                  "  Verify the path is correct")
-    endif()
-  endforeach()
-
-  if(_total EQUAL 0)
-    libra_error("libra_install_files: No files found to install")
-  endif()
-
-  libra_message(
-    STATUS "Registered ${_total} file(s) for install -> ${ARG_DESTINATION}")
 endfunction()
 
 #[[.rst:

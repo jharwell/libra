@@ -29,6 +29,10 @@ pub struct InstallArgs {
     /// Reconfigure with a --fresh build directory by wiping the CMake cache.
     #[arg(short, long)]
     pub fresh: bool,
+
+    /// Enable LTO via LIBRA.
+    #[arg(long)]
+    pub lto: bool,
 }
 
 // Traits
@@ -37,7 +41,7 @@ pub struct InstallArgs {
 
 // Public API
 
-pub fn run(ctx: &runner::Context, args: InstallArgs) -> anyhow::Result<()> {
+pub fn run(ctx: &runner::Context, mut args: InstallArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 
     debug!("Begin");
@@ -45,10 +49,31 @@ pub fn run(ctx: &runner::Context, args: InstallArgs) -> anyhow::Result<()> {
     let preset = preset::resolve(ctx, None)?;
     let bdir = cmake::binary_dir(&preset);
 
-    if args.reconfigure || args.fresh || bdir.is_none() {
+    if bdir.is_some() && !args.defines.is_empty() && !args.reconfigure && !args.fresh {
+        anyhow::bail!(
+            "{} -D values given but build directory exists and no --reconfigure; values will not be applied. This is probably a configuration error.",
+            args.defines.len()
+        );
+    }
+
+    // 2026-06-03 [JRH]: This is here so that people who want to just tack on
+    // LTO to whatever their current build config is can use clibra + LTO
+    // without having to define CMake presets with LTO.
+    let needs_lto = args.lto
+        && !bdir.as_ref().is_some_and(|b| {
+            cmake::cache_bool(b.as_ref(), "LIBRA_LTO")
+                .unwrap_or(Some(false))
+                .unwrap_or(false)
+        });
+
+    if args.reconfigure || args.fresh || bdir.is_none() || needs_lto {
         debug!("Begin reconfigure");
+        if needs_lto {
+            args.defines.push("LIBRA_LTO=YES".to_string());
+        }
         cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    };
+    }
+
     if bdir.is_some() && !args.defines.is_empty() && !args.reconfigure && !args.fresh {
         anyhow::bail!(
             "{} -D values given but build directory exists and no --reconfigure;
