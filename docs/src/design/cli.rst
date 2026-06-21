@@ -222,7 +222,7 @@ chance.
   binary and has no portability cost.
 
 ``native-release``
-  Inherits ``release``, adds ``LIBRA_NATIVE_OPT=ON``. Separate from
+  Inherits ``release``, adds ``LIBRA_OPT_NATIVE=ON``. Separate from
   ``release`` because a ``native-release`` binary is not portable across
   CPU microarchitectures and should never be the default release preset
   for a distributed build. The distinction is meaningful enough to
@@ -294,7 +294,7 @@ Presets not included and why
 
 ``performance``
   The earlier design included a ``performance`` seed preset combining
-  ``LIBRA_LTO=ON``, ``LIBRA_NATIVE_OPT=ON``, and ``LIBRA_PGO=GEN``.
+  ``LIBRA_LTO=ON``, ``LIBRA_OPT_NATIVE=ON``, and ``LIBRA_PGO=GEN``.
   This conflates three independent concerns: portability (native opt),
   link-time optimisation, and profile-guided optimisation. The existing
   ``native-release``, ``pgo-gen``, and ``pgo-use`` presets compose more

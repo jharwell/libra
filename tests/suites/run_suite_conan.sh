@@ -72,9 +72,14 @@ exec bats -j $(nproc) "$@" \
   "${TESTS_DIR}/LIBRA_FORTIFY.bats" \
   "${TESTS_DIR}/LIBRA_FPC.bats" \
   "${TESTS_DIR}/LIBRA_LTO.bats" \
-  "${TESTS_DIR}/LIBRA_NATIVE_OPT.bats" \
-  "${TESTS_DIR}/LIBRA_NO_CCACHE.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_NATIVE.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_FAST_MATH.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_INLINE.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_LINKER.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_NO_RTTI.bats" \
+  "${TESTS_DIR}/LIBRA_OPT_NO_EXCEPTIONS.bats" \
   "${TESTS_DIR}/LIBRA_OPT_REPORT.bats" \
+  "${TESTS_DIR}/LIBRA_NO_CCACHE.bats" \
   "${TESTS_DIR}/LIBRA_PGO.bats" \
   "${TESTS_DIR}/LIBRA_SAN.bats" \
   "${TESTS_DIR}/LIBRA_STDLIB.bats" \

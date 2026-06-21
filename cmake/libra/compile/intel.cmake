@@ -109,12 +109,78 @@ endforeach()
 # Optimization Options
 # ##############################################################################
 #[[.rst:
-.. cmake:variable:: LIBRA_NATIVE_OPT_INTEL
+.. cmake:variable:: LIBRA_OPT_NATIVE_INTEL
 
 If enabled: ``-xHost``.
 ]]
-if(LIBRA_NATIVE_OPT)
-  list(APPEND _LIBRA_OPT_OPTIONS -xHost)
+if(LIBRA_OPT_NATIVE)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -xHost)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_NO_GUARDS_INTEL
+
+If enabled: ``-fomit-frame-pointer -fno-stack-protector``.
+]]
+if(LIBRA_OPT_NO_GUARDS)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -fomit-frame-pointer
+       -fno-stack-protector)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_INLINE_INTEL
+
+If enabled: ``-fno-semantic-interposition, -fvisibility=hidden,-fvisibility-inlines-hidden``.
+]]
+if(LIBRA_OPT_INLINE)
+  list(
+    APPEND
+    _LIBRA_OPT_COMPILE_OPTIONS
+    -fno-semantic-interposition
+    -fvisibility=hidden
+    -fvisibility-inlines-hidden)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_LINKER_INTEL
+
+If enabled:
+
+``-ffunction-sections, -fdata-sections`` compile flags.
+
+``-Wl,--gc-sections`` link flags.
+
+]]
+if(LIBRA_OPT_LINKER)
+  list(APPEND _LIBRA_OPT_LINK_OPTIONS -Wl,--gc-sections)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -ffunction-sections -fdata-sections)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_NO_EXCEPTIONS_INTEL
+
+If enabled: ``-fno-exceptions``. C++ only.
+]]
+if(LIBRA_OPT_NO_EXCEPTIONS)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -fno-exceptions)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_NO_RTTI_INTEL
+
+If enabled: ``-fno-rtti``. C++ only.
+]]
+if(LIBRA_OPT_NO_RTTI)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -fno-rtti)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_FAST_MATH_INTEL
+
+If enabled: ``-ffast-math``.
+]]
+if(LIBRA_OPT_FAST_MATH)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -ffast-math)
 endif()
 
 # ##############################################################################

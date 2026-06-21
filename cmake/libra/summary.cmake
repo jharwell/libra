@@ -256,7 +256,12 @@ function(libra_config_summary)
       LIBRA_GLOBAL_CXX_FLAGS
       LIBRA_NO_CCACHE
       LIBRA_BUILD_PROF
-      LIBRA_NATIVE_OPT
+      LIBRA_OPT_NATIVE
+      LIBRA_OPT_NO_GUARDS
+      LIBRA_OPT_INLINE
+      LIBRA_OPT_LINKER
+      LIBRA_OPT_NO_EXCEPTIONS
+      LIBRA_OPT_NO_RTTI
       LIBRA_TESTS
       LIBRA_PGO
       LIBRA_COVERAGE
@@ -372,18 +377,30 @@ function(libra_config_summary)
   # LIBRA features
   _libra_summary_row("Build tests..........................." EMIT_LIBRA_TESTS
                      "[LIBRA_TESTS]")
+  _libra_summary_row("Disable ccache........................"
+                     EMIT_LIBRA_NO_CCACHE "[LIBRA_NO_CCACHE]")
+  _libra_summary_row("Enable build profiling................"
+                     EMIT_LIBRA_BUILD_PROF "[LIBRA_BUILD_PROF]")
+
   _libra_summary_row("PGO..................................." EMIT_LIBRA_PGO
                      "[LIBRA_PGO]")
   _libra_summary_row("Code coverage instrumentation........."
                      EMIT_LIBRA_COVERAGE "[LIBRA_COVERAGE]")
   _libra_summary_row("Native optimization options..........."
-                     EMIT_LIBRA_NATIVE_OPT "[LIBRA_NATIVE_OPT]")
-  _libra_summary_row("Disable ccache........................"
-                     EMIT_LIBRA_NO_CCACHE "[LIBRA_NO_CCACHE]")
-  _libra_summary_row("Enable build profiling................"
-                     EMIT_LIBRA_BUILD_PROF "[LIBRA_BUILD_PROF]")
+                     EMIT_LIBRA_OPT_NATIVE "[LIBRA_OPT_NATIVE]")
+  _libra_summary_row("Remove function safety scaffolding........"
+                     EMIT_LIBRA_OPT_NO_GUARDS "[LIBRA_OPT_NO_GUARDS]")
+  _libra_summary_row("Optimize across {TU,shared lib} boundaries..........."
+                     EMIT_LIBRA_OPT_INLINE "[LIBRA_OPT_INLINE]")
+  _libra_summary_row("Eliminate dead code at link time..........."
+                     EMIT_LIBRA_OPT_LINKER "[LIBRA_OPT_LINKER]")
+  _libra_summary_row("Don't use C++ exceptions..........."
+                     EMIT_LIBRA_OPT_NO_EXCEPTIONS "[LIBRA_OPT_NO_EXCEPTIONS]")
+  _libra_summary_row("Don't use C++ RTTI..........." EMIT_LIBRA_OPT_NO_RTTI
+                     "[LIBRA_OPT_NO_RTTI]")
   _libra_summary_row("Enable LTO............................" EMIT_LIBRA_LTO
                      "[LIBRA_LTO]")
+
   _libra_summary_row("Function Precondition Checking (FPC).." EMIT_LIBRA_FPC
                      "[LIBRA_FPC]")
   _libra_summary_row("FPC Export............................"

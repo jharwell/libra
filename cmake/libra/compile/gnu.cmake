@@ -211,12 +211,78 @@ endif()
 # Optimization Options
 # ##############################################################################
 #[[.rst:
-.. cmake:variable:: LIBRA_NATIVE_OPT_GNU
+.. cmake:variable:: LIBRA_OPT_NATIVE_GNU
 
 If enabled: ``-march=native -mtune=native``.
 ]]
-if(LIBRA_NATIVE_OPT)
-  list(APPEND _LIBRA_OPT_OPTIONS -march=native -mtune=native)
+if(LIBRA_OPT_NATIVE)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -march=native -mtune=native)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_NO_GUARDS_GNU
+
+If enabled: ``-fomit-frame-pointer -fno-stack-protector``.
+]]
+if(LIBRA_OPT_NO_GUARDS)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -fomit-frame-pointer
+       -fno-stack-protector)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_INLINE_GNU
+
+If enabled: ``-fno-semantic-interposition, -fvisibility=hidden,-fvisibility-inlines-hidden``.
+]]
+if(LIBRA_OPT_INLINE)
+  list(
+    APPEND
+    _LIBRA_OPT_COMPILE_OPTIONS
+    -fno-semantic-interposition
+    -fvisibility=hidden
+    -fvisibility-inlines-hidden)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_LINKER_GNU
+
+If enabled:
+
+``-ffunction-sections, -fdata-sections`` compile flags.
+
+``-Wl,--gc-sections`` link flags.
+
+]]
+if(LIBRA_OPT_LINKER)
+  list(APPEND _LIBRA_OPT_LINK_OPTIONS -Wl,--gc-sections)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -ffunction-sections -fdata-sections)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_NO_EXCEPTIONS_GNU
+
+If enabled: ``-fno-exceptions``. C++ only.
+]]
+if(LIBRA_OPT_NO_EXCEPTIONS)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -fno-exceptions)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_NO_RTTI_GNU
+
+If enabled: ``-fno-rtti``. C++ only.
+]]
+if(LIBRA_OPT_NO_RTTI)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -fno-rtti)
+endif()
+
+#[[.rst:
+.. cmake:variable:: LIBRA_OPT_FAST_MATH_GNU
+
+If enabled: ``-ffast-math``.
+]]
+if(LIBRA_OPT_FAST_MATH)
+  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -ffast-math)
 endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
@@ -245,7 +311,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
   # the attributes, even though they are already present.
   list(
     APPEND
-    _LIBRA_OPT_OPTIONS
+    _LIBRA_OPT_COMPILE_OPTIONS
     -Wno-suggest-attribute=pure
     -Wno-suggest-attribute=const
     -Wno-suggest-attribute=cold)

@@ -333,7 +333,7 @@ Build configuration
 Build optimization
 ==================
 
-.. cmake:variable:: LIBRA_NATIVE_OPT
+.. cmake:variable:: LIBRA_OPT_NATIVE
 
    :default: NO
    :type: CACHE BOOL
@@ -343,6 +343,70 @@ Build optimization
    recommended for CI pipelines or Docker builds.
 
    .. versionadded:: 0.9.15
+
+.. cmake:variable:: LIBRA_OPT_NO_GUARDS
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Remove compiler safety scaffolding to improve performance at the cost of
+   debugging (e.g., remove the frame pointer). Always safe to enable in release
+   builds.
+
+   .. versionadded:: 0.12.8
+
+.. cmake:variable:: LIBRA_OPT_INLINE
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Improve code visibility for the compiler across TU/library boundaries. Helps
+   inlining and devirtualizing in shared libs. Always safe to enable in release
+   builds.
+
+   .. versionadded:: 0.12.8
+
+.. cmake:variable:: LIBRA_OPT_LINKER
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Eliminate dead code at link time to reduce binary size and improve icache
+   utilization.
+
+   .. versionadded:: 0.12.8
+
+.. cmake:variable:: LIBRA_OPT_NO_EXCEPTIONS
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Disable exception handling (C++ only). Turns exceptions into aborts in the
+   STL, and removes stack unwinding code which can reduce binary size. Has no
+   effect on C compilation.
+
+   .. versionadded:: 0.12.8
+
+.. cmake:variable:: LIBRA_OPT_NO_RTTI
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Disable RunTime Type Information (C++ only). If you don't use ``typeid``,
+   ``dynamic_cast``, etc. then this can reduce binary size. See also
+   :cmake:variable`LIBRA_OPT_LINKER`.
+
+   .. versionadded:: 0.12.8
+
+.. cmake:variable:: LIBRA_OPT_FAST_MATH
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Relax floating point correctness requirements to squeeze maximum performance;
+   may change numerical results. Validate correctness before enabling!
+
+   .. versionadded:: 0.12.8
 
 .. cmake:variable:: LIBRA_PGO
 
