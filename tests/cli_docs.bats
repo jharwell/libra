@@ -21,11 +21,11 @@ setup() {
 # ==============================================================================
 
 @test "DOCS: defaults to 'docs' preset when --preset not given" {
-    assert_dry_run_contains "--preset docs" docs
+    assert_dry_run_contains "--preset docs" docs build
 }
 
 @test "DOCS: --preset flag is forwarded" {
-    assert_dry_run_contains "--preset release" docs --preset release
+    assert_dry_run_contains "--preset release" docs build --preset release
 }
 
 # ==============================================================================
@@ -33,49 +33,54 @@ setup() {
 # ==============================================================================
 
 @test "DOCS: invokes cmake --build" {
-    assert_dry_run_contains "cmake --build" docs
+    assert_dry_run_contains "cmake --build" docs build
 }
 
-@test "DOCS: no subcommand targets apidoc and sphinxdoc" {
-    run_clibra --dry-run docs
+@test "DOCS: 'build' with no --target builds apidoc and sphinxdoc" {
+    run_clibra --dry-run docs build
     assert_clibra_success
     assert_output_contains "apidoc"
     assert_output_contains "sphinxdoc"
 }
 
 @test "DOCS: --reconfigure invokes configure step" {
-    assert_dry_run_contains "cmake --preset" docs --reconfigure
+    assert_dry_run_contains "cmake --preset" docs --reconfigure build
 }
 
 @test "DOCS: -D defines forwarded to configure step with --reconfigure" {
-    assert_dry_run_contains "-DFOO=BAR" docs --reconfigure -DFOO=BAR
+    assert_dry_run_contains "-DFOO=BAR" docs --reconfigure -DFOO=BAR build
 }
 
-@test "DOCS: --keep-going is forwarded" {
-    assert_dry_run_contains "--keep-going" docs --keep-going
+@test "DOCS: --keep-going is forwarded to build subcommand" {
+    assert_dry_run_contains "--keep-going" docs build --keep-going
 }
 
 # ==============================================================================
-# --check subcommand
+# check subcommand
 # ==============================================================================
 
-@test "DOCS: --check=doxygen targets apidoc-check-doxygen" {
-    assert_dry_run_contains "apidoc-check-doxygen" docs --check=doxygen
+@test "DOCS: 'check' without --kind fails with usage error" {
+    run_clibra docs check
+    assert_clibra_failure
 }
 
-@test "DOCS: --check=clang targets apidoc-check-clang" {
-    assert_dry_run_contains "apidoc-check-clang" docs --check=clang
+@test "DOCS: 'check --kind doxygen' targets apidoc-check-doxygen" {
+    assert_dry_run_contains "apidoc-check-doxygen" docs check --kind doxygen
 }
 
-@test "DOCS: --check=doxygen does not target apidoc or sphinxdoc" {
-    run_clibra --dry-run docs --check=doxygen
+@test "DOCS: 'check --kind clang' targets apidoc-check-clang" {
+    assert_dry_run_contains "apidoc-check-clang" docs check --kind clang
+}
+
+@test "DOCS: 'check --kind doxygen' does not target apidoc-check-clang" {
+    run_clibra --dry-run docs check --kind doxygen
     assert_clibra_success
     assert_output_contains "--target apidoc-check-doxygen"
     assert_output_not_contains "--target apidoc-check-clang"
 }
 
-@test "DOCS: --check=clang does not target apidoc or sphinxdoc" {
-    run_clibra --dry-run docs --check=clang
+@test "DOCS: 'check --kind clang' does not target apidoc-check-doxygen" {
+    run_clibra --dry-run docs check --kind clang
     assert_clibra_success
     assert_output_not_contains "--target apidoc-check-doxygen"
     assert_output_contains "--target apidoc-check-clang"
@@ -89,12 +94,12 @@ setup() {
 # whether --check is given. There is no silent skip.
 # ==============================================================================
 
-@test "DOCS: fails when LIBRA_DOCS not enabled and no --check given" {
+@test "DOCS: fails when LIBRA_DOCS not enabled and no --target given" {
     skip_if_compiler_missing gnu c
     # debug preset has LIBRA_DOCS=OFF
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
-    run_clibra docs --preset debug
+    run_clibra docs --preset debug build
     assert_clibra_failure
 }
 
@@ -102,15 +107,15 @@ setup() {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
-    run_clibra docs --preset debug
+    run_clibra docs --preset debug build
     assert_clibra_failure
 }
 
-@test "DOCS: --check=doxygen fails when LIBRA_DOCS not enabled" {
+@test "DOCS: 'check --kind doxygen' fails when LIBRA_DOCS not enabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
     assert_clibra_success
-    run_clibra docs --preset debug --check=doxygen
+    run_clibra docs --preset debug check --kind doxygen
     assert_clibra_failure
 }
 
