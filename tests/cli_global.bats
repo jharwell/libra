@@ -194,7 +194,7 @@ d.pop('vendor', None)
 print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
-    assert_dry_run_contains "--preset docs" docs
+    assert_dry_run_contains "--preset docs" docs build
 }
 
 @test "PRESET: test has no per-command default — fails without --preset" {
@@ -259,7 +259,7 @@ print(json.dumps(d))
 }
 
 @test "DRY_RUN: works with docs subcommand" {
-    run_clibra --dry-run --preset debug docs
+    run_clibra --dry-run --preset debug docs build
     assert_clibra_success
 }
 
