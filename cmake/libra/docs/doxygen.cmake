@@ -8,7 +8,7 @@
 # Custom messaging
 # ##############################################################################
 include(libra/messaging)
-include(libra/analyze/analyze)
+include(libra/analyze/utils)
 include(libra/utils)
 
 #[[.rst:

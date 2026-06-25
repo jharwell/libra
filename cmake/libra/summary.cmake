@@ -285,6 +285,7 @@ function(libra_config_summary)
       LIBRA_CLANG_FORMAT_FILEPATH
       LIBRA_CLANG_TIDY_FILEPATH
       LIBRA_CLANG_TIDY_CHECKS_CONFIG
+      LIBRA_CLANG_TIDY_CATEGORY_TARGETS
       LIBRA_C_DIAG_CANDIDATES
       LIBRA_CXX_DIAG_CANDIDATES
       LIBRA_TEST_HARNESS_LIBS
@@ -388,16 +389,16 @@ function(libra_config_summary)
                      EMIT_LIBRA_COVERAGE "[LIBRA_COVERAGE]")
   _libra_summary_row("Native optimization options..........."
                      EMIT_LIBRA_OPT_NATIVE "[LIBRA_OPT_NATIVE]")
-  _libra_summary_row("Remove function safety scaffolding........"
+  _libra_summary_row("Remove function safety scaffolding...."
                      EMIT_LIBRA_OPT_NO_GUARDS "[LIBRA_OPT_NO_GUARDS]")
-  _libra_summary_row("Optimize across {TU,shared lib} boundaries..........."
+  _libra_summary_row("Optimize across {TU/lib} boundaries..."
                      EMIT_LIBRA_OPT_INLINE "[LIBRA_OPT_INLINE]")
-  _libra_summary_row("Eliminate dead code at link time..........."
+  _libra_summary_row("Eliminate dead code at link time......"
                      EMIT_LIBRA_OPT_LINKER "[LIBRA_OPT_LINKER]")
-  _libra_summary_row("Don't use C++ exceptions..........."
+  _libra_summary_row("Don't use C++ exceptions.............."
                      EMIT_LIBRA_OPT_NO_EXCEPTIONS "[LIBRA_OPT_NO_EXCEPTIONS]")
-  _libra_summary_row("Don't use C++ RTTI..........." EMIT_LIBRA_OPT_NO_RTTI
-                     "[LIBRA_OPT_NO_RTTI]")
+  _libra_summary_row("Don't use C++ RTTI...................."
+                     EMIT_LIBRA_OPT_NO_RTTI "[LIBRA_OPT_NO_RTTI]")
   _libra_summary_row("Enable LTO............................" EMIT_LIBRA_LTO
                      "[LIBRA_LTO]")
 
@@ -452,6 +453,10 @@ function(libra_config_summary)
     _libra_summary_row(
       "clang tools use fixed DB.............."
       EMIT_LIBRA_CLANG_TOOLS_USE_FIXED_DB "[LIBRA_CLANG_TOOLS_USE_FIXED_DB]")
+    _libra_summary_row(
+      "clang-tidy category targets..........."
+      EMIT_LIBRA_CLANG_TIDY_CATEGORY_TARGETS
+      "[LIBRA_CLANG_TIDY_CATEGORY_TARGETS]")
 
   endif()
   if(LIBRA_TESTS)

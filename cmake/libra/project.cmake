@@ -105,10 +105,6 @@ endif()
 option(LIBRA_COVERAGE_NATIVE
        "Should code coverage be emitted in the compiler's native format?" YES)
 option(LIBRA_USE_COMPDB "Should analysis tools use a compilation database?" YES)
-option(
-  LIBRA_CLANG_TOOLS_USE_FIXED_DB
-  "Use the '--' separator (fixed compilation database for clang-based tools)"
-  YES)
 option(LIBRA_WERROR "Add -Werror to the list of compiler options" NO)
 
 # 2026-02-02 [JRH]: All of these are cache variables, because option() does not

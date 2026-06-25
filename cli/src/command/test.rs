@@ -133,7 +133,11 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
             "-T",
             "memcheck",
             "--test-dir",
-            bdir.unwrap().to_str().unwrap(),
+            if ctx.dry_run {
+                "build"
+            } else {
+                bdir.as_ref().unwrap().to_str().unwrap()
+            },
         ]);
     }
 

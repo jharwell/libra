@@ -12,11 +12,27 @@ else()
 endif()
 
 # ---------------------------------------------------------------------------
-# STUBS test path: build a STATIC library with a public header so that
-# _libra_generate_header_stubs and _libra_prune_stale_stubs are exercised during
-# LIBRA_ANALYSIS=ON configure.
+# MULTI_TARGET test path: register two targets (a library and an executable)
+# so that _libra_register_clang_tidy is called more than once in a single
+# configure. This exercises the if(NOT TARGET ...) guard that prevents a
+# duplicate add_custom_target(analyze-clang-tidy) error.
 # ---------------------------------------------------------------------------
-if(LIBRA_TEST_STUBS)
+if(LIBRA_TEST_MULTI_TARGET)
+  if(LIBRA_TEST_LANGUAGE STREQUAL "C")
+    libra_add_library(${PROJECT_NAME}_lib STATIC lib_stub.c)
+    libra_add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_C_SRC})
+  else()
+    libra_add_library(${PROJECT_NAME}_lib STATIC lib_stub.cpp)
+    libra_add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_CXX_SRC})
+  endif()
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
+
+# ---------------------------------------------------------------------------
+# STUBS test path: build a STATIC library with a public header so that
+# _libra_generate_header_stubs and _libra_prune_stale_stubs are exercised
+# during LIBRA_ANALYSIS=ON configure.
+# ---------------------------------------------------------------------------
+elseif(LIBRA_TEST_STUBS)
   # include/sample_build_info/stub.hpp is a static source-tree file that
   # project.cmake's GLOB_RECURSE picks up into ${PROJECT_NAME}_CXX_HEADERS
   # before project-local.cmake is included.  Exposing it via

@@ -138,9 +138,29 @@ Analysis
 
 .. cmake:variable:: LIBRA_CLANG_TIDY_CHECKS_CONFIG
 
-   Any additional things to pass to ``--checks``. If non empty, must start with
-   ``,``. Useful to disable certain checks within each category of checks that
-   LIBRA creates targets for.
+   Additional check specifiers appended verbatim to the ``--checks`` argument
+   on every clang-tidy invocation. **Must start with a comma** when non-empty,
+   because LIBRA always places content before this value (either
+   ``-*,<category>*`` in category mode, or ``*`` in monolithic mode).
+
+   Use this to disable specific checks within a category without forking the
+   ``.clang-tidy`` file. For example, to suppress
+   ``readability-identifier-length`` and ``modernize-use-trailing-return-type``
+   across all runs:
+
+   .. code-block:: cmake
+
+      set(LIBRA_CLANG_TIDY_CHECKS_CONFIG
+          ",-readability-identifier-length,-modernize-use-trailing-return-type")
+
+   The resulting ``--checks`` argument in category mode would then be, e.g.:
+
+   .. code-block:: none
+
+      --checks=-*,readability*,-readability-identifier-length,-modernize-use-trailing-return-type
+
+   If left undefined, LIBRA uses
+   :cmake:variable:`LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT`.
 
    .. versionadded:: 0.8.15
 
@@ -152,6 +172,50 @@ Analysis
    added.
 
    .. versionadded:: 0.8.15
+
+.. cmake:variable:: LIBRA_CLANG_TOOLS_USE_FIXED_DB
+
+   :default: TRUE
+
+   When :cmake:variable:`LIBRA_USE_COMPDB` is ``NO``, this controls how include
+   paths and defines are passed to clang-based tools. When ``YES`` (default),
+   flags are passed after ``--`` (fixed compilation database convention). When
+   ``NO``, ``--extra-arg=`` is used for each flag.
+
+   The fixed-DB path (``YES``) is more reliable for projects with complex
+   include paths or those using CPM, where include directories may contain
+   special characters or spaces. Use the extra-arg path only if a specific tool
+   version requires it.
+
+   .. versionadded:: 0.10.0
+
+.. cmake:variable:: LIBRA_CLANG_TIDY_CATEGORY_TARGETS
+
+   :default: OFF
+
+   When ``ON``, ``analyze-clang-tidy-XX`` targets are created for all clang-tidy
+   categories. Otherwise, all files are registered under a monolithic
+   ``analyze-clang-tidy``
+   target. :cmake:variable:`LIBRA_CLANG_TIDY_CHECKS_CONFIG` can be used to tune
+   which checks are included; by default all checks are included.
+
+   Useful on smaller projects/projects where multiple check targets is overkill.
+
+   .. versionadded:: 0.10.0
+
+.. cmake:variable:: LIBRA_CLANG_TIDY_CATEGORIES
+
+   :default: ``abseil``, ``bugprone``, ``cert``, ``clang-analyzer-core``,
+             ``concurrency``, ``cppcoreguidelines``, ``google``, ``hicpp``,
+             ``misc``, ``modernize``, ``performance``, ``portability``,
+             ``readability``
+
+   If :cmake:variable:`LIBRA_CLANG_TIDY_CATEGORY_TARGETS` is enabled, then this
+   variable defines the categories of clang-tidy checks to enable. Useful for
+   creating a single ``make analyze`` target which will run all
+   analyzers/analyses you care about.
+
+   .. versionadded:: 0.12.8
 
 Testing
 -------

@@ -119,7 +119,7 @@ Quality Gates
 .. cmake:variable:: LIBRA_SPHINXDOC_COMMAND
 
    :default: ``sphinx-build``
-   :type: STRING
+   :type: CACHE STRING
 
    The command to run sphinx and generate documentation. via ``make sphinxdoc``.
 
@@ -138,28 +138,6 @@ Quality Gates
 
    Pass ``-Werror`` to the selected compiler so that all warnings are treated as
    errors when building.
-
-.. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
-
-   :default: YES
-   :type: BOOL
-
-   Should registered unit tests be included in the ``test`` target to run?
-
-.. cmake:variable:: LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS
-
-   :default: YES
-   :type: BOOL
-
-   Should registered integration tests be included in the ``test`` target to
-   run?
-
-.. cmake:variable:: LIBRA_CTEST_INCLUDE_REGRESSION_TESTS
-
-   :default: YES
-   :type: BOOL
-
-   Should registered regression tests be included in the ``test`` target to run?
 
 .. cmake:variable:: LIBRA_CTEST_INCLUDE_UNIT_TESTS
 
@@ -540,23 +518,6 @@ Build tooling
    :ref:`concepts/analysis` for when to disable this.
 
    .. versionadded:: 0.9.36
-
-.. cmake:variable:: LIBRA_CLANG_TOOLS_USE_FIXED_DB
-
-   :default: TRUE
-   :type: CACHE BOOL
-
-   When :cmake:variable:`LIBRA_USE_COMPDB` is ``NO``, this controls how include
-   paths and defines are passed to clang-based tools. When ``YES`` (default),
-   flags are passed after ``--`` (fixed compilation database convention). When
-   ``NO``, ``--extra-arg=`` is used for each flag.
-
-   The fixed-DB path (``YES``) is more reliable for projects with complex
-   include paths or those using CPM, where include directories may contain
-   special characters or spaces. Use the extra-arg path only if a specific tool
-   version requires it.
-
-   .. versionadded:: 0.10.0
 
 See also the :ref:`individual docs pages for each compiler <design/compilers>`,
 which describe how these variables are realized for each supported compiler.
