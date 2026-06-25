@@ -42,6 +42,10 @@ pub struct TestArgs {
     #[arg(long)]
     pub rerun_failed: bool,
 
+    /// Run all tests under valgrind. Requires valgrind to be installed.
+    #[arg(long)]
+    pub valgrind: bool,
+
     /// Run N tests in parallel. Defaults to # of logical CPUs.
     #[arg(long, default_value_t = utils::num_cpus())]
     pub parallel: u32,
@@ -82,7 +86,7 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
 
     let bdir = cmake::binary_dir(&preset);
 
-    if args.reconfigure || args.fresh || bdir.is_none_or(|b| !b.exists()) {
+    if args.reconfigure || args.fresh || bdir.as_ref().is_none_or(|b| !b.exists()) {
         cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
     }
     if !ctx.dry_run {
@@ -123,6 +127,14 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
     }
     if args.rerun_failed {
         cmd.arg("--rerun-failed");
+    }
+    if args.valgrind {
+        cmd.args([
+            "-T",
+            "memcheck",
+            "--test-dir",
+            bdir.unwrap().to_str().unwrap(),
+        ]);
     }
 
     ctx.run(&mut cmd)?;

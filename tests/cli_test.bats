@@ -43,6 +43,12 @@ setup() {
 @test "TEST: --rerun-failed is forwarded to ctest" {
     assert_dry_run_contains "--rerun-failed" test --rerun-failed --preset debug
 }
+@test "TEST: --valgrind is translated to ctest" {
+    assert_dry_run_contains "-T memcheck" test --valgrind
+}
+@test "TEST: --test-dir is translated to ctest" {
+    assert_dry_run_contains "--test-dir" test --valgrind
+}
 
 # ==============================================================================
 # ctest label mapping
