@@ -46,11 +46,14 @@ set(_LIBRA_BASE_DIAG_CANDIDATES
     -Wpointer-arith
     -Wno-unknown-pragmas
     -Wstack-protector
-    -Wunreachable-code
     -Wmissing-format-attribute
     -Wfloat-conversion
     -Wnarrowing
-    -Wmultistatement-macros)
+    -Wmultistatement-macros
+    -Wnull-dereference
+    -Wdouble-promotion
+    -Wtrampolines
+    -Wvla)
 
 if(LIBRA_WERROR)
   list(APPEND _LIBRA_BASE_DIAG_CANDIDATES -Werror)

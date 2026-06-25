@@ -20,10 +20,21 @@ set(LIBRA_STDLIB_DEFAULT "UNDEFINED")
 set(LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT --library=googletest)
 set(LIBRA_CPPCHECK_SUPPRESSIONS_DEFAULT unusedStructMember)
 set(LIBRA_CLANG_TOOLS_USE_FIXED_DB YES)
+set(LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT
+    clang-analyzer-core
+    abseil
+    cppcoreguidelines
+    readability
+    hicpp
+    bugprone
+    cert
+    performance
+    portability
+    concurrency
+    modernize
+    misc
+    google)
 
-# 2025-07-21 [JRH]: readability-identifier-naming checks disabled so that we can
-# run the other readability checks and be able to just do 'make
-# analyze-clang-tidy'.
 set(LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT
     ,-cppcoreguidelines-avoid-do-while,-cppcoreguidelines-pro-bounds-constant-array-index,-clang-diagnostic-*,-fuchsia-default-argument-calls,-fuchsia-overloaded-operator,-modernize-pass-by-value,-portability-template-virtual-member-function,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-portability-avoid-pragma-once,-readability-redundant-member-init,-bugprone-crtp-constructor-accessibility,-google-readability-avoid-underscore-in-googletest-name,-readability-named-parameter,-readability-implicit-bool-conversion,-readability-uppercase-literal-suffix,-cppcoreguidelines-avoid-goto
 )

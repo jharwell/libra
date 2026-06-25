@@ -107,12 +107,7 @@ for tools that are found on ``PATH`` are created — see
        - ``analyze-cppcheck`` — runs ``cppcheck``
        - ``analyze-clang-check`` — runs the clang static checker
        - ``analyze-clang-tidy`` — runs clang-tidy using ``.clang-tidy`` in the
-         repo root. Per-category targets follow the pattern
-         ``analyze-clang-tidy-<category>`` and ``fix-clang-tidy-<category>``.
-         Available categories: ``abseil``, ``bugprone``, ``cert``,
-         ``clang-analyzer-core``, ``concurrency``, ``cppcoreguidelines``,
-         ``google``, ``hicpp``, ``misc``, ``modernize``, ``performance``,
-         ``portability``, ``readability``.
+         repo root.
 
        - ``analyze-clang-format`` — runs ``clang-format`` in check mode
          (no changes made).

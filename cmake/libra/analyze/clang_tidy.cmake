@@ -11,26 +11,17 @@ include(libra/utils)
 # both to speed up pipelines, but also to fixing errors simpler when there are
 # TONS. These seem to be a comprehensive set of errors in clang-20; may need to
 # be updated in the future.
-set(CLANG_TIDY_CATEGORIES
-    clang-analyzer-core
-    abseil
-    cppcoreguidelines
-    readability
-    hicpp
-    bugprone
-    cert
-    performance
-    portability
-    concurrency
-    modernize
-    misc
-    google)
+if(LIBRA_CLANG_TIDY_CATEGORY_TARGETS)
+  if(NOT LIBRA_CLANG_TIDY_CATEGORIES)
+    set(LIBRA_CLANG_TIDY_CATEGORIES ${LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT})
+  endif()
+endif()
 
 _libra_register_custom_target(analyze-clang-tidy LIBRA_ANALYSIS
                               clang_tidy_EXECUTABLE)
 _libra_register_custom_target(fix-clang-tidy LIBRA_ANALYSIS
                               clang_tidy_EXECUTABLE)
-foreach(c ${CLANG_TIDY_CATEGORIES})
+foreach(c ${LIBRA_CLANG_TIDY_CATEGORIES})
   _libra_register_custom_target(analyze-clang-tidy-${c} LIBRA_ANALYSIS
                                 clang_tidy_EXECUTABLE)
   _libra_register_custom_target(fix-clang-tidy-${c} LIBRA_ANALYSIS
@@ -38,48 +29,179 @@ foreach(c ${CLANG_TIDY_CATEGORIES})
 endforeach()
 
 #[[.rst
+.. cmake:command: _libra_clang_tidy_build_cmd
+
+  Internal helper to build the clang-tidy command for a single file.
+  Sets CLANG_TIDY_CMD in the caller's scope.
+
+   :param FILE: The source/header file to analyze
+
+   :param CHECKS_EXPR: The string passed to --checks=
+
+   :param JOB_ARGS: Empty or "--fix --fix-errors"
+
+   :param STD_ARGS: --extra-arg=-std=... or similar
+
+   :param EXTRACTED_ARGS:  Include paths / defines extracted from the cmake
+   target
+
+   :param HEADER_FILTER: Value for --header-filter
+
+   :param HEADER_EXCLUDES: Optional --exclude-header-filter=... flag(s)
+]]
+macro(
+  _libra_clang_tidy_build_cmd
+  FILE
+  CHECKS_EXPR
+  JOB_ARGS
+  STD_ARGS
+  EXTRACTED_ARGS
+  HEADER_FILTER
+  HEADER_EXCLUDES)
+
+  # A nonexistent-but-syntactically-valid path tells clang-tidy to fall back to
+  # flags supplied after '--' (fixed compilation database convention). We use a
+  # well-known sentinel under /tmp so the intent is obvious.
+  set(_LIBRA_FIXED_DB_SENTINEL "/tmp/libra-fixed-db-sentinel")
+
+  if(LIBRA_USE_COMPDB)
+    set(CLANG_TIDY_CMD
+        ${clang_tidy_EXECUTABLE}
+        --header-filter=${HEADER_FILTER}
+        ${HEADER_EXCLUDES}
+        --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+        --checks=${CHECKS_EXPR}
+        ${JOB_ARGS}
+        ${STD_ARGS}
+        --extra-arg=-Wno-unknown-warning-option
+        --warnings-as-errors=*
+        ${EXTRACTED_ARGS}
+        ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+        ${FILE})
+  elseif(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
+    set(CLANG_TIDY_CMD
+        ${clang_tidy_EXECUTABLE}
+        --header-filter=${HEADER_FILTER}
+        ${HEADER_EXCLUDES}
+        --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+        --checks=${CHECKS_EXPR}
+        --warnings-as-errors=*
+        -p
+        ${_LIBRA_FIXED_DB_SENTINEL}
+        --quiet
+        ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+        ${JOB_ARGS}
+        ${FILE}
+        --
+        ${EXTRACTED_ARGS}
+        ${STD_ARGS}
+        -Wno-unknown-warning-option)
+  else()
+    set(CLANG_TIDY_CMD
+        ${clang_tidy_EXECUTABLE}
+        --header-filter=${HEADER_FILTER}
+        ${HEADER_EXCLUDES}
+        --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
+        --checks=${CHECKS_EXPR}
+        --warnings-as-errors=*
+        -p
+        ${_LIBRA_FIXED_DB_SENTINEL}
+        --quiet
+        ${JOB_ARGS}
+        ${EXTRACTED_ARGS}
+        ${STD_ARGS}
+        --extra-arg=-Wno-unknown-warning-option
+        ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
+        ${FILE})
+  endif()
+endmacro()
+
+#[[.rst
+.. cmake:command: _libra_clang_tidy_should_skip
+
+  Returns TRUE in OUT_VAR if FILE should be skipped for the
+  given CATEGORY.
+
+  Rules:
+
+  - misc category  -> headers only  (misc-include-cleaner is noise on .cpp)
+  - other category -> sources only  (running checks on headers is
+    unreliable; rely on source file stubs to get accurate compdb info).
+]]
+macro(
+  _libra_clang_tidy_should_skip
+  FILE
+  HEADERS
+  CATEGORY
+  OUT_VAR)
+  set(${OUT_VAR} FALSE)
+  set(_is_header FALSE)
+  if("${FILE}" IN_LIST ${HEADERS})
+    set(_is_header TRUE)
+  endif()
+
+  if("${CATEGORY}" STREQUAL "misc" AND NOT _is_header)
+    set(${OUT_VAR} TRUE)
+  elseif(NOT "${CATEGORY}" STREQUAL "misc" AND _is_header)
+    set(${OUT_VAR} TRUE)
+  endif()
+endmacro()
+
+#[[.rst
 .. cmake:command: _libra_register_clang_tidy
 
   Register clang-tidy on a target in a specific mode for all configured source
   files.
 
-  :param ANALYSIS_TARGET: The name of the umbrella analysis target to create.
+  :param UMBRELLA_TARGET: The name of the umbrella analysis target to create.
+   Per-file targets are added as dependencies of this target, so running it
+   will analyze all registered files.
 
-  :param TARGET: The name of the target which "owns" the source files to
-   analyze.
+  :param TARGET: The name of the cmake target which "owns" the source files to
+   analyze. Used to extract include paths, defines, and other compiler flags.
 
-  :param JOB: Either "FIX" or "CHECK", depending on what you want clang-tidy to
-   do.
+  :param JOB: Either ``FIX`` or ``CHECK``, depending on what you want
+   clang-tidy to do.
+
+  :param SRCS: List of source files (``.c``/``.cpp``) to analyze.
+
+  :param HEADERS: List of raw header files to analyze. The ``misc`` category
+   (``misc-include-cleaner``) runs on these; all other categories skip them.
+
+  :param STUBS: List of stub header files to analyze alongside HEADERS.
 ]]
 function(
   _libra_register_clang_tidy
-  ANALYSIS_TARGET
+  UMBRELLA_TARGET
   TARGET
   JOB
   SRCS
   HEADERS
   STUBS)
+
   _libra_analyze_clang_extract_args_from_target(${TARGET} EXTRACTED_ARGS)
 
   if(JOB STREQUAL "FIX")
     set(JOB_ARGS --fix --fix-errors)
+  else()
+    set(JOB_ARGS "")
   endif()
 
-  add_custom_target(${ANALYSIS_TARGET})
+  # Guard against duplicate umbrella target registration (e.g. multiple library
+  # targets registered in the same project).
+  if(NOT TARGET ${UMBRELLA_TARGET})
+    add_custom_target(${UMBRELLA_TARGET})
+    set_target_properties(
+      ${UMBRELLA_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                    EXCLUDE_FROM_ALL 1)
+  endif()
 
-  set_target_properties(${ANALYSIS_TARGET} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD
-                                                      1 EXCLUDE_FROM_ALL 1)
-
-  set(LIBRA_CLANG_TIDY_FILEPATH_DEFAULT
-      "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
-
-  # A clever way to bake in .clang-tidy and use with cmake. Tested with both
-  # SELF and CONAN drivers, and will point to the baked-in .clang-tidy in this
-  # repo.
   if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
-    set(LIBRA_CLANG_TIDY_FILEPATH "${LIBRA_CLANG_TIDY_FILEPATH_DEFAULT}")
+    set(LIBRA_CLANG_TIDY_FILEPATH
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
   endif()
 
+  # Exclude conan-managed headers from analysis — they are not our code.
   if("${LIBRA_DRIVER}" STREQUAL "CONAN")
     set(HEADER_EXCLUDES --exclude-header-filter=*/.conan2/*)
   endif()
@@ -98,86 +220,94 @@ function(
     set(STD_ARGS --extra-arg=-std=gnu${LIBRA_C_STANDARD})
   endif()
 
-  foreach(CATEGORY ${CLANG_TIDY_CATEGORIES})
-    add_custom_target(${ANALYSIS_TARGET}-${CATEGORY})
-    add_dependencies(${ANALYSIS_TARGET} ${ANALYSIS_TARGET}-${CATEGORY})
-    set_target_properties(
-      ${ANALYSIS_TARGET}-${CATEGORY} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
-                                                EXCLUDE_FROM_ALL 1)
+  if(LIBRA_USE_COMPDB)
+    set(HEADER_FILTER ${CMAKE_SOURCE_DIR}/include/.*)
+  else()
+    set(HEADER_FILTER ${CMAKE_CURRENT_SOURCE_DIR}/include/.*)
+  endif()
 
-    # We generate per-file commands so that we (a) get more fine-grained
-    # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
-    # finishes running against ALL files to get feedback for a given file.
-    foreach(file ${SRCS} ${HEADERS} ${STUBS})
-
-      # We create one target per file we want to analyze so that we can do
-      # analysis in parallel if desired. Targets can't have '/' on '.' in their
-      # names, hence the replacements.
-      string(REPLACE "/" "_" file_target "${file}")
-      string(REPLACE "." "_" file_target "${file_target}")
-
-      # Only run the -misc-include-cleaner on header files. It's just noise in
-      # source files.
-      if("${CATEGORY}" STREQUAL "misc" AND NOT "${file}" IN_LIST HEADERS)
-        continue()
-      elseif(NOT "${CATEGORY}" STREQUAL "misc" AND "${file}" IN_LIST HEADERS)
-        continue()
+  if(LIBRA_CLANG_TIDY_CATEGORY_TARGETS)
+    foreach(CATEGORY ${LIBRA_CLANG_TIDY_CATEGORIES})
+      if(NOT TARGET ${UMBRELLA_TARGET}-${CATEGORY})
+        add_custom_target(${UMBRELLA_TARGET}-${CATEGORY})
+        set_target_properties(
+          ${UMBRELLA_TARGET}-${CATEGORY} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                    EXCLUDE_FROM_ALL 1)
+        add_dependencies(${UMBRELLA_TARGET} ${UMBRELLA_TARGET}-${CATEGORY})
       endif()
-      if(LIBRA_USE_COMPDB)
-        add_custom_target(
-          ${ANALYSIS_TARGET}-${CATEGORY}-${file_target}
-          COMMAND
-            ${clang_tidy_EXECUTABLE}
-            --header-filter=${CMAKE_SOURCE_DIR}/include/.* ${HEADER_EXCLUDES}
-            --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-            --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
-            ${JOB_ARGS} ${STD_ARGS} --extra-arg=-Wno-unknown-warning-option
-            --warnings-as-errors='*' ${EXTRACTED_ARGS}
-            ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
-          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMENT
-            "Running ${clang_tidy_NAME} with compdb on ${file}, category=${CATEGORY},JOB=${JOB}"
-        )
-      else()
-        if(LIBRA_CLANG_TOOLS_USE_FIXED_DB)
-          add_custom_target(
-            ${ANALYSIS_TARGET}-${CATEGORY}-${file_target}
-            COMMAND
-              ${clang_tidy_EXECUTABLE}
-              --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/.*
-              ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-              --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
-              --warnings-as-errors='*' -p /tmp/libra-nonexistent --quiet
-              ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${JOB_ARGS} ${file} --
-              ${EXTRACTED_ARGS} ${STD_ARGS} -Wno-unknown-warning-option
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT
-              "Running ${clang_tidy_NAME} without compdb on ${file} (fixed compdb)"
-          )
-        else()
-          add_custom_target(
-            ${ANALYSIS_TARGET}-${CATEGORY}-${file_target}
-            COMMAND
-              ${clang_tidy_EXECUTABLE}
-              --header-filter=${CMAKE_CURRENT_SOURCE_DIR}/include/.*
-              ${HEADER_EXCLUDES} --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
-              --checks=-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}
-              --warnings-as-errors='*' -p /tmp/libra-nonexistent --quiet
-              ${JOB_ARGS} ${EXTRACTED_ARGS} ${STD_ARGS}
-              --extra-arg=-Wno-unknown-warning-option
-              ${LIBRA_CLANG_TIDY_EXTRA_ARGS} ${file}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            COMMENT
-              "Running ${clang_tidy_NAME} without compdb on ${file} (--extra-arg)"
-          )
+
+      # We generate per-file commands so that we (a) get more fine-grained
+      # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
+      # finishes running against ALL files to get feedback for a given file.
+      foreach(FILE ${SRCS} ${HEADERS} ${STUBS})
+        _libra_clang_tidy_should_skip(${FILE} HEADERS ${CATEGORY} _SKIP)
+        if(_SKIP)
+          continue()
         endif()
 
-      endif()
-      add_dependencies(${ANALYSIS_TARGET}-${CATEGORY}
-                       ${ANALYSIS_TARGET}-${CATEGORY}-${file_target})
-    endforeach()
-  endforeach()
+        # Targets can't have '/' or '.' in their names.
+        string(REPLACE "/" "_" file_target "${FILE}")
+        string(REPLACE "." "_" file_target "${file_target}")
 
+        set(_CHECKS_EXPR "-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}")
+        _libra_clang_tidy_build_cmd(
+          ${FILE}
+          "${_CHECKS_EXPR}"
+          "${JOB_ARGS}"
+          "${STD_ARGS}"
+          "${EXTRACTED_ARGS}"
+          "${HEADER_FILTER}"
+          "${HEADER_EXCLUDES}")
+
+        add_custom_target(
+          ${UMBRELLA_TARGET}-${CATEGORY}-${file_target}
+          COMMAND ${CLANG_TIDY_CMD}
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+          COMMENT
+            "Running ${clang_tidy_NAME} on ${FILE} [category=${CATEGORY}, JOB=${JOB}]"
+        )
+        add_dependencies(${UMBRELLA_TARGET}-${CATEGORY}
+                         ${UMBRELLA_TARGET}-${CATEGORY}-${file_target})
+      endforeach()
+    endforeach()
+
+  else()
+    # Monolithic mode: all checks in a single analyze-clang-tidy target.
+    foreach(FILE ${SRCS} ${HEADERS} ${STUBS})
+
+      # misc-include-cleaner is only meaningful on headers.
+      set(_is_header FALSE)
+      if("${FILE}" IN_LIST HEADERS)
+        set(_is_header TRUE)
+      endif()
+
+      if(_is_header)
+        set(_NO_MISC "")
+      else()
+        set(_NO_MISC "-misc-include-cleaner")
+      endif()
+
+      string(REPLACE "/" "_" file_target "${FILE}")
+      string(REPLACE "." "_" file_target "${file_target}")
+
+      set(_CHECKS_EXPR "*,${_NO_MISC}${LIBRA_CLANG_TIDY_CHECKS_CONFIG}")
+      _libra_clang_tidy_build_cmd(
+        ${FILE}
+        "${_CHECKS_EXPR}"
+        "${JOB_ARGS}"
+        "${STD_ARGS}"
+        "${EXTRACTED_ARGS}"
+        "${HEADER_FILTER}"
+        "${HEADER_EXCLUDES}")
+
+      add_custom_target(
+        ${UMBRELLA_TARGET}-${file_target}
+        COMMAND ${CLANG_TIDY_CMD}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Running ${clang_tidy_NAME} on ${FILE} [JOB=${JOB}]")
+      add_dependencies(${UMBRELLA_TARGET} ${UMBRELLA_TARGET}-${file_target})
+    endforeach()
+  endif()
 endfunction()
 
 #[[.rst
@@ -216,6 +346,7 @@ function(
     "${HEADERS}"
     "${STUBS}")
   add_dependencies(analyze analyze-clang-tidy)
+
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
   list(LENGTH SRCS LEN1)
