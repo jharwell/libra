@@ -202,6 +202,11 @@ pub fn run(ctx: &runner::Context, _args: DoctorArgs) -> anyhow::Result<()> {
             optional: true,
         },
         Tool {
+            name: "valgrind",
+            min_ver: None,
+            optional: true,
+        },
+        Tool {
             name: "gcc",
             min_ver: Some(Version::new(9, 0, 0)),
             optional: true,
