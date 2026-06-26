@@ -236,12 +236,6 @@ chance.
   explicitly in ``CMakePresets.json`` means they appear in IDE preset
   pickers and can be referenced by name with plain ``cmake``.
 
-  These presets are also the reason why Phase 3's ``libra test
-  --sanitizer`` shortcut is syntactic sugar only: a developer who uses
-  sanitizers regularly will simply use ``--preset asan`` directly. The
-  shortcut exists for one-off runs where the developer does not want to
-  remember the preset name.
-
 ``coverage``
   Inherits ``debug``, adds ``LIBRA_COVERAGE=ON``. A dedicated coverage
   preset is cleaner than adding a flag to the debug preset because

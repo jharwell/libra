@@ -51,9 +51,9 @@ pub fn ensure_project_root(ctx: &crate::runner::Context) -> anyhow::Result<()> {
     if !has_presets && ctx.preset.is_none() {
         anyhow::bail!(
             "no CMakePresets.json or CMakeUserPresets.json found.\n\
-             libra requires CMake presets to function. Options:\n\
+             clibra requires CMake presets to function. Options:\n\
                - Create CMakePresets.json manually\n\
-               - Use 'libra init' to scaffold a full preset hierarchy  [Phase 3]"
+               - Use 'clibra init' to scaffold a full preset hierarchy"
         );
     }
     debug!("CMakelists.txt and one of {{CMakePresets.json,CMakeUserPresets}} found");

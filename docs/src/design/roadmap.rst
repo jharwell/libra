@@ -18,28 +18,6 @@ These directions deepen what ``clibra`` already does well — cmake automation,
 preset management, and build observability — rather than expanding into domains
 served by dedicated tools.
 
-
-``clibra init`` — Project Scaffolding
---------------------------------------
-
-Referenced in two existing error messages as ``[Phase 3]`` but not yet
-implemented. This is the highest-value missing feature because it removes the
-biggest friction point for new users: the bootstrapping problem of needing a
-correct ``CMakeLists.txt`` and ``CMakePresets.json`` before clibra can do
-anything useful.
-
-The implementation is well-bounded. ``doctor`` already encodes the expected
-project structure (``src/``, ``include/``, ``tests/``, ``docs/``,
-``docs/Doxyfile.in``, ``docs/conf.py``). ``init`` would create that structure
-from a template and emit a ``CMakePresets.json`` with the standard preset
-hierarchy (``base``, ``debug``, ``release``, ``ci``, ``coverage``, ``docs``,
-``analyze``) that the rest of the CLI assumes.
-
-A minimal ``--bare`` flag would scaffold only ``CMakeLists.txt`` and
-``CMakePresets.json`` without the directory tree, for projects that already
-have their own layout.
-
-
 ``clibra preset`` — Preset Management
 --------------------------------------
 
@@ -164,16 +142,3 @@ cases where the current errors are cmake's rather than clibra's:
 
 These are all contained changes to ``preset.rs`` and ``cmake.rs`` that make
 existing functionality more robust without adding new surface area.
-
-
-Configurable ``help-targets`` Format
---------------------------------------
-
-``clibra info`` and ``clibra analyze`` parse the output of
-``cmake --build --target help-targets`` to discover target availability and
-reasons. This coupling means any change to the ``help-targets`` output format
-breaks the CLI. A structured alternative — emitting the target list as a
-cmake-generated JSON file (e.g., ``build/libra-targets.json``) at configure
-time rather than at build time via a custom target — would make the data
-stable, machine-readable, and available without invoking the build system.
-The ``clibra info --json`` direction above would consume this file directly.

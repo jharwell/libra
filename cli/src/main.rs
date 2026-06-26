@@ -31,6 +31,10 @@ fn main() -> Result<()> {
 
     pretty_env_logger::formatted_builder()
         .filter_level(level)
+        // 2026-07-01 [JRH]: The init subcommand gets a default of INFO instead
+        // of WARN so that non-cmake INFO commands are always echoed in the
+        // terminal for helpful --dry-run and debugging.
+        .filter_module("clibra::command::init", log::LevelFilter::Info)
         .parse_env("RUST_LOG")
         .format(move |buf, record| {
             use pretty_env_logger::env_logger::fmt::Color;
@@ -80,6 +84,7 @@ fn main() -> Result<()> {
         Command::Docs(args) => command::docs::run(&ctx, args),
         Command::Format(args) => command::format::run(&ctx, args),
         Command::Clean(args) => command::clean::run(&ctx, args),
+        Command::Init(args) => command::init::run(&ctx, args),
         Command::Install(args) => command::install::run(&ctx, args),
         Command::Info(args) => command::info::run(&ctx, args),
         Command::Doctor(args) => command::doctor::run(&ctx, args),

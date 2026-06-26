@@ -7,7 +7,7 @@
 
 // Imports
 use crate::command::{
-    analyze, build, ci, clean, coverage, docs, doctor, format, generate, info, install, test,
+    analyze, build, ci, clean, coverage, docs, doctor, format, generate, info, init, install, test,
 };
 use clap::{Parser, Subcommand};
 
@@ -136,6 +136,9 @@ pub enum Command {
 
     /// Clean build artifacts for the active preset.
     Clean(clean::CleanArgs),
+
+    /// Scaffold/initialize a new project.
+    Init(init::InitArgs),
 
     /// Show resolved build configuration, available targets.
     ///

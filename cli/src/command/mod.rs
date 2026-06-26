@@ -15,6 +15,7 @@ pub mod doctor;
 pub mod format;
 pub mod generate;
 pub mod info;
+pub mod init;
 pub mod install;
 pub mod test;
 

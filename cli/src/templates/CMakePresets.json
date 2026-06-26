@@ -1,0 +1,298 @@
+{
+    "version": 6,
+    "vendor": {
+        "libra": {
+            "defaultConfigurePreset": "debug"
+        }
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "LIBRA_TESTS": "OFF",
+                "LIBRA_DOCS": "OFF",
+                "LIBRA_ANALYSIS": "OFF",
+                "LIBRA_SUMMARY": "OFF",
+                "LIBRA_SAN": "NONE",
+                "LIBRA_FORTIFY": "NONE",
+                "LIBRA_FPC": "INHERIT",
+                "LIBRA_ERL": "INHERIT",
+                "LIBRA_STDLIB": "UNDEFINED",
+                "LIBRA_PGO": "NONE",
+                "LIBRA_LTO": "OFF",
+                "LIBRA_NO_CCACHE": "OFF"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "description": "Debug build, no sanitizers",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "LIBRA_TESTS": "ON"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "description": "Optimized release build with LTO",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "LIBRA_LTO": "ON",
+                "LIBRA_TESTS": "ON"
+            }
+        },
+        {
+            "name": "ci-debug",
+            "displayName": "CI (Debug)",
+            "description": "Debug build with tests and code coverage enabled",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_COVERAGE": "ON"
+            }
+        },
+        {
+            "name": "ci-release",
+            "displayName": "CI (Release)",
+            "description": "Release build with tests enabled",
+            "inherits": "release"
+        },
+        {
+            "name": "asan",
+            "displayName": "AddressSanitizer",
+            "description": "Debug build with ASAN + UBSAN",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_SAN": "ASAN;UBSAN"
+            }
+        },
+        {
+            "name": "tsan",
+            "displayName": "ThreadSanitizer",
+            "description": "Debug build with TSAN",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_SAN": "TSAN"
+            }
+        },
+        {
+            "name": "ubsan",
+            "displayName": "UndefinedBehaviorSanitizer",
+            "description": "Debug build with UBSAN",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_SAN": "UBSAN"
+            }
+        },
+        {
+            "name": "msan",
+            "displayName": "MemorySanitizer",
+            "description": "Debug build with MSAN (clang only)",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_SAN": "MSAN",
+                "LIBRA_STDLIB": "CXX"
+            }
+        },
+        {
+            "name": "valgrind",
+            "displayName": "Valgrind",
+            "description": "Debug build instrumented for valgrind memcheck",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_VALGRIND": "ON"
+            }
+        },
+        {
+            "name": "coverage",
+            "displayName": "Code Coverage",
+            "description": "Debug build with gcov/lcov coverage instrumentation",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_COVERAGE": "ON"
+            }
+        },
+        {
+            "name": "analyze",
+            "displayName": "Static Analysis",
+            "description": "Debug build with clang-tidy, cppcheck, clang-format checks enabled",
+            "inherits": "debug",
+            "cacheVariables": {
+                "LIBRA_ANALYSIS": "ON",
+                "LIBRA_FORMAT": "ON"
+            }
+        },
+        {
+            "name": "fortify",
+            "displayName": "Fortified",
+            "description": "Release build with all hardening/fortify options enabled",
+            "inherits": "release",
+            "cacheVariables": {
+                "LIBRA_FORTIFY": "ALL"
+            }
+        },
+        {
+            "name": "pgo-gen",
+            "displayName": "PGO (generate)",
+            "description": "Instrumented build to collect PGO profiles",
+            "inherits": "release",
+            "cacheVariables": {
+                "LIBRA_PGO": "GEN",
+                "LIBRA_LTO": "OFF"
+            }
+        },
+        {
+            "name": "pgo-use",
+            "displayName": "PGO (use)",
+            "description": "Optimized build using a previously collected PGO profile",
+            "inherits": "release",
+            "cacheVariables": {
+                "LIBRA_PGO": "USE"
+            }
+        },
+        {
+            "name": "docs",
+            "displayName": "Documentation",
+            "description": "Configure with only the docs target enabled",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "LIBRA_DOCS": "ON",
+                "LIBRA_TESTS": "OFF"
+            }
+        }
+    ],
+
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "ci-debug",
+            "configurePreset": "ci-debug",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "ci-release",
+            "configurePreset": "ci-release",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "asan",
+            "configurePreset": "asan",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "tsan",
+            "configurePreset": "tsan",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "ubsan",
+            "configurePreset": "ubsan",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "msan",
+            "configurePreset": "msan",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "valgrind",
+            "configurePreset": "valgrind",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "coverage",
+            "configurePreset": "coverage",
+            "environment": { "CTEST_OUTPUT_ON_FAILURE": "1" }
+        },
+        {
+            "name": "analyze",
+            "configurePreset": "analyze",
+            "targets": ["analyze"]
+        },
+        {
+            "name": "fortify",
+            "configurePreset": "fortify"
+        },
+        {
+            "name": "pgo-gen",
+            "configurePreset": "pgo-gen"
+        },
+        {
+            "name": "pgo-use",
+            "configurePreset": "pgo-use"
+        },
+        {
+            "name": "docs",
+            "configurePreset": "docs",
+            "targets": ["docs"]
+        }
+    ],
+
+    "testPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "debug",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "release",
+            "configurePreset": "release",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "ci-debug",
+            "configurePreset": "ci-debug",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "ci-release",
+            "configurePreset": "ci-release",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "asan",
+            "configurePreset": "asan",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "tsan",
+            "configurePreset": "tsan",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "ubsan",
+            "configurePreset": "ubsan",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "msan",
+            "configurePreset": "msan",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "valgrind",
+            "configurePreset": "valgrind",
+            "output": { "outputOnFailure": true }
+        },
+        {
+            "name": "coverage",
+            "configurePreset": "coverage",
+            "output": { "outputOnFailure": true }
+        }
+    ]
+}

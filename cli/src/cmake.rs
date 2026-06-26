@@ -5,10 +5,11 @@
  */
 
 // Imports
+use log::warn;
+
 use crate::command::info;
 use crate::preset;
 use crate::runner;
-use log::warn;
 
 // Types
 pub enum TargetStatus {
@@ -220,4 +221,15 @@ pub fn with_keep_going(
         anyhow::bail!("--keep-going only supported with {{Ninja, Unix Makefiles}} generators");
     }
     Ok(cmd)
+}
+
+pub fn cmakelists_template(name: &str) -> String {
+    include_str!("templates/CMakeLists.txt").replace("{{PROJECT_NAME}}", name)
+}
+
+pub fn cmakepresets_template() -> &'static str {
+    include_str!("templates/CMakePresets.json")
+}
+pub fn projectlocal_template() -> &'static str {
+    include_str!("templates/project-local.cmake")
 }
