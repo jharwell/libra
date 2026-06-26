@@ -7,26 +7,25 @@
 include(libra/defaults)
 include(libra/utils)
 
-# We want to be able to enable only SOME checks in clang-tidy in a single run,
-# both to speed up pipelines, but also to fixing errors simpler when there are
-# TONS. These seem to be a comprehensive set of errors in clang-20; may need to
-# be updated in the future.
 if(LIBRA_CLANG_TIDY_CATEGORY_TARGETS)
   if(NOT LIBRA_CLANG_TIDY_CATEGORIES)
     set(LIBRA_CLANG_TIDY_CATEGORIES ${LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT})
   endif()
 endif()
 
+foreach(c ${LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT})
+  _libra_register_custom_target(
+    analyze-clang-tidy-${c} "LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"
+    clang_tidy_EXECUTABLE)
+  _libra_register_custom_target(
+    fix-clang-tidy-${c} "LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"
+    clang_tidy_EXECUTABLE)
+endforeach()
+
 _libra_register_custom_target(analyze-clang-tidy LIBRA_ANALYSIS
                               clang_tidy_EXECUTABLE)
 _libra_register_custom_target(fix-clang-tidy LIBRA_ANALYSIS
                               clang_tidy_EXECUTABLE)
-foreach(c ${LIBRA_CLANG_TIDY_CATEGORIES})
-  _libra_register_custom_target(analyze-clang-tidy-${c} LIBRA_ANALYSIS
-                                clang_tidy_EXECUTABLE)
-  _libra_register_custom_target(fix-clang-tidy-${c} LIBRA_ANALYSIS
-                                clang_tidy_EXECUTABLE)
-endforeach()
 
 #[[.rst
 .. cmake:command: _libra_clang_tidy_build_cmd

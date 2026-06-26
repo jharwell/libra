@@ -44,10 +44,10 @@ setup() {
     assert_dry_run_contains "--rerun-failed" test --rerun-failed --preset debug
 }
 @test "TEST: --valgrind is translated to ctest" {
-    assert_dry_run_contains "-T memcheck" test --valgrind
+    assert_dry_run_contains "-T memcheck" test --valgrind --preset debug
 }
 @test "TEST: --test-dir is translated to ctest" {
-    assert_dry_run_contains "--test-dir" test --valgrind
+    assert_dry_run_contains "--test-dir" test --valgrind --preset debug
 }
 
 # ==============================================================================
