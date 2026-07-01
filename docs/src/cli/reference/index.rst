@@ -18,7 +18,10 @@ clibra Subcommand Reference
    analyze
    coverage
    docs
-   clean
    format
+   clean
+   install
    info
    doctor
+   init
+   preset

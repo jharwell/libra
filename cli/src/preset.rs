@@ -13,15 +13,15 @@ use log::{debug, trace};
 
 // Implementation
 
-/// Load the CMake{UserPresets,Presets}.json files from the specified directory
-/// and merge them. This is required when walking the inheritance chain to
-/// resolve fields, because the chain can span both files, and searching in each
-/// individually gives wrong results.
-fn load_presets(dir: &str) -> anyhow::Result<Vec<serde_json::Value>> {
+/// Load configure presets from the CMake{UserPresets,Presets}.json files from
+/// the specified directory and merge them. This is required when walking the
+/// inheritance chain to resolve fields, because the chain can span both files,
+/// and searching in each individually gives wrong results.
+fn load_configure_presets(dir: &std::path::PathBuf) -> anyhow::Result<Vec<serde_json::Value>> {
     let mut all_presets = Vec::new();
 
     for filename in &["CMakePresets.json", "CMakeUserPresets.json"] {
-        let path = std::path::Path::new(dir).join(filename);
+        let path = dir.join(filename);
         if !path.exists() {
             continue;
         }
@@ -69,16 +69,11 @@ pub fn resolve(ctx: &crate::runner::Context, default: Option<&str>) -> anyhow::R
     let preset = if let Some(preset) = &ctx.preset {
         debug!("Preset={} resolved via --preset", preset);
         preset.clone()
-    } else if let Some(preset) = read_preset(
+    } else if let Some(preset) = has_preset(
         "CMakeUserPresets.json",
         "vendor.libra.defaultConfigurePreset",
     )? {
         debug!("Preset={} resolved via CMakeUserPresets.json", preset);
-        preset
-    } else if let Some(preset) =
-        read_preset("CMakePresets.json", "vendor.libra.defaultConfigurePreset")?
-    {
-        debug!("Preset={} resolved via CMakePresets.json", preset);
         preset
     } else if let Some(d) = default {
         debug!("Preset resolved via default={}", default.unwrap());
@@ -89,7 +84,7 @@ pub fn resolve(ctx: &crate::runner::Context, default: Option<&str>) -> anyhow::R
              Options:\n\
                - Pass --preset=<n> explicitly\n\
                - Add vendor.libra.defaultConfigurePreset to CMakeUserPresets.json\n\
-               - Use 'libra preset default <n>'  [Phase 3]"
+               - Use 'libra preset default <n>'"
         );
     };
 
@@ -100,7 +95,7 @@ pub fn resolve(ctx: &crate::runner::Context, default: Option<&str>) -> anyhow::R
 ///
 /// Returns Ok(None) if the file doesn't exist or the field is absent.
 /// Returns Err if the file exists but is not valid JSON.
-pub fn read_preset(path: &str, preset: &str) -> anyhow::Result<Option<String>> {
+pub fn has_preset(path: &str, preset: &str) -> anyhow::Result<Option<String>> {
     let p = std::path::Path::new(path);
     if !p.exists() {
         return Ok(None);
@@ -136,13 +131,13 @@ pub fn read_preset(path: &str, preset: &str) -> anyhow::Result<Option<String>> {
 /// * `field` - The field within the preset to lookup.
 ///
 pub fn read_configure_preset_field(
-    dir: &str,
+    dir: std::path::PathBuf,
     preset_name: &str,
     field: &str,
 ) -> anyhow::Result<Option<String>> {
-    let presets = load_presets(dir)?;
+    let presets = load_configure_presets(&dir)?;
     if presets.is_empty() {
-        trace!("No preset JSON files found in {}", dir);
+        trace!("No preset JSON files found in {:?}", &dir);
         return Ok(None);
     }
 
@@ -221,6 +216,105 @@ pub fn read_configure_preset_field(
     debug!("{}.{} not found", preset_name, field);
     Ok(None)
 }
+
+/// Get all cache variables for a configure preset.
+///
+/// Walk inheritance chain up to root to collect all parent fields.
+///
+/// # Arguments
+///
+/// * `dir` - Directory name to search for the the preset files.
+///
+/// * `preset_name` - The name of the preset to enumerate.
+///
+pub fn configure_preset_enumerate(
+    dir: std::path::PathBuf,
+    preset_name: &str,
+) -> anyhow::Result<Option<serde_json::Map<String, serde_json::Value>>> {
+    let presets = load_configure_presets(&dir)?;
+    if presets.is_empty() {
+        trace!("No preset JSON files found in {:?}", dir);
+        return Ok(None);
+    }
+
+    // BFS over the inheritance chain
+    let mut queue = std::collections::VecDeque::new();
+    let mut visited = std::collections::HashSet::new();
+    queue.push_back(preset_name.to_string());
+
+    debug!(
+        "Walking presets {{CMake,CMakeUser}}Presets.json to enumerate {}",
+        preset_name
+    );
+
+    let mut ret = serde_json::Map::new();
+
+    while let Some(current) = queue.pop_front() {
+        trace!("Finding cache vars for configure preset '{}'", current);
+        if !visited.insert(current.clone()) {
+            // Already visited — avoid infinite loops from circular inheritance
+            continue;
+        }
+
+        let preset = match presets
+            .iter()
+            .find(|p| p.get("name").and_then(|n| n.as_str()) == Some(&current))
+        {
+            Some(p) => p,
+            None => {
+                trace!(
+                    "{} does not exist in configure preset list {:?}",
+                    current,
+                    presets
+                        .iter()
+                        .map(|v| v
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("<unnamed>"))
+                        .collect::<Vec<_>>()
+                );
+                continue; // Named preset not found, try next in queue
+            }
+        };
+
+        // If this preset has any cache variables set, add them.
+        if let Some(serde_json::Value::Object(vars)) = preset.get("cacheVariables") {
+            trace!(
+                "Add cache variables {:?} from parent preset {} to set for preset '{}'",
+                vars.iter().map(|(k, _v)| k.as_str()).collect::<Vec<_>>(),
+                preset.get("name").unwrap(),
+                preset_name
+            );
+            for (k, v) in vars {
+                // Nearer presets are visited before their ancestors, so the
+                // first writer for a given key wins — matches CMake's "child
+                // overrides parent" inheritance rule.
+                ret.entry(k.clone()).or_insert_with(|| v.clone());
+            }
+        }
+
+        // Otherwise enqueue its parents
+        match preset.get("inherits") {
+            Some(serde_json::Value::String(s)) => queue.push_back(s.clone()),
+            Some(serde_json::Value::Array(arr)) => {
+                for parent in arr {
+                    if let Some(s) = parent.as_str() {
+                        queue.push_back(s.to_owned());
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    if ret.is_empty() {
+        debug!("{} has no cache variables", preset_name);
+        Ok(None)
+    } else {
+        Ok(Some(ret))
+    }
+}
+
 pub fn workflow_preset_exists(path: &str, preset_name: &str) -> anyhow::Result<bool> {
     let p = std::path::Path::new(path);
     if !p.exists() {

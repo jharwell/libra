@@ -133,7 +133,8 @@ pub fn generator(preset: &str) -> anyhow::Result<String> {
 pub fn binary_dir(preset: &str) -> Option<std::path::PathBuf> {
     let path = {
         let from_json =
-            preset::read_configure_preset_field(".", preset, "binaryDir").unwrap_or(None);
+            preset::read_configure_preset_field(std::path::PathBuf::from("."), preset, "binaryDir")
+                .unwrap_or(None);
 
         from_json.unwrap_or_else(|| "./build".to_string())
     };

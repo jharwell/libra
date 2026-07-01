@@ -91,29 +91,6 @@ EOF2
     assert_dry_run_contains "--preset release" build
 }
 
-@test "PRESET: CMakeUserPresets.json vendor preset takes priority over CMakePresets.json" {
-    cat > CMakeUserPresets.json << 'EOF2'
-{
-  "version": 6,
-  "vendor": { "libra": { "defaultConfigurePreset": "release" } }
-}
-EOF2
-    assert_dry_run_contains "--preset release" build
-}
-
-@test "PRESET: CMakePresets.json vendor field used when CMakeUserPresets.json has no vendor entry" {
-    cat > CMakeUserPresets.json << 'EOF2'
-{ "version": 6 }
-EOF2
-    python3 -c "
-import json
-with open('CMakePresets.json') as f: d = json.load(f)
-d['vendor'] = {'libra': {'defaultConfigurePreset': 'debug'}}
-print(json.dumps(d))
-" > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
-    assert_dry_run_contains "--preset debug" build
-}
-
 @test "PRESET: fails with actionable error when no preset can be resolved for build" {
     python3 -c "
 import json

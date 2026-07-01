@@ -18,27 +18,6 @@ These directions deepen what ``clibra`` already does well — cmake automation,
 preset management, and build observability — rather than expanding into domains
 served by dedicated tools.
 
-``clibra preset`` — Preset Management
---------------------------------------
-
-Also referenced in existing error messages as ``[Phase 3]``. Users currently
-hand-edit ``CMakeUserPresets.json`` to set a default preset or add
-per-machine overrides. This is error-prone and the JSON schema is non-obvious.
-
-Concrete subcommands that cover the common cases:
-
-- ``clibra preset default <name>`` — write
-  ``vendor.libra.defaultConfigurePreset`` into ``CMakeUserPresets.json``,
-  creating the file if absent
-- ``clibra preset list`` — enumerate all configure presets from both preset
-  files, annotating which is the current default
-- ``clibra preset show <name>`` — print the resolved cache variables for a
-  preset, walking the ``inherits`` chain
-
-These close the loop on the two most common error messages clibra already
-emits: *"no preset specified"* and *"no defaultConfigurePreset found"*.
-
-
 ``clibra compdb`` — Compile Database Management
 -------------------------------------------------
 
@@ -142,3 +121,10 @@ cases where the current errors are cmake's rather than clibra's:
 
 These are all contained changes to ``preset.rs`` and ``cmake.rs`` that make
 existing functionality more robust without adding new surface area.
+
+Misc
+----
+
+clibra run — execute an arbitrary binary from the build directory by name, with
+the preset's build dir on the path. Common workflow: build then immediately run
+the output, which right now requires knowing the binaryDir path manually.

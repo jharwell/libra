@@ -17,6 +17,7 @@ pub mod generate;
 pub mod info;
 pub mod init;
 pub mod install;
+pub mod preset;
 pub mod test;
 
 // Types

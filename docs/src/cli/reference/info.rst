@@ -33,8 +33,8 @@ Output sections
   All ``LIBRA_*`` cache variables. Non-default values are highlighted.
 
 **Available LIBRA targets**
-  All LIBRA-managed targets grouped by feature area (Tests, Docs,
-  Coverage, Analysis). Each entry shows availability (``YES`` / ``NO``)
+  All LIBRA-managed targets grouped by feature area (Analysis,
+  Coverage, Docs, Format, Tests). Each entry shows availability (``YES`` / ``NO``)
   and, for unavailable targets, the reason.
 
 CMake equivalent

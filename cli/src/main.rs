@@ -85,6 +85,7 @@ fn main() -> Result<()> {
         Command::Format(args) => command::format::run(&ctx, args),
         Command::Clean(args) => command::clean::run(&ctx, args),
         Command::Init(args) => command::init::run(&ctx, args),
+        Command::Preset(args) => command::preset::run(&ctx, args),
         Command::Install(args) => command::install::run(&ctx, args),
         Command::Info(args) => command::info::run(&ctx, args),
         Command::Doctor(args) => command::doctor::run(&ctx, args),

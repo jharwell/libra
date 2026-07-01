@@ -3,29 +3,40 @@
 .. _cli/reference/format:
 
 format
-=======
+======
 
-Configure (if needed) and check/apply formatting.
+Configure (if needed) and apply or check code formatting.
 
 .. code-block:: bash
 
-   clibra format --preset format           # all tools
-   clibra format -c clang --preset format  # one tool
+   clibra format --preset format              # apply all formatters
+   clibra format --check clang --preset format  # check clang-format only
+   clibra format --check cmake --preset format  # check cmake-format only
 
 Requires :cmake:variable:`LIBRA_FORMAT` to be ``ON`` in the preset's
-CMake cache. Without a subcommand, runs the ``format`` umbrella target.
-With a subcommand, runs only the corresponding target. If a target is
-unavailable, ``clibra`` emits an error with the reason from the build
-system rather than a generic failure.
+CMake cache.
+
+With no ``--check``, ``clibra format`` **applies** formatting by running
+both the ``format-clang`` and ``format-cmake`` targets. With
+``--check clang`` or ``--check cmake`` it instead runs the corresponding
+check-only target and does not modify files. If a target is unavailable,
+``clibra`` emits an error with the reason reported by the build system
+rather than a generic failure.
 
 CMake equivalent
 ----------------
 
 .. code-block:: bash
 
-   cmake --build --preset <n> --target format
+   # Apply (default)
+   cmake --build --preset <name> --target format-clang
+   cmake --build --preset <name> --target format-cmake
 
-For tool-specific configuration (suppression files, extra args, etc.) see
+   # Check only
+   cmake --build --preset <name> --target format-check-clang   # --check clang
+   cmake --build --preset <name> --target format-check-cmake   # --check cmake
+
+For tool-specific configuration (style files, extra args, etc.) see
 :ref:`cookbook/analysis`.
 
 Flag reference

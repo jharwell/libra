@@ -7,7 +7,8 @@
 
 // Imports
 use crate::command::{
-    analyze, build, ci, clean, coverage, docs, doctor, format, generate, info, init, install, test,
+    analyze, build, ci, clean, coverage, docs, doctor, format, generate, info, init, install,
+    preset, test,
 };
 use clap::{Parser, Subcommand};
 
@@ -36,7 +37,7 @@ pub enum ColorMode {
 pub struct Cli {
     /// CMake preset name. Resolved via vendor field rules in
     /// [CmakePresets.json,CMakeUserPresets.json] if absent.
-    #[arg(long, global = true)]
+    #[arg(short, long, global = true)]
     pub preset: Option<String>,
 
     /// Log verbosity.
@@ -139,6 +140,9 @@ pub enum Command {
 
     /// Scaffold/initialize a new project.
     Init(init::InitArgs),
+
+    /// Preset management
+    Preset(preset::PresetArgs),
 
     /// Show resolved build configuration, available targets.
     ///
