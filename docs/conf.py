@@ -124,6 +124,9 @@ SUBCOMMANDS = [
     "info",
     "doctor",
     "format",
+    "init",
+    "install",
+    "preset"
 ]
 
 GLOBAL_FLAG_PREFIXES = {

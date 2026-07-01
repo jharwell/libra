@@ -84,7 +84,7 @@ pub fn run(ctx: &runner::Context, args: InitArgs) -> anyhow::Result<()> {
         ctx.dry_run,
     )?;
 
-    for d in ["src", "include", "docs"] {
+    for d in ["src", "include", "docs", "tests"] {
         if !std::fs::exists(d)? {
             info!("Creating directory {d}/");
             if !ctx.dry_run {

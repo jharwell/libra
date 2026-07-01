@@ -25,7 +25,8 @@ Each checked item is reported with one of three symbols:
 - ``✓`` — present and meets the minimum version requirement.
 - ``⚠`` — optional tool or recommended convention; missing it limits
   specific features but does not prevent basic builds.
-- ``✗`` — required tool; must be resolved before proceeding.
+- ``✗`` — required tool (or invalid JSON in a presets file); must be
+  resolved before proceeding.
 
 Example output:
 
@@ -34,20 +35,22 @@ Example output:
    Checking LIBRA environment...
 
    Tools:
-     ✓ cmake       -> /usr/bin/cmake (3.31.2)
-     ✓ ninja       -> /usr/bin/ninja (1.11.1)
-     ✓ gcc         -> /usr/bin/gcc (13.2.0)
-     ✓ g++         -> /usr/bin/g++ (13.2.0)
+     ✓ cmake       -> /usr/bin/cmake >= 3.31.0
+     ✓ ninja       -> /usr/bin/ninja (present)
+     ✓ gcc         -> /usr/bin/gcc >= 9.0.0
+     ✓ g++         -> /usr/bin/g++ >= 9.0.0
      ⚠ clang       not found (optional)
      ⚠ gcovr       not found (optional)
      ⚠ cppcheck    not found (optional)
      ⚠ clang-tidy  not found (optional)
 
    Project structure:
+
      ✓ CMakePresets.json exists
      ✓ src/ exists
      ⚠ tests/ does not exist
      ⚠ docs/Doxyfile.in does not exist
+     ✓ CMakePresets.json is valid JSON
 
    Checked 14 items: 0 errors, 5 warnings, 9 ok
 
@@ -56,6 +59,10 @@ do not affect the exit code.
 
 Checked tools
 -------------
+
+Only ``cmake`` is required; every other tool is optional and gates a
+specific feature. Tools without a listed minimum version are checked for
+presence only.
 
 .. list-table::
    :header-rows: 1
@@ -77,12 +84,16 @@ Checked tools
      - any
      - Alternative generator. Optional.
 
+   * - ``valgrind``
+     - any
+     - ``clibra test --valgrind`` memory checking. Optional.
+
    * - ``gcc`` / ``g++``
      - 9
      - C/C++ compilation. Optional (one compiler family required).
 
    * - ``clang`` / ``clang++``
-     - 17
+     - 14
      - C/C++ compilation, analysis, formatting. Optional.
 
    * - ``icx`` / ``icpx``
@@ -91,26 +102,63 @@ Checked tools
 
    * - ``gcovr``
      - 5.0
-     - GNU coverage reports. Optional.
+     - GNU coverage reports and checks. Optional.
+
+   * - ``lcov``
+     - 2.0
+     - Alternative coverage tooling. Optional.
 
    * - ``cppcheck``
      - 2.1
      - Static analysis. Optional.
 
    * - ``clang-tidy``
-     - 17
+     - 14
+     - Static analysis and auto-fixing. Optional.
+
+   * - ``clang-check``
+     - 14
      - Static analysis and auto-fixing. Optional.
 
    * - ``clang-format``
-     - 17
+     - 14
      - Code formatting. Optional.
+
+   * - ``llvm-cov``
+     - 14
+     - LLVM-based coverage reports. Optional.
+
+   * - ``llvm-profdata``
+     - 14
+     - LLVM coverage data processing. Optional.
 
    * - ``ccache``
      - any
      - Build caching. Optional.
 
+   * - ``cmake-format``
+     - 0.6
+     - CMake formatting and format checks. Optional.
+
+   * - ``bats``
+     - any
+     - Shell-based testing. Optional.
+
+   * - ``doxygen``
+     - any
+     - API documentation generation. Optional.
+
+   * - ``genhtml``
+     - any
+     - HTML coverage report generation. Optional.
+
 Checked project structure
 -------------------------
+
+Every path below is reported as ``⚠`` (not ``✗``) when missing, so a
+lean project that omits, say, ``docs/`` still passes. The two presets
+files are additionally validated as well-formed JSON; invalid JSON is a
+hard error (``✗``).
 
 .. list-table::
    :header-rows: 1
@@ -120,10 +168,10 @@ Checked project structure
      - Notes
 
    * - ``CMakePresets.json``
-     - Recommended. Required for preset-based workflows.
+     - Recommended. Required for preset-based workflows. Validated as JSON.
 
    * - ``CMakeUserPresets.json``
-     - Optional. Personal default preset configuration.
+     - Optional. Personal default preset configuration. Validated as JSON.
 
    * - ``src/``
      - Recommended. Required for source file auto-discovery.

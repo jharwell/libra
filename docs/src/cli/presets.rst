@@ -17,9 +17,8 @@ in this order:
 
 1. ``--preset`` on the current invocation.
 2. ``vendor.libra.defaultConfigurePreset`` in ``CMakeUserPresets.json``.
-3. ``vendor.libra.defaultConfigurePreset`` in ``CMakePresets.json``.
-4. A subcommand-specific default (see table below).
-5. Fail with a clear, actionable error.
+3. A subcommand-specific default (see table below).
+4. Fail with a clear, actionable error.
 
 .. list-table::
    :header-rows: 1
