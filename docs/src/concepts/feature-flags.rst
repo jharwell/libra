@@ -86,3 +86,91 @@ Or directly from the CMake cache:
 
    cmake -LA -N build/<preset>/CMakeCache.txt | grep LIBRA_  # variable values
    grep LIBRA_ build/<preset>/CMakeCache.txt
+
+.. _concepts/feature-flags/named-presets:
+
+Recommended named presets and their rationale
+==============================================
+
+The recommended hierarchy (see :ref:`concepts/project-setup/presets` for
+the JSON) defines a small set of named presets. Each exists as a
+first-class named preset — rather than a runtime flag — so that it appears
+in IDE preset pickers and can be driven by plain ``cmake`` as well as
+``clibra``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 30 48
+
+   * - Preset
+     - Sets
+     - Why it is a separate preset
+
+   * - ``base`` (hidden)
+     - Generator ``Ninja``; every ``LIBRA_*`` flag off
+     - Never used directly; always inherited. Guarantees each child is
+       fully self-describing with no stray inherited flags.
+
+   * - ``debug``
+     - ``CMAKE_BUILD_TYPE=Debug``, ``LIBRA_TESTS=ON``
+     - The everyday development preset. Tests are on because that is the
+       most common iteration loop.
+
+   * - ``release``
+     - ``CMAKE_BUILD_TYPE=Release``, ``LIBRA_LTO=ON``
+     - Portable optimised build. LTO is almost always wanted for a release
+       binary and has no portability cost.
+
+   * - ``native-release``
+     - inherits ``release`` + ``LIBRA_OPT_NATIVE=ON``
+     - A ``native-release`` binary is not portable across CPU
+       microarchitectures, so it must never be the default release preset
+       for a distributed build.
+
+   * - ``asan`` / ``tsan`` / ``msan``
+     - inherit ``debug`` + ``LIBRA_SAN=<value>``
+     - ``msan`` also sets ``LIBRA_STDLIB=CXX`` because MSan needs an
+       instrumented standard library. First-class named presets so they
+       appear in IDE pickers.
+
+   * - ``coverage``
+     - inherits ``debug`` + ``LIBRA_COVERAGE=ON``
+     - Coverage instrumentation changes build output (object files are not
+       reusable between coverage and non-coverage builds), so it warrants
+       its own build directory.
+
+   * - ``ci``
+     - inherits ``debug`` + ``LIBRA_COVERAGE=ON``
+     - Nearly identical to ``coverage`` today, but kept separate
+       intentionally so CI can diverge over time (e.g. adding analysis)
+       without coupling the two. The current ``ci`` preset does *not*
+       enable ``LIBRA_ANALYSIS=ON``; analysis is slow and belongs in a
+       distinct CI job.
+
+   * - ``analyze``
+     - inherits ``debug`` + ``LIBRA_ANALYSIS=ON``, ``LIBRA_USE_COMPDB=YES``
+     - Its build preset pins ``"targets": ["analyze"]`` so
+       ``cmake --build --preset analyze`` runs analysis directly without
+       building the full project first.
+
+   * - ``fortify``
+     - inherits ``release`` + ``LIBRA_FORTIFY=ALL``
+     - Release build with all hardening options. Separate because
+       fortification can affect ABI and is not universally appropriate.
+
+   * - ``valgrind``
+     - inherits ``debug`` + ``LIBRA_VALGRIND_COMPAT=ON``
+     - Valgrind-compatible codegen (disabling SSE/AVX) affects the whole
+       binary; its output is not interchangeable with a normal debug build.
+
+   * - ``pgo-gen`` / ``pgo-use``
+     - inherit ``release``; set ``LIBRA_PGO=GEN`` (+ ``LIBRA_LTO=OFF``) /
+       ``LIBRA_PGO=USE``
+     - Two-phase PGO. Kept as composable presets rather than one
+       ``performance`` preset, which would conflate native-opt, LTO, and
+       PGO — three independent concerns.
+
+   * - ``docs``
+     - ``CMAKE_BUILD_TYPE=Debug``, ``LIBRA_DOCS=ON``, ``LIBRA_TESTS=OFF``
+     - Keeps documentation builds isolated from build artifacts that have
+       different caching properties.

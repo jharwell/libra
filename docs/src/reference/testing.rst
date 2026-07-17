@@ -8,8 +8,9 @@ Testing Reference
 
 LIBRA automatically discovers, registers, and runs tests when
 :cmake:variable:`LIBRA_TESTS` is enabled. This page covers what LIBRA
-supports and how discovery is configured. For CTest usage, filtering,
-and debugging, see :ref:`concepts/testing`.
+supports and how discovery is configured. For building, running,
+filtering, and debugging tests, see :ref:`cookbook/testing`. For the
+mental model behind the test workflow, see :ref:`concepts/testing`.
 
 Supported test types
 ====================
@@ -90,7 +91,7 @@ The compiler is selected by extension:
 
 **Optional** ``.expected`` **companion file**
 
-If a file ``<n>.expected`` exists alongside the negative test source,
+If a file ``<name>.expected`` exists alongside the negative test source,
 its contents must appear somewhere in the compiler's stderr for the
 test to pass. This lets you assert not just that compilation failed,
 but that it failed with the right diagnostic::

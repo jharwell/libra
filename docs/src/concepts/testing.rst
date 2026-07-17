@@ -6,12 +6,14 @@
 Testing
 =======
 
-How to work with LIBRA's test infrastructure day-to-day. For the
-reference material on test discovery, naming conventions, and the test
-harness, see :ref:`reference/testing`.
+The mental model behind LIBRA's test infrastructure: why tests are not
+in the default build, and how compiled tests map onto the ``tests/``
+tree. For building, running, filtering, and debugging tests day-to-day,
+see :ref:`cookbook/testing`. For test discovery, naming matchers, negative
+tests, and the test harness, see :ref:`reference/testing`.
 
 Why tests are not in the default build
-=======================================
+======================================
 
 LIBRA does not include test targets in the default build. The reasoning
 follows the natural rhythm of development:
@@ -27,7 +29,7 @@ follows the natural rhythm of development:
    * - Initial code development
      - No
      - You are trying to get something implemented. Waiting for tests
-       to build when your library hasn't compiled yet yet adds friction
+       to build when your library hasn't compiled yet adds friction
        without value.
 
    * - Writing tests to validate what you just wrote

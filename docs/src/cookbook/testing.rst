@@ -6,7 +6,8 @@
 Testing
 =======
 
-How to build, run, filter, and debug tests day-to-day. For test
+How to build, run, filter, and debug tests day-to-day. For the mental
+model behind the test workflow, see :ref:`concepts/testing`. For test
 discovery configuration (naming matchers, negative tests, the test
 harness), see :ref:`reference/testing`.
 
@@ -35,7 +36,7 @@ To build and run in one step:
 
 
 Filtering and running specific tests
-======================================
+====================================
 
 Tests are grouped into categories by type:
 
@@ -86,7 +87,7 @@ Blessing test outputs
 =====================
 
 If your tests compare output against known-good references, pass
-```BLESS=1`` to update all blessed outputs at once:
+``BLESS=1`` to update all blessed outputs at once:
 
 .. code-block:: bash
 
