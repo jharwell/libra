@@ -8,9 +8,8 @@ description: Publish LIBRA CLI to crates.io
 # workflow it is unsupported and may not work reliably.
 #
 # The 'published' release type triggers for both prerelease (beta) and formal
-# releases, so both stable and beta builds are published to crates.io.
-# Beta releases carry a pre-release version suffix (e.g. 0.9.5-beta) so they
-# are not selected by default during `cargo install`.
+# releases. release.yml only creates releases for clean vX.Y.Z tags, so in
+# practice only stable versions reach this workflow.
 #
 on:
   release:
@@ -18,15 +17,26 @@ on:
 
 jobs:
   publish:
-    # Only publish clibra on master to avoid having HUNDREDS of beta release
-    # on crates.io which are of limited utility.
-    if: github.event.release.target_commitish == 'master'
+    # Gate on the tag, not on target_commitish. For a release created from an
+    # existing tag ref, github.event.release.target_commitish is the tag name
+    # (e.g. "v1.5.0"), NOT "master" -- so the old target_commitish == 'master'
+    # guard was always false and the publish silently never ran.
+    #
+    # The release ref itself is the source of truth: it only exists because a
+    # stable vX.Y.Z tag was pushed and release.yml created a release for it.
+    if: >-
+      startsWith(github.event.release.tag_name, 'v') &&
+      !contains(github.event.release.tag_name, '-')
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16
     steps:
       - uses: actions/checkout@v4
         with:
+          # Check out the released tag explicitly rather than whatever the
+          # default ref is, so the published crate is built from the tagged
+          # commit.
+          ref: ${{ github.event.release.tag_name }}
           persist-credentials: false
 
       - name: Install Rust toolchain
@@ -37,19 +47,26 @@ jobs:
         with:
           tool: cargo-edit
 
-        # 2026-03-17 [JRH]: This keeps version.cmake as the single source of
-        # truth for the LIBRA version.
+        # The git tag is the single source of truth for the version. We push
+        # it into Cargo.toml at publish time so the crate on crates.io reports
+        # the correct version even though .git is absent in the packaged crate.
       - name: Set version from tag
         run: |
           VERSION="${GITHUB_REF_NAME#v}"   # e.g. v1.2.3 -> 1.2.3
-          cargo set-version $VERSION
+          # GITHUB_REF_NAME is the release tag here; fall back to the release
+          # payload if needed.
+          if [ -z "${VERSION}" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          fi
+          cargo set-version "${VERSION}"
 
       - name: Build release binary
         run: cargo build --release
 
       - name: Publish to crates.io
         # --no-verify skips the redundant package rebuild that cargo publish
-        # does by default — the binary was already verified by the CI suite
+        # does by default -- the binary was already verified by the CI suite
         # that gated the release. --allow-dirty is needed because we modified
         # Cargo.toml to set the version.
         run: cargo publish --no-verify --allow-dirty

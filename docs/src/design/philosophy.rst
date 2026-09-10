@@ -84,7 +84,7 @@ Build Types
 ===========
 
 CMake provides the Debug,Release,RelWithDebInfo, and MinSizeRel build types. See
-`here <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>` for
+`here <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_ for
 the full reference. These build types cover a very large number of common use
 cases. E.g.:
 

@@ -3,8 +3,8 @@
 #
 # SPDX-License Identifier:  MIT
 #
-include(libra/format/clang_format)
-include(libra/format/cmake_format)
+include(libra/format/clang-format)
+include(libra/format/cmake-format)
 include(libra/messaging)
 include(libra/utils)
 

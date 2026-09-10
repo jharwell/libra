@@ -25,7 +25,6 @@ import requests
 import pathlib
 import re
 
-# conf.py — add near the top after imports
 from sphinx.builders.html import StandaloneHTMLBuilder
 
 StandaloneHTMLBuilder.dark_highlighter = None
@@ -38,6 +37,7 @@ StandaloneHTMLBuilder.dark_highlighter = None
 #
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("_ext"))
+from scripts import version_helper
 
 # -- Project information -----------------------------------------------------
 today = datetime.date.today()
@@ -45,18 +45,10 @@ project = "LIBRA"
 copyright = f"{today.year}, John Harwell"
 author = "John Harwell"
 
-version = (
-    subprocess.run(
-        "python3 ../cmake/libra/version.py --numeric",
-        shell=True,
-        check=True,
-        stdout=subprocess.PIPE,
-    )
-    .stdout.decode()
-    .strip("\n")
-)
-
+repo_root = pathlib.Path(__file__).parent.parent
+version = version_helper.get_version(repo_root, numeric=False)
 release = version
+print(f"DOCS: Extracted versioning: version={version},release={release}")
 
 # -- General configuration ------------------------------------------------
 
