@@ -54,4 +54,4 @@ class libraPackgeTestConan(ConanFile):
             # If you don't resolve() the path, conan can't find it; this doesn't
             # happen with os.path.join(), and I don't know why. We want to use
             # pathlib though, as that is more modern.
-            self.run(path.resolve(), env="conanrun")
+            self.run(str(path.resolve()), env="conanrun")

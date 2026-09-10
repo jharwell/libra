@@ -212,14 +212,14 @@ jobs:
         shell: bash
         run: |
           git fetch --tags
-          NEW_TAG=$(./scripts/bump-version.sh)
-          echo "New dev tag: ${NEW_TAG}"
-          echo "new_tag=${NEW_TAG}" >> $GITHUB_OUTPUT
+          NEW_VERSION=$(./scripts/bump-version.sh)
+          echo "New dev version: ${NEW_VERSION}"
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Bake version into self.cmake
         shell: bash
         run: |
-          VERSION="${{ steps.tag.outputs.new_tag }}"
+          VERSION="${{ steps.tag.outputs.new_version }}"
           # Strip leading 'v' for the CMake set() call
           VERSION="${VERSION#v}"
 
@@ -233,14 +233,13 @@ jobs:
       - name: Commit and tag
         shell: bash
         run: |
-          NEW_TAG="${{ steps.tag.outputs.new_tag }}"
+          NEW_VERSION="${{ steps.tag.outputs.new_version }}"
 
           git add cmake/libra/self.cmake
-          git commit -m "chore: update LIBRA_VERSION to ${NEW_TAG}"
+          git commit -m "chore: update LIBRA_VERSION to ${NEW_VERSION}"
 
           # Tag the new commit, not the pre-commit HEAD
-          git tag "${NEW_TAG}"
+          git tag "${NEW_VERSION}"
 
           # Push the version bump commit to devel and the tag together
-          git push origin HEAD:devel "${NEW_TAG}"
-
+          git push origin HEAD:devel "${NEW_VERSION}"
