@@ -40,8 +40,6 @@ libra_configure_exports(TARGET ${PROJECT_NAME} COMPATIBILITY SameMinorVersion)
 
 libra_install_cmake_modules(TARGET ${PROJECT_NAME} FILES_OR_DIRS
                             ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra)
-libra_install_files(DESTINATION lib/cmake/libra FILES
-                    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/libra/version.py)
 
 # The ../ is necessary to get the dotfiles to be found in the various places.
 # Easier to make the change here than to try and figure out how to get conan to

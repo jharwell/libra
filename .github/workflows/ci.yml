@@ -6,8 +6,14 @@ name: Build and test
 #   to runners at bay.
 # - On pushes to relevant paths.
 #
+# Ignore tags. On both devel and master they are redundant, because CI would
+# have previously succeeded for both on a branch commit (automatically for devel
+# tags).
+#
 on:
   push:
+    tags-ignore:
+      - '**'
     paths:
       - "cmake/**"
       - "cli/**"
@@ -200,6 +206,14 @@ jobs:
         with:
           # Full history required to inspect all existing tags.
           fetch-depth: 0
+          # Push with GITHUB_TOKEN (the default), NOT a PAT. GITHUB_TOKEN-made
+          # pushes cannot trigger further workflow runs -- GitHub's built-in
+          # loop protection -- so the self.cmake commit below re-triggering
+          # this very workflow (which fires on push to cmake/**) is structurally
+          # impossible. Dev tagging has no downstream workflow to fire, so it
+          # does not need the release PAT. [skip ci] on the commit is a second,
+          # independent guard. Do NOT switch this to BOT_RELEASE_TOKEN.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git
         run: |
@@ -223,12 +237,17 @@ jobs:
           # Strip leading 'v' for the CMake set() call
           VERSION="${VERSION#v}"
 
-          cat > cmake/libra/self.cmake << EOF
+          # Quoted delimiter prevents shell/YAML expansion inside the heredoc;
+          # the version is substituted afterward with sed. self.cmake is the
+          # git-less fallback that CPM consumers (which fetch a git-less tree at
+          # the tag) read at configure time to report LIBRA_VERSION.
+          cat > cmake/libra/self.cmake << 'CMAKEEOF'
           # GENERATED FILE -- do not edit.
           # Updated automatically by CI in the tag-dev-release job.
           # Any manual changes will be overwritten on the next devel merge.
-          set(LIBRA_VERSION "${VERSION}")
-          EOF
+          set(LIBRA_VERSION "__VERSION__")
+          CMAKEEOF
+          sed -i "s/__VERSION__/${VERSION}/" cmake/libra/self.cmake
 
       - name: Commit and tag
         shell: bash
@@ -236,10 +255,16 @@ jobs:
           NEW_VERSION="${{ steps.tag.outputs.new_version }}"
 
           git add cmake/libra/self.cmake
-          git commit -m "chore: update LIBRA_VERSION to ${NEW_VERSION}"
+          # [skip ci] is REQUIRED: this commit lands on devel and touches
+          # cmake/**, which is one of this workflow's push-trigger paths.
+          # Without the token, [skip ci] guarantees the version-stamp commit
+          # cannot re-enter CI. It changed only generated metadata, so skipping
+          # CI is also semantically correct -- there is no source to test.
+          git commit -m "chore: update LIBRA_VERSION to ${NEW_VERSION} [skip ci]"
 
           # Tag the new commit, not the pre-commit HEAD
           git tag "${NEW_VERSION}"
 
-          # Push the version bump commit to devel and the tag together
+          # Push the version bump commit to devel and the tag together.
+          # Pushed with GITHUB_TOKEN (see checkout above) -> no workflow re-trigger.
           git push origin HEAD:devel "${NEW_VERSION}"

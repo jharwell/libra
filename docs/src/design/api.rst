@@ -28,15 +28,15 @@ Analysis
 --------
 
 .. cmake-module:: ../../../cmake/libra/analyze/analyze.cmake
-.. cmake-module:: ../../../cmake/libra/analyze/clang_check.cmake
-.. cmake-module:: ../../../cmake/libra/analyze/clang_tidy.cmake
+.. cmake-module:: ../../../cmake/libra/analyze/clang-check.cmake
+.. cmake-module:: ../../../cmake/libra/analyze/clang-tidy.cmake
 .. cmake-module:: ../../../cmake/libra/analyze/cppcheck.cmake
 
 Formatting
 ----------
 
-.. cmake-module:: ../../../cmake/libra/format/cmake_format.cmake
-.. cmake-module:: ../../../cmake/libra/format/clang_format.cmake
+.. cmake-module:: ../../../cmake/libra/format/cmake-format.cmake
+.. cmake-module:: ../../../cmake/libra/format/clang-format.cmake
 .. cmake-module:: ../../../cmake/libra/format/format.cmake
 
 Documentation

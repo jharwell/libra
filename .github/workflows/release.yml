@@ -14,24 +14,38 @@ name: Release
 # GitHub release triggers the publish workflow. A workflow cannot trigger
 # another workflow with the same token it was invoked with.
 on:
-  push:
-    tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Stable version to release, without leading v (e.g. 1.5.0)"
+        required: true
+        type: string
 
 jobs:
   create-release:
-    # Exclude prerelease tags (v1.5.0-dev.3, v1.5.0-rc.1).
-    # Only clean vX.Y.Z tags produce GitHub releases.
-    if: "!contains(github.ref_name, '-')"
     runs-on: ubuntu-latest
     container:
       image: jharwell/ubuntu24.04-libra:2026-03-16
     permissions:
       contents: write
     steps:
+      - name: Validate version input
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          # Reject a leading v and any prerelease suffix -- stable only.
+          if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::version '${VERSION}' must be a bare stable semver like 1.5.0 (no leading v, no -dev/-rc suffix)"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
         with:
+          # Release from master; full history so tag creation and describe work.
+          ref: master
           fetch-depth: 0
+          # Use the bot token so the tag push can trigger downstream workflows.
+          token: ${{ secrets.BOT_RELEASE_TOKEN }}
 
       - name: Configure git
         run: |
@@ -39,31 +53,61 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Bake version into self.cmake
+      - name: Guard against pre-existing tag
         shell: bash
         run: |
-          VERSION="${{ github.ref_name }}"
-          VERSION="${VERSION#v}"
+          git fetch --tags
+          TAG="v${{ inputs.version }}"
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "::error::tag ${TAG} already exists -- refusing to overwrite. Bump the version."
+            exit 1
+          fi
 
-          cat > cmake/libra/self.cmake << EOF
+      - name: Bake version into self.cmake and tag
+        shell: bash
+        run: |
+          VERSION="${{ inputs.version }}"
+          TAG="v${VERSION}"
+
+          cat > cmake/libra/self.cmake << 'CMAKEEOF'
           # GENERATED FILE -- do not edit.
           # Updated automatically by CI in the create-release job.
           # Any manual changes will be overwritten on the next release.
-          set(LIBRA_VERSION "${VERSION}")
-          EOF
+          set(LIBRA_VERSION "__VERSION__")
+          CMAKEEOF
+          sed -i "s/__VERSION__/${VERSION}/" cmake/libra/self.cmake
 
-          # Move the tag to include the self.cmake commit so CPM
-          # consumers get the correct version from the source tree.
           git add cmake/libra/self.cmake
-          git commit -m "chore: update LIBRA_VERSION to ${{ github.ref_name }}"
-          git tag -f "${{ github.ref_name }}"
-          git push origin HEAD:master --force-with-lease
-          git push origin "${{ github.ref_name }}" --force
+          # [skip ci] is REQUIRED and load-bearing: this commit is pushed to
+          # master with the PAT below. A PAT push is NOT loop-protected, so
+          # without [skip ci] the master commit would re-trigger ci.yml via its
+          # cmake/** path filter. [skip ci] suppresses that.
+          #
+          # IMPORTANT: [skip ci] on a commit ALSO suppresses the push/create
+          # events for any tag pushed on that same commit -- a documented
+          # gotcha. That is fine HERE only because publish.yml triggers on
+          # `on: release: [published]`, NOT on the tag push. The GitHub *release*
+          # event is not subject to [skip ci], and it is fired by the
+          # `gh release create` step below -- not by the tag push. So the
+          # publish chain runs via the release event even though the tag push
+          # is skipped. Do NOT change publish.yml to trigger on tag push, or
+          # [skip ci] here will silently break publishing.
+          git commit -m "chore: release ${TAG} [skip ci]"
+
+          # Tag the commit we just made. First-time creation -- never -f.
+          git tag "${TAG}"
+
+          # Push the commit and the tag together. No force anywhere.
+          git push origin HEAD:master "${TAG}"
+
+      - name: Install GitHub CLI
+        uses: step-security/setup-gh@v1
 
       - name: Github release
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: ${{ secrets.BOT_RELEASE_TOKEN }}
-          automatic_release_tag: ${{ github.ref_name }}
-          prerelease: false
-          title: "Release ${{ github.ref_name }}"
+        env:
+          GH_TOKEN: ${{ secrets.BOT_RELEASE_TOKEN }}
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --title "Release v${{ inputs.version }}" \
+            --verify-tag \
+            --latest
