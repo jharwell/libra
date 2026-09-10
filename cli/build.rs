@@ -67,10 +67,20 @@ fn main() {
     eprintln!("build.rs: exact_tag={:?}", exact);
     eprintln!("build.rs: described_version={:?}", described);
 
-    let version = exact.or(described).unwrap_or_else(|| "0.0.0".to_string());
+    // 2026-09-10 [JRH]: This sets the version in priority order:
+    //
+    // 1. git-ful builds if in a git repo (local/dev builds)
+    // 2. git-less builds in CI where we aren't in a git repo, BUT the package
+    //    version has been manually set.
+
+    let version = exact
+        .or(described)
+        .or_else(|| std::env::var("CARGO_PKG_VERSION").ok())
+        .unwrap_or_else(|| "0.0.0".to_string());
 
     eprintln!("build.rs: final version={:?}", version);
     println!("cargo:rustc-env=LIBRA_VERSION={}", version);
     println!("cargo:rerun-if-changed=.git/HEAD");
     println!("cargo:rerun-if-changed=.git/refs");
+    println!("cargo:rerun-if-changed=.git/packed_refs");
 }
