@@ -32,6 +32,7 @@ jobs:
         uses: actions/checkout@v3
         with:
             # Full history so tag creation and describe work.
+            ref: master
             fetch-depth: 0
 
       - name: Setup Pages
