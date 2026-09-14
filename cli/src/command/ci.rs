@@ -12,7 +12,9 @@ use anyhow;
 use clap;
 use log::{debug, warn};
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct CiArgs {
     /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
@@ -32,9 +34,9 @@ pub struct CiArgs {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

@@ -49,16 +49,22 @@ General
 
 .. cmake:variable:: LIBRA_PROJECT_VERSION
 
+   :type: CACHE STRING
+
     Full version string without the leading ``v``, e.g. ``1.5.0-dev.3``
     or ``1.5.0``.  For untagged commits this contains a synthetic suffix
     such as ``1.5.0-dev.3.untagged.5+gabcdef``.
 
 .. cmake:variable:: LIBRA_PROJECT_VERSION_NUMERIC
 
+   :type: CACHE STRING
+
     The ``MAJOR.MINOR.PATCH`` component only.  Safe to pass directly to
     ``project(VERSION ...)`` and ``CPMAddPackage(VERSION ...)``.
 
 .. cmake:variable:: LIBRA_PROJECT_VERSION_PRERELEASE
+
+   :type: CACHE STRING
 
    The prerelease identifier without the leading ``-``, e.g. ``dev.3`` or
    ``rc.1``.  Empty string for stable releases.

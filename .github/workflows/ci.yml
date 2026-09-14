@@ -12,7 +12,9 @@ name: Build and test
 #
 on:
   push:
-    tags-ignore:
+  # Adding a branches filter automatically ignores all tag pushes, which we want
+  # so pushing a release tag doesn't redundantly trigger this pipeline.
+    branches:
       - '**'
     paths:
       - "cmake/**"
@@ -181,12 +183,19 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build clibra
+        shell: bash
+        run: |
+          cargo build
       - name: Compute next dev tag
         id: tag
         shell: bash
         run: |
           git fetch --tags
-          NEW_VERSION=$(./scripts/bump-version.sh)
+          NEW_VERSION=$(target/debug/clibra version --self --bump)
           echo "New dev version: ${NEW_VERSION}"
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
