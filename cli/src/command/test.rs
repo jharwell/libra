@@ -14,7 +14,9 @@ use crate::preset;
 use crate::runner;
 use crate::utils;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::ValueEnum, Clone, Debug, Default)]
 pub enum TestType {
     #[default]
@@ -75,9 +77,9 @@ pub struct TestArgs {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

@@ -37,7 +37,6 @@ StandaloneHTMLBuilder.dark_highlighter = None
 #
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("_ext"))
-from scripts import version_helper
 
 # -- Project information -----------------------------------------------------
 today = datetime.date.today()
@@ -46,7 +45,17 @@ copyright = f"{today.year}, John Harwell"
 author = "John Harwell"
 
 repo_root = pathlib.Path(__file__).parent.parent
-version = version_helper.get_version(repo_root, numeric=False)
+result = subprocess.run(
+    ["clibra", "version", "--self"],
+    capture_output=True,
+    text=True,
+    cwd=repo_root,
+)
+if result.returncode != 0:
+    print("ERROR: ", result.stderr.strip())
+else:
+    version = result.stdout.strip()
+
 release = version
 print(f"DOCS: Extracted versioning: version={version},release={release}")
 
@@ -118,7 +127,8 @@ SUBCOMMANDS = [
     "format",
     "init",
     "install",
-    "preset"
+    "preset",
+    "version",
 ]
 
 GLOBAL_FLAG_PREFIXES = {

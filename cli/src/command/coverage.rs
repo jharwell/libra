@@ -14,7 +14,9 @@ use crate::cmake;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct CoverageArgs {
     /// Generate HTML report.
@@ -45,9 +47,9 @@ pub struct CoverageArgs {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 
 pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;

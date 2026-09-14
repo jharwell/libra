@@ -11,7 +11,9 @@ use crate::cmake;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 
 #[derive(clap::Args, Debug)]
 pub struct CommonArgs {
@@ -77,7 +79,9 @@ pub struct DocsArgs {
 
 // Traits
 
-// Implementation
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 fn run_target(ctx: &runner::Context, args: &DocsArgs, target: &str) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     let preset = preset::resolve(ctx, Some("docs"))?;
@@ -115,7 +119,9 @@ fn run_build_all(ctx: &runner::Context, args: &DocsArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: DocsArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

@@ -9,7 +9,9 @@
 // Imports
 use log::debug;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(Clone)]
 pub struct Context {
     pub preset: Option<String>,
@@ -18,9 +20,9 @@ pub struct Context {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 impl Context {
     pub fn run(&self, cmd: &mut std::process::Command) -> anyhow::Result<()> {
         if self.dry_run {

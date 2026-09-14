@@ -13,7 +13,9 @@ use crate::cmake;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct CleanArgs {
     /// Removes the preset's binaryDir entirely (rm -rf).  Requires the build
@@ -22,12 +24,9 @@ pub struct CleanArgs {
     pub all: bool,
 }
 
-// Traits
-
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
-
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: CleanArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 
