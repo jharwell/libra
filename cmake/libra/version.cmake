@@ -27,6 +27,27 @@ set(_LIBRA_VERSION_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
   the authoritative description of each tier and the resulting version
   strings; this docstring intentionally does not restate it to avoid drift.
 
+  1. **Tagged commit** — HEAD carries an exact git tag whose format matches
+     ``vMAJOR.MINOR.PATCH`` or ``vMAJOR.MINOR.PATCH-PRERELEASE``, per semantic
+     versioning.  This is the normal state for every consumable build (stable
+     release or a ``dev.N`` / ``rc.N`` prerelease produced by CI).
+
+  2. **Untagged commit** — HEAD is not directly tagged.  The nearest
+     ancestor tag is located via ``git describe --tags --long`` and the
+     result is annotated with the commit distance and abbreviated SHA as
+     SemVer build metadata so the version string is unique and clearly
+     non-releasable.  A warning is emitted.
+
+  3. **No git / no tags — baked fallback** — git is unavailable, HEAD has no
+     reachable tag, or the tree is a source tarball / shallow clone.  The
+     value baked into ``self.cmake`` at release time (``LIBRA_VERSION``) is
+     used so diagnostics still report a meaningful version.  A warning is
+     emitted.
+
+  4. **Nothing available** — none of the above resolved; all version
+     variables are set to ``0.0.0`` with an empty prerelease component and a
+     warning is emitted.
+
   **Cache variables set:**
 
   - :cmake:variable:`LIBRA_PROJECT_VERSION`
