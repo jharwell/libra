@@ -13,7 +13,9 @@ use crate::cmake;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct InstallArgs {
     /// Forward -DVAR=VALUE to the CMake configure step when active.  If the
@@ -41,10 +43,9 @@ pub struct InstallArgs {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
-
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, mut args: InstallArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

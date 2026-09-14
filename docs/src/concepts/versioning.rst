@@ -35,15 +35,21 @@ The resolution chain, in priority order:
 
 2. **Untagged commit** — HEAD is not directly tagged (e.g., a WIP package from a
    feature branch). The nearest ancestor tag is located via ``git
-   describe --tags --long`` and the commit distance and SHA are appended as
-   build metadata, producing a string like
-   ``1.5.0-dev.3.untagged.5+g230f029``. A warning is emitted. Untagged builds
-   are not considered releasable in most projects.
+   describe --tags --long`` and the commit distance and abbreviated SHA are
+   appended as SemVer build metadata, producing a string like
+   ``1.5.0-dev.3+5.g230f029`` (or ``1.5.0+5.g230f029`` off a stable tag). A
+   warning is emitted. Untagged builds are not considered releasable in most
+   projects.
 
-3. **No git / no tags** — no repository or no reachable tags (source
-   tarball, shallow clone predating any tag). Version is set to
-   ``0.0.0`` with an empty prerelease component and a warning is
-   emitted.
+3. **No git / no tags — baked fallback** — no repository or no reachable
+   tags (source tarball, shallow clone predating any tag). The value baked
+   into ``self.cmake`` at release time (:cmake:variable:`LIBRA_VERSION`) is
+   used so diagnostics still report a meaningful version. A warning is
+   emitted. **This is LIBRA only.**
+
+4. **Nothing available** — none of the above resolved. All version
+   variables are set to ``0.0.0`` with an empty prerelease component and a
+   warning is emitted.
 
 
 .. _concepts/versioning/variables:
@@ -51,8 +57,7 @@ The resolution chain, in priority order:
 Version variables
 =================
 
-:cmake:command:`libra_extract_version` sets three variables in the calling
-scope:
+:cmake:command:`libra_extract_version` sets three cache variables:
 
 - :cmake:variable:`LIBRA_PROJECT_VERSION`
 - :cmake:variable:`LIBRA_PROJECT_VERSION_NUMERIC`

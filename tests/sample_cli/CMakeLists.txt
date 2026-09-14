@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.23)
-project(sample_cli C CXX)
 
 # Wire up LIBRA according to the consumption mode selected by the test harness.
 # LIBRA_CONSUME_MODE and companion variables are injected as -D arguments by
@@ -7,3 +6,9 @@ project(sample_cli C CXX)
 # back to the in_situ relative path so samples still work when invoked directly.
 include(${LIBRA_TESTS_DIR}/consume/libra_consume.cmake)
 include(libra/project)
+
+libra_extract_version()
+project(
+  sample_cli
+  VERSION ${LIBRA_PROJECT_VERSION_NUMERIC}
+  LANGUAGES C CXX)

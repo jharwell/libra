@@ -7,11 +7,9 @@
 // Imports
 use log::{debug, trace};
 
-// Types
-
-// Traits
-
-// Implementation
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 
 /// Load configure presets from the CMake{UserPresets,Presets}.json files from
 /// the specified directory and merge them. This is required when walking the

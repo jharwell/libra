@@ -15,7 +15,9 @@ use which;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct DoctorArgs {}
 
@@ -33,7 +35,9 @@ struct Tool {
 
 // traits
 
-// Implementation
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 fn normalize_version(v: &str) -> String {
     let parts: Vec<&str> = v.split('.').collect();
     match parts.len() {
@@ -175,7 +179,9 @@ fn check_project_structure(ok: &mut u32, warn: &mut u32, err: &mut u32) {
     }
 }
 
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, _args: DoctorArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

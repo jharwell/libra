@@ -16,7 +16,9 @@ use crate::cmake;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct InfoArgs {
     /// Show everything: {build configuration, LIBRA targets}.
@@ -38,7 +40,6 @@ pub struct Target {
     pub available: bool,
     pub unavailable_reason: Option<String>,
     pub category: String,
-    pub parent: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -49,8 +50,6 @@ pub struct HelpTargets {
 }
 
 // Traits
-
-// Implementation
 
 /// Emit output for a single target group; that is, for a collection of
 /// buildable targets which all fall under the same semantic umbrella.
@@ -245,7 +244,9 @@ fn parse_cmake_cache(
     return Ok((cmake_items, libra_items));
 }
 
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, mut args: InfoArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

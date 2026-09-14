@@ -15,8 +15,11 @@ mod command;
 mod preset;
 mod runner;
 mod utils;
+mod versioning;
 
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -89,6 +92,7 @@ fn main() -> Result<()> {
         Command::Install(args) => command::install::run(&ctx, args),
         Command::Info(args) => command::info::run(&ctx, args),
         Command::Doctor(args) => command::doctor::run(&ctx, args),
+        Command::Version(args) => command::version::run(&ctx, args),
         Command::Generate(args) => command::generate::run(args),
     }
 }

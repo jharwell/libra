@@ -11,7 +11,9 @@ use crate::command::info;
 use crate::preset;
 use crate::runner;
 
-// Types
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 pub enum TargetStatus {
     /// The target is available in the build system.
     Available,
@@ -21,7 +23,9 @@ pub enum TargetStatus {
 }
 // Traits
 
-// Implementation
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 pub fn expand_binary_dir(raw: &str, preset: &str) -> std::path::PathBuf {
     let source_dir = std::env::current_dir()
         .unwrap_or_default()
@@ -42,7 +46,9 @@ pub fn expand_binary_dir(raw: &str, preset: &str) -> std::path::PathBuf {
 
     std::path::PathBuf::from(expanded)
 }
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 
 /// Get the value of a variable in the CMake cache, given the build
 /// directory. If the cache doesn't exist, that is not an error. If the cache

@@ -13,7 +13,9 @@ use crate::preset;
 use crate::runner;
 use crate::utils;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct BuildArgs {
     /// Parallel job count. Defaults to the # of logical CPUs.
@@ -62,9 +64,9 @@ pub struct BuildArgs {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, mut args: BuildArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     debug!("Begin");

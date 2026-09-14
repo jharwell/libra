@@ -8,7 +8,7 @@
 // Imports
 use crate::command::{
     analyze, build, ci, clean, coverage, docs, doctor, format, generate, info, init, install,
-    preset, test,
+    preset, test, version,
 };
 use clap::{Parser, Subcommand};
 
@@ -143,6 +143,9 @@ pub enum Command {
 
     /// Preset management
     Preset(preset::PresetArgs),
+
+    /// Version management
+    Version(version::VersionArgs),
 
     /// Show resolved build configuration, available targets.
     ///

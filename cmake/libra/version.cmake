@@ -21,30 +21,13 @@ set(_LIBRA_VERSION_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
   ``project(VERSION ...)``. Because it runs before ``libra/messaging`` is loaded
   it uses plain ``message()`` internally rather than ``libra_message()``.
 
-  Version is resolved through the following priority chain:
+  Version is resolved through a four-tier priority chain (exact tag ->
+  untagged commit annotated via ``git describe`` -> baked ``self.cmake``
+  fallback -> ``0.0.0``). See :ref:`concepts/versioning/source-of-truth` for
+  the authoritative description of each tier and the resulting version
+  strings; this docstring intentionally does not restate it to avoid drift.
 
-  1. **Tagged commit** — HEAD carries an exact git tag whose format matches
-     ``vMAJOR.MINOR.PATCH`` or ``vMAJOR.MINOR.PATCH-PRERELEASE``, per semantic
-     versioning.  This is the normal state for every consumable build (stable
-     release or a ``dev.N`` / ``rc.N`` prerelease produced by CI).
-
-  2. **Untagged commit** — HEAD is not directly tagged.  The nearest
-     ancestor tag is located via ``git describe --tags --long`` and the
-     result is annotated with the commit distance and abbreviated SHA as
-     SemVer build metadata so the version string is unique and clearly
-     non-releasable.  A warning is emitted.
-
-  3. **No git / no tags — baked fallback** — git is unavailable, HEAD has no
-     reachable tag, or the tree is a source tarball / shallow clone.  The
-     value baked into ``self.cmake`` at release time (``LIBRA_VERSION``) is
-     used so diagnostics still report a meaningful version.  A warning is
-     emitted.
-
-  4. **Nothing available** — none of the above resolved; all version
-     variables are set to ``0.0.0`` with an empty prerelease component and a
-     warning is emitted.
-
-  **Variables set in the calling scope:**
+  **Cache variables set:**
 
   - :cmake:variable:`LIBRA_PROJECT_VERSION`
   - :cmake:variable:`LIBRA_PROJECT_VERSION_NUMERIC`
@@ -77,7 +60,7 @@ set(_LIBRA_VERSION_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
     )
 
   .. NOTE::
-     :camke:variable`LIBRA_PROJECT_VERSION_NUMERIC` maps to CMake's
+     :cmake:variable:`LIBRA_PROJECT_VERSION_NUMERIC` maps to CMake's
      :cmake:variable:`PROJECT_VERSION` after the ``project()`` call, which also
      sets the standard :cmake:variable:`PROJECT_VERSION_MAJOR`,
      :cmake:variable:`PROJECT_VERSION_MINOR`, and
@@ -87,7 +70,7 @@ set(_LIBRA_VERSION_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}")
      that CMake's own version machinery cannot represent.
 
   .. NOTE::
-     This variable family is distinct from :cmake:variable`LIBRA_VERSION`, which
+     This variable family is distinct from :cmake:variable:`LIBRA_VERSION`, which
      is the version of the LIBRA build framework itself.
 ]]
 function(libra_extract_version)
@@ -107,7 +90,7 @@ function(libra_extract_version)
     endif()
   else()
     # -------------------------------------------------------------------------
-    # 1. Nearest ancestor tag + commit distance.
+    # 2. Nearest ancestor tag + commit distance.
     # -------------------------------------------------------------------------
     _libra_git(_described describe --tags --long)
     if(_described)
@@ -138,7 +121,7 @@ function(libra_extract_version)
   endif()
 
   # ---------------------------------------------------------------------------
-  # 1. Git-less fallback: baked LIBRA_VERSION in self.cmake (CPM / tarballs).
+  # 3. Git-less fallback: baked LIBRA_VERSION in self.cmake (CPM / tarballs).
   # ---------------------------------------------------------------------------
   if(NOT _full)
     set(_self "${_LIBRA_VERSION_CMAKE_DIR}/self.cmake")
@@ -155,7 +138,7 @@ function(libra_extract_version)
   endif()
 
   # ---------------------------------------------------------------------------
-  # 1. Nothing available.
+  # 4. Nothing available.
   # ---------------------------------------------------------------------------
   if(NOT _full)
     libra_message(WARNING "Failed to extract version from git or self.cmake."
@@ -169,13 +152,13 @@ function(libra_extract_version)
 
   set(LIBRA_PROJECT_VERSION
       "${_full}"
-      PARENT_SCOPE)
+      CACHE STRING "LIBRA full project version")
   set(LIBRA_PROJECT_VERSION_NUMERIC
       "${_numeric}"
-      PARENT_SCOPE)
+      CACHE STRING "LIBRA numeric project version")
   set(LIBRA_PROJECT_VERSION_PRERELEASE
       "${_prerelease}"
-      PARENT_SCOPE)
+      CACHE STRING "LIBRA project version prerelease component")
 endfunction()
 
 # cmake-format: off

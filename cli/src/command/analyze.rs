@@ -14,13 +14,11 @@ use anyhow;
 use clap;
 use log::{debug, warn};
 
-// Types
-
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct AnalyzeArgs {
     /// The tool to use. Defaults to running all available tools.

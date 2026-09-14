@@ -12,7 +12,9 @@ use clap_markdown;
 
 use crate::cli::Cli;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Args, Debug)]
 pub struct GenerateArgs {
     #[arg(long, value_enum)]
@@ -30,9 +32,9 @@ pub struct GenerateArgs {
 
 // Traits
 
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(args: GenerateArgs) -> anyhow::Result<()> {
     if let Some(shell) = args.shell {
         clap_complete::generate(

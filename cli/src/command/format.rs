@@ -13,7 +13,9 @@ use crate::cmake;
 use crate::preset;
 use crate::runner;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct FormatArgs {
     #[arg(short = 'D', value_name = "VAR=VALUE")]
@@ -44,7 +46,9 @@ pub enum CheckKind {
     Cmake,
 }
 
-// Implementation
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 pub fn run_target(ctx: &runner::Context, args: &FormatArgs, target: &str) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     let preset = preset::resolve(ctx, Some("format"))?;
@@ -75,7 +79,9 @@ pub fn run_target(ctx: &runner::Context, args: &FormatArgs, target: &str) -> any
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: FormatArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
 

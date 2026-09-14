@@ -8,6 +8,7 @@
 import os
 import sys
 import pathlib
+import subprocess
 
 # 3rd party packages
 from conan import ConanFile
@@ -17,12 +18,17 @@ from conan.errors import ConanException
 # Project packages
 
 def _resolve_live(here, numeric):
-    # Imported lazily: scripts/ only exists in the source tree, and this
-    # path only runs there. Consumers never reach it.
-    import sys
-    sys.path.insert(0, os.path.join(here, "scripts"))
-    import version_helper
-    return version_helper.get_version(here, numeric=numeric)
+    repo_root = pathlib.Path(__file__).parent
+    result = subprocess.run(
+    ["target/debug/clibra", "version", "--self"],
+    capture_output=True,
+    text=True,
+    cwd=repo_root,
+)
+    if result.returncode != 0:
+        raise ConanException("Failed get LIBRA version")
+
+    return result.stdout.strip()
 
 class LibraConan(ConanFile):
     name = "libra"

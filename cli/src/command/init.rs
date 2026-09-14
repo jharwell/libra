@@ -13,7 +13,9 @@ use clap;
 use log::{debug, info, warn};
 use std::path;
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct InitArgs {
     /// Overwrite all existing files.
@@ -25,8 +27,9 @@ pub struct InitArgs {
     pub name: String,
 }
 
-// Implementation
-
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 fn write_template(
     path: &path::Path,
     content: &str,
@@ -55,8 +58,9 @@ fn write_template(
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
 // Public API
-
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: InitArgs) -> anyhow::Result<()> {
     debug!("Begin");
 

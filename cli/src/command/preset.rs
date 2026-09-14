@@ -13,7 +13,9 @@ use clap;
 use colored::Colorize;
 use log::{debug, error, warn};
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 
 #[derive(clap::Subcommand, Debug)]
 pub enum PresetSubCommand {
@@ -35,7 +37,9 @@ pub struct PresetArgs {
     pub command: PresetSubCommand,
 }
 
-// Implementation
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
 
 /// List all presets CMake is aware of. Right now this just calls into cmake to
 /// do the work of walking the preset JSON because that's the low hanging
@@ -109,8 +113,10 @@ fn run_default(ctx: &runner::Context) -> anyhow::Result<()> {
 
     Ok(())
 }
-// Public API
 
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: PresetArgs) -> anyhow::Result<()> {
     debug!("Begin");
 
