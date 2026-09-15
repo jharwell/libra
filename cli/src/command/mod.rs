@@ -20,11 +20,3 @@ pub mod install;
 pub mod preset;
 pub mod test;
 pub mod version;
-
-// Types
-
-// Traits
-
-// Implementation
-
-// Public API

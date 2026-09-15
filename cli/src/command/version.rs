@@ -9,19 +9,16 @@ use anyhow;
 use clap;
 use log::{debug, error};
 
-use crate::{preset, runner, versioning};
+use crate::{preset, runner, utils, versioning};
 
+// ---------------------------------------------------------------------------
 // Types
+// ---------------------------------------------------------------------------
 #[derive(clap::ValueEnum, Clone, Debug, Default)]
 pub enum OutputFormat {
     #[default]
     Human,
     Json,
-}
-#[derive(clap::ValueEnum, Debug, Clone, PartialEq)]
-pub enum VersionType {
-    Numeric,
-    Full,
 }
 
 #[derive(clap::Parser, Debug)]
@@ -31,9 +28,9 @@ pub struct VersionArgs {
     #[arg(long, short)]
     pub check: Option<String>,
 
-    /// Type of resolved version to use.
-    #[arg(short, long, value_enum, default_value_t = VersionType::Numeric)]
-    pub r#type: VersionType,
+    /// Use/parse/manage full versions instead of numeric versions.
+    #[arg(long)]
+    pub full: bool,
 
     /// The output format to print the version in.
     #[arg(short, long)]
@@ -43,47 +40,47 @@ pub struct VersionArgs {
     #[arg(short, long)]
     pub bump: bool,
 
-    /// File to bake clibra's own version during releases. Hidden, obviously.
+    /// Indicate that LIBRA's own version should be managed. Hidden, obviously.
     #[arg(long, hide = true)]
-    pub bake: Option<String>,
+    pub self_: bool,
 }
 
-// Traits
-
-// Implementation
-
+// ---------------------------------------------------------------------------
 // Public API
+// ---------------------------------------------------------------------------
 pub fn run(ctx: &runner::Context, args: VersionArgs) -> anyhow::Result<()> {
     debug!("Begin");
 
-    let preset = preset::resolve(ctx, None)?;
-    let ver = versioning::resolve(&preset)?;
+    let ver = if args.self_ {
+        utils::versioning_resolve_self()?
+    } else {
+        versioning::resolve(&preset::resolve(ctx, None)?)?
+    };
+
     debug!(
         "Resolved version: numeric={},full={}",
         ver.numeric, ver.full
     );
     if let Some(to_check) = args.check {
         let as_ver = semver::Version::parse(&to_check)?;
-        match args.r#type {
-            VersionType::Numeric => {
-                if as_ver != ver.numeric {
-                    error!("Resolved version {} != {}", ver.numeric, as_ver);
-                    std::process::exit(1);
-                }
-                debug!("Resolved version match: numeric={}", ver.numeric);
+        if args.full {
+            if as_ver != ver.full {
+                error!("Resolved version {} != {}", ver.full, as_ver);
+                std::process::exit(1);
             }
-            VersionType::Full => {
-                if as_ver != ver.full {
-                    error!("Resolved version {} != {}", ver.full, as_ver);
-                    std::process::exit(1);
-                }
-                debug!("Resolved version match: full={}", ver.numeric);
+            debug!("Resolved version match: full={}", ver.numeric);
+        } else {
+            if as_ver != ver.numeric {
+                error!("Resolved version {} != {}", ver.numeric, as_ver);
+                std::process::exit(1);
             }
+            debug!("Resolved version match: numeric={}", ver.numeric);
         }
+        return Ok(());
     }
 
     if args.bump {
-        if ver.numeric != ver.full && args.r#type == VersionType::Full {
+        if ver.numeric != ver.full && args.full {
             error!(
                 "Cannot bump full version {}: not in semver X.Y.Z format",
                 ver.full
@@ -91,11 +88,14 @@ pub fn run(ctx: &runner::Context, args: VersionArgs) -> anyhow::Result<()> {
             std::process::exit(1);
         }
         println!("{}", versioning::increment(&ver)?);
+        return Ok(());
     }
 
-    // if let bake_into = Some(args.bake) {
-    //     run_bake(args)?;
-    // }
+    println!("{}", if args.full { ver.full } else { ver.numeric });
 
     Ok(())
 }
+
+// ---------------------------------------------------------------------------
+// Private API
+// ---------------------------------------------------------------------------
