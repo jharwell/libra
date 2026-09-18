@@ -182,6 +182,7 @@ jobs:
         shell: bash
         run: |
           cargo build
+
       - name: Compute next dev tag
         id: tag
         shell: bash
