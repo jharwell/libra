@@ -11,9 +11,10 @@ else()
   set(TEST_SOURCES ${${PROJECT_NAME}_CXX_SRC})
 endif()
 
+set(LIBRA_SPHINXDOC_COMMAND "uv run --no-project --with sphinx sphinx-build")
 # ---------------------------------------------------------------------------
-# MULTI_TARGET test path: register two targets (a library and an executable)
-# so that _libra_register_clang_tidy is called more than once in a single
+# MULTI_TARGET test path: register two targets (a library and an executable) so
+# that _libra_register_clang_tidy is called more than once in a single
 # configure. This exercises the if(NOT TARGET ...) guard that prevents a
 # duplicate add_custom_target(analyze-clang-tidy) error.
 # ---------------------------------------------------------------------------
@@ -27,11 +28,11 @@ if(LIBRA_TEST_MULTI_TARGET)
   endif()
   target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 
-# ---------------------------------------------------------------------------
-# STUBS test path: build a STATIC library with a public header so that
-# _libra_generate_header_stubs and _libra_prune_stale_stubs are exercised
-# during LIBRA_ANALYSIS=ON configure.
-# ---------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # STUBS test path: build a STATIC library with a public header so that
+  # _libra_generate_header_stubs and _libra_prune_stale_stubs are exercised
+  # during LIBRA_ANALYSIS=ON configure.
+  # ---------------------------------------------------------------------------
 elseif(LIBRA_TEST_STUBS)
   # include/sample_build_info/stub.hpp is a static source-tree file that
   # project.cmake's GLOB_RECURSE picks up into ${PROJECT_NAME}_CXX_HEADERS

@@ -36,7 +36,8 @@ function(_libra_sphinxdoc_configure SPHINXDOC_TARGET APIDOC_TARGET)
     execute_process(
       COMMAND ${LIBRA_SPHINXDOC_COMMAND} --version
       RESULT_VARIABLE SPHINX_RESULT
-      OUTPUT_QUIET ERROR_QUIET)
+      OUTPUT_VARIABLE SPHINX_OUT
+      ERROR_VARIABLE SPHINX_ERR)
 
     if(SPHINX_RESULT EQUAL 0)
       libra_message(
@@ -58,7 +59,7 @@ function(_libra_sphinxdoc_configure SPHINXDOC_TARGET APIDOC_TARGET)
     else()
       libra_message(
         WARNING
-        "'${LIBRA_SPHINXDOC_COMMAND} --version' not found or failed: ${SPHINX_RESULT}"
+        "'${LIBRA_SPHINXDOC_COMMAND} --version' not found or failed: stdout=${SPHINX_OUT},stderr=${SPHINX_ERR}"
       )
     endif()
   else()

@@ -34,7 +34,7 @@ jobs:
   cmake-funcs-smoke-tests:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
       - name: Run smoke tests
@@ -73,11 +73,9 @@ jobs:
   schema-help-targets:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
       - name: Run LIBRA install
         shell: bash
         run: |
@@ -89,7 +87,7 @@ jobs:
   cmake-self-install-test:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
       - name: Run LIBRA install
@@ -102,12 +100,9 @@ jobs:
   cli-build:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Build CLI
         run: cargo build
         working-directory: .
@@ -115,7 +110,7 @@ jobs:
   cli-unit-tests:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     needs:
       - cli-build
     steps:
@@ -129,7 +124,7 @@ jobs:
   cli-smoke-tests:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     needs:
       - cli-build
     steps:
@@ -150,7 +145,7 @@ jobs:
     if: github.ref_type == 'branch' && github.ref_name == 'devel'
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:2026-03-16
+      image: jharwell/ubuntu24.04-libra:20260918
     permissions:
       contents: write
     needs:
@@ -183,9 +178,6 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Build clibra
         shell: bash
         run: |
@@ -195,7 +187,8 @@ jobs:
         shell: bash
         run: |
           git fetch --tags
-          NEW_VERSION=$(target/debug/clibra version --self --bump)
+          target/debug/clibra version --self --log debug
+          NEW_VERSION=v$(target/debug/clibra version --self --bump)
           echo "New dev version: ${NEW_VERSION}"
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
 

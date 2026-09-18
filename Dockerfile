@@ -19,9 +19,7 @@ RUN apt-get update && apt-get install -y wget gpg curl && \
 # LLVM/Clang repository (Ubuntu 24.04 Noble only has 14+)
 RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | \
     gpg --dearmor -o /usr/share/keyrings/llvm-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-17 main" > /etc/apt/sources.list.d/llvm-17.list && \
     echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" > /etc/apt/sources.list.d/llvm-19.list && \
-    echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" > /etc/apt/sources.list.d/llvm-20.list && \
     echo "deb [signed-by=/usr/share/keyrings/llvm-archive-keyring.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble main" > /etc/apt/sources.list.d/llvm-latest.list && \
     apt-get update
 
@@ -135,7 +133,6 @@ RUN apt-get update && apt-get install -y \
     make \
     cmake \
     git-extras \
-    lintian \
     gcovr \
     lcov \
     python3-pip \
@@ -145,7 +142,18 @@ RUN apt-get update && apt-get install -y \
     cppcheck \
     cmake-format \
     bats \
-    ninja-build
+    ninja-build \
+    python3-sphinx
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# CLI
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+RUN rustc --version && cargo --version && uv --version
 
 ################################################################################
 # Environment Setup
