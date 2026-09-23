@@ -21,6 +21,7 @@ on:
       - "cli/**"
       - ".github/**"
       - "docs/**"
+      - "dots/**"
 
   schedule:
     - cron: '0 0 1 * *'
