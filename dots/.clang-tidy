@@ -205,6 +205,7 @@ CheckOptions:
   google-readability-function-size.ParameterThreshold: 6
   google-readability-function-size.StatementThreshold: '800'
   google-readability-function-size.VariableThreshold: 25
+  google-readability-function-size.IgnoreMacros: 'true'
   google-readability-namespace-comments.ShortNamespaceLines: '10'
   google-readability-namespace-comments.SpacesBeforeComments: '2'
   google-runtime-int.SignedTypePrefix: int
@@ -219,6 +220,7 @@ CheckOptions:
   hicpp-function-size.ParameterThreshold: 6
   hicpp-function-size.StatementThreshold: '800'
   hicpp-function-size.VariableThreshold: none
+  hicpp-function-size.IgnoreMacros: 'true'
   hicpp-ignored-remove-result.AllowCastToVoid: 'true'
   hicpp-member-init.IgnoreArrays: 'false'
   hicpp-member-init.UseAssignment: 'false'
@@ -403,6 +405,7 @@ CheckOptions:
   readability-function-size.ParameterThreshold: 6
   readability-function-size.StatementThreshold: '800'
   readability-function-size.VariableThreshold: 25
+  readability-function-size.IgnoreMacros: 'true'
   readability-identifier-length.IgnoredExceptionVariableNames: '^[e]$'
   readability-identifier-length.IgnoredLoopCounterNames: '^[ijk_]$'
   readability-identifier-length.IgnoredParameterNames: '(^[n]$|os|i|j|k)'
@@ -494,7 +497,7 @@ CheckOptions:
   readability-redundant-string-init.StringNames: '::std::basic_string_view;::std::basic_string'
   readability-simplify-boolean-expr.ChainedConditionalAssignment: 'false'
   readability-simplify-boolean-expr.ChainedConditionalReturn: 'false'
-  readability-simplify-boolean-expr.IgnoreMacros: 'false'
+  readability-simplify-boolean-expr.IgnoreMacros: 'true'
   readability-simplify-boolean-expr.SimplifyDeMorgan: 'true'
   readability-simplify-boolean-expr.SimplifyDeMorganRelaxed: 'false'
   readability-simplify-subscript-expr.Types: '::std::basic_string;::std::basic_string_view;::std::vector;::std::array;::std::span'

@@ -17,14 +17,13 @@
  *   - stable        vX.Y.Z         -> vX.Y.(Z+1)-dev.1
  *   - dev stream    vX.Y.Z-dev.N   -> vX.Y.Z-dev.(N+1)
  *   - other prerel.  vX.Y.Z-rc.M   -> vX.Y.Z-dev.1   (start dev for this numeric)
- *   - untagged       ...+meta      -> vX.Y.(Z+1)-dev.1  (HEAD is ahead of tag)
  *   - fallback       0.0.0         -> v0.0.1-dev.1
  *
- * Note that the presence of build metadata (`+meta`, i.e. an untagged commit)
- * is tested *first* and overrides the dev-stream rule: `vX.Y.Z-dev.N+meta`
- * advances the patch series to `vX.Y.(Z+1)-dev.1` rather than continuing to
- * `dev.(N+1)`. Any commit past its tag is treated as ahead of released work,
- * so the series moves forward instead of extending the tagged dev stream.
+ * Build metadata (`+meta`, i.e. HEAD is past its most recent tag) is ignored:
+ * the next version depends only on the most recent tag. So a merge on top of
+ * `vX.Y.Z-dev.N` (resolved as `vX.Y.Z-dev.N+meta`) continues the dev stream to
+ * `dev.(N+1)`, and a commit past stable `vX.Y.Z` still yields
+ * `vX.Y.(Z+1)-dev.1`.
  */
 
 // Imports
@@ -84,19 +83,14 @@ pub fn increment(current: &utils::ResolvedVersion) -> anyhow::Result<semver::Ver
     let v = &current.full;
     let dev1 = semver::Prerelease::new("dev.1").expect("literal is valid");
 
-    // A build-metadata suffix (`+dist.gsha`) means HEAD is ahead of its tag:
-    // the numeric already reflects released work, so advance the patch series.
-    // This is checked *before* the dev-stream branch below and deliberately
-    // overrides it: `vX.Y.Z-dev.N+meta` becomes `vX.Y.(Z+1)-dev.1`, not
-    // `dev.(N+1)`, because any commit past a tag is ahead of that dev stream.
-    let is_untagged = !v.build.is_empty();
+    // Build metadata (`+dist.gsha`) only says HEAD is past its tag; it does
+    // not change what the next dev version should be, so it is ignored and
+    // the decision is made on the prerelease of the last tag alone.
+    if !v.build.is_empty() {
+        debug!("HEAD is past its tag ({v}); ignoring build metadata");
+    }
 
-    let next = if is_untagged {
-        debug!("Untagged commit ({v}); advancing patch series");
-        let mut n = semver::Version::new(v.major, v.minor, v.patch + 1);
-        n.pre = dev1;
-        n
-    } else if v.pre.is_empty() {
+    let next = if v.pre.is_empty() {
         debug!("Stable release {v}; advancing patch series");
         let mut n = semver::Version::new(v.major, v.minor, v.patch + 1);
         n.pre = dev1;
@@ -181,11 +175,19 @@ mod tests {
     }
 
     #[test]
-    fn untagged_dev_commit_advances_patch() {
-        // Even sitting on a dev tag, build metadata means HEAD moved on.
+    fn untagged_dev_commit_continues_dev_stream() {
+        // A merge on top of a dev tag continues that dev stream.
         assert_eq!(
-            increment(&rv("1.2.4-dev.4+2.gabcdef1")).unwrap(),
-            v("1.2.5-dev.1")
+            increment(&rv("0.13.11-dev.1+3.gabcdef1")).unwrap(),
+            v("0.13.11-dev.2")
+        );
+    }
+
+    #[test]
+    fn untagged_rc_commit_starts_dev_stream_same_numeric() {
+        assert_eq!(
+            increment(&rv("1.2.4-rc.1+2.gabcdef1")).unwrap(),
+            v("1.2.4-dev.1")
         );
     }
 
