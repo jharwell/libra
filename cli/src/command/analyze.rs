@@ -35,7 +35,7 @@ pub struct AnalyzeArgs {
     pub fix: bool,
 
     /// Continue building after errors.
-    #[arg(short = 'k', long)]
+    #[arg(short = 'k', long, global = true)]
     pub keep_going: bool,
 
     /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
@@ -45,7 +45,7 @@ pub struct AnalyzeArgs {
     pub defines: Vec<String>,
 
     /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub reconfigure: bool,
 
     /// Reconfigure with a --fresh cmake build directory.
