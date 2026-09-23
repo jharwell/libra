@@ -100,8 +100,6 @@ jobs:
           # Push the commit and the tag together. No force anywhere.
           git push origin HEAD:master "${TAG}"
 
-
-
       - name: Install GitHub CLI
         uses: step-security/setup-gh@v1
 
@@ -124,6 +122,9 @@ jobs:
     needs: [create-release]
     steps:
       - uses: actions/checkout@v4
+      - name: Build CLI
+        run: cargo build
+        working-directory: .
       - name: Create package
         shell: bash
         run: |
