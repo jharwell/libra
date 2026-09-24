@@ -9,7 +9,7 @@ use anyhow;
 use clap;
 use log::{debug, error};
 
-use crate::{preset, runner, utils, versioning};
+use crate::{cmake, preset, runner, utils, versioning};
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,6 +43,14 @@ pub struct VersionArgs {
     /// Indicate that LIBRA's own version should be managed. Hidden, obviously.
     #[arg(long, hide = true)]
     pub self_: bool,
+
+    /// Force the configure step even if the build directory exists.
+    #[arg(short, long)]
+    pub reconfigure: bool,
+
+    /// Reconfigure with a --fresh build directory by wiping the CMake cache.
+    #[arg(short, long)]
+    pub fresh: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -54,7 +62,14 @@ pub fn run(ctx: &runner::Context, args: VersionArgs) -> anyhow::Result<()> {
     let ver = if args.self_ {
         utils::versioning_resolve_self()?
     } else {
-        versioning::resolve(&preset::resolve(ctx, None)?)?
+        let preset = preset::resolve(ctx, None)?;
+
+        if args.reconfigure || args.fresh {
+            debug!("Begin reconfigure");
+            cmake::reconf(ctx, &preset, args.fresh, &[])?;
+        }
+
+        versioning::resolve(&preset)?
     };
 
     debug!(
