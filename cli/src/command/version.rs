@@ -14,35 +14,21 @@ use crate::{cmake, preset, runner, utils, versioning};
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-#[derive(clap::ValueEnum, Clone, Debug, Default)]
-pub enum OutputFormat {
-    #[default]
-    Human,
-    Json,
-}
-
 #[derive(clap::Parser, Debug)]
 pub struct VersionArgs {
     /// Compare the resolved version against a specified one, for use in CI
-    /// gating. Can be used in conjunction with --bump.
+    /// gating. Reads from CMake Cache.
     #[arg(long, short)]
     pub check: Option<String>,
 
-    /// Use/parse/manage full versions instead of numeric versions.
+    /// Show full versions instead of numeric versions. Reads from CMake cache.
     #[arg(long)]
     pub full: bool,
 
-    /// The output format to print the version in.
-    #[arg(short, long)]
-    pub output: Option<OutputFormat>,
-
-    /// Bump the patch component of the resolved version (numeric only).
+    /// Bump the patch component of the resolved version (numeric only). Reads
+    /// git tags (single source of truth). Does not read CMake Cache.
     #[arg(short, long)]
     pub bump: bool,
-
-    /// Indicate that LIBRA's own version should be managed. Hidden, obviously.
-    #[arg(long, hide = true)]
-    pub self_: bool,
 
     /// Force the configure step even if the build directory exists.
     #[arg(short, long)]
@@ -51,6 +37,10 @@ pub struct VersionArgs {
     /// Reconfigure with a --fresh build directory by wiping the CMake cache.
     #[arg(short, long)]
     pub fresh: bool,
+
+    /// Indicate that LIBRA's own version should be managed. Hidden, obviously.
+    #[arg(long, hide = true)]
+    pub self_: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -59,7 +49,17 @@ pub struct VersionArgs {
 pub fn run(ctx: &runner::Context, args: VersionArgs) -> anyhow::Result<()> {
     debug!("Begin");
 
-    let ver = if args.self_ {
+    if args.bump {
+        anyhow::ensure!(!args.full, "--full not valid with --bump");
+        let bumped = versioning::next(std::path::Path::new("."))?;
+        println!("{}", bumped);
+        return Ok(());
+    }
+
+    // This is the version that will ship with the project (or LIBRA itself), as
+    // it is read from the CMake cache and therefore can be baked into the
+    // compiled binary.
+    let baked = if args.self_ {
         utils::versioning_resolve_self()?
     } else {
         let preset = preset::resolve(ctx, None)?;
@@ -73,40 +73,21 @@ pub fn run(ctx: &runner::Context, args: VersionArgs) -> anyhow::Result<()> {
     };
 
     debug!(
-        "Resolved version: numeric={},full={}",
-        ver.numeric, ver.full
+        "Resolved version from CMake cache: numeric={},full={}",
+        baked.numeric, baked.full
     );
+
     if let Some(to_check) = args.check {
         let as_ver = semver::Version::parse(&to_check)?;
-        if args.full {
-            if as_ver != ver.full {
-                error!("Resolved version {} != {}", ver.full, as_ver);
-                std::process::exit(1);
-            }
-            debug!("Resolved version match: full={}", ver.numeric);
-        } else {
-            if as_ver != ver.numeric {
-                error!("Resolved version {} != {}", ver.numeric, as_ver);
-                std::process::exit(1);
-            }
-            debug!("Resolved version match: numeric={}", ver.numeric);
-        }
-        return Ok(());
-    }
-
-    if args.bump {
-        if ver.numeric != ver.full && args.full {
-            error!(
-                "Cannot bump full version {}: not in semver X.Y.Z format",
-                ver.full
-            );
+        if as_ver != baked.numeric {
+            error!("Resolved version {} != {}", baked.numeric, as_ver);
             std::process::exit(1);
         }
-        println!("{}", versioning::increment(&ver)?);
+        debug!("Resolved version match: numeric={}", baked.numeric);
         return Ok(());
     }
 
-    println!("{}", if args.full { ver.full } else { ver.numeric });
+    println!("{}", if args.full { baked.full } else { baked.numeric });
 
     Ok(())
 }

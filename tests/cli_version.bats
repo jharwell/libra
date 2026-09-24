@@ -59,23 +59,6 @@ SEMVER_RE='[0-9]+\.[0-9]+\.[0-9]+'
 }
 
 # ==============================================================================
-# --output format
-# ==============================================================================
-
-@test "VERSION: --output human succeeds" {
-    run_clibra version --preset debug --output human
-    assert_clibra_success
-    [[ "$output" =~ $SEMVER_RE ]]
-}
-
-
-@test "VERSION: -o is accepted as short form of --output" {
-    run_clibra version --preset debug -o human
-    assert_clibra_success
-    [[ "$output" =~ $SEMVER_RE ]]
-}
-
-# ==============================================================================
 # --check (CI gating)
 # ==============================================================================
 

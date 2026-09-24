@@ -29,12 +29,12 @@ fn main() {
         }
     });
 
-    eprintln!("build.rs: full version={}", resolved.full);
-    eprintln!("build.rs: numeric version={}", resolved.numeric);
+    println!("build.rs: full version={}", resolved.full);
+    println!("build.rs: numeric version={}", resolved.numeric);
 
     eprintln!("build.rs: resolved version={}", resolved.full);
     println!("cargo:rustc-env=LIBRA_VERSION={}", resolved.full);
     println!("cargo:rerun-if-changed=.git/HEAD");
     println!("cargo:rerun-if-changed=.git/refs");
-    println!("cargo:rerun-if-changed=.git/packed_refs");
+    println!("cargo:rerun-if-changed=.git/packed-refs");
 }

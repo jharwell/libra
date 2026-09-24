@@ -22,6 +22,12 @@ on:
       - ".github/**"
       - "docs/**"
       - "dots/**"
+      - "tests/**"
+      - "schema/**"
+      - "CMakeLists.txt"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "conanfile.py"
 
   schedule:
     - cron: '0 0 1 * *'
@@ -130,6 +136,8 @@ jobs:
       - cli-build
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -164,13 +172,11 @@ jobs:
         with:
           # Full history required to inspect all existing tags.
           fetch-depth: 0
-          # Push with GITHUB_TOKEN (the default), NOT a PAT. GITHUB_TOKEN-made
-          # pushes cannot trigger further workflow runs -- GitHub's built-in
-          # loop protection -- so the self.cmake commit below re-triggering
-          # this very workflow (which fires on push to cmake/**) is structurally
-          # impossible. Dev tagging has no downstream workflow to fire, so it
-          # does not need the release PAT. [skip ci] on the commit is a second,
-          # independent guard. Do NOT switch this to BOT_RELEASE_TOKEN.
+          # Push with GITHUB_TOKEN (the default), NOT a PAT. Tag pushes made
+          # with GITHUB_TOKEN cannot trigger further workflow runs (GitHub's
+          # built-in loop protection), and this workflow ignores tag pushes
+          # anyway. Dev tagging has no downstream workflow to fire, so it does
+          # not need the release PAT.
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git
@@ -195,41 +201,22 @@ jobs:
           echo "New dev version: ${NEW_VERSION}"
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Bake version into self.cmake
-        shell: bash
-        run: |
-          VERSION="${{ steps.tag.outputs.new_version }}"
-          # Strip leading 'v' for the CMake set() call
-          VERSION="${VERSION#v}"
-
-          # Quoted delimiter prevents shell/YAML expansion inside the heredoc;
-          # the version is substituted afterward with sed. self.cmake is the
-          # git-less fallback that CPM consumers (which fetch a git-less tree at
-          # the tag) read at configure time to report LIBRA_VERSION.
-          cat > cmake/libra/self.cmake << 'CMAKEEOF'
-          # GENERATED FILE -- do not edit.
-          # Updated automatically by CI in the tag-dev-release job.
-          # Any manual changes will be overwritten on the next devel merge.
-          set(LIBRA_VERSION "__VERSION__")
-          CMAKEEOF
-          sed -i "s/__VERSION__/${VERSION}/" cmake/libra/self.cmake
-
-      - name: Commit and tag
+      - name: Tag tested commit
         shell: bash
         run: |
           NEW_VERSION="${{ steps.tag.outputs.new_version }}"
 
-          git add cmake/libra/self.cmake
-          # [skip ci] is REQUIRED: this commit lands on devel and touches
-          # cmake/**, which is one of this workflow's push-trigger paths.
-          # Without the token, [skip ci] guarantees the version-stamp commit
-          # cannot re-enter CI. It changed only generated metadata, so skipping
-          # CI is also semantically correct -- there is no source to test.
-          git commit -m "chore: update LIBRA_VERSION to ${NEW_VERSION} [skip ci]"
+          # Tag the exact commit every job above built and tested. No version
+          # commit: LIBRA_VERSION comes from the tag in git checkouts, from
+          # export-subst expansion of cmake/libra/self.cmake in `git archive`
+          # tarballs, and from conanfile.py's package() bake in Conan packages.
+          #
+          # The tag lands on devel's own history, so `git describe` finds it.
+          # If devel is later force-pushed the tag may become unreachable;
+          # `clibra version --bump` allocates from the global tag set, so
+          # bumping stays correct regardless.
+          git tag -a "${NEW_VERSION}" -m "dev release ${NEW_VERSION}" "${GITHUB_SHA}"
 
-          # Tag the new commit, not the pre-commit HEAD
-          git tag "${NEW_VERSION}"
-
-          # Push the version bump commit to devel and the tag together.
-          # Pushed with GITHUB_TOKEN (see checkout above) -> no workflow re-trigger.
-          git push origin HEAD:devel "${NEW_VERSION}"
+          # Tag only; nothing is pushed to devel. Rejected (and the job fails)
+          # if the tag already exists on the remote -- never retry with -f.
+          git push origin "refs/tags/${NEW_VERSION}"

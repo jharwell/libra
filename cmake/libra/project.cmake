@@ -27,12 +27,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # This makes ninja add stuff for C++20 modules, which confuses clang-tidy.
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-include(libra/self OPTIONAL)
-
-if(NOT DEFINED LIBRA_VERSION)
-  libra_extract_version()
-  set(LIBRA_VERSION "${LIBRA_PROJECT_VERSION}")
-endif()
+libra_resolve_self_version()
 
 # ##############################################################################
 # Cmake Environment
@@ -219,6 +214,15 @@ else()
     include(libra/package/uninstall)
   endif()
 endif()
+
+# # 2026-09-24 [JRH]: GNUInstallDirs must be included at directory scope here:
+# the output dirs below depend on CMAKE_INSTALL_{LIB,BIN}DIR. It used to be
+# pulled in as a side effect of including libra/package/install at module scope,
+# but that include now lives inside the install functions (to avoid the "no
+# architecture" warning when LIBRA itself is configured with LANGUAGES NONE).
+# Including it here is safe: LIBRA's own project.cmake only runs in consuming
+# projects, which have already enabled a language.
+include(GNUInstallDirs)
 
 # We do this even under conan, because a conan-specific flat layout is
 # unnecessary — conan doesn't care where the build outputs land, it only cares

@@ -1,6 +1,8 @@
 name: Release
 
-# Triggered by a manually-pushed stable tag (e.g. v1.5.0).
+# Triggered manually via workflow_dispatch with the stable version to release
+# (e.g. 1.5.0). Tags the current HEAD of master as v<version> and creates the
+# GitHub release, which triggers publish.yml.
 #
 # Keeping this in a dedicated workflow rather than in ci.yml avoids the
 # GitHub Actions footgun where mixing `tags:` and `paths:` under the same
@@ -8,7 +10,7 @@ name: Release
 # runs unexpectedly.
 #
 # The human is responsible for verifying that CI passed on master before
-# pushing the tag. No test jobs here -- the tag itself is the assertion.
+# dispatching. No test jobs here -- the tag goes on that exact tested commit.
 #
 # Uses BOT_RELEASE_TOKEN rather than GITHUB_TOKEN so that creating the
 # GitHub release triggers the publish workflow. A workflow cannot trigger
@@ -63,42 +65,25 @@ jobs:
             exit 1
           fi
 
-      - name: Bake version into self.cmake and tag
+      - name: Tag master
         shell: bash
         run: |
-          VERSION="${{ inputs.version }}"
-          TAG="v${VERSION}"
+          TAG="v${{ inputs.version }}"
 
-          cat > cmake/libra/self.cmake << 'CMAKEEOF'
-          # GENERATED FILE -- do not edit.
-          # Updated automatically by CI in the create-release job.
-          # Any manual changes will be overwritten on the next release.
-          set(LIBRA_VERSION "__VERSION__")
-          CMAKEEOF
-          sed -i "s/__VERSION__/${VERSION}/" cmake/libra/self.cmake
-
-          git add cmake/libra/self.cmake
-          # [skip ci] is REQUIRED and load-bearing: this commit is pushed to
-          # master with the PAT below. A PAT push is NOT loop-protected, so
-          # without [skip ci] the master commit would re-trigger ci.yml via its
-          # cmake/** path filter. [skip ci] suppresses that.
+          # Tag master's HEAD directly -- the commit CI tested. No version
+          # commit: LIBRA_VERSION comes from the tag in git checkouts, from
+          # export-subst expansion of cmake/libra/self.cmake in `git archive`
+          # tarballs, and from conanfile.py's package() bake in Conan packages.
           #
-          # IMPORTANT: [skip ci] on a commit ALSO suppresses the push/create
-          # events for any tag pushed on that same commit -- a documented
-          # gotcha. That is fine HERE only because publish.yml triggers on
-          # `on: release: [published]`, NOT on the tag push. The GitHub *release*
-          # event is not subject to [skip ci], and it is fired by the
-          # `gh release create` step below -- not by the tag push. So the
-          # publish chain runs via the release event even though the tag push
-          # is skipped. Do NOT change publish.yml to trigger on tag push, or
-          # [skip ci] here will silently break publishing.
-          git commit -m "chore: release ${TAG} [skip ci]"
+          # Because nothing is committed, there is no [skip ci] and no
+          # interaction with tag-push event suppression. The tag push (made
+          # with the PAT) does not re-run ci.yml, whose branches filter
+          # ignores tags. publish.yml fires from the release event created
+          # below, not from this push.
+          git tag -a "${TAG}" -m "release ${TAG}"
 
-          # Tag the commit we just made. First-time creation -- never -f.
-          git tag "${TAG}"
-
-          # Push the commit and the tag together. No force anywhere.
-          git push origin HEAD:master "${TAG}"
+          # First-time creation only -- never -f.
+          git push origin "refs/tags/${TAG}"
 
       - name: Install GitHub CLI
         uses: step-security/setup-gh@v1
@@ -122,12 +107,18 @@ jobs:
     needs: [create-release]
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Without an explicit ref, a workflow_dispatch run checks out
+          # whatever branch the dispatch was started from, not the release.
+          ref: v${{ inputs.version }}
+          fetch-depth: 0
       - name: Build CLI
         run: cargo build
         working-directory: .
       - name: Create package
         shell: bash
         run: |
+          git tag -l
           pip3 install conan
           conan profile detect
           conan create \

@@ -58,7 +58,9 @@ jobs:
           }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Configure compiler
         shell: bash
         run: |
@@ -69,6 +71,9 @@ jobs:
         if: inputs.pip-install-conan
         shell: bash
         run: pip3 install conan --break-system-packages
+      - name: Configure git
+        shell: bash
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
       - name: Run smoke tests
         shell: bash
