@@ -189,6 +189,7 @@ jobs:
         shell: bash
         run: |
           git fetch --tags
+          git tag -l
           target/debug/clibra version --self --log debug
           NEW_VERSION=v$(target/debug/clibra version --self --bump)
           echo "New dev version: ${NEW_VERSION}"

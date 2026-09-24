@@ -6,7 +6,6 @@
 
 # Core packages
 import os
-import sys
 import pathlib
 import subprocess
 
@@ -17,25 +16,25 @@ from conan.errors import ConanException
 
 # Project packages
 
+
 def _resolve_live(here, numeric):
     repo_root = pathlib.Path(__file__).parent
     result = subprocess.run(
-    ["target/debug/clibra", "version", "--self"],
-    capture_output=True,
-    text=True,
-    cwd=repo_root,
-)
+        ["target/debug/clibra", "version", "--self"],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
     if result.returncode != 0:
         raise ConanException("Failed get LIBRA version")
 
     return result.stdout.strip()
 
+
 class LibraConan(ConanFile):
     name = "libra"
-    exports_sources = [
-        "cmake/libra/*.cmake",
-        "dots/*.*"
-    ]
+    exports_sources = ["cmake/libra/*.cmake", "dots/*.*"]
+
     def set_version(self):
         here = pathlib.Path(os.path.abspath(__file__)).parent
         version_txt = here / "version.txt"
@@ -78,24 +77,32 @@ class LibraConan(ConanFile):
     def package(self):
         # Copy everything EXCEPT packaging-related things, since when driven by
         # conan it lets conan handle package manager-y things.
-        copy(self,
-             pattern="*.cmake",
-             src=self.source_folder,
-             dst=self.package_folder,
-             excludes=["*/package/*.cmake"])
+        copy(
+            self,
+            pattern="*.cmake",
+            src=self.source_folder,
+            dst=self.package_folder,
+            excludes=["*/package/*.cmake"],
+        )
 
-        copy(self,
-             pattern="*.clang-format",
-             src=self.source_folder,
-             dst=self.package_folder)
-        copy(self,
-             pattern="*.clang-tidy",
-             src=self.source_folder,
-             dst=self.package_folder)
-        copy(self,
-             pattern="*.cmake-format",
-             src=self.source_folder,
-             dst=self.package_folder)
+        copy(
+            self,
+            pattern="*.clang-format",
+            src=self.source_folder,
+            dst=self.package_folder,
+        )
+        copy(
+            self,
+            pattern="*.clang-tidy",
+            src=self.source_folder,
+            dst=self.package_folder,
+        )
+        copy(
+            self,
+            pattern="*.cmake-format",
+            src=self.source_folder,
+            dst=self.package_folder,
+        )
 
         # Bake the git-less LIBRA_VERSION fallback into the package.
         #
@@ -109,7 +116,8 @@ class LibraConan(ConanFile):
         # needed for dev builds. Both were resolved once in export() and written
         # beside the recipe, so package() needs neither git nor scripts/ here.
         full_version = load(
-            self, os.path.join(self.recipe_folder, "version_full.txt")).strip()
+            self, os.path.join(self.recipe_folder, "version_full.txt")
+        ).strip()
 
         if full_version.startswith("0.0.0"):
             # export() already guards this, but re-check defensively: a 0.0.0

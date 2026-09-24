@@ -157,40 +157,46 @@ setup() {
 # Intel compiler - C
 # ------------------------------------------------------------------------------
 
-@test "OPT_NATIVE: Intel/C ON adds -xHost" {
+@test "OPT_NATIVE: Intel/C ON adds optimization options" {
     skip_if_compiler_missing "intel" "c"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_NATIVE=ON)
 
-    assert_compile_flag_present "$test_dir" "c" "-xHost"
+    # -xHost is rejected on non-intel CPUs
+    assert_compile_flag_present "$test_dir" "c" "-xHost" ||
+        assert_compile_flag_present "$test_dir" "c" "-march=native"
 }
 
-@test "OPT_NATIVE: Intel/C OFF does not add -xHost" {
+@test "OPT_NATIVE: Intel/C OFF does not add optimization options" {
     skip_if_compiler_missing "intel" "c"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_NATIVE=OFF)
 
-    assert_compile_flag_absent "$test_dir" "c" "-xHost"
+    assert_compile_flag_absent "$test_dir" "c" "-xHost" &&
+        assert_compile_flag_absent "$test_dir" "c" "-march=native"
 }
 
 # ------------------------------------------------------------------------------
 # Intel compiler - C++
 # ------------------------------------------------------------------------------
 
-@test "OPT_NATIVE: Intel/C++ ON adds -xHost" {
+@test "OPT_NATIVE: Intel/C++ ON adds optimization options" {
     skip_if_compiler_missing "intel" "cxx"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_NATIVE=ON)
 
-    assert_compile_flag_present "$test_dir" "cxx" "-xHost"
+    # -xHost is rejected on non-intel CPUs
+    assert_compile_flag_present "$test_dir" "cxx" "-xHost" ||
+        assert_compile_flag_present "$test_dir" "cxx" "-march=native"
 }
 
-@test "OPT_NATIVE: Intel/C++ OFF does not add -xHost" {
+@test "OPT_NATIVE: Intel/C++ OFF does not add optimization options" {
     skip_if_compiler_missing "intel" "cxx"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_NATIVE=OFF)
 
-    assert_compile_flag_absent "$test_dir" "cxx" "-xHost"
+    assert_compile_flag_absent "$test_dir" "cxx" "-xHost" &&
+        assert_compile_flag_absent "$test_dir" "cxx" "-march=native"
 }
 
 # ------------------------------------------------------------------------------

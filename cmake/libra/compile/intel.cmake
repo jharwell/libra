@@ -111,10 +111,68 @@ endforeach()
 #[[.rst:
 .. cmake:variable:: LIBRA_OPT_NATIVE_INTEL
 
-If enabled: ``-xHost``.
+If enabled, the first of these that every enabled language's compiler accepts
+on the build host:
+
+#. ``-xHost``
+#. ``-march=native``
+#. ``-march=x86-64-v2``
+
+``-xHost`` targets Intel processors; on hosts the compiler can't identify
+(e.g., AMD, or Intel CPUs newer than the compiler), it resolves to an invalid
+CPU name and compilation fails, hence the fallbacks. 
 ]]
+
+# Check a flag against every loaded language (C, C++, or both). The result is
+# TRUE only if all loaded compilers accept it, because
+# _LIBRA_OPT_COMPILE_OPTIONS is applied to C and C++ sources alike.
+function(_libra_intel_check_flag_all_langs flag outvar)
+  string(REGEX REPLACE "[-=]" "_" checked_flag_output ${flag})
+  set(_ok FALSE)
+
+  if(CMAKE_C_COMPILER_LOADED)
+    include(CheckCCompilerFlag)
+    check_c_compiler_flag(${flag}
+                          _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
+    if(NOT _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
+      set(${outvar} FALSE PARENT_SCOPE)
+      return()
+    endif()
+    set(_ok TRUE)
+  endif()
+
+  if(CMAKE_CXX_COMPILER_LOADED)
+    include(CheckCXXCompilerFlag)
+    check_cxx_compiler_flag(${flag}
+                            _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+    if(NOT _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
+      set(${outvar} FALSE PARENT_SCOPE)
+      return()
+    endif()
+    set(_ok TRUE)
+  endif()
+
+  set(${outvar} ${_ok} PARENT_SCOPE)
+endfunction()
+
+set(LIBRA_OPT_NATIVE_FLAG_INTEL "")
 if(LIBRA_OPT_NATIVE)
-  list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -xHost)
+  foreach(flag -xHost -march=native -march=x86-64-v2)
+    _libra_intel_check_flag_all_langs(${flag} _LIBRA_INTEL_NATIVE_OK)
+    if(_LIBRA_INTEL_NATIVE_OK)
+      set(LIBRA_OPT_NATIVE_FLAG_INTEL ${flag})
+      break()
+    endif()
+  endforeach()
+
+  if(LIBRA_OPT_NATIVE_FLAG_INTEL)
+    libra_message(STATUS "LIBRA_OPT_NATIVE: using ${LIBRA_OPT_NATIVE_FLAG_INTEL}")
+    list(APPEND _LIBRA_OPT_COMPILE_OPTIONS ${LIBRA_OPT_NATIVE_FLAG_INTEL})
+  else()
+    libra_message(
+      WARNING
+      "LIBRA_OPT_NATIVE: no native CPU flag accepted on this host; skipping")
+  endif()
 endif()
 
 #[[.rst:
