@@ -12,8 +12,6 @@ cmake_policy(SET CMP0177 NEW) # Normalize paths
 # ##############################################################################
 # Exports Configuration
 # ##############################################################################
-include(GNUInstallDirs)
-
 #[[.rst:
 .. cmake:command:: libra_configure_exports
 
@@ -376,6 +374,11 @@ endfunction()
     libra_install_copyright(mylib ${PROJECT_SOURCE_DIR}/LICENSE)
 ]]
 function(libra_install_copyright)
+  # 2026-09-24 [JRH]: Included here, not at module scope, so it's available for
+  # consumers using this function but does not cause spurious "no architecture
+  # defined" warnings when LIBRA itself is installed.
+  include(GNUInstallDirs)
+
   # Support both: 1. libra_install_copyright(TARGET mylib FILE LICENSE) 2.
   # libra_install_copyright(mylib LICENSE)
   cmake_parse_arguments(
@@ -437,6 +440,11 @@ endfunction()
     # This installs: include/mylib/foo.hpp -> ${CMAKE_INSTALL_PREFIX}/include/mylib/foo.hpp
 ]]
 function(libra_install_headers)
+  # 2026-09-24 [JRH]: Included here, not at module scope, so it's available for
+  # consumers using this function but does not cause spurious "no architecture
+  # defined" warnings when LIBRA itself is installed.
+  include(GNUInstallDirs)
+
   # Support both: 1. libra_install_headers(DIRECTORY include/) 2.
   # libra_install_headers(include/)
   cmake_parse_arguments(
@@ -544,6 +552,11 @@ endfunction()
 
 ]]
 function(libra_install_target)
+  # 2026-09-24 [JRH]: Included here, not at module scope, so it's available for
+  # consumers using this function but does not cause spurious "no architecture
+  # defined" warnings when LIBRA itself is installed.
+  include(GNUInstallDirs)
+
   # Support: 1. libra_install_target(TARGET mylib) 2.
   # libra_install_target(mylib) 3. libra_install_target(mylib INCLUDE_DIR
   # include/) 4. libra_install_target(TARGET mylib INCLUDE_DIR include/)
