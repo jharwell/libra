@@ -44,3 +44,8 @@ Documentation
 
 .. cmake-module:: ../../../cmake/libra/docs/doxygen.cmake
 .. cmake-module:: ../../../cmake/libra/docs/sphinx.cmake
+
+Versioning
+----------
+
+.. cmake-module:: ../../../cmake/libra/version-impl.cmake

@@ -71,9 +71,8 @@ jobs:
           TAG="v${{ inputs.version }}"
 
           # Tag master's HEAD directly -- the commit CI tested. No version
-          # commit: LIBRA_VERSION comes from the tag in git checkouts, from
-          # export-subst expansion of cmake/libra/self.cmake in `git archive`
-          # tarballs, and from conanfile.py's package() bake in Conan packages.
+          # commit: LIBRA_VERSION comes from the tag in git checkouts or from
+          # conanfile.py's package() bake in Conan packages.
           #
           # Because nothing is committed, there is no [skip ci] and no
           # interaction with tag-push event suppression. The tag push (made

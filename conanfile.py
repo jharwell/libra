@@ -13,7 +13,7 @@ import subprocess
 # 3rd party packages
 from conan import ConanFile
 from conan.tools.files import copy, save, load
-from conan.errors import ConanException
+from conan.errors import ConanException, ConanInvalidConfiguration
 
 # Project packages
 
@@ -70,6 +70,18 @@ def _resolve_live(full):
 class LibraConan(ConanFile):
     name = "libra"
     exports_sources = ["cmake/libra/*.cmake", "dots/*.*"]
+    settings = "os", "compiler", "build_type"
+
+    def validate(self):
+        # Platform support only; compiler minimums are enforced by LIBRA's CMake.
+        if self.settings.os == "Windows" or self.settings.compiler == "msvc":
+            raise ConanInvalidConfiguration(f"{self.ref} does not support Windows/MSVC.")
+
+    def package_id(self):
+        # Settings exist only so validate() can inspect the platform. The
+        # packaged CMake modules are identical everywhere, so produce a single
+        # package regardless of os/arch/compiler/build_type.
+        self.info.clear()
 
     def set_version(self):
         # Exported recipe: export() froze the version beside it; just read it.
@@ -167,3 +179,6 @@ class LibraConan(ConanFile):
         # This means that all include() statements will be of the form
         # include(libra/foo/bar.cmake), which is nicely self-documenting.
         self.cpp_info.builddirs = ["cmake"]
+
+    def package_id(self):
+        self.info.clear()
