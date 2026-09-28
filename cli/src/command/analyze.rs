@@ -58,8 +58,6 @@ pub enum Tool {
     ClangTidy,
     ClangCheck,
     Cppcheck,
-    ClangFormat,
-    CmakeFormat,
 }
 
 pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
@@ -68,8 +66,6 @@ pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
             Some(Tool::ClangTidy) => run_target(ctx, &args, "fix-clang-tidy"),
             Some(Tool::ClangCheck) => run_target(ctx, &args, "fix-clang-check"),
             Some(Tool::Cppcheck) => anyhow::bail!("cppcheck has no fix target"),
-            Some(Tool::ClangFormat) => anyhow::bail!("clang-format has no fix target"),
-            Some(Tool::CmakeFormat) => anyhow::bail!("cmake-format has no fix target"),
             None => run_target(ctx, &args, "fix"),
         }
     } else {
@@ -77,8 +73,6 @@ pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
             Some(Tool::ClangTidy) => run_target(ctx, &args, "analyze-clang-tidy"),
             Some(Tool::ClangCheck) => run_target(ctx, &args, "analyze-clang-check"),
             Some(Tool::Cppcheck) => run_target(ctx, &args, "analyze-cppcheck"),
-            Some(Tool::ClangFormat) => run_target(ctx, &args, "analyze-clang-format"),
-            Some(Tool::CmakeFormat) => run_target(ctx, &args, "analyze-cmake-format"),
             None => run_target(ctx, &args, "analyze"),
         }
     }

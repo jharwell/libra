@@ -45,14 +45,6 @@ setup() {
     assert_dry_run_contains "--target analyze-cppcheck" analyze cppcheck
 }
 
-@test "ANALYZE: clang-format subcommand targets analyze-clang-format" {
-    assert_dry_run_contains "--target analyze-clang-format" analyze clang-format
-}
-
-@test "ANALYZE: cmake-format subcommand targets analyze-cmake-format" {
-    assert_dry_run_contains "--target analyze-cmake-format" analyze cmake-format
-}
-
 # ==============================================================================
 # Flag forwarding
 # ==============================================================================

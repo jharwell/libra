@@ -49,25 +49,37 @@ General
 
 .. cmake:variable:: LIBRA_PROJECT_VERSION
 
-   :type: CACHE STRING
+   :type: CACHE INTERNAL (top-level project); normal variable (subprojects)
 
-    Full version string without the leading ``v``, e.g. ``1.5.0-dev.3``
-    or ``1.5.0``.  For untagged commits this contains a synthetic suffix
-    such as ``1.5.0-dev.3.untagged.5+gabcdef``.
+   Full version of the project, without the leading ``v``, e.g. ``1.5.0``,
+   ``1.5.0-dev.3``, or ``1.5.0-dev.3+5.g230f029`` on an untagged commit. See
+   :ref:`reference/versioning/formats`. Set by
+   :cmake:command:`libra_extract_version`.
 
 .. cmake:variable:: LIBRA_PROJECT_VERSION_NUMERIC
 
-   :type: CACHE STRING
+   :type: CACHE INTERNAL (top-level project); normal variable (subprojects)
 
-    The ``MAJOR.MINOR.PATCH`` component only.  Safe to pass directly to
-    ``project(VERSION ...)`` and ``CPMAddPackage(VERSION ...)``.
+   The ``MAJOR.MINOR.PATCH`` component only. Safe to pass to
+   ``project(VERSION ...)`` and ``CPMAddPackage(VERSION ...)``. Set by
+   :cmake:command:`libra_extract_version`.
 
 .. cmake:variable:: LIBRA_PROJECT_VERSION_PRERELEASE
 
-   :type: CACHE STRING
+   :type: CACHE INTERNAL (top-level project); normal variable (subprojects)
 
    The prerelease identifier without the leading ``-``, e.g. ``dev.3`` or
-   ``rc.1``.  Empty string for stable releases.
+   ``rc.1``. Empty for stable releases. Set by
+   :cmake:command:`libra_extract_version`.
+
+.. cmake:variable:: LIBRA_VERSION
+
+   :type: CACHE INTERNAL
+
+   Full version of the LIBRA framework itself, in the same format as
+   :cmake:variable:`LIBRA_PROJECT_VERSION`. Unrelated to the version of the
+   project being built. Set by :cmake:command:`libra_resolve_self_version`
+   during ``include(libra/project)``.
 
 .. _reference/variables/sw-eng:
 

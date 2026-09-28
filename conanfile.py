@@ -119,9 +119,6 @@ class LibraConan(ConanFile):
         save(self, os.path.join(self.export_folder, "version.txt"), numeric)
         save(self, os.path.join(self.export_folder, "version_full.txt"), full)
 
-    def build_requirements(self):
-        self.tool_requires("cmake/3.31.0")
-
     def package(self):
         # Copy everything EXCEPT packaging-related things, since when driven by
         # conan it lets conan handle package manager-y things.
