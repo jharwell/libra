@@ -62,7 +62,7 @@ function(_libra_register_cmake_format FMT_TARGET JOB)
       COMMAND ${cmake_format_EXECUTABLE} -c${LIBRA_CMAKE_FORMAT_FILEPATH}
               ${JOB_ARGS} ${file}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT "Running ${cmake_format_NAME}: JOB=${JOB}")
+      COMMENT "Running ${cmake_format_NAME} JOB=${JOB}")
 
     add_dependencies(${FMT_TARGET} ${FMT_TARGET}-${file_target})
   endforeach()

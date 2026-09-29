@@ -15,6 +15,7 @@ _libra_register_custom_target(sphinxdoc LIBRA_DOCS LIBRA_SPHINXDOC_COMMAND)
 if(LIBRA_DOCS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   libra_message(STATUS "Configuring documentation generation")
   include(libra/docs/doxygen)
+  include(libra/docs/clang)
 
   add_custom_target(apidoc-check)
   set_target_properties(apidoc-check PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
