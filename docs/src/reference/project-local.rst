@@ -160,7 +160,8 @@ Analysis
       --checks=-*,readability*,-readability-identifier-length,-modernize-use-trailing-return-type
 
    If left undefined, LIBRA uses
-   :cmake:variable:`LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT`.
+   :cmake:variable:`LIBRA_CLANG_TIDY_CHECKS_CONFIG_{C,CXX}_DEFAULT`, as
+   appropriate for the file being checked.
 
    .. versionadded:: 0.8.15
 

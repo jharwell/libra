@@ -37,7 +37,9 @@ def _resolve_live(full):
     to use another one.
     """
     repo_root = pathlib.Path(__file__).parent
-    clibra = os.environ.get("CLIBRA_BIN", str(repo_root / "target" / "debug" / "clibra"))
+    clibra = os.environ.get(
+        "CLIBRA_BIN", str(repo_root / "target" / "debug" / "clibra")
+    )
 
     cmd = [clibra, "version", "--self"]
     if full:
@@ -75,7 +77,9 @@ class LibraConan(ConanFile):
     def validate(self):
         # Platform support only; compiler minimums are enforced by LIBRA's CMake.
         if self.settings.os == "Windows" or self.settings.compiler == "msvc":
-            raise ConanInvalidConfiguration(f"{self.ref} does not support Windows/MSVC.")
+            raise ConanInvalidConfiguration(
+                f"{self.ref} does not support Windows/MSVC."
+            )
 
     def package_id(self):
         # Settings exist only so validate() can inspect the platform. The
@@ -130,7 +134,12 @@ class LibraConan(ConanFile):
             excludes=["*/package/*.cmake"],
         )
 
-        for pattern in ("*.clang-format", "*.clang-tidy", "*.cmake-format"):
+        for pattern in (
+            "*.clang-format",
+            "*.clang-tidy-c",
+            ".clang-tidy-cxx",
+            "*.cmake-format",
+        ):
             copy(
                 self,
                 pattern=pattern,
@@ -163,7 +172,10 @@ class LibraConan(ConanFile):
                 f"Refusing to bake LIBRA_VERSION={full_version!r} into the package"
             )
 
-        print("save to: ", os.path.join(self.package_folder, "cmake", "libra", "self.cmake"))
+        print(
+            "save to: ",
+            os.path.join(self.package_folder, "cmake", "libra", "self.cmake"),
+        )
         save(
             self,
             os.path.join(self.package_folder, "cmake", "libra", "self.cmake"),
