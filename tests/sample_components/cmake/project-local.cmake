@@ -61,9 +61,8 @@ else()
 endif()
 
 libra_configure_exports(sample_components)
-libra_install_target(sample_components INCLUDE_DIR ${CMAKE_BINARY_DIR}/include/)
-libra_install_target(sample_components_networking INCLUDE_DIR
-                     ${CMAKE_BINARY_DIR}/include/)
+libra_install_target(sample_components)
+libra_install_target(sample_components_networking)
 libra_install_copyright(
   sample_components ${CMAKE_CURRENT_SOURCE_DIR}/../sample_components/LICENSE)
 

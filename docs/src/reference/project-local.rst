@@ -327,8 +327,7 @@ The install functions must be called in this order in
    ``libra_install_*`` call.
 #. :cmake:command:`libra_install_target` — installs the compiled library
    or executable and its export file.
-#. :cmake:command:`libra_install_headers` — install headers (only needed
-   if not passing ``INCLUDE_DIR`` to :cmake:command:`libra_install_target`).
+#. :cmake:command:`libra_install_headers` — install headers.
 #. :cmake:command:`libra_install_cmake_modules` — optional; only if your
    project ships reusable ``.cmake`` modules.
 #. :cmake:command:`libra_install_copyright` — optional but required for
@@ -401,8 +400,7 @@ Here's a full-featured ``cmake/project-local.cmake`` showing common patterns::
     # ── Installation (LIBRA_DRIVER=SELF only) ──────────────────────────────────
     libra_configure_exports(my_library)
 
-    libra_install_target(my_library
-      INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+    libra_install_target(my_library)
 
     libra_install_copyright(my_library ${PROJECT_SOURCE_DIR}/LICENSE)
 

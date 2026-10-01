@@ -66,7 +66,7 @@ run_libra_cmake_install_test() {
     assert_target_exists "$test_dir" "install"
 }
 
-@test "INSTALL: libra_install_target with INCLUDE_DIR creates install target" {
+@test "INSTALL: libra_install_target with creates install target" {
     test_dir=$(run_libra_cmake_sample_test "sample_export")
     assert_target_exists "$test_dir" "install"
 }
@@ -120,7 +120,7 @@ run_libra_cmake_install_test() {
     [ -f "$test_dir/install/lib/cmake/mylib/mylib-exports.cmake" ]
 }
 
-@test "INSTALL: libra_install_target with INCLUDE_DIR installs headers under include/" {
+@test "INSTALL: libra_install_target installs headers under include/" {
     test_dir=$(run_libra_cmake_sample_test "sample_export")
 
     pushd "$test_dir" > /dev/null
