@@ -171,8 +171,7 @@ setup() {
         -DLIBRA_ANALYSIS=ON \
         -DLIBRA_CLANG_TOOLS_USE_FIXED_DB=YES)
 
-    run cache_value_equals "$test_dir" "LIBRA_CLANG_TOOLS_USE_FIXED_DB" "YES"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CLANG_TOOLS_USE_FIXED_DB" "YES"
 }
 
 # ==============================================================================
@@ -182,29 +181,25 @@ setup() {
 @test "ANALYSIS: Cache variable persists across reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ANALYSIS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ANALYSIS" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ANALYSIS" "ON"
 }
 
 @test "ANALYSIS: Can change value on reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ANALYSIS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ANALYSIS" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_ANALYSIS=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_ANALYSIS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ANALYSIS" "OFF"
 }
 
 # ==============================================================================
@@ -216,7 +211,7 @@ setup() {
         -DLIBRA_ANALYSIS=ON \
         -DLIBRA_TEST_STUBS=ON)
 
-    [ -d "$test_dir/libra_header_stubs" ]
+    assert_dir_exists "$test_dir/libra_header_stubs"
 }
 
 @test "ANALYSIS: stub file generated for uncovered public header" {
@@ -225,8 +220,8 @@ setup() {
         -DLIBRA_TEST_STUBS=ON)
 
     run find "$test_dir/libra_header_stubs" -name "*.cpp" -o -name "*.c"
-    [ "$status" -eq 0 ]
-    [ -n "$output" ]
+    assert_success
+    assert_output
 }
 
 @test "ANALYSIS: stub file is included in analysis stubs library target" {
@@ -244,7 +239,7 @@ setup() {
     # Either no stubs dir, or it exists but contains no stub files
     if [ -d "$test_dir/libra_header_stubs" ]; then
         run find "$test_dir/libra_header_stubs" -name "*.cpp" -o -name "*.c"
-        [ -z "$output" ]
+        refute_output
     fi
 }
 
@@ -258,7 +253,7 @@ setup() {
     run reconfigure_libra_test "$test_dir" "cxx" \
         -DLIBRA_ANALYSIS=ON \
         -DLIBRA_TEST_STUBS=ON
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -299,7 +294,7 @@ setup() {
 
     # At least one analyze-clang-tidy-misc-* per-file target must exist.
     run bash -c "cmake --build '$test_dir' --target help 2>/dev/null | grep -q 'analyze-clang-tidy-misc-'"
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "ANALYSIS: misc category subtarget not created for source files in category mode (C++)" {
@@ -312,7 +307,7 @@ setup() {
     # Per-file misc targets must only correspond to header files. We check that
     # no target name contains both "misc" and a known source file stem.
     run bash -c "cmake --build '$test_dir' --target help 2>/dev/null | grep 'analyze-clang-tidy-misc-' | grep -q '_cpp'"
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "ANALYSIS: non-misc category subtargets not created for headers in category mode (C++)" {
@@ -323,7 +318,7 @@ setup() {
 
     for category in bugprone cert cppcoreguidelines modernize readability performance; do
         run bash -c "cmake --build '$test_dir' --target help 2>/dev/null | grep 'analyze-clang-tidy-${category}-' | grep -q '_hpp'"
-        [ "$status" -ne 0 ]
+        assert_failure
     done
 }
 
@@ -336,7 +331,7 @@ setup() {
 
     # The sentinel string must appear somewhere in the generated build rules.
     run grep -r "\-misc-include-cleaner" "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -350,7 +345,7 @@ setup() {
         -DLIBRA_CLANG_TOOLS_USE_FIXED_DB=YES)
 
     run grep -r "libra-fixed-db-sentinel" "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "ANALYSIS: fixed-DB sentinel path does not appear when LIBRA_USE_COMPDB=YES" {
@@ -360,5 +355,5 @@ setup() {
         -DLIBRA_USE_COMPDB=YES)
 
     run grep -r "libra-fixed-db-sentinel" "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_failure
 }

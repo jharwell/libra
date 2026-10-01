@@ -42,8 +42,8 @@ setup() {
 
 @test "CI: does not invoke cmake --build when workflow preset found" {
     run_clibra --dry-run ci
-    assert_clibra_success
-    assert_output_not_contains "cmake --build"
+    assert_success
+    refute_output --partial "cmake --build"
 }
 
 # ==============================================================================
@@ -52,15 +52,15 @@ setup() {
 
 @test "CI: falls back to individual steps when no workflow preset exists for preset" {
     run_clibra --dry-run ci --preset release
-    assert_clibra_success
-    assert_output_contains "cmake --build"
+    assert_success
+    assert_output --partial "cmake --build"
 }
 
 @test "CI: fallback emits warning mentioning workflow preset" {
     run_clibra --dry-run ci --preset release
-    assert_clibra_success
-    assert_output_contains "workflow"
-    assert_output_not_contains "--workflow --preset"
+    assert_success
+    assert_output --partial "workflow"
+    refute_output --partial "--workflow --preset"
 }
 
 @test "CI: fallback invokes ctest with --preset" {
@@ -69,12 +69,14 @@ setup() {
 
 @test "CI: fallback invokes cmake --build before ctest" {
     run_clibra --dry-run ci --preset release
-    assert_clibra_success
+    assert_success
     # Both build and test must appear; output order matters
     local build_pos test_pos
     build_pos=$(echo "$output" | grep -n "cmake --build" | head -1 | cut -d: -f1)
     test_pos=$(echo "$output" | grep -n "ctest" | head -1 | cut -d: -f1)
-    [ -n "$build_pos" ] && [ -n "$test_pos" ] && [ "$build_pos" -lt "$test_pos" ]
+    assert [ -n "$build_pos" ]
+    assert [ -n "$test_pos" ]
+    assert [ "$build_pos" -lt "$test_pos" ]
 }
 
 # ==============================================================================
@@ -102,19 +104,19 @@ setup() {
     skip_if_compiler_missing gnu c
     # 'release' preset has neither LIBRA_TESTS nor LIBRA_COVERAGE
     run_clibra build --preset release $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra ci --preset release
-    assert_clibra_failure
-    assert_output_contains "LIBRA"
+    assert_failure
+    assert_output --partial "LIBRA"
 }
 
 @test "CI: fallback fails with error when LIBRA_COVERAGE not enabled in preset" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset release $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra ci --preset release
-    assert_clibra_failure
-    assert_output_contains "COVERAGE"
+    assert_failure
+    assert_output --partial "COVERAGE"
 }
 
 # ==============================================================================
@@ -123,5 +125,5 @@ setup() {
 
 @test "CI: non-existent preset causes failure" {
     run_clibra ci --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }

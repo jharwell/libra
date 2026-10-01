@@ -26,17 +26,17 @@ setup() {
 
 @test "NO_CCACHE: LIBRA_NO_CCACHE=OFF configures without error" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_NO_CCACHE=OFF)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "NO_CCACHE: LIBRA_NO_CCACHE=ON configures without error" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_NO_CCACHE=ON)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "NO_CCACHE: Works with C++ projects" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_NO_CCACHE=ON)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 # ==============================================================================
@@ -46,29 +46,25 @@ setup() {
 @test "NO_CCACHE: ON value stored in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_NO_CCACHE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_NO_CCACHE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_NO_CCACHE" "ON"
 }
 
 @test "NO_CCACHE: OFF value stored in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_NO_CCACHE=OFF)
 
-    run cache_value_equals "$test_dir" "LIBRA_NO_CCACHE" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_NO_CCACHE" "OFF"
 }
 
 @test "NO_CCACHE: ON persists across reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_NO_CCACHE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_NO_CCACHE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_NO_CCACHE" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_NO_CCACHE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_NO_CCACHE" "ON"
 }
 
 @test "NO_CCACHE: Can change from ON to OFF on reconfiguration" {
@@ -76,10 +72,9 @@ setup() {
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_NO_CCACHE=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_NO_CCACHE" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_NO_CCACHE" "OFF"
 }
 
 # ==============================================================================
@@ -106,8 +101,8 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     popd > /dev/null
 
-    [ "$status" -eq 0 ]
-    assert_output_contains "Disabling ccache by request"
+    assert_success
+    assert_output --partial "Disabling ccache by request"
 }
 
 @test "NO_CCACHE: ON prevents ccache from being set as C++ compiler launcher" {
@@ -128,8 +123,8 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     popd > /dev/null
 
-    [ "$status" -eq 0 ]
-    assert_output_contains "Disabling ccache by request"
+    assert_success
+    assert_output --partial "Disabling ccache by request"
 }
 
 @test "NO_CCACHE: OFF allows ccache to be used as C compiler launcher" {
@@ -153,6 +148,6 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     popd > /dev/null
 
-    [ "$status" -eq 0 ]
-    assert_output_contains "ccache"
+    assert_success
+    assert_output --partial "ccache"
 }

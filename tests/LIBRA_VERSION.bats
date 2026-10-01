@@ -103,10 +103,7 @@ configure_version() {
 
     run cmake "${cmake_args[@]}" "$@"
     [ -n "$GITHUB_ACTIONS" ] && echo "$output" >&3
-    if [ "$status" -ne 0 ]; then
-        echo "DEBUG: cmake failed with status $status" >&3
-        echo "$output" >&3
-    fi
+    true
 }
 
 # Assert the last configure_version printed a message containing STRING. CMake
@@ -117,11 +114,9 @@ assert_message_contains() {
     local flat needle
     flat=$(echo "$output" | tr -s '[:space:]' ' ')
     needle=$(printf '%s' "$1" | tr -s '[:space:]' ' ')
-    if ! grep -qF -- "$needle" <<< "$flat"; then
-        echo "Expected configure output to contain: $1" >&3
-        echo "Actual output: $output" >&3
-        return 1
-    fi
+    grep -qF -- "$needle" <<< "$flat" && return 0
+    libra_fail "configure output does not contain message" \
+        expected "$1" output "$output"
 }
 
 # Negation of assert_message_contains.
@@ -130,11 +125,9 @@ assert_message_not_contains() {
     local flat needle
     flat=$(echo "$output" | tr -s '[:space:]' ' ')
     needle=$(printf '%s' "$1" | tr -s '[:space:]' ' ')
-    if grep -qF -- "$needle" <<< "$flat"; then
-        echo "Expected configure output NOT to contain: $1" >&3
-        echo "Actual output: $output" >&3
-        return 1
-    fi
+    grep -qF -- "$needle" <<< "$flat" || return 0
+    libra_fail "configure output contains unexpected message" \
+        unexpected "$1" output "$output"
 }
 
 # Value of one of the fixture's "[VERSION-TEST] NAME=value" markers from the
@@ -152,11 +145,14 @@ assert_project_version() {
     numeric=$(get_cache_value "$VERSION_BUILD" LIBRA_PROJECT_VERSION_NUMERIC)
     pre=$(get_cache_value "$VERSION_BUILD" LIBRA_PROJECT_VERSION_PRERELEASE)
 
-    if [[ "$full" != "$1" || "$numeric" != "$2" || "$pre" != "$3" ]]; then
-        echo "Expected full='$1' numeric='$2' prerelease='$3'" >&3
-        echo "Actual   full='$full' numeric='$numeric' prerelease='$pre'" >&3
-        return 1
-    fi
+    [[ "$full" == "$1" && "$numeric" == "$2" && "$pre" == "$3" ]] && return 0
+    libra_fail "project version differs" \
+        'expected full' "$1" \
+        'actual full' "$full" \
+        'expected numeric' "$2" \
+        'actual numeric' "$numeric" \
+        'expected prerelease' "$3" \
+        'actual prerelease' "$pre"
 }
 
 # What LIBRA_VERSION should be under the active consume mode. Mirrors
@@ -217,7 +213,7 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3" "1.2.3" ""
 
@@ -231,7 +227,7 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3-dev.4
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3-dev.4" "1.2.3" "dev.4"
 }
@@ -241,7 +237,7 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3-rc-1
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3-rc-1" "1.2.3" "rc-1"
 }
@@ -251,7 +247,7 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag 1.2.3
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3" "1.2.3" ""
 }
@@ -261,11 +257,10 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3-dev.4
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
-    [ "$(marker PROJECT_VERSION)" = "1.2.3" ]
-    run cache_value_equals "$VERSION_BUILD" CMAKE_PROJECT_VERSION "1.2.3"
-    [ "$status" -eq 0 ]
+    assert_equal "$(marker PROJECT_VERSION)" "1.2.3"
+    assert_cache_value "$VERSION_BUILD" CMAKE_PROJECT_VERSION "1.2.3"
 }
 
 # ==============================================================================
@@ -280,7 +275,7 @@ expected_libra_version() {
     sha=$(_git_short_sha "$VERSION_SRC")
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3+2.g${sha}" "1.2.3" ""
 }
@@ -293,7 +288,7 @@ expected_libra_version() {
     sha=$(_git_short_sha "$VERSION_SRC")
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3-dev.4+3.g${sha}" "1.2.3" "dev.4"
 }
@@ -306,7 +301,7 @@ expected_libra_version() {
     sha=$(_git_short_sha "$VERSION_SRC")
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_message_contains "version 1.2.3+1.g${sha} is not releasable"
 }
@@ -321,7 +316,7 @@ expected_libra_version() {
     sha=$(_git_short_sha "$VERSION_SRC")
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.1.0-dev.1+1.g${sha}" "1.1.0" "dev.1"
 }
@@ -332,10 +327,10 @@ expected_libra_version() {
 
 @test "VERSION: no git repository falls back to 0.0.0 with a warning" {
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "0.0.0" "0.0.0" ""
-    [ "$(marker PROJECT_VERSION)" = "0.0.0" ]
+    assert_equal "$(marker PROJECT_VERSION)" "0.0.0"
     assert_message_contains "Falling back to 0.0.0"
 }
 
@@ -343,7 +338,7 @@ expected_libra_version() {
     _git_init "$VERSION_SRC"
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "0.0.0" "0.0.0" ""
     assert_message_contains "Falling back to 0.0.0"
@@ -359,7 +354,7 @@ expected_libra_version() {
     _git_advance "$VERSION_SRC" 1
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "0.0.0" "0.0.0" ""
     assert_message_contains "unrecognized git describe format"
@@ -374,7 +369,7 @@ expected_libra_version() {
     _git "$outer" tag v9.8.7
 
     VERSION_SRC_OVERRIDE="$outer/sample_version" configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "9.8.7" "9.8.7" ""
 }
@@ -388,12 +383,12 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3-dev.4
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     local info="$VERSION_BUILD/version_info.c"
-    [ -f "$info" ]
-    grep -qF 'PROJECT_VERSION_FULL = "1.2.3-dev.4"' "$info"
-    grep -qF 'PROJECT_VERSION_NUMERIC = "1.2.3"' "$info"
+    assert_file_exists "$info"
+    assert_file_contains "$info" 'PROJECT_VERSION_FULL = "1\.2\.3-dev\.4"'
+    assert_file_contains "$info" 'PROJECT_VERSION_NUMERIC = "1\.2\.3"'
 }
 
 @test "VERSION: tagging after configure changes nothing until reconfigure" {
@@ -401,7 +396,7 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
     assert_project_version "1.2.3" "1.2.3" ""
 
     _git_advance "$VERSION_SRC" 1
@@ -409,14 +404,14 @@ expected_libra_version() {
 
     # A build does not re-run configure just because tags changed.
     run cmake --build "$VERSION_BUILD"
-    [ "$status" -eq 0 ]
+    assert_success
     assert_project_version "1.2.3" "1.2.3" ""
-    grep -qF 'PROJECT_VERSION_FULL = "1.2.3"' "$VERSION_BUILD/version_info.c"
+    assert_file_contains "$VERSION_BUILD/version_info.c" 'PROJECT_VERSION_FULL = "1\.2\.3"'
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
     assert_project_version "1.2.4" "1.2.4" ""
-    grep -qF 'PROJECT_VERSION_FULL = "1.2.4"' "$VERSION_BUILD/version_info.c"
+    assert_file_contains "$VERSION_BUILD/version_info.c" 'PROJECT_VERSION_FULL = "1\.2\.4"'
 }
 
 # ==============================================================================
@@ -428,10 +423,10 @@ expected_libra_version() {
     _git "$VERSION_SRC" tag v1.2.3-dev.4
 
     configure_version -DLIBRA_TEST_VERSION_AUTO=ON
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "1.2.3-dev.4" "1.2.3" "dev.4"
-    [ "$(marker PROJECT_VERSION)" = "1.2.3" ]
+    assert_equal "$(marker PROJECT_VERSION)" "1.2.3"
 }
 
 @test "VERSION: nested project sees its own version, cache keeps the top-level one" {
@@ -450,10 +445,10 @@ EOF
     _git "$nested" tag v7.0.0
 
     configure_version -DLIBRA_TEST_VERSION_SUBDIR="$nested"
-    [ "$status" -eq 0 ]
+    assert_success
 
-    [ "$(marker 'NESTED LIBRA_PROJECT_VERSION')" = "7.0.0" ]
-    [ "$(marker 'AFTER_NESTED LIBRA_PROJECT_VERSION')" = "1.2.3" ]
+    assert_equal "$(marker 'NESTED LIBRA_PROJECT_VERSION')" "7.0.0"
+    assert_equal "$(marker 'AFTER_NESTED LIBRA_PROJECT_VERSION')" "1.2.3"
     assert_project_version "1.2.3" "1.2.3" ""
 }
 
@@ -466,21 +461,20 @@ EOF
     _git "$VERSION_SRC" tag v1.2.3
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     local expected actual
     expected=$(expected_libra_version)
     actual=$(get_cache_value "$VERSION_BUILD" LIBRA_VERSION)
 
-    if [[ "$LIBRA_CONSUME_MODE" == "conan" ]]; then
-        [[ "$actual" == "$expected"* ]]
-    else
-        if [[ "$actual" != "$expected" ]]; then
-            echo "LIBRA_VERSION: expected '$expected', got '$actual'" \
-                 "(mode=$LIBRA_CONSUME_MODE)" >&3
-            return 1
-        fi
+    # Under conan the expected value is only the numeric prefix of the baked
+    # full version.
+    if [[ "$LIBRA_CONSUME_MODE" == "conan" && "$actual" == "$expected"* ]] ||
+       [[ "$actual" == "$expected" ]]; then
+        return 0
     fi
+    libra_fail "LIBRA_VERSION differs" \
+        expected "$expected" actual "$actual" mode "$LIBRA_CONSUME_MODE"
 }
 
 @test "VERSION: LIBRA_VERSION is independent of the project's version" {
@@ -490,19 +484,20 @@ EOF
     _git "$VERSION_SRC" tag v42.0.0
 
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     assert_project_version "42.0.0" "42.0.0" ""
-    [ "$(get_cache_value "$VERSION_BUILD" LIBRA_VERSION)" != "42.0.0" ]
+    assert_not_equal "$(get_cache_value "$VERSION_BUILD" LIBRA_VERSION)" "42.0.0"
 }
 
 @test "VERSION: configure reports LIBRA_VERSION" {
     configure_version
-    [ "$status" -eq 0 ]
+    assert_success
 
     local v
     v=$(get_cache_value "$VERSION_BUILD" LIBRA_VERSION)
-    [ -n "$v" ]
+    assert [ -n "$v" ]
     assert_message_contains "This is LIBRA v${v}"
-    grep -qF "LIBRA_FRAMEWORK_VERSION = \"${v}\"" "$VERSION_BUILD/version_info.c"
+    assert_file_contains "$VERSION_BUILD/version_info.c" \
+        "LIBRA_FRAMEWORK_VERSION = \"${v//./\\.}\""
 }

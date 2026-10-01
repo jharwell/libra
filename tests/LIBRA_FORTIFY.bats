@@ -329,8 +329,7 @@ setup() {
         -DLIBRA_FORTIFY=STACK \
         -DCMAKE_BUILD_TYPE=Release)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "FORTIFY: GNU/C SOURCE forces LTO on" {
@@ -339,8 +338,7 @@ setup() {
         -DLIBRA_FORTIFY=SOURCE \
         -DCMAKE_BUILD_TYPE=Release)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "FORTIFY: GNU/C FORMAT forces LTO on" {
@@ -349,8 +347,7 @@ setup() {
         -DLIBRA_FORTIFY=FORMAT \
         -DCMAKE_BUILD_TYPE=Release)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "FORTIFY: GNU/C ALL forces LTO on" {
@@ -359,8 +356,7 @@ setup() {
         -DLIBRA_FORTIFY=ALL \
         -DCMAKE_BUILD_TYPE=Release)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "FORTIFY: GNU/C NONE does not force LTO on" {
@@ -370,8 +366,7 @@ setup() {
         -DLIBRA_LTO=OFF \
         -DCMAKE_BUILD_TYPE=Release)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ==============================================================================
@@ -390,28 +385,24 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_FORTIFY=STACK)
 
-    run cache_value_equals "$test_dir" "LIBRA_FORTIFY" "STACK"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORTIFY" "STACK"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FORTIFY" "STACK"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORTIFY" "STACK"
 }
 
 @test "FORTIFY: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_FORTIFY=STACK)
 
-    run cache_value_equals "$test_dir" "LIBRA_FORTIFY" "STACK"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORTIFY" "STACK"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_FORTIFY=SOURCE --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FORTIFY" "SOURCE"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORTIFY" "SOURCE"
 }

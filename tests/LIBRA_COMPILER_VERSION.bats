@@ -45,7 +45,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=1 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=C)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPILER_VERSION: GNU version >= 1 satisfied (CXX)" {
@@ -55,7 +55,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=1 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=CXX)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPILER_VERSION: Clang version >= 1 satisfied (C)" {
@@ -66,7 +66,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=1 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=C)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPILER_VERSION: Clang version >= 1 satisfied (CXX)" {
@@ -77,7 +77,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=1 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=CXX)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPILER_VERSION: LANG omitted checks both C and CXX — satisfiable version passes" {
@@ -86,7 +86,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_ID=GNU \
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=1)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 # ==============================================================================
@@ -116,7 +116,7 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "COMPILER_VERSION: GNU version < 9999 causes fatal error (CXX)" {
@@ -138,7 +138,7 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "COMPILER_VERSION: Clang version < 9999 causes fatal error (C)" {
@@ -161,7 +161,7 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "COMPILER_VERSION: LANG omitted with unsatisfiable version causes fatal error" {
@@ -182,7 +182,7 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -200,7 +200,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=9999 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=C)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPILER_VERSION: wrong ID with unsatisfiable version is silently skipped (Clang compiler, GNU ID)" {
@@ -211,7 +211,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=9999 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=C)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 # ==============================================================================
@@ -230,7 +230,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=9999 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=CXX)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPILER_VERSION: LANG=C does not check CXX compiler" {
@@ -242,7 +242,7 @@ setup() {
         -DLIBRA_TEST_REQUIRE_COMPILER_VERSION=9999 \
         -DLIBRA_TEST_REQUIRE_COMPILER_LANG=C)
 
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 # ==============================================================================
@@ -266,7 +266,7 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "COMPILER_VERSION: missing VERSION argument causes cmake error" {
@@ -286,5 +286,5 @@ setup() {
         $(_consume_mode_cmake_args 2>/dev/null || echo "-DLIBRA_SOURCE_ROOT=${LIBRA_SOURCE_ROOT}")
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }

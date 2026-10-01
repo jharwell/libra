@@ -22,6 +22,54 @@ LIBRA_SOURCE_ROOT_DEFAULT="$(cd "${LIBRA_TESTS_DIR}/.." && pwd)"
 export CLI_CMAKE_DEFINES="-DLIBRA_TESTS_DIR=$LIBRA_TESTS_DIR -DLIBRA_SOURCE_ROOT=$LIBRA_SOURCE_ROOT_DEFAULT"
 
 ################################################################################
+# Assertion libraries
+#
+# bats-support, bats-assert and bats-file are vendored as git submodules under
+# tests/lib/. Test files get assert_success, assert_output, assert_equal,
+# assert_file_exists, etc. by loading this file.
+################################################################################
+if [[ ! -f "${LIBRA_TESTS_DIR}/lib/bats-assert/load.bash" ]]; then
+    printf '%s\n' \
+        "ERROR: bats helper libraries not found under ${LIBRA_TESTS_DIR}/lib" \
+        "Run: git submodule update --init --recursive" >&2
+    return 1
+fi
+
+# Order matters: bats-assert and bats-file both depend on bats-support.
+load "${LIBRA_TESTS_DIR}/lib/bats-support/load"
+load "${LIBRA_TESTS_DIR}/lib/bats-assert/load"
+load "${LIBRA_TESTS_DIR}/lib/bats-file/load"
+
+# Fail the current test with a titled key/value report in the same format
+# bats-assert uses, e.g.
+#
+#   -- compile flag missing --
+#   flag          : -fno-rtti
+#   lang          : cxx
+#   compile flags : -g -O0
+#   --
+#
+# Usage: libra_fail TITLE KEY VALUE [KEY VALUE ...]
+# Returns: 1 (always)
+libra_fail() {
+    local title="$1"
+    shift
+    batslib_print_kv_single_or_multi \
+        "$(batslib_get_max_single_line_key_width "$@")" "$@" \
+        | batslib_decorate "$title" \
+        | fail
+}
+
+# Print a failed `run` to stderr without failing the caller. For runner
+# functions whose stdout is captured with $(...) by the test, where the
+# caller decides what the failure means.
+# Usage: libra_print_run_failure WHAT
+libra_print_run_failure() {
+    batslib_print_kv_single_or_multi 6 status "$status" output "$output" \
+        | batslib_decorate "$1 failed" >&2
+}
+
+################################################################################
 # Compiler Configuration
 ################################################################################
 
@@ -262,19 +310,6 @@ skip_if_conan_driver () {
     fi
 }
 
-# Validate compiler type
-# Usage: validate_compiler_type COMPILER_TYPE
-validate_compiler_type() {
-    local compiler_type="$1"
-
-    if [[ ! -v C_COMPILER_EXEC[$compiler_type] ]]; then
-        echo "ERROR: Unknown compiler type: $compiler_type"
-        echo "Valid options: ${!C_COMPILER_EXEC[@]}"
-        return 1
-    fi
-    return 0
-}
-
 ################################################################################
 # CMake Test Runner
 ################################################################################
@@ -350,8 +385,7 @@ EOF
 
     run cmake "${cmake_args[@]}"
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: cmake failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "cmake"
         return 1
     fi
     # Echo unconditionally on success to make debugging odd things in
@@ -360,8 +394,7 @@ EOF
 
     run make
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: make failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "make"
         return 1
     fi
     # Echo unconditionally on success to make debugging odd things in
@@ -481,8 +514,7 @@ EOF
 
     run cmake "${cmake_args[@]}"
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: cmake failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "cmake"
         popd > /dev/null
         return 1
     fi
@@ -550,8 +582,7 @@ EOF
 
     run cmake "${cmake_args[@]}"
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: cmake failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "cmake"
         popd > /dev/null
         return 1
     fi
@@ -562,8 +593,7 @@ EOF
     run make
     popd > /dev/null
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: make failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "make"
         return 1
     fi
     # Echo unconditionally on success to make debugging odd things in
@@ -587,23 +617,6 @@ get_build_info_file() {
     else
         echo "$test_dir/build_info.cpp"
     fi
-}
-
-# Extract value from build info file
-# Usage: extract_from_build_info TEST_DIR LANG PATTERN
-extract_from_build_info() {
-    local test_dir="$1"
-    local lang="$2"
-    local pattern="$3"
-
-    local build_info=$(get_build_info_file "$test_dir" "$lang")
-
-    if [ ! -f "$build_info" ]; then
-        echo "ERROR: Build info file not found: $build_info" >&2
-        return 1
-    fi
-
-    grep "$pattern" "$build_info" | head -1
 }
 
 # Get C/C++ standard from build info
@@ -686,15 +699,19 @@ has_compile_command_flag() {
 # Assert that a flag appears in compile_commands.json
 # Usage: assert_compile_command_flag_present TEST_DIR FLAG
 assert_compile_command_flag_present() {
-    run has_compile_command_flag "$1" "$2"
-    [ "$status" -eq 0 ]
+    has_compile_command_flag "$1" "$2" && return 0
+    libra_fail "flag missing from compile_commands.json" \
+        flag "$2" file "$1/compile_commands.json"
 }
 
 # Assert that a flag does NOT appear in compile_commands.json
 # Usage: assert_compile_command_flag_absent TEST_DIR FLAG
 assert_compile_command_flag_absent() {
-    run has_compile_command_flag "$1" "$2"
-    [ "$status" -ne 0 ]
+    has_compile_command_flag "$1" "$2" || return 0
+    libra_fail "unexpected flag in compile_commands.json" \
+        flag "$2" \
+        file "$1/compile_commands.json" \
+        'first match' "$(grep -m1 -- "$2" "$1/compile_commands.json")"
 }
 
 # Check if a define is present in build info
@@ -748,100 +765,135 @@ makefile_target_exists() {
 # BATS Assertion Helpers
 ################################################################################
 
+# Flag and define arguments are grep basic regexes, matched as substrings of
+# the recorded flags. Most flags are effectively literal; patterns such as
+# "-Rpass=.*" rely on the regex matching.
+
 # Assert that a compile flag is present
 # Usage: assert_compile_flag_present TEST_DIR LANG FLAG
 assert_compile_flag_present() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
+    local test_dir="$1" lang="$2" flag="$3"
 
-    run has_compile_flag "$test_dir" "$lang" "$flag"
-    [ "$status" -eq 0 ]
+    has_compile_flag "$test_dir" "$lang" "$flag" && return 0
+    libra_fail "compile flag missing" \
+        flag "$flag" \
+        lang "$lang" \
+        'compile flags' "$(get_compile_flags "$test_dir" "$lang")"
 }
 
 # Assert that a compile flag is absent
 # Usage: assert_compile_flag_absent TEST_DIR LANG FLAG
 assert_compile_flag_absent() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
+    local test_dir="$1" lang="$2" flag="$3"
 
-    run has_compile_flag "$test_dir" "$lang" "$flag"
-    [ "$status" -ne 0 ]
+    has_compile_flag "$test_dir" "$lang" "$flag" || return 0
+    libra_fail "unexpected compile flag" \
+        flag "$flag" \
+        lang "$lang" \
+        'compile flags' "$(get_compile_flags "$test_dir" "$lang")"
 }
 
 # Assert that a link flag is present
 # Usage: assert_link_flag_present TEST_DIR LANG FLAG
 assert_link_flag_present() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
+    local test_dir="$1" lang="$2" flag="$3"
 
-    run has_link_flag "$test_dir" "$lang" "$flag"
-    [ "$status" -eq 0 ]
+    has_link_flag "$test_dir" "$lang" "$flag" && return 0
+    libra_fail "link flag missing" \
+        flag "$flag" \
+        lang "$lang" \
+        'link flags' "$(get_link_flags "$test_dir" "$lang")"
 }
-# Assert that a link flag is absent
-# Usage: assert_link_flag_present TEST_DIR LANG FLAG
-assert_link_flag_absent() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
 
-    run has_link_flag "$test_dir" "$lang" "$flag"
-    [ "$status" -ne 0 ]
+# Assert that a link flag is absent
+# Usage: assert_link_flag_absent TEST_DIR LANG FLAG
+assert_link_flag_absent() {
+    local test_dir="$1" lang="$2" flag="$3"
+
+    has_link_flag "$test_dir" "$lang" "$flag" || return 0
+    libra_fail "unexpected link flag" \
+        flag "$flag" \
+        lang "$lang" \
+        'link flags' "$(get_link_flags "$test_dir" "$lang")"
+}
+
+# Assert that a flag is present in both the compile and the link flags
+# (sanitizers, coverage, PGO instrumentation).
+# Usage: assert_compile_and_link_flag_present TEST_DIR LANG FLAG
+assert_compile_and_link_flag_present() {
+    assert_compile_flag_present "$@"
+    assert_link_flag_present "$@"
 }
 
 # Assert that a define is present
 # Usage: assert_define_present TEST_DIR LANG DEFINE
 assert_define_present() {
-    local test_dir="$1"
-    local lang="$2"
-    local define="$3"
+    local test_dir="$1" lang="$2" define="$3"
 
-    run has_define "$test_dir" "$lang" "$define"
-    [ "$status" -eq 0 ]
+    has_define "$test_dir" "$lang" "$define" && return 0
+    libra_fail "define missing" \
+        define "$define" \
+        lang "$lang" \
+        'build info' "$(get_build_info_file "$test_dir" "$lang")"
 }
 
 # Assert that a define is absent
 # Usage: assert_define_absent TEST_DIR LANG DEFINE
 assert_define_absent() {
-    local test_dir="$1"
-    local lang="$2"
-    local define="$3"
+    local test_dir="$1" lang="$2" define="$3"
+    local build_info
+    build_info=$(get_build_info_file "$test_dir" "$lang")
 
-    run has_define "$test_dir" "$lang" "$define"
-    [ "$status" -ne 0 ]
+    has_define "$test_dir" "$lang" "$define" || return 0
+    libra_fail "unexpected define" \
+        define "$define" \
+        lang "$lang" \
+        'build info' "$build_info" \
+        'matching lines' "$(grep -- "$define" "$build_info")"
+}
+
+# Assert that LTO/IPO is enabled for the sample_build_info target
+# Usage: assert_lto_flag_present TEST_DIR
+assert_lto_flag_present() {
+    has_lto_flag "$1" && return 0
+    libra_fail "no LTO/IPO flag (-flto or -ipo)" \
+        'flags.make' "$1/CMakeFiles/sample_build_info.dir/flags.make"
+}
+
+# Assert that LTO/IPO is NOT enabled for the sample_build_info target
+# Usage: assert_lto_flag_absent TEST_DIR
+assert_lto_flag_absent() {
+    local flags_file="$1/CMakeFiles/sample_build_info.dir/flags.make"
+
+    has_lto_flag "$1" || return 0
+    libra_fail "unexpected LTO/IPO flag" \
+        'flags.make' "$flags_file" \
+        'matching lines' "$(grep -E -- '-flto|-ipo' "$flags_file")"
 }
 
 # Assert that a makefile target exists
 # Usage: assert_target_exists TEST_DIR TARGET
 assert_target_exists() {
-    local test_dir="$1"
-    local target="$2"
-
-    run makefile_target_exists "$test_dir" "$target"
-    [ "$status" -eq 0 ]
+    makefile_target_exists "$1" "$2" && return 0
+    libra_fail "make target missing" target "$2" 'build dir' "$1"
 }
 
 # Assert that a makefile target does not exist
 # Usage: assert_target_absent TEST_DIR TARGET
 assert_target_absent() {
-    local test_dir="$1"
-    local target="$2"
-
-    run makefile_target_exists "$test_dir" "$target"
-    [ "$status" -ne 0 ]
+    makefile_target_exists "$1" "$2" || return 0
+    libra_fail "unexpected make target" target "$2" 'build dir' "$1"
 }
 
 # Assert standard equals expected value
 # Usage: assert_standard_equals TEST_DIR LANG EXPECTED
 assert_standard_equals() {
-    local test_dir="$1"
-    local lang="$2"
-    local expected="$3"
-    local actual=$(get_standard "$test_dir" "$lang")
-    echo "$actual|$expected"
-    [ "$actual" = "$expected" ]
+    local actual
+    actual=$(get_standard "$1" "$2")
+
+    [[ "$actual" == "$3" ]] && return 0
+    libra_fail "language standard differs" \
+        lang "$2" expected "$3" actual "$actual"
 }
 
 ################################################################################
@@ -902,16 +954,14 @@ EOF
 
     run cmake "${cmake_args[@]}"
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: cmake failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "cmake"
         cd - > /dev/null
         return 1
     fi
 
     run make
     if [ "$status" -ne 0 ]; then
-        echo "DEBUG: make failed with status $status" >&3
-        echo "$output" >&3
+        libra_print_run_failure "make"
         cd - > /dev/null
         return 1
     fi
@@ -994,10 +1044,9 @@ ctest_test_registered() {
         return 1
     fi
 
-    # Match the exact test name — must be followed by a space or closing paren
-    # to avoid partial-name false positives.
-    escaped=$(echo "$test_name" | sed 's/\./\\./g')
-    grep -F "add_test(${test_name} " "$ctestfile"
+    # The trailing space anchors the exact name, so "foo" does not match
+    # "foo_bar".
+    grep -qF "add_test(${test_name} " "$ctestfile"
 }
 
 # Check that a test has a given CTest LABELS value.
@@ -1018,35 +1067,38 @@ ctest_test_has_label() {
         | grep -qF "${label}"
 }
 
+# Names of all tests registered in CTestTestfile.cmake, one per line.
+# Usage: ctest_registered_tests TEST_DIR
+ctest_registered_tests() {
+    sed -n 's/^add_test(\([^ ]*\) .*/\1/p' "$1/CTestTestfile.cmake" 2>/dev/null
+}
+
 # Assert that a test is registered with CTest.
 # Usage: assert_ctest_test_registered TEST_DIR TEST_NAME
 assert_ctest_test_registered() {
-    local test_dir="$1"
-    local test_name="$2"
-
-    run ctest_test_registered "$test_dir" "$test_name"
-    [ "$status" -eq 0 ]
+    ctest_test_registered "$1" "$2" && return 0
+    libra_fail "test not registered with CTest" \
+        test "$2" \
+        registered "$(ctest_registered_tests "$1")"
 }
 
 # Assert that a test is NOT registered with CTest.
 # Usage: assert_ctest_test_absent TEST_DIR TEST_NAME
 assert_ctest_test_absent() {
-    local test_dir="$1"
-    local test_name="$2"
-
-    run ctest_test_registered "$test_dir" "$test_name"
-    [ "$status" -ne 0 ]
+    ctest_test_registered "$1" "$2" || return 0
+    libra_fail "test unexpectedly registered with CTest" \
+        test "$2" file "$1/CTestTestfile.cmake"
 }
 
 # Assert that a test has a given CTest label.
 # Usage: assert_ctest_test_label TEST_DIR TEST_NAME LABEL
 assert_ctest_test_label() {
-    local test_dir="$1"
-    local test_name="$2"
-    local label="$3"
-
-    run ctest_test_has_label "$test_dir" "$test_name" "$label"
-    [ "$status" -eq 0 ]
+    ctest_test_has_label "$1" "$2" "$3" && return 0
+    libra_fail "CTest label missing" \
+        test "$2" \
+        label "$3" \
+        properties "$(grep -F "set_tests_properties($2 " \
+                      "$1/CTestTestfile.cmake" 2>/dev/null)"
 }
 
 ################################################################################
@@ -1069,101 +1121,81 @@ get_cache_value() {
     grep "^${var_name}:" "$test_dir/CMakeCache.txt" | cut -d'=' -f2
 }
 
-# Check if cache variable equals expected value
-# Usage: cache_value_equals TEST_DIR VARIABLE_NAME EXPECTED
-cache_value_equals() {
-    local test_dir="$1"
-    local var_name="$2"
-    local expected="$3"
+# Assert that a cache variable equals an expected value
+# Usage: assert_cache_value TEST_DIR VARIABLE_NAME EXPECTED
+assert_cache_value() {
+    local actual
+    actual=$(get_cache_value "$1" "$2")
 
-    local actual=$(get_cache_value "$test_dir" "$var_name")
-    [ "$actual" = "$expected" ]
+    [[ "$actual" == "$3" ]] && return 0
+    libra_fail "CMake cache value differs" \
+        variable "$2" expected "$3" actual "$actual"
 }
 
+# CMAKE_INSTALL_LIBDIR from GNUInstallDirs on this platform (lib or lib64).
+# Usage: get_install_libdir
 get_install_libdir() {
-  local tmp_src="$BATS_TMPDIR/libdir_probe"
-  local tmp_build="$BATS_TMPDIR/libdir_probe_build"
-  mkdir -p "$tmp_src"
-  printf 'cmake_minimum_required(VERSION 3.5)\nproject(probe C)\ninclude(GNUInstallDirs)\nmessage(STATUS "LIBDIR=${CMAKE_INSTALL_LIBDIR}")' > "$tmp_src/CMakeLists.txt"
-  
-  cmake -S "$tmp_src" -B "$tmp_build" 2>&3 \
-    | grep 'LIBDIR=' \
-    | grep -o '[^=]*$'
+    local probe
+    probe=$(mktemp -d "${BATS_FILE_TMPDIR:-$BATS_TMPDIR}/libdir_probe.XXXXXX")
+    printf '%s\n' \
+        'cmake_minimum_required(VERSION 3.5)' \
+        'project(probe C)' \
+        'include(GNUInstallDirs)' \
+        'message(STATUS "LIBDIR=${CMAKE_INSTALL_LIBDIR}")' \
+        > "$probe/CMakeLists.txt"
+
+    local libdir
+    libdir=$(cmake -S "$probe" -B "$probe/build" 2>/dev/null \
+        | sed -n 's/^-- LIBDIR=//p')
+    if [[ -z "$libdir" ]]; then
+        echo "ERROR: could not determine CMAKE_INSTALL_LIBDIR (cmake probe failed)" >&2
+        return 1
+    fi
+    echo "$libdir"
 }
 
 ################################################################################
 # Consumer Verification Utilities
 ################################################################################
 
-# Check if define is present in consumer build info
-# Usage: consumer_has_define TEST_DIR DEFINE
-consumer_has_define() {
-    local test_dir="$1"
-    local define="$2"
-    local lang="$3"
-    local consumer_info=""
-
-    if [ "$lang" = "c" ]; then
-        consumer_info="$test_dir/consumer/consumer_build_info.c"
+# Path to the consumer's generated build info file for LANG
+# Usage: get_consumer_build_info_file TEST_DIR LANG
+get_consumer_build_info_file() {
+    if [ "$2" = "c" ]; then
+        echo "$1/consumer/consumer_build_info.c"
     else
-        consumer_info="$test_dir/consumer/consumer_build_info.cpp"
+        echo "$1/consumer/consumer_build_info.cpp"
     fi
-
-    grep -q "$define" "$consumer_info"
 }
 
-# Check if define is absent in consumer build info
-# Usage: consumer_define_absent TEST_DIR DEFINE LANG
-consumer_define_absent() {
-    local test_dir="$1"
-    local define="$2"
-    local lang="$3"
-
-    run consumer_has_define "$test_dir" "$define" "$lang"
-    [ "$status" -ne 0 ]
+# Check if define is present in consumer build info
+# Usage: consumer_has_define TEST_DIR DEFINE LANG
+consumer_has_define() {
+    grep -q -- "$2" "$(get_consumer_build_info_file "$1" "$3")"
 }
 
-################################################################################
-# Debugging Utilities
-################################################################################
-
-# Print build info for debugging
-# Usage: debug_build_info TEST_DIR LANG
-debug_build_info() {
-    local test_dir="$1"
-    local lang="$2"
-    local build_info=$(get_build_info_file "$test_dir" "$lang")
-
-    echo "=== Build Info: $build_info ===" >&3
-    cat "$build_info" >&3
-    echo "==============================" >&3
+# Assert that a define is present in the consumer's build info
+# Usage: assert_consumer_define_present TEST_DIR DEFINE LANG
+assert_consumer_define_present() {
+    consumer_has_define "$1" "$2" "$3" && return 0
+    libra_fail "define missing from consumer" \
+        define "$2" \
+        lang "$3" \
+        'build info' "$(get_consumer_build_info_file "$1" "$3")"
 }
 
-# Print compile flags for debugging
-# Usage: debug_compile_flags TEST_DIR LANG
-debug_compile_flags() {
-    local test_dir="$1"
-    local lang="$2"
+# Assert that a define is absent from the consumer's build info
+# Usage: assert_consumer_define_absent TEST_DIR DEFINE LANG
+assert_consumer_define_absent() {
+    local build_info
+    build_info=$(get_consumer_build_info_file "$1" "$3")
 
-    echo "Compile flags: $(get_compile_flags "$test_dir" "$lang")" >&3
-}
-
-# Print link flags for debugging
-# Usage: debug_link_flags TEST_DIR LANG
-debug_link_flags() {
-    local test_dir="$1"
-    local lang="$2"
-
-    echo "Link flags: $(get_link_flags "$test_dir" "$lang")" >&3
-}
-
-# Print CMake cache value for debugging
-# Usage: debug_cache_value TEST_DIR VAR_NAME
-debug_cache_value() {
-    local test_dir="$1"
-    local var_name="$2"
-
-    echo "$var_name = $(get_cache_value "$test_dir" "$var_name")" >&3
+    consumer_has_define "$1" "$2" "$3" || return 0
+    libra_fail "unexpected define in consumer" \
+        define "$2" \
+        lang "$3" \
+        'build info' "$build_info" \
+        'matching lines' "$(grep -- "$2" "$build_info")"
 }
 
 ################################################################################
@@ -1202,44 +1234,6 @@ run_clibra() {
     run "$CLIBRA_BIN" "$@"
 }
 
-# Assert the last run_clibra succeeded.
-assert_clibra_success() {
-    if [ "$status" -ne 0 ]; then
-        echo "Expected success but got exit code $status" >&3
-        echo "Output: $output" >&3
-        false
-    fi
-}
-
-# Assert the last run_clibra failed.
-assert_clibra_failure() {
-    if [ "$status" -eq 0 ]; then
-        echo "Expected failure but got exit code 0" >&3
-        echo "Output: $output" >&3
-        false
-    fi
-}
-
-# Assert that the last run output contains a string.
-# Usage: assert_output_contains STRING
-assert_output_contains() {
-    if ! echo "$output" | grep -qF -- "$1"; then
-        echo "Expected output to contain: $1" >&3
-        echo "Actual output: $output" >&3
-        false
-    fi
-}
-
-# Assert that the last run output does NOT contain a string.
-# Usage: assert_output_not_contains STRING
-assert_output_not_contains() {
-    if echo "$output" | grep -qF -- "$1"; then
-        echo "Expected output NOT to contain: $1" >&3
-        echo "Actual output: $output" >&3
-        false
-    fi
-}
-
 # Run clibra with --dry-run and assert the printed command contains a string.
 # Useful for verifying flag forwarding without needing a real build.
 # Usage: assert_dry_run_contains EXPECTED_FRAGMENT [ARGS...]
@@ -1247,26 +1241,18 @@ assert_dry_run_contains() {
     local expected="$1"
     shift
     run_clibra --dry-run "$@"
-    assert_clibra_success
-    assert_output_contains "$expected"
+    assert_success
+    assert_output --partial "$expected"
 }
 
 # Assert the build directory for a preset exists.
 # Usage: assert_build_dir_exists PRESET
 assert_build_dir_exists() {
-    local preset="$1"
-    if [ ! -d "build/${preset}" ]; then
-        echo "Expected build directory build/${preset} to exist" >&3
-        false
-    fi
+    assert_dir_exists "build/$1"
 }
 
 # Assert the build directory for a preset does NOT exist.
 # Usage: assert_build_dir_absent PRESET
 assert_build_dir_absent() {
-    local preset="$1"
-    if [ -d "build/${preset}" ]; then
-        echo "Expected build directory build/${preset} to be absent" >&3
-        false
-    fi
+    assert_dir_not_exists "build/$1"
 }

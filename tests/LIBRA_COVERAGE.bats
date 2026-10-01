@@ -38,16 +38,6 @@ setup() {
     export LIBRA_DIR="${LIBRA_DIR:-$(cd "$BATS_TEST_DIRNAME/.." && pwd)}"
 }
 
-# Helper: assert flag present in both compile and link flags
-assert_cov_flag_present() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
-
-    assert_compile_flag_present "$test_dir" "$lang" "$flag"
-    assert_link_flag_present    "$test_dir" "$lang" "$flag"
-}
-
 # ==============================================================================
 # OFF — no coverage
 # ==============================================================================
@@ -127,7 +117,7 @@ assert_cov_flag_present() {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
-    assert_cov_flag_present "$test_dir" "c" "-fprofile-arcs"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-arcs"
     assert_compile_flag_present "$test_dir" "c" "-ftest-coverage"
     assert_compile_flag_present "$test_dir" "c" "-fno-inline"
     assert_compile_flag_present "$test_dir" "c" "-fprofile-update=atomic"
@@ -140,20 +130,17 @@ assert_cov_flag_present() {
 
     # Run the binary to generate coverage data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Run coverage targets to verify they work
     cd "$test_dir"
     for target in lcov-preinfo lcov-report gcovr-report gcovr-check; do
         # Run binary again before each target
         run "$test_dir/bin/sample_build_info"
-        [ "$status" -eq 0 ]
+        assert_success
 
         run make "$target"
-        if [ "$status" -ne 0 ]; then
-            echo "$output" >& 3
-            return 1
-        fi
+        assert_success
     done
 }
 
@@ -162,7 +149,7 @@ assert_cov_flag_present() {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
-    assert_cov_flag_present "$test_dir" "cxx" "-fprofile-arcs"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-arcs"
     assert_compile_flag_present "$test_dir" "cxx" "-ftest-coverage"
     assert_compile_flag_present "$test_dir" "cxx" "-fno-inline"
     assert_compile_flag_present "$test_dir" "cxx" "-fprofile-update=atomic"
@@ -175,20 +162,17 @@ assert_cov_flag_present() {
 
     # Run the binary to generate coverage data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Run coverage targets to verify they work
     cd "$test_dir"
     for target in lcov-preinfo lcov-report gcovr-report gcovr-check; do
         # Run binary again before each target to ensure fresh coverage data
         run "$test_dir/bin/sample_build_info"
-        [ "$status" -eq 0 ]
+        assert_success
 
         run make "$target"
-        if [ "$status" -ne 0 ]; then
-            echo "$output" >&3
-            return 1
-        fi
+        assert_success
     done
 }
 
@@ -202,7 +186,7 @@ assert_cov_flag_present() {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
-    assert_cov_flag_present "$test_dir" "c" "-fprofile-instr-generate"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-instr-generate"
     assert_compile_flag_present "$test_dir" "c" "-fcoverage-mapping"
     assert_compile_flag_present "$test_dir" "c" "-fno-inline"
 
@@ -215,16 +199,16 @@ assert_cov_flag_present() {
 
     # Run the binary to generate coverage data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Run coverage targets to verify they work
     cd "$test_dir"
     for target in llvm-summary llvm-report llvm-show llvm-export-lcov llvm-coverage; do
         run "$test_dir/bin/sample_build_info"
-        [ "$status" -eq 0 ]
+        assert_success
 
         run make "$target"
-        [ "$status" -eq 0 ]
+        assert_success
     done
 }
 
@@ -234,7 +218,7 @@ assert_cov_flag_present() {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=YES)
 
     # Verify flags
-    assert_cov_flag_present "$test_dir" "cxx" "-fprofile-instr-generate"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-instr-generate"
     assert_compile_flag_present "$test_dir" "cxx" "-fcoverage-mapping"
     assert_compile_flag_present "$test_dir" "cxx" "-fno-inline"
 
@@ -247,16 +231,16 @@ assert_cov_flag_present() {
 
     # Run the binary to generate coverage data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Run coverage targets to verify they work
     cd "$test_dir"
     for target in llvm-summary llvm-report llvm-show llvm-export-lcov llvm-coverage; do
         run "$test_dir/bin/sample_build_info"
-        [ "$status" -eq 0 ]
+        assert_success
 
         run make "$target"
-        [ "$status" -eq 0 ]
+        assert_success
     done
 }
 
@@ -270,7 +254,7 @@ assert_cov_flag_present() {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=NO)
 
     # Verify --coverage flag (GNU gcov format)
-    assert_cov_flag_present "$test_dir" "c" "--coverage"
+    assert_compile_and_link_flag_present "$test_dir" "c" "--coverage"
 
     # Non-native clang creates GNU targets
     assert_target_exists "$test_dir" "lcov-preinfo"
@@ -297,7 +281,7 @@ assert_cov_flag_present() {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_COVERAGE=ON -DLIBRA_COVERAGE_NATIVE=NO)
 
     # Verify --coverage flag (GNU gcov format)
-    assert_cov_flag_present "$test_dir" "cxx" "--coverage"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "--coverage"
 
     # Verify GNU targets exist but don't run them
     assert_target_exists "$test_dir" "lcov-preinfo"
@@ -328,28 +312,24 @@ assert_cov_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_COVERAGE" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_COVERAGE" "ON"
 }
 
 @test "COVERAGE: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_COVERAGE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_COVERAGE" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_COVERAGE=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_COVERAGE" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_COVERAGE" "OFF"
 }

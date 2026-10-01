@@ -69,11 +69,7 @@ repo_commit() {
 # the cache.
 configure() {
     run "$CLIBRA_BIN" build --preset debug $CLI_CMAKE_DEFINES
-    if [ "$status" -ne 0 ]; then
-        echo "DEBUG: clibra build failed with status $status" >&3
-        echo "$output" >&3
-        return 1
-    fi
+    assert_success
 }
 
 # Assert the last command's output, ignoring log lines, is exactly EXPECTED.
@@ -81,11 +77,10 @@ configure() {
 assert_version_output() {
     local got
     got=$(echo "$output" | grep -v '^\[' | sed '/^\s*$/d' | tail -n 1)
-    if [ "$got" != "$1" ]; then
-        echo "Expected version output: $1" >&3
-        echo "Actual output: $output" >&3
-        false
-    fi
+
+    [[ "$got" == "$1" ]] && return 0
+    libra_fail "version output differs" \
+        expected "$1" actual "$got" output "$output"
 }
 
 # ==============================================================================
@@ -97,11 +92,11 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 }
 
@@ -110,11 +105,11 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3-dev.4"
 }
 
@@ -127,11 +122,11 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3-dev.4+2.g${sha}"
 
     run_clibra version --preset debug
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 }
 
@@ -140,7 +135,7 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "0.0.0"
 }
 
@@ -148,7 +143,7 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "0.0.0"
 }
 
@@ -164,17 +159,17 @@ assert_version_output() {
 
     # Still what the cache holds.
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 
     # --reconfigure re-runs libra_extract_version().
     run_clibra version --preset debug --full --reconfigure
-    assert_clibra_success
+    assert_success
     assert_version_output "1.3.0"
 
     # And the new value sticks.
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "1.3.0"
 }
 
@@ -184,7 +179,7 @@ assert_version_output() {
     repo_commit v1.3.0
 
     run_clibra version --preset debug -r
-    assert_clibra_success
+    assert_success
     assert_version_output "1.3.0"
 }
 
@@ -196,7 +191,7 @@ assert_version_output() {
     rm -rf .git
 
     run_clibra version --preset debug --full
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 }
 
@@ -209,7 +204,7 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --check 1.2.3
-    assert_clibra_success
+    assert_success
 }
 
 @test "VERSION: --check fails on a mismatch and reports both versions" {
@@ -217,9 +212,9 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --check 1.2.4
-    assert_clibra_failure
-    assert_output_contains "1.2.3"
-    assert_output_contains "1.2.4"
+    assert_failure
+    assert_output --partial "1.2.3"
+    assert_output --partial "1.2.4"
 }
 
 @test "VERSION: --check compares against the numeric version" {
@@ -228,7 +223,7 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --check 1.2.3
-    assert_clibra_success
+    assert_success
 }
 
 @test "VERSION: --check uses the baked version, not newer tags" {
@@ -237,10 +232,10 @@ assert_version_output() {
     repo_commit v1.3.0
 
     run_clibra version --preset debug --check 1.3.0
-    assert_clibra_failure
+    assert_failure
 
     run_clibra version --preset debug --check 1.3.0 --reconfigure
-    assert_clibra_success
+    assert_success
 }
 
 @test "VERSION: --check fails on a non-semver argument" {
@@ -248,7 +243,7 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug --check not-a-version
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "VERSION: -c is accepted as short form of --check" {
@@ -256,10 +251,10 @@ assert_version_output() {
     configure
 
     run_clibra version --preset debug -c 1.2.3
-    assert_clibra_success
+    assert_success
 
     run_clibra version --preset debug -c 1.2.4
-    assert_clibra_failure
+    assert_failure
 }
 
 # ==============================================================================
@@ -270,7 +265,7 @@ assert_version_output() {
     repo_init v1.2.3
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.1"
 }
 
@@ -278,7 +273,7 @@ assert_version_output() {
     repo_init v1.2.4-dev.4
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.5"
 }
 
@@ -286,7 +281,7 @@ assert_version_output() {
     repo_init v1.2.4-dev.9
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.10"
 }
 
@@ -295,7 +290,7 @@ assert_version_output() {
     repo_init v1.2.4-rc.1
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.5-dev.1"
 }
 
@@ -303,7 +298,7 @@ assert_version_output() {
     repo_init v1.2.4-beta.2
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.1"
 }
 
@@ -311,7 +306,7 @@ assert_version_output() {
     repo_init
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "0.0.1-dev.1"
 }
 
@@ -321,7 +316,7 @@ assert_version_output() {
     repo_commit v1.2.0
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.10.1-dev.1"
 }
 
@@ -330,7 +325,7 @@ assert_version_output() {
     repo_commit v1.2.4
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.5-dev.1"
 }
 
@@ -342,7 +337,7 @@ assert_version_output() {
     _git reset -q --hard HEAD~1
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.5"
 }
 
@@ -353,16 +348,16 @@ assert_version_output() {
     repo_commit release-2.0.0
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.1"
 }
 
 @test "VERSION: --bump does not need a configured build" {
     repo_init v1.2.3
-    [ ! -d build ]
+    assert_dir_not_exists build
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.1"
 }
 
@@ -373,12 +368,12 @@ assert_version_output() {
 
     # The build is still 1.2.3...
     run_clibra version --preset debug
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.3"
 
     # ...but the next version is computed from all tags.
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
     assert_version_output "2.0.1-dev.1"
 }
 
@@ -388,16 +383,16 @@ assert_version_output() {
     before=$(_git tag -l | sort)
 
     run_clibra version --bump
-    assert_clibra_success
+    assert_success
 
-    [ "$(_git tag -l | sort)" = "$before" ]
+    assert_equal "$(_git tag -l | sort)" "$before"
 }
 
 @test "VERSION: -b is accepted as short form of --bump" {
     repo_init v1.2.3
 
     run_clibra version -b
-    assert_clibra_success
+    assert_success
     assert_version_output "1.2.4-dev.1"
 }
 
@@ -405,8 +400,8 @@ assert_version_output() {
     repo_init v1.2.3
 
     run_clibra version --bump --full
-    assert_clibra_failure
-    assert_output_contains "--full not valid with --bump"
+    assert_failure
+    assert_output --partial "--full not valid with --bump"
 }
 
 # ==============================================================================
@@ -415,17 +410,17 @@ assert_version_output() {
 
 @test "VERSION: fails when build directory does not exist" {
     run_clibra version --preset release
-    assert_clibra_failure
-    assert_output_contains "Build directory"
+    assert_failure
+    assert_output --partial "Build directory"
 }
 
 @test "VERSION: fails when no preset files exist" {
     rm -f CMakePresets.json CMakeUserPresets.json
     run_clibra version --preset debug
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "VERSION: rejects an invalid --output value" {
     run_clibra version --preset debug --output yaml
-    assert_clibra_failure
+    assert_failure
 }

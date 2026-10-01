@@ -27,15 +27,15 @@ setup() {
 
 @test "FORMAT: no --check runs both format-clang and format-cmake targets" {
     run_clibra --dry-run format
-    assert_clibra_success
-    assert_output_contains "--target format-clang"
-    assert_output_contains "--target format-cmake"
+    assert_success
+    assert_output --partial "--target format-clang"
+    assert_output --partial "--target format-cmake"
 }
 
 @test "FORMAT: no --check does not run any format-check target" {
     run_clibra --dry-run format
-    assert_clibra_success
-    assert_output_not_contains "format-check"
+    assert_success
+    refute_output --partial "format-check"
 }
 
 # ==============================================================================
@@ -52,14 +52,14 @@ setup() {
 
 @test "FORMAT: --check clang does not apply formatting" {
     run_clibra --dry-run format --check clang
-    assert_clibra_success
-    assert_output_not_contains "--target format-clang"
-    assert_output_not_contains "--target format-cmake"
+    assert_success
+    refute_output --partial "--target format-clang"
+    refute_output --partial "--target format-cmake"
 }
 
 @test "FORMAT: invalid --check value causes failure" {
     run_clibra --dry-run format --check no_such_checker
-    assert_clibra_failure
+    assert_failure
 }
 
 # ==============================================================================
@@ -77,8 +77,8 @@ setup() {
 
 @test "FORMAT: --keep-going does not add Ninja-style -k0 for Unix Makefiles" {
     run_clibra --dry-run format --keep-going --preset format --log trace
-    assert_clibra_success
-    assert_output_not_contains "-k0"
+    assert_success
+    refute_output --partial "-k0"
 }
 
 @test "FORMAT: --reconfigure invokes configure step" {
@@ -101,28 +101,28 @@ setup() {
     skip_if_compiler_missing gnu c
     # debug preset does not set LIBRA_FORMAT, so it defaults to OFF
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra format --preset debug
-    assert_clibra_failure
-    assert_output_contains "LIBRA_FORMAT"
+    assert_failure
+    assert_output --partial "LIBRA_FORMAT"
 }
 
 @test "FORMAT: error message names the preset when LIBRA_FORMAT disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra format --preset debug
-    assert_clibra_failure
-    assert_output_contains "debug"
+    assert_failure
+    assert_output --partial "debug"
 }
 
 @test "FORMAT: error message suggests fix when LIBRA_FORMAT disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra format --preset debug
-    assert_clibra_failure
-    assert_output_contains "LIBRA_FORMAT=ON"
+    assert_failure
+    assert_output --partial "LIBRA_FORMAT=ON"
 }
 
 # ==============================================================================
@@ -131,5 +131,5 @@ setup() {
 
 @test "FORMAT: non-existent preset causes failure" {
     run_clibra format --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }

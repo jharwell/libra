@@ -45,15 +45,15 @@ setup() {
 
 @test "COVERAGE: --html and --check together invoke cmake --build twice" {
     run_clibra --dry-run coverage --html --check
-    assert_clibra_success
+    assert_success
     # Both report and check targets should appear in output
-    assert_output_contains "gcovr-report"
-    assert_output_contains "gcovr-check"
+    assert_output --partial "gcovr-report"
+    assert_output --partial "gcovr-check"
 }
 
 @test "COVERAGE: --open flag is accepted without error in dry-run" {
     run_clibra --dry-run coverage --html --open
-    assert_clibra_success
+    assert_success
 }
 
 @test "COVERAGE: --reconfigure invokes configure step" {
@@ -66,8 +66,8 @@ setup() {
 
 @test "COVERAGE: neither --html nor --check fails with actionable error" {
     run_clibra --dry-run coverage
-    assert_clibra_failure
-    assert_output_contains "No coverage target specified"
+    assert_failure
+    assert_output --partial "No coverage target specified"
 }
 
 # ==============================================================================
@@ -77,28 +77,28 @@ setup() {
 @test "COVERAGE: fails with clear error when LIBRA_COVERAGE not enabled in preset" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra coverage --preset debug --html
-    assert_clibra_failure
-    assert_output_contains "LIBRA_COVERAGE"
+    assert_failure
+    assert_output --partial "LIBRA_COVERAGE"
 }
 
 @test "COVERAGE: error message names the preset when LIBRA_COVERAGE disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra coverage --preset debug --html
-    assert_clibra_failure
-    assert_output_contains "debug"
+    assert_failure
+    assert_output --partial "debug"
 }
 
 @test "COVERAGE: error message suggests fix when LIBRA_COVERAGE disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra coverage --preset debug --html
-    assert_clibra_failure
-    assert_output_contains "LIBRA_COVERAGE=ON"
+    assert_failure
+    assert_output --partial "LIBRA_COVERAGE=ON"
 }
 
 # ==============================================================================
@@ -107,5 +107,5 @@ setup() {
 
 @test "COVERAGE: non-existent preset causes failure" {
     run_clibra coverage --preset no_such_preset_xyzzy --html
-    assert_clibra_failure
+    assert_failure
 }

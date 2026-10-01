@@ -37,12 +37,12 @@ setup() {
 
 @test "DEP_ISOLATION: C - root+dep project configures and builds" {
     test_dir=$(run_libra_cmake_dep_test "c")
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "DEP_ISOLATION: C++ - root+dep project configures and builds" {
     test_dir=$(run_libra_cmake_dep_test "cxx")
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 # ==============================================================================
@@ -91,12 +91,12 @@ setup() {
 
 @test "DEP_ISOLATION: LIBRA_ANALYSIS=ON - no duplicate target cmake error (C)" {
     run run_libra_cmake_dep_test "c" -DLIBRA_ANALYSIS=ON
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "DEP_ISOLATION: LIBRA_ANALYSIS=ON - no duplicate target cmake error (C++)" {
     run run_libra_cmake_dep_test "cxx" -DLIBRA_ANALYSIS=ON
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -122,7 +122,7 @@ setup() {
 
     # ASAN must NOT appear in dep's compile flags - it was not set for dep
     run grep -q -- "-fsanitize=address" "$dep_flags"
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -146,7 +146,7 @@ setup() {
     run run_libra_cmake_dep_test "c" \
         -DLIBRA_COVERAGE=ON \
         -DLIBRA_COVERAGE_NATIVE=YES
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "DEP_ISOLATION: GNU/C++ COVERAGE=ON - root has lcov targets" {
@@ -164,7 +164,7 @@ setup() {
     run run_libra_cmake_dep_test "cxx" \
         -DLIBRA_COVERAGE=ON \
         -DLIBRA_COVERAGE_NATIVE=YES
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -173,10 +173,10 @@ setup() {
 
 @test "DEP_ISOLATION: Default (no options) - configures and builds cleanly (C)" {
     run run_libra_cmake_dep_test "c"
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "DEP_ISOLATION: Default (no options) - configures and builds cleanly (C++)" {
     run run_libra_cmake_dep_test "cxx"
-    [ "$status" -eq 0 ]
+    assert_success
 }

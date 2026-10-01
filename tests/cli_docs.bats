@@ -38,9 +38,9 @@ setup() {
 
 @test "DOCS: 'build' with no --target builds apidoc and sphinxdoc" {
     run_clibra --dry-run docs build
-    assert_clibra_success
-    assert_output_contains "apidoc"
-    assert_output_contains "sphinxdoc"
+    assert_success
+    assert_output --partial "apidoc"
+    assert_output --partial "sphinxdoc"
 }
 
 @test "DOCS: --reconfigure invokes configure step" {
@@ -61,7 +61,7 @@ setup() {
 
 @test "DOCS: 'check' without --kind fails with usage error" {
     run_clibra docs check
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "DOCS: 'check --kind doxygen' targets apidoc-check-doxygen" {
@@ -74,16 +74,16 @@ setup() {
 
 @test "DOCS: 'check --kind doxygen' does not target apidoc-check-clang" {
     run_clibra --dry-run docs check --kind doxygen
-    assert_clibra_success
-    assert_output_contains "--target apidoc-check-doxygen"
-    assert_output_not_contains "--target apidoc-check-clang"
+    assert_success
+    assert_output --partial "--target apidoc-check-doxygen"
+    refute_output --partial "--target apidoc-check-clang"
 }
 
 @test "DOCS: 'check --kind clang' does not target apidoc-check-doxygen" {
     run_clibra --dry-run docs check --kind clang
-    assert_clibra_success
-    assert_output_not_contains "--target apidoc-check-doxygen"
-    assert_output_contains "--target apidoc-check-clang"
+    assert_success
+    refute_output --partial "--target apidoc-check-doxygen"
+    assert_output --partial "--target apidoc-check-clang"
 }
 
 
@@ -98,25 +98,25 @@ setup() {
     skip_if_compiler_missing gnu c
     # debug preset has LIBRA_DOCS=OFF
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra docs --preset debug build
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "DOCS: error message mentions disabled target when LIBRA_DOCS=OFF" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra docs --preset debug build
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "DOCS: 'check --kind doxygen' fails when LIBRA_DOCS not enabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra docs --preset debug check --kind doxygen
-    assert_clibra_failure
+    assert_failure
 }
 
 # ==============================================================================
@@ -125,5 +125,5 @@ setup() {
 
 @test "DOCS: non-existent preset causes failure" {
     run_clibra docs --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }

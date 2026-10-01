@@ -56,46 +56,42 @@ setup() {
 
     # Verify the define is actually in the generated file
     build_info="$test_dir/build_info.c"
-    [ -f "$build_info" ]
+    assert_file_exists "$build_info"
 
     run grep "LIBRA_FPC=LIBRA_FPC_RETURN" "$build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "FPC: Define appears in build_info.cpp for C++" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_FPC=ABORT)
 
     build_info="$test_dir/build_info.cpp"
-    [ -f "$build_info" ]
+    assert_file_exists "$build_info"
 
     run grep "LIBRA_FPC=LIBRA_FPC_ABORT" "$build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 @test "FPC: Cache variable persists across reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_FPC=ABORT)
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC" "ABORT"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC" "ABORT"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC" "ABORT"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC" "ABORT"
 }
 
 @test "FPC: Can change value on reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_FPC=ABORT)
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC" "ABORT"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC" "ABORT"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_FPC=RETURN --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC" "RETURN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC" "RETURN"
 }

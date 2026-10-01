@@ -54,8 +54,8 @@ setup() {
 
 @test "BUILD: without --reconfigure no configure step in dry-run" {
     run_clibra --dry-run build --preset debug
-    assert_clibra_success
-    assert_output_contains "cmake --preset"
+    assert_success
+    assert_output --partial "cmake --preset"
 }
 
 @test "BUILD: --fresh invokes configure step with --fresh flag" {
@@ -69,21 +69,21 @@ setup() {
 @test "BUILD: cold start creates build directory" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     assert_build_dir_exists "debug"
 }
 
 @test "BUILD: cold start creates CMakeCache.txt" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
-    [ -f "build/debug/CMakeCache.txt" ]
+    assert_success
+    assert_file_exists "build/debug/CMakeCache.txt"
 }
 
 @test "BUILD: exits 0 on successful build" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
 }
 
 # ==============================================================================
@@ -93,9 +93,9 @@ setup() {
 @test "BUILD: incremental build exits 0 when build dir already exists" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     run_clibra build --preset debug
-    assert_clibra_success
+    assert_success
 }
 
 # ==============================================================================
@@ -105,10 +105,10 @@ setup() {
 @test "BUILD: --reconfigure runs configure step even when build dir exists" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     run_clibra build --reconfigure --preset debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON $CLI_CMAKE_DEFINES
-    assert_clibra_success
-    [ -f "build/debug/compile_commands.json" ]
+    assert_success
+    assert_file_exists "build/debug/compile_commands.json"
 }
 
 # ==============================================================================
@@ -118,18 +118,18 @@ setup() {
 @test "BUILD: -D with existing build dir and no --reconfigure fails with error" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     run_clibra build --preset debug -DFOO=BAR
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "BUILD: -D error message mentions --reconfigure as fix" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     run_clibra build --preset debug -DFOO=BAR
-    assert_clibra_failure
-    assert_output_contains "reconfigure"
+    assert_failure
+    assert_output --partial "reconfigure"
 }
 
 # ==============================================================================
@@ -138,10 +138,10 @@ setup() {
 
 @test "BUILD: non-existent preset causes failure" {
     run_clibra build --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "BUILD: failure exit code is non-zero" {
     run_clibra build --preset no_such_preset_xyzzy
-    [ "$status" -ne 0 ]
+    assert_failure
 }

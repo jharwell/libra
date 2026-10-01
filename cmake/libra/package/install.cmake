@@ -612,11 +612,17 @@ endfunction()
 
   - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
   - Executables: ``${CMAKE_INSTALL_BINDIR}``
-  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}``, from the target's public
-    ``HEADERS`` file sets (paths kept relative to each set's ``BASE_DIRS``, and
-    the install location added to the exported target's include directories;
-    computed from interface include dirs for the project if it isn't already
-    set), or the ``PUBLIC_HEADER`` property.
+  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}``. Headers are installed from two
+    disjoint sources:
+
+    #. From the target's public ``HEADERS`` file sets (paths kept relative to
+       each set's ``BASE_DIRS``, and the install location added to the exported
+       target's include directories, if the target defines them. Otherwise,
+       LIBRA computes the header list from the interface include dirs for the
+       target.
+
+    #. From the targets ``PUBLIC_HEADER`` property.
+
   - Export file: ``lib/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**

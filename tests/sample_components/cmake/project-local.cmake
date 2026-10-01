@@ -27,8 +27,15 @@ if(LIBRA_TEST_COMPONENT_MISSING_REGEX)
 endif()
 
 if(LIBRA_TEST_USE_DEPRECATED_NAMES)
-  libra_component_register_as_lib(sample_components "${ALL_SRC}" networking
-                                  "net_.*\\.cpp")
+  libra_component_register_as_lib(
+    TARGET
+    sample_components
+    SOURCES
+    "${ALL_SRC}"
+    COMPONENT
+    networking
+    REGEX
+    "net_.*\\.cpp")
   libra_add_library(
     NAME
     sample_components

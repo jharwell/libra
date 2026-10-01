@@ -65,22 +65,19 @@ setup() {
 @test "TESTS: LIBRA_TESTS defaults to OFF" {
     test_dir=$(run_libra_testing_cmake_test)
 
-    run cache_value_equals "$test_dir" "LIBRA_TESTS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_TESTS" "OFF"
 }
 
 @test "TESTS: LIBRA_TESTS=OFF stores value in cache" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=OFF)
 
-    run cache_value_equals "$test_dir" "LIBRA_TESTS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_TESTS" "OFF"
 }
 
 @test "TESTS: LIBRA_TESTS=ON stores value in cache" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_TESTS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_TESTS" "ON"
 }
 
 @test "TESTS: LIBRA_TESTS=OFF produces no CTestTestfile" {
@@ -88,13 +85,13 @@ setup() {
     skip_if_conan_driver
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=OFF)
 
-    [ ! -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_not_exists "$test_dir/CTestTestfile.cmake"
 }
 
 @test "TESTS: LIBRA_TESTS=ON produces a CTestTestfile" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
 }
 
 @test "TESTS: LIBRA_TESTS=ON creates unit-tests Makefile target" {
@@ -147,8 +144,7 @@ setup() {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
     reconfigure_libra_testing_test "$test_dir"
 
-    run cache_value_equals "$test_dir" "LIBRA_TESTS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_TESTS" "ON"
 }
 
 @test "TESTS: LIBRA_TESTS can be changed from ON to OFF on reconfiguration" {
@@ -157,8 +153,7 @@ setup() {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
     reconfigure_libra_testing_test "$test_dir" -DLIBRA_TESTS=OFF
 
-    run cache_value_equals "$test_dir" "LIBRA_TESTS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_TESTS" "OFF"
 }
 
 # ==============================================================================
@@ -194,7 +189,7 @@ setup() {
 
     assert_ctest_test_registered "$test_dir" "cpp_alpha-itest"
     run ctest_test_has_label "$test_dir" "cpp_alpha-itest" "unit"
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "UNIT_TEST_MATCHER: custom -myutest discovers cpp_alpha-myutest and registers it" {
@@ -564,9 +559,9 @@ setup() {
         -DLIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO \
         -DLIBRA_CTEST_INCLUDE_REGRESSION_TESTS=NO)
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     run grep -c "^add_test(" "$test_dir/CTestTestfile.cmake"
-    [ "$output" -eq 0 ]
+    assert_output "0"
 }
 
 @test "INTERACTION: all three CTEST_INCLUDE_* NO still creates all umbrella Makefile targets" {
@@ -617,8 +612,7 @@ setup() {
 @test "CTEST_INCLUDE_UNIT_TESTS: default YES value stored in cache" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_UNIT_TESTS" "YES"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_UNIT_TESTS" "YES"
 }
 
 @test "CTEST_INCLUDE_UNIT_TESTS: NO value stored in cache" {
@@ -626,8 +620,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_CTEST_INCLUDE_UNIT_TESTS=NO)
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_UNIT_TESTS" "NO"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_UNIT_TESTS" "NO"
 }
 
 @test "CTEST_INCLUDE_UNIT_TESTS: NO persists across reconfiguration" {
@@ -636,15 +629,13 @@ setup() {
         -DLIBRA_CTEST_INCLUDE_UNIT_TESTS=NO)
     reconfigure_libra_testing_test "$test_dir"
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_UNIT_TESTS" "NO"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_UNIT_TESTS" "NO"
 }
 
 @test "CTEST_INCLUDE_INTEGRATION_TESTS: default YES value stored in cache" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS" "YES"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS" "YES"
 }
 
 @test "CTEST_INCLUDE_INTEGRATION_TESTS: NO value stored in cache" {
@@ -652,8 +643,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO)
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS" "NO"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS" "NO"
 }
 
 @test "CTEST_INCLUDE_INTEGRATION_TESTS: NO persists across reconfiguration" {
@@ -662,15 +652,13 @@ setup() {
         -DLIBRA_CTEST_INCLUDE_INTEGRATION_TESTS=NO)
     reconfigure_libra_testing_test "$test_dir"
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS" "NO"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS" "NO"
 }
 
 @test "CTEST_INCLUDE_REGRESSION_TESTS: default YES value stored in cache" {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_REGRESSION_TESTS" "YES"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_REGRESSION_TESTS" "YES"
 }
 
 @test "CTEST_INCLUDE_REGRESSION_TESTS: NO value stored in cache" {
@@ -678,8 +666,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_CTEST_INCLUDE_REGRESSION_TESTS=NO)
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_REGRESSION_TESTS" "NO"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_REGRESSION_TESTS" "NO"
 }
 
 @test "CTEST_INCLUDE_REGRESSION_TESTS: NO persists across reconfiguration" {
@@ -688,8 +675,7 @@ setup() {
         -DLIBRA_CTEST_INCLUDE_REGRESSION_TESTS=NO)
     reconfigure_libra_testing_test "$test_dir"
 
-    run cache_value_equals "$test_dir" "LIBRA_CTEST_INCLUDE_REGRESSION_TESTS" "NO"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_CTEST_INCLUDE_REGRESSION_TESTS" "NO"
 }
 
 # ==============================================================================
@@ -823,7 +809,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_NEGATIVE_TEST_INCLUDE_DIRS="/tmp")
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
@@ -832,7 +818,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_NEGATIVE_TEST_COMPILE_FLAGS="-DLIBRA_NEG_TEST_EXTRA=1")
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
@@ -887,7 +873,7 @@ setup() {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
     run ctest_test_has_label "$test_dir" "cpp_alpha-itest" "unit"
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -904,7 +890,7 @@ setup() {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
     run ctest_test_has_label "$test_dir" "cpp_alpha-rtest" "integration"
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -921,7 +907,7 @@ setup() {
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
     run ctest_test_has_label "$test_dir" "cpp_alpha-utest" "regression"
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -1002,7 +988,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_NEGATIVE_TEST_INCLUDE_DIRS="/tmp;/usr/include")
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
@@ -1011,7 +997,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_NEGATIVE_TEST_INCLUDE_DIRS="")
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
@@ -1024,7 +1010,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         "-DLIBRA_NEGATIVE_TEST_COMPILE_FLAGS=-DLIBRA_NEG_A=1;-DLIBRA_NEG_B=2")
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
@@ -1033,7 +1019,7 @@ setup() {
         -DLIBRA_TESTS=ON \
         -DLIBRA_NEGATIVE_TEST_COMPILE_FLAGS="")
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 
@@ -1098,7 +1084,7 @@ setup() {
     run cmake "${cmake_args[@]}"
     cd - > /dev/null
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -1117,7 +1103,7 @@ setup() {
     # and that the negative test is still registered with CTest.
     test_dir=$(run_libra_testing_cmake_test -DLIBRA_TESTS=ON)
 
-    [ -f "$test_dir/CTestTestfile.cmake" ]
+    assert_file_exists "$test_dir/CTestTestfile.cmake"
     assert_ctest_test_registered "$test_dir" "neg_cpp_alpha-utest"
 }
 

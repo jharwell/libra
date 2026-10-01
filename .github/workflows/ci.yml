@@ -44,6 +44,8 @@ jobs:
       image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Run smoke tests
         shell: bash
         run: |
@@ -97,6 +99,8 @@ jobs:
       image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Run LIBRA install
         shell: bash
         run: |
@@ -110,6 +114,8 @@ jobs:
       image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Build CLI
         run: cargo build
         working-directory: .
@@ -122,8 +128,8 @@ jobs:
       - cli-build
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        with:
+          submodules: recursive
       - name: Run Rust unit tests
         run: cargo test
         working-directory: .
@@ -138,9 +144,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
+          submodules: recursive
       - name: Run CLI BATS smoke tests
         shell: bash
         run: |

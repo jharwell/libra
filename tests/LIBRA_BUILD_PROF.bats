@@ -136,28 +136,24 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_BUILD_PROF=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_BUILD_PROF" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_BUILD_PROF" "ON"
 }
 
 @test "BUILD_PROF: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_BUILD_PROF=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_BUILD_PROF" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_BUILD_PROF=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_BUILD_PROF" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_BUILD_PROF" "OFF"
 }
