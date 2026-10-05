@@ -243,6 +243,18 @@ Analysis
 
    .. versionadded:: 0.12.8
 
+.. cmake:variable:: LIBRA_ANALYSIS_LANGUAGE
+
+   :default: ``CXX``
+   :type: STRING
+
+   Set the language to use for analysis. This exists distinct from the language
+   for the project, because e.g., the project may be exclusively C and use C++
+   for testing, necessitating C++ as a project language. This makes the intent
+   clear.
+
+   .. versionadded:: 0.13.5
+
 Testing
 -------
 

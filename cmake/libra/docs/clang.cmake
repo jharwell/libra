@@ -19,8 +19,10 @@ function(_libra_apidoc_register_clang CHECK_TARGET)
 
   get_filename_component(clang_NAME ${clang_EXECUTABLE} NAME)
 
-  _libra_get_project_language(_LANG)
-  if("${_LANG}" STREQUAL "CXX")
+  if(NOT LIBRA_ANALYSIS_LANGUAGE)
+    set(LIBRA_ANALYSIS_LANGUAGE ${LIBRA_ANALYSIS_LANGUAGE_DEFAULT})
+  endif()
+  if("${LIBRA_ANALYSIS_LANGUAGE}" STREQUAL "CXX")
     set(STD_ARG --std=gnu++${LIBRA_CXX_STANDARD})
   else()
     set(STD_ARG --std=gnu${LIBRA_C_STANDARD})

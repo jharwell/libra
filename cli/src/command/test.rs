@@ -140,6 +140,9 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
             } else {
                 bdir.as_ref().unwrap().to_str().unwrap()
             },
+            // 2026-10-05 [JRH]: This makes valgrind exit non-zero even when all
+            // tests pass if issues are found.
+            "--overwrite MemoryCheckCommandOptions=\"--leak-check=full --error-exitcode=1\"",
         ]);
     }
 

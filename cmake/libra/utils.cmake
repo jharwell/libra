@@ -71,25 +71,6 @@ macro(dual_scope_set name value)
 endmacro()
 
 #[[.rst:
-.. cmake:command:: _libra_get_project_language
-
-  Detect the primary language of the current project and store it in ``OUT``.
-  C++ is preferred over C when both are enabled.  The result is one of
-  ``CXX`` or ``C``; ``OUT`` is left unset if neither compiler is loaded.
-
-  :param OUT: Name of the variable that receives the language string
-   (``CXX`` or ``C``).
-]]
-macro(_libra_get_project_language OUT)
-  if(CMAKE_CXX_COMPILER_LOADED)
-    set(${OUT} CXX)
-  elseif(CMAKE_C_COMPILER_LOADED)
-    set(${OUT} C)
-  endif()
-
-endmacro()
-
-#[[.rst:
 .. cmake:command:: _libra_calculate_srcs
 
   Populate source and header lists for a given build purpose by inspecting the
@@ -111,21 +92,20 @@ endmacro()
 ]]
 macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
   libra_message(STATUS "Calculating sources for ${SOURCE}")
-  _libra_get_project_language(_LANGUAGE)
+
   list(APPEND CMAKE_MESSAGE_INDENT " ")
 
-  if("${_LANGUAGE}" MATCHES "CXX")
-    libra_message(STATUS "Detected language C++ for project")
-  elseif("${_LANGUAGE}" MATCHES "C")
-    libra_message(STATUS "Detected language C project")
+  if(NOT LIBRA_ANALYSIS_LANGUAGE)
+    set(LIBRA_ANALYSIS_LANGUAGE ${LIBRA_ANALYSIS_LANGUAGE_DEFAULT})
   endif()
 
-  if(NOT _LANGUAGE)
-    libra_message(WARNING "Unable to autodetect language--assuming CXX.")
-    set(_LANGUAGE CXX)
+  if("${LIBRA_ANALYSIS_LANGUAGE}" MATCHES "C")
+    libra_message(STATUS "Use language C for analysis")
+  else()
+    libra_message(STATUS "Use language C++ for analysis")
   endif()
 
-  if("${_LANGUAGE}" STREQUAL "C")
+  if("${LIBRA_ANALYSIS_LANGUAGE}" STREQUAL "C")
     if("${SOURCE}" STREQUAL "APIDOC")
       set(CANDIDATE_SRCS ${${PROJECT_NAME}_C_SRC})
       set(CANDIDATE_HEADERS ${${PROJECT_NAME}_C_HEADERS})
@@ -134,7 +114,7 @@ macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
                          ${${PROJECT_NAME}_C_TESTS_SRC})
       set(CANDIDATE_HEADERS ${${PROJECT_NAME}_C_HEADERS})
     endif()
-  elseif("${_LANGUAGE}" STREQUAL "CXX")
+  elseif("${LIBRA_ANALYSIS_LANGUAGE}" STREQUAL "CXX")
     if("${SOURCE}" STREQUAL "APIDOC")
       set(CANDIDATE_SRCS ${${PROJECT_NAME}_CXX_SRC})
       set(CANDIDATE_HEADERS ${${PROJECT_NAME}_CXX_HEADERS})
@@ -144,7 +124,8 @@ macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
       set(CANDIDATE_HEADERS ${${PROJECT_NAME}_CXX_HEADERS})
     endif()
   else()
-    libra_error("Bad language '${_LANGUAGE}' for project: must be {C,CXX}")
+    libra_error(
+      "Bad language '${LIBRA_ANALYSIS_LANGUAGE}' for project: must be {C,CXX}")
   endif()
 
   set(SELECTED_HEADERS ${CANDIDATE_HEADERS})
@@ -168,6 +149,7 @@ macro(_libra_calculate_srcs SOURCE SRCS_RET HEADERS_RET)
 
   set(${SRCS_RET} ${SELECTED_SRCS})
   set(${HEADERS_RET} ${SELECTED_HEADERS})
+
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endmacro()
 

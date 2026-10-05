@@ -15,7 +15,7 @@ set(LIBRA_CTEST_INCLUDE_UNIT_TESTS_DEFAULT YES)
 set(LIBRA_CTEST_INCLUDE_INTEGRATION_TESTS_DEFAULT YES)
 set(LIBRA_CTEST_INCLUDE_REGRESSION_TESTS_DEFAULT YES)
 set(LIBRA_SPHINXDOC_COMMAND_DEFAULT sphinx-build)
-
+set(LIBRA_ANALYSIS_LANGUAGE_DEFAULT CXX)
 set(LIBRA_STDLIB_DEFAULT "UNDEFINED")
 set(LIBRA_CPPCHECK_EXTRA_ARGS_DEFAULT --library=googletest)
 set(LIBRA_CPPCHECK_SUPPRESSIONS_DEFAULT unusedStructMember)
@@ -44,8 +44,8 @@ set(LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT
 # these defaults rather than adding to them.
 # ##############################################################################
 
-# C projects. C projects often have C++ tests, which are analyzed with this
-# same list, so it also disables C++-only checks that don't suit C-style code.
+# C projects. C projects often have C++ tests, which are analyzed with this same
+# list, so it also disables C++-only checks that don't suit C-style code.
 set(_LIBRA_CLANG_TIDY_CHECKS_C_DISABLED
     # Compiler warnings are the compiler's job
     -clang-diagnostic-*
@@ -77,8 +77,10 @@ set(_LIBRA_CLANG_TIDY_CHECKS_C_DISABLED
     -misc-use-anonymous-namespace # tests use static, as in C
     -performance-enum-size)
 
-list(JOIN _LIBRA_CLANG_TIDY_CHECKS_C_DISABLED "," _LIBRA_CLANG_TIDY_CHECKS_C_DISABLED)
-set(LIBRA_CLANG_TIDY_CHECKS_CONFIG_C_DEFAULT ",${_LIBRA_CLANG_TIDY_CHECKS_C_DISABLED}")
+list(JOIN _LIBRA_CLANG_TIDY_CHECKS_C_DISABLED ","
+     _LIBRA_CLANG_TIDY_CHECKS_C_DISABLED)
+set(LIBRA_CLANG_TIDY_CHECKS_CONFIG_C_DEFAULT
+    ",${_LIBRA_CLANG_TIDY_CHECKS_C_DISABLED}")
 
 # C++ projects.
 set(_LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED
@@ -106,8 +108,10 @@ set(_LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED
     -readability-uppercase-literal-suffix
     -cppcoreguidelines-avoid-goto)
 
-list(JOIN _LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED "," _LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED)
-set(LIBRA_CLANG_TIDY_CHECKS_CONFIG_CXX_DEFAULT ",${_LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED}")
+list(JOIN _LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED ","
+     _LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED)
+set(LIBRA_CLANG_TIDY_CHECKS_CONFIG_CXX_DEFAULT
+    ",${_LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED}")
 
 set(LIBRA_GCOVR_LINES_THRESH_DEFAULT 95)
 set(LIBRA_GCOVR_FUNCTIONS_THRESH_DEFAULT 60)
