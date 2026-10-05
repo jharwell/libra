@@ -357,8 +357,14 @@ Build optimization
    :type: CACHE BOOL
 
    Improve code visibility for the compiler across TU/library boundaries. Helps
-   inlining and devirtualizing in shared libs. Always safe to enable in release
-   builds.
+   inlining and devirtualizing in shared libs.
+
+   This hides symbols by default (``-fvisibility=hidden``), so a shared library
+   exports only the functions explicitly marked for export. Unmarked, a shared
+   library exports nothing, and with :cmake:variable:`LIBRA_LTO` its code may be
+   discarded entirely. Mark the public API with an export macro keyed on
+   :cmake:variable:`LIBRA_EXPORT_SYMBOL` before enabling this for shared
+   libraries. Static libraries and executables need no changes.
 
    .. versionadded:: 0.12.8
 

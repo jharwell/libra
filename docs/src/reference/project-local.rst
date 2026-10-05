@@ -72,6 +72,31 @@ General
 
    .. versionadded:: 0.8.6
 
+.. cmake:variable:: LIBRA_EXPORT_SYMBOL
+
+   Preprocessor symbol defined when compiling each of the project's SHARED or
+   MODULE libraries, and never otherwise, including for consumers. Headers use
+   it to decide whether to export a symbol, e.g.::
+
+     #if defined(MYLIB_EXPORTS)
+     #define MYLIB_API __attribute__((visibility("default")))
+     #else
+     #define MYLIB_API
+     #endif
+
+   This matters when symbols are hidden by default, e.g. with
+   :cmake:variable:`LIBRA_OPT_INLINE`: a shared library then exports only what
+   is marked this way. CMake defines ``<target>_EXPORTS`` on its own, but that
+   differs for each library, so headers shared between a project's main
+   library and its components (see :cmake:command:`libra_add_component_library`)
+   can't use it; this symbol is the same for all of them. CMake's
+   ``<target>_EXPORTS`` is still defined too.
+
+   Defaults to ``<PROJECT_NAME>_EXPORTS``, uppercased, with any characters not
+   valid in a C identifier replaced by ``_``. Set it to ``""`` to define nothing.
+
+   .. versionadded:: 0.13.4
+
 Source Discovery
 ----------------
 
