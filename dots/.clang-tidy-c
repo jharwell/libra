@@ -117,7 +117,7 @@ CheckOptions:
   llvm-else-after-return.WarnOnUnfixable: 'false'
   misc-header-include-cycle.IgnoredFilesList: ''
   misc-include-cleaner.DeduplicateFindings: 'true'
-  misc-include-cleaner.IgnoreHeaders: ''
+  misc-include-cleaner.IgnoreHeaders: '<stdint.h>;<stdbool.h>;<stddef.h>;<errno.h>'
   misc-unused-parameters.IgnoreVirtual: 'false'
   misc-unused-parameters.StrictMode: 'false'
   misc-use-internal-linkage.FixMode: 'UseStatic'

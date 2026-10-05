@@ -49,6 +49,11 @@ set(LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT
 set(_LIBRA_CLANG_TIDY_CHECKS_C_DISABLED
     # Compiler warnings are the compiler's job
     -clang-diagnostic-*
+    # memset: memcpy, memmove, sprintf, sscanf, strcat, strncpy, and even printf
+    # and fprintf. In a typical C codebase it fires on most lines that touch
+    # memory or strings, which buries real findings and trains people to ignore
+    # the analyzer
+    -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
     # Style checks that don't fit idiomatic C
     -readability-magic-numbers
     -readability-implicit-bool-conversion # if (ptr) / if (count)
@@ -74,6 +79,7 @@ set(_LIBRA_CLANG_TIDY_CHECKS_C_DISABLED
     -cert-dcl50-cpp # C-style variadic functions
     -cert-err58-cpp # exceptions from static initializers
     -misc-const-correctness
+    -misc-no-recursion
     -misc-use-anonymous-namespace # tests use static, as in C
     -performance-enum-size)
 
@@ -106,7 +112,8 @@ set(_LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED
     -readability-named-parameter
     -readability-implicit-bool-conversion
     -readability-uppercase-literal-suffix
-    -cppcoreguidelines-avoid-goto)
+    -cppcoreguidelines-avoid-goto
+    -misc-no-recursion)
 
 list(JOIN _LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED ","
      _LIBRA_CLANG_TIDY_CHECKS_CXX_DISABLED)

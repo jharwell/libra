@@ -204,7 +204,7 @@ function(
   endif()
 
   if("${LIBRA_ANALYSIS_LANGUAGE}" STREQUAL "CXX")
-    set(STD_ARGS --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD})
+    set(STD_ARGS --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD} --extra-arg=-xc++)
     if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
       set(LIBRA_CLANG_TIDY_FILEPATH
           "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy-cxx")
@@ -215,7 +215,7 @@ function(
     endif()
 
   else()
-    set(STD_ARGS --extra-arg=-std=gnu${LIBRA_C_STANDARD})
+    set(STD_ARGS --extra-arg=-std=gnu${LIBRA_C_STANDARD} --extra-arg=-xc)
     if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
       set(LIBRA_CLANG_TIDY_FILEPATH
           "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy-c")

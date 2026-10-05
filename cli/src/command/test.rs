@@ -166,14 +166,30 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
     debug!("Begin");
     let preset = preset::resolve(ctx, None)?;
 
-    let bdir = cmake::binary_dir(&preset);
-
-    if args.reconfigure || args.fresh || bdir.as_ref().is_none_or(|b| !b.exists()) {
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_TESTS")?;
     }
+
+    let bdir_raw = cmake::binary_dir(&preset);
+    let bdir = if ctx.dry_run {
+        // Nothing runs in a dry run, so the directory needn't exist; use a
+        // placeholder for the commands that get printed.
+        bdir_raw.unwrap_or_else(|| std::path::PathBuf::from("build"))
+    } else {
+        bdir_raw.ok_or_else(|| {
+            anyhow::anyhow!(
+                "Build directory does not exist for preset '{}'.\n\
+             Run 'libra build --preset {}' first.",
+                preset,
+                preset
+            )
+        })?
+    };
+
+    if args.reconfigure || args.fresh || !bdir.exists() {
+        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
+    }
+
     if !args.no_build {
         let mut cmd = cmake::base_build(&preset);
         cmd.args(["--target", "all-tests"]);
@@ -212,7 +228,7 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
     }
     if let Some(policy) = args.valgrind {
         cmd.args(["-T", "memcheck"]);
-        cmd.arg("--test-dir").arg(bdir.unwrap());
+        cmd.arg("--test-dir").arg(bdir);
         cmd.arg("--overwrite").arg(format!(
             "MemoryCheckCommandOptions={}",
             policy.valgrind_args().join(" ")
