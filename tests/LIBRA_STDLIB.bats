@@ -224,15 +224,13 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=NONE)
 
-    run cache_value_equals "$test_dir" "LIBRA_STDLIB" "NONE"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_STDLIB" "NONE"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_STDLIB" "NONE"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_STDLIB" "NONE"
 }
 
 @test "STDLIB: Can change value on reconfiguration" {
@@ -241,15 +239,13 @@ setup() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_STDLIB=CXX)
 
-    run cache_value_equals "$test_dir" "LIBRA_STDLIB" "CXX"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_STDLIB" "CXX"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_STDLIB=STDCXX --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_STDLIB" "STDCXX"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_STDLIB" "STDCXX"
 }
 
 # ==============================================================================

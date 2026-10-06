@@ -30,71 +30,61 @@ setup() {
 @test "ERL: LIBRA_ERL=NONE stores value in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=NONE)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "NONE"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "NONE"
 }
 
 @test "ERL: LIBRA_ERL=DEBUG stores value in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=DEBUG)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "DEBUG"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "DEBUG"
 }
 
 @test "ERL: LIBRA_ERL=ALL stores value in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=ALL)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "ALL"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "ALL"
 }
 
 @test "ERL: LIBRA_ERL=INHERIT stores value in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=INHERIT)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "INHERIT"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "INHERIT"
 }
 
 @test "ERL: Default value is INHERIT" {
     test_dir=$(run_libra_cmake_test "c")
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "INHERIT"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "INHERIT"
 }
 
 @test "ERL: Works with C++ projects" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ERL=DEBUG)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "DEBUG"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "DEBUG"
 }
 
 @test "ERL: Cache variable persists across reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=ERROR)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "ERROR"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "ERROR"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "ERROR"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "ERROR"
 }
 
 @test "ERL: Can change value on reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_ERL=ERROR)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "ERROR"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "ERROR"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_ERL=DEBUG --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL" "DEBUG"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL" "DEBUG"
 }
 
 # ==============================================================================

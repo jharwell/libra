@@ -109,11 +109,11 @@ assert_cpack_value() {
     local expected="$3"
 
     local actual
-    actual=$(cpack_config_value "$test_dir" "$varname")
-    if [[ "$actual" != "$expected" ]]; then
-        echo "CPACK: $varname: expected '$expected', got '$actual'" >&3
-        return 1
-    fi
+    actual=$(cpack_config_value "$test_dir" "$varname") || true
+
+    [[ "$actual" == "$expected" ]] && return 0
+    libra_fail "CPackConfig.cmake value differs" \
+        variable "$varname" expected "$expected" actual "$actual"
 }
 
 # Assert a variable is present (non-empty) in CPackConfig.cmake.
@@ -123,11 +123,11 @@ assert_cpack_var_set() {
     local varname="$2"
 
     local actual
-    actual=$(cpack_config_value "$test_dir" "$varname")
-    if [[ -z "$actual" ]]; then
-        echo "CPACK: $varname not set in CPackConfig.cmake" >&3
-        return 1
-    fi
+    actual=$(cpack_config_value "$test_dir" "$varname") || true
+
+    [[ -n "$actual" ]] && return 0
+    libra_fail "CPackConfig.cmake variable not set" \
+        variable "$varname" file "$test_dir/CPackConfig.cmake"
 }
 
 # ==============================================================================
@@ -138,35 +138,35 @@ assert_cpack_var_set() {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=TGZ)
 
-    [ -f "$test_dir/CPackConfig.cmake" ]
+    assert_file_exists "$test_dir/CPackConfig.cmake"
 }
 
 @test "CPACK: ZIP generator produces CPackConfig.cmake" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=ZIP)
 
-    [ -f "$test_dir/CPackConfig.cmake" ]
+    assert_file_exists "$test_dir/CPackConfig.cmake"
 }
 
 @test "CPACK: DEB generator produces CPackConfig.cmake" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=DEB)
 
-    [ -f "$test_dir/CPackConfig.cmake" ]
+    assert_file_exists "$test_dir/CPackConfig.cmake"
 }
 
 @test "CPACK: RPM generator produces CPackConfig.cmake" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=RPM)
 
-    [ -f "$test_dir/CPackConfig.cmake" ]
+    assert_file_exists "$test_dir/CPackConfig.cmake"
 }
 
 @test "CPACK: multiple generators (TGZ;ZIP) produce CPackConfig.cmake" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords" \
         "-DLIBRA_TEST_CPACK_GENERATORS=TGZ;ZIP")
 
-    [ -f "$test_dir/CPackConfig.cmake" ]
+    assert_file_exists "$test_dir/CPackConfig.cmake"
 }
 
 # ==============================================================================
@@ -205,8 +205,7 @@ assert_cpack_var_set() {
     # Value must be non-empty and in x.y.z form
     local ver
     ver=$(cpack_config_value "$test_dir" "CPACK_PACKAGE_VERSION")
-    [ -n "$ver" ]
-    [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+    assert_regex "$ver" '^[0-9]+\.[0-9]+\.[0-9]+$'
 }
 
 @test "CPACK: CPACK_PACKAGE_NAME set in CPackConfig.cmake" {
@@ -324,8 +323,8 @@ assert_cpack_var_set() {
         -DLIBRA_TEST_CPACK_GENERATORS=TGZ \
         -DLIBRA_TEST_CPACK_OMIT_LICENSE=ON)
 
-    [ -n "$test_dir" ]
-    [ -f "$test_dir/CPackConfig.cmake" ]
+    assert [ -n "$test_dir" ]
+    assert_file_exists "$test_dir/CPackConfig.cmake"
 }
 
 # ==============================================================================
@@ -336,7 +335,7 @@ assert_cpack_var_set() {
     run_libra_cmake_cpack_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=INVALID_GENERATOR
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "CPACK: missing PROJECT_VERSION causes cmake FATAL_ERROR" {
@@ -344,7 +343,7 @@ assert_cpack_var_set() {
         -DLIBRA_TEST_CPACK_GENERATORS=TGZ \
         -DLIBRA_TEST_CPACK_OMIT_VERSION=ON
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 # ==============================================================================
@@ -359,22 +358,22 @@ assert_cpack_var_set() {
     run_libra_cmake_cpack_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=TGZ
 
-    [ "$status" -eq 0 ]
-    assert_output_contains "Configured CPack"
+    assert_success
+    assert_output --partial "Configured CPack"
 }
 
 @test "CPACK: DEB configure emits DEB-specific STATUS message" {
     run_libra_cmake_cpack_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=DEB
 
-    [ "$status" -eq 0 ]
-    assert_output_contains "Configuring DEB package generator"
+    assert_success
+    assert_output --partial "Configuring DEB package generator"
 }
 
 @test "CPACK: RPM configure emits RPM-specific STATUS message" {
     run_libra_cmake_cpack_test "sample_keywords" \
         -DLIBRA_TEST_CPACK_GENERATORS=RPM
 
-    [ "$status" -eq 0 ]
-    assert_output_contains "Configuring RPM package generator"
+    assert_success
+    assert_output --partial "Configuring RPM package generator"
 }

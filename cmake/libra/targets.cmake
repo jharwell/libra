@@ -19,6 +19,15 @@ include(libra/compile/standard)
 
    It also adds the ``include/`` directory as a public dependency for
    building/consuming downstream.
+
+   When the library is SHARED or MODULE, its sources are also compiled with
+   :cmake:variable:`LIBRA_EXPORT_SYMBOL` defined (default
+   ``<PROJECT_NAME>_EXPORTS``, uppercased), so the project's export macro
+   works in every library it builds, components included. CMake's own
+   per-target ``<target>_EXPORTS`` is still defined too.
+
+   .. versionchanged:: 0.13.4
+      Defines :cmake:variable:`LIBRA_EXPORT_SYMBOL` for shared libraries.
 ]]
 function(libra_add_library)
   # Keyword form: NAME <name> ...
@@ -62,6 +71,33 @@ function(libra_add_library)
       "${PROJECT_NAME}"
       CACHE INTERNAL "")
   _libra_configure_standard(${NAME})
+  _libra_define_export_symbol(${NAME})
+endfunction()
+
+#[[.rst:
+.. cmake:command:: _libra_define_export_symbol
+
+   If NAME is a shared or module library, compile it with the project's export
+   symbol defined; see LIBRA_EXPORT_SYMBOL. CMake defines <target>_EXPORTS by
+   itself, but that differs for each of a project's libraries, so a header
+   shared between them can't test for it.
+]]
+function(_libra_define_export_symbol NAME)
+  get_target_property(_type ${NAME} TYPE)
+  if(NOT _type MATCHES "^(SHARED|MODULE)_LIBRARY$")
+    return()
+  endif()
+
+  if(DEFINED LIBRA_EXPORT_SYMBOL)
+    set(_symbol "${LIBRA_EXPORT_SYMBOL}")
+  else()
+    string(MAKE_C_IDENTIFIER "${PROJECT_NAME}_EXPORTS" _symbol)
+    string(TOUPPER "${_symbol}" _symbol)
+  endif()
+
+  if(_symbol)
+    target_compile_definitions(${NAME} PRIVATE ${_symbol})
+  endif()
 endfunction()
 
 #[[.rst:

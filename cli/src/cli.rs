@@ -144,7 +144,7 @@ pub enum Command {
     /// Preset management
     Preset(preset::PresetArgs),
 
-    /// Version management
+    /// Version management.
     Version(version::VersionArgs),
 
     /// Show resolved build configuration, available targets.

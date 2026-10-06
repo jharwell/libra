@@ -85,28 +85,24 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_NO_RTTI=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NO_RTTI" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NO_RTTI" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NO_RTTI" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NO_RTTI" "ON"
 }
 
 @test "OPT_NO_RTTI: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_NO_RTTI=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NO_RTTI" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NO_RTTI" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_OPT_NO_RTTI=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NO_RTTI" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NO_RTTI" "OFF"
 }

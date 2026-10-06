@@ -61,16 +61,6 @@ setup() {
     export CMAKE_BUILD_TYPE=Debug
 }
 
-# Helper: assert flag present in both compile and link flags
-assert_san_flag_present() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
-
-    assert_compile_flag_present "$test_dir" "$lang" "$flag"
-    assert_link_flag_present    "$test_dir" "$lang" "$flag"
-}
-
 # ==============================================================================
 # NONE — no sanitizer flags
 # ==============================================================================
@@ -111,35 +101,35 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=leak"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=leak"
 }
 
 @test "SAN: GNU/C MSAN adds -fno-omit-frame-pointer" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fno-omit-frame-pointer"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fno-omit-frame-pointer"
 }
 
 @test "SAN: GNU/C MSAN adds -fno-optimize-sibling-calls" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fno-optimize-sibling-calls"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fno-optimize-sibling-calls"
 }
 
 @test "SAN: GNU/C MSAN adds -fsanitize-recover=all" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize-recover=all"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize-recover=all"
 }
 
 @test "SAN: GNU/C++ MSAN adds -fsanitize=leak in compile and link flags" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=leak"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=leak"
 }
 
 # ==============================================================================
@@ -150,35 +140,35 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=address"
 }
 
 @test "SAN: GNU/C ASAN adds -fsanitize-address-use-after-scope" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize-address-use-after-scope"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize-address-use-after-scope"
 }
 
 @test "SAN: GNU/C ASAN adds -fsanitize=pointer-compare" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=pointer-compare"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=pointer-compare"
 }
 
 @test "SAN: GNU/C ASAN adds -fsanitize=pointer-subtract" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=pointer-subtract"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=pointer-subtract"
 }
 
 @test "SAN: GNU/C++ ASAN adds -fsanitize=address in compile and link flags" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=address"
 }
 
 # ==============================================================================
@@ -189,21 +179,21 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fstack-protector-all"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fstack-protector-all"
 }
 
 @test "SAN: GNU/C SSAN adds -fstack-protector-strong" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fstack-protector-strong"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fstack-protector-strong"
 }
 
 @test "SAN: GNU/C++ SSAN adds -fstack-protector-all in compile and link flags" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fstack-protector-all"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fstack-protector-all"
 }
 
 # ==============================================================================
@@ -214,35 +204,35 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=undefined"
 }
 
 @test "SAN: GNU/C UBSAN adds -fsanitize=float-divide-by-zero" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=float-divide-by-zero"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=float-divide-by-zero"
 }
 
 @test "SAN: GNU/C UBSAN adds -fsanitize=bool" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=bool"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=bool"
 }
 
 @test "SAN: GNU/C UBSAN adds -fsanitize=vptr" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=vptr"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=vptr"
 }
 
 @test "SAN: GNU/C++ UBSAN adds -fsanitize=undefined in compile and link flags" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
 }
 
 # ==============================================================================
@@ -253,14 +243,14 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=TSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=thread"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=thread"
 }
 
 @test "SAN: GNU/C++ TSAN adds -fsanitize=thread in compile and link flags" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=TSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=thread"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=thread"
 }
 
 # ==============================================================================
@@ -272,7 +262,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=memory"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=memory"
 }
 
 @test "SAN: Clang/C MSAN adds -fsanitize-memory-track-origins" {
@@ -280,7 +270,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize-memory-track-origins"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize-memory-track-origins"
 }
 
 @test "SAN: Clang/C++ MSAN adds -fsanitize=memory in compile and link flags" {
@@ -288,7 +278,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=memory"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=memory"
 }
 
 # ==============================================================================
@@ -300,7 +290,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=address"
 }
 
 @test "SAN: Clang/C++ ASAN adds -fsanitize=address in compile and link flags" {
@@ -308,7 +298,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=address"
 }
 
 # ==============================================================================
@@ -320,7 +310,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fstack-protector-all"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fstack-protector-all"
 }
 
 @test "SAN: Clang/C++ SSAN adds -fstack-protector-all in compile and link flags" {
@@ -328,7 +318,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fstack-protector-all"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fstack-protector-all"
 }
 
 # ==============================================================================
@@ -340,7 +330,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=undefined"
 }
 
 @test "SAN: Clang/C UBSAN adds -fsanitize=unsigned-integer-overflow" {
@@ -348,7 +338,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=unsigned-integer-overflow"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=unsigned-integer-overflow"
 }
 
 @test "SAN: Clang/C UBSAN adds -fsanitize=local-bounds" {
@@ -356,7 +346,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=local-bounds"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=local-bounds"
 }
 
 @test "SAN: Clang/C++ UBSAN adds -fsanitize=undefined in compile and link flags" {
@@ -364,7 +354,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
 }
 
 # ==============================================================================
@@ -376,7 +366,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=TSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=thread"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=thread"
 }
 
 @test "SAN: Clang/C++ TSAN adds -fsanitize=thread in compile and link flags" {
@@ -384,7 +374,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=TSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=thread"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=thread"
 }
 
 # ==============================================================================
@@ -396,7 +386,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=memory"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=memory"
 }
 
 @test "SAN: Intel/C++ MSAN adds -fsanitize=memory in compile and link flags" {
@@ -404,7 +394,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=MSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=memory"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=memory"
 }
 
 # ==============================================================================
@@ -416,7 +406,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=address"
 }
 
 @test "SAN: Intel/C++ ASAN adds -fsanitize=address in compile and link flags" {
@@ -424,7 +414,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=ASAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=address"
 }
 
 # ==============================================================================
@@ -436,7 +426,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fstack-protector-all"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fstack-protector-all"
 }
 
 @test "SAN: Intel/C++ SSAN adds -fstack-protector-all in compile and link flags" {
@@ -444,7 +434,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=SSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fstack-protector-all"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fstack-protector-all"
 }
 
 # ==============================================================================
@@ -456,7 +446,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=undefined"
 }
 
 @test "SAN: Intel/C++ UBSAN adds -fsanitize=undefined in compile and link flags" {
@@ -464,7 +454,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=UBSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
 }
 
 # ==============================================================================
@@ -476,7 +466,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=TSAN)
 
-    assert_san_flag_present "$test_dir" "c" "-fsanitize=thread"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fsanitize=thread"
 }
 
 @test "SAN: Intel/C++ TSAN adds -fsanitize=thread in compile and link flags" {
@@ -484,7 +474,7 @@ assert_san_flag_present() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_SAN=TSAN)
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=thread"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=thread"
 }
 
 @test "SAN: Intel/C TSAN does not add GNU -fsanitize-recover=all" {
@@ -516,8 +506,8 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
 }
 
 @test "SAN: Clang/C++ ASAN+UBSAN adds both sanitizer flags in compile and link flags" {
@@ -525,8 +515,8 @@ assert_san_flag_present() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" "-DLIBRA_SAN=ASAN+UBSAN")
 
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=address"
-    assert_san_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=address"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fsanitize=undefined"
 }
 
 @test "SAN: GNU/C MSAN+ASAN not tested (incompatible combination)" {
@@ -579,28 +569,24 @@ assert_san_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    run cache_value_equals "$test_dir" "LIBRA_SAN" "ASAN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_SAN" "ASAN"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_SAN" "ASAN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_SAN" "ASAN"
 }
 
 @test "SAN: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_SAN=ASAN)
 
-    run cache_value_equals "$test_dir" "LIBRA_SAN" "ASAN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_SAN" "ASAN"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_SAN=UBSAN --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_SAN" "UBSAN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_SAN" "UBSAN"
 }

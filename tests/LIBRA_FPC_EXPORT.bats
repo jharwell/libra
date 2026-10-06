@@ -27,8 +27,7 @@ setup() {
         -DLIBRA_FPC=ABORT)
 
     # The consumer should see the LIBRA_FPC define
-    run consumer_has_define "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "c"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_present "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "c"
 }
 
 @test "FPC_EXPORT: LIBRA_FPC_EXPORT=OFF does not propagate define" {
@@ -38,8 +37,7 @@ setup() {
         -DLIBRA_FPC=ABORT)
 
     # The consumer should NOT see the LIBRA_FPC define
-    run consumer_define_absent "$test_dir" "LIBRA_FPC=" "c"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_absent "$test_dir" "LIBRA_FPC=" "c"
 }
 
 @test "FPC_EXPORT: Consumer build info file exists when test enabled" {
@@ -49,7 +47,7 @@ setup() {
         -DLIBRA_FPC=ABORT)
 
     # Verify consumer_build_info.c was created
-    [ -f "$test_dir/consumer/consumer_build_info.c" ]
+    assert_file_exists "$test_dir/consumer/consumer_build_info.c"
 }
 
 @test "FPC_EXPORT: Works with C++ projects" {
@@ -59,8 +57,7 @@ setup() {
         -DLIBRA_FPC=ABORT)
 
     # Consumer should see the define
-    run consumer_has_define "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "cxx"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_present "$test_dir" "LIBRA_FPC=LIBRA_FPC_ABORT" "cxx"
 }
 
 @test "FPC_EXPORT: Cache variable persists across reconfiguration" {
@@ -69,15 +66,13 @@ setup() {
         -DLIBRA_FPC_EXPORT=ON \
         -DLIBRA_FPC=ABORT)
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC_EXPORT" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC_EXPORT" "ON"
 }
 
 @test "FPC_EXPORT: Can change value on reconfiguration" {
@@ -86,13 +81,11 @@ setup() {
         -DLIBRA_FPC_EXPORT=ON \
         -DLIBRA_FPC=ABORT)
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC_EXPORT" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_FPC_EXPORT=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FPC_EXPORT" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FPC_EXPORT" "OFF"
 }

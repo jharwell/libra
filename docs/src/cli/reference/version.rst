@@ -19,7 +19,7 @@ To use:
    clibra version               # show numeric version
    clibra version --full        # show full version
    clibra version --bump        # Bump version
-   clibra version --check 1.23  # CI gate: fail if resolve != 1.2.3
+   clibra version --check 1.2.3 # CI gate: fail if resolve != 1.2.3
 
 Requires  :cmake:variable:`LIBRA_PROJECT_VERSION`,
 :cmake:variable:`LIBRA_PROJECT_VERSION_NUMERIC`,

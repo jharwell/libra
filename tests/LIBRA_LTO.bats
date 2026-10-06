@@ -29,16 +29,14 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: GNU/C OFF does not inject LTO flags into flags.make" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=OFF)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ------------------------------------------------------------------------------
@@ -49,16 +47,14 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_LTO=ON)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: GNU/C++ OFF does not inject LTO flags into flags.make" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_LTO=OFF)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ------------------------------------------------------------------------------
@@ -70,8 +66,7 @@ setup() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: Clang/C OFF does not inject LTO flags into flags.make" {
@@ -79,8 +74,7 @@ setup() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=OFF)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ------------------------------------------------------------------------------
@@ -92,8 +86,7 @@ setup() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_LTO=ON)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: Clang/C++ OFF does not inject LTO flags into flags.make" {
@@ -101,8 +94,7 @@ setup() {
     COMPILER_TYPE=clang
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_LTO=OFF)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ------------------------------------------------------------------------------
@@ -114,8 +106,7 @@ setup() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: Intel/C OFF does not inject LTO flags into flags.make" {
@@ -123,8 +114,7 @@ setup() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=OFF)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ------------------------------------------------------------------------------
@@ -136,8 +126,7 @@ setup() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_LTO=ON)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: Intel/C++ OFF does not inject LTO flags into flags.make" {
@@ -145,8 +134,7 @@ setup() {
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_LTO=OFF)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 # ------------------------------------------------------------------------------
@@ -157,38 +145,33 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c")
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 @test "LTO: Cache variable persists across reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_LTO" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_LTO" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_LTO" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_LTO" "ON"
 }
 
 @test "LTO: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_LTO=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_LTO" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_LTO" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_LTO=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_LTO" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_LTO" "OFF"
 }
 
 # ==============================================================================
@@ -205,8 +188,7 @@ setup() {
         -DLIBRA_LTO=ON \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: GNU/C OFF does not inject LTO flags in RelWithDebInfo build" {
@@ -215,8 +197,7 @@ setup() {
         -DLIBRA_LTO=OFF \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 @test "LTO: GNU/C ON injects LTO flags in MinSizeRel build" {
@@ -225,8 +206,7 @@ setup() {
         -DLIBRA_LTO=ON \
         -DCMAKE_BUILD_TYPE=MinSizeRel)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: GNU/C OFF does not inject LTO flags in MinSizeRel build" {
@@ -235,8 +215,7 @@ setup() {
         -DLIBRA_LTO=OFF \
         -DCMAKE_BUILD_TYPE=MinSizeRel)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -ne 0 ]
+    assert_lto_flag_absent "$test_dir"
 }
 
 @test "LTO: Clang/C ON injects LTO flags in RelWithDebInfo build" {
@@ -246,8 +225,7 @@ setup() {
         -DLIBRA_LTO=ON \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }
 
 @test "LTO: Clang/C ON injects LTO flags in MinSizeRel build" {
@@ -257,6 +235,5 @@ setup() {
         -DLIBRA_LTO=ON \
         -DCMAKE_BUILD_TYPE=MinSizeRel)
 
-    run has_lto_flag "$test_dir"
-    [ "$status" -eq 0 ]
+    assert_lto_flag_present "$test_dir"
 }

@@ -35,14 +35,14 @@ default_preset_value() {
 
 @test "PRESET: list succeeds" {
     run_clibra preset list
-    assert_clibra_success
+    assert_success
 }
 
 @test "PRESET: list enumerates known presets" {
     run_clibra preset list
-    assert_clibra_success
-    assert_output_contains "debug"
-    assert_output_contains "release"
+    assert_success
+    assert_output --partial "debug"
+    assert_output --partial "release"
 }
 
 # ==============================================================================
@@ -51,19 +51,19 @@ default_preset_value() {
 
 @test "PRESET: show succeeds for an explicit preset" {
     run_clibra --preset debug preset show
-    assert_clibra_success
+    assert_success
 }
 
 @test "PRESET: show prints the resolved preset banner" {
     run_clibra --preset debug preset show
-    assert_clibra_success
-    assert_output_contains "Resolved preset"
-    assert_output_contains "debug"
+    assert_success
+    assert_output --partial "Resolved preset"
+    assert_output --partial "debug"
 }
 
 @test "PRESET: show fails for a non-existent preset" {
     run_clibra --preset no_such_preset_xyzzy preset show
-    assert_clibra_failure
+    assert_failure
 }
 
 # ==============================================================================
@@ -72,19 +72,19 @@ default_preset_value() {
 
 @test "PRESET: default without --preset fails" {
     run_clibra preset default
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "PRESET: default without --preset reports --preset is required" {
     run_clibra preset default
-    assert_clibra_failure
-    assert_output_contains "--preset is required"
+    assert_failure
+    assert_output --partial "--preset is required"
 }
 
 @test "PRESET: default reports the preset it set" {
     run_clibra --preset debug preset default
-    assert_clibra_success
-    assert_output_contains "debug"
+    assert_success
+    assert_output --partial "debug"
 }
 
 # ==============================================================================
@@ -94,24 +94,24 @@ default_preset_value() {
 @test "PRESET: default creates CMakeUserPresets.json when absent" {
     rm -f CMakeUserPresets.json
     run_clibra --preset debug preset default
-    assert_clibra_success
-    [ -f CMakeUserPresets.json ]
+    assert_success
+    assert_file_exists CMakeUserPresets.json
 }
 
 @test "PRESET: default warns when creating the stub file" {
     rm -f CMakeUserPresets.json
     run_clibra --preset debug preset default
-    assert_clibra_success
-    assert_output_contains "creating stub"
+    assert_success
+    assert_output --partial "creating stub"
 }
 
 @test "PRESET: created stub carries a version field" {
     require_jq
     rm -f CMakeUserPresets.json
     run_clibra --preset debug preset default
-    assert_clibra_success
+    assert_success
     run jq -e 'has("version")' CMakeUserPresets.json
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -122,17 +122,17 @@ default_preset_value() {
     require_jq
     rm -f CMakeUserPresets.json
     run_clibra --preset release preset default
-    assert_clibra_success
-    [ "$(default_preset_value)" = "release" ]
+    assert_success
+    assert_equal "$(default_preset_value)" "release"
 }
 
 @test "PRESET: default produces valid JSON" {
     require_jq
     rm -f CMakeUserPresets.json
     run_clibra --preset debug preset default
-    assert_clibra_success
+    assert_success
     run jq -e . CMakeUserPresets.json
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -144,12 +144,12 @@ default_preset_value() {
     rm -f CMakeUserPresets.json
 
     run_clibra --preset debug preset default
-    assert_clibra_success
-    [ "$(default_preset_value)" = "debug" ]
+    assert_success
+    assert_equal "$(default_preset_value)" "debug"
 
     run_clibra --preset release preset default
-    assert_clibra_success
-    [ "$(default_preset_value)" = "release" ]
+    assert_success
+    assert_equal "$(default_preset_value)" "release"
 }
 
 # ==============================================================================
@@ -167,13 +167,13 @@ default_preset_value() {
 }
 EOF
     run_clibra --preset debug preset default
-    assert_clibra_success
+    assert_success
 
     # Unrelated key survives...
     run jq -e '.configurePresets[0].name == "custom"' CMakeUserPresets.json
-    [ "$status" -eq 0 ]
+    assert_success
     # ...and the default was still written.
-    [ "$(default_preset_value)" = "debug" ]
+    assert_equal "$(default_preset_value)" "debug"
 }
 
 @test "PRESET: default preserves existing sibling keys under vendor" {
@@ -188,13 +188,13 @@ EOF
 }
 EOF
     run_clibra --preset debug preset default
-    assert_clibra_success
+    assert_success
 
     run jq -e '.vendor["other-tool"].setting == true' CMakeUserPresets.json
-    [ "$status" -eq 0 ]
+    assert_success
     run jq -e '.vendor.libra.someOtherKey == "keep-me"' CMakeUserPresets.json
-    [ "$status" -eq 0 ]
-    [ "$(default_preset_value)" = "debug" ]
+    assert_success
+    assert_equal "$(default_preset_value)" "debug"
 }
 
 # ==============================================================================
@@ -204,15 +204,15 @@ EOF
 @test "PRESET: default fails on invalid JSON" {
     echo "{ this is not json" > CMakeUserPresets.json
     run_clibra --preset debug preset default
-    assert_clibra_failure
-    assert_output_contains "invalid JSON"
+    assert_failure
+    assert_output --partial "invalid JSON"
 }
 
 @test "PRESET: default fails when root is not a JSON object" {
     echo '[1, 2, 3]' > CMakeUserPresets.json
     run_clibra --preset debug preset default
-    assert_clibra_failure
-    assert_output_contains "root is not a JSON object"
+    assert_failure
+    assert_output --partial "root is not a JSON object"
 }
 
 @test "PRESET: default fails when vendor is not an object" {
@@ -220,8 +220,8 @@ EOF
 { "version": 6, "vendor": "not-an-object" }
 EOF
     run_clibra --preset debug preset default
-    assert_clibra_failure
-    assert_output_contains "'vendor' is not an object"
+    assert_failure
+    assert_output --partial "'vendor' is not an object"
 }
 
 @test "PRESET: default fails when vendor.libra is not an object" {
@@ -229,6 +229,6 @@ EOF
 { "version": 6, "vendor": { "libra": "not-an-object" } }
 EOF
     run_clibra --preset debug preset default
-    assert_clibra_failure
-    assert_output_contains "'vendor.libra' is not an object"
+    assert_failure
+    assert_output --partial "'vendor.libra' is not an object"
 }

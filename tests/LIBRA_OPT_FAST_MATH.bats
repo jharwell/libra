@@ -87,6 +87,7 @@ setup() {
 # intel compiler - C
 # ------------------------------------------------------------------------------
 @test "OPT_FAST_MATH: intel/C ON adds -ffast-math" {
+    skip_if_compiler_missing "intel" "c"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_FAST_MATH=ON)
 
@@ -94,6 +95,7 @@ setup() {
 }
 
 @test "OPT_FAST_MATH: intel/C OFF does not add -ffast-math" {
+    skip_if_compiler_missing "intel" "c"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_FAST_MATH=OFF)
 
@@ -105,6 +107,7 @@ setup() {
 # intel compiler - C++
 # ------------------------------------------------------------------------------
 @test "OPT_FAST_MATH: intel/C++ ON adds -ffast-math" {
+    skip_if_compiler_missing "intel" "cxx"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_FAST_MATH=ON)
 
@@ -112,6 +115,7 @@ setup() {
 }
 
 @test "OPT_FAST_MATH: intel/C++ OFF does not add -ffast-math" {
+    skip_if_compiler_missing "intel" "cxx"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_FAST_MATH=OFF)
 

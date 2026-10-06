@@ -25,8 +25,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=ON \
         -DLIBRA_ERL=DEBUG)
 
-    run consumer_has_define "$test_dir" "LIBRA_ERL=LIBRA_ERL_DEBUG" "c"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_present "$test_dir" "LIBRA_ERL=LIBRA_ERL_DEBUG" "c"
 }
 
 @test "ERL_EXPORT: LIBRA_ERL_EXPORT=OFF does not propagate define to consumer" {
@@ -35,8 +34,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=OFF \
         -DLIBRA_ERL=DEBUG)
 
-    run consumer_define_absent "$test_dir" "LIBRA_ERL=" "c"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_absent "$test_dir" "LIBRA_ERL=" "c"
 }
 
 @test "ERL_EXPORT: Consumer build info file exists when test enabled" {
@@ -45,7 +43,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=ON \
         -DLIBRA_ERL=ERROR)
 
-    [ -f "$test_dir/consumer/consumer_build_info.c" ]
+    assert_file_exists "$test_dir/consumer/consumer_build_info.c"
 }
 
 @test "ERL_EXPORT: Works with C++ projects" {
@@ -54,8 +52,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=ON \
         -DLIBRA_ERL=DEBUG)
 
-    run consumer_has_define "$test_dir" "LIBRA_ERL=LIBRA_ERL_DEBUG" "cxx"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_present "$test_dir" "LIBRA_ERL=LIBRA_ERL_DEBUG" "cxx"
 }
 
 @test "ERL_EXPORT: C++ OFF does not propagate define to consumer" {
@@ -64,8 +61,7 @@ setup() {
         -DLIBRA_ERL_EXPORT=OFF \
         -DLIBRA_ERL=DEBUG)
 
-    run consumer_define_absent "$test_dir" "LIBRA_ERL=" "cxx"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_absent "$test_dir" "LIBRA_ERL=" "cxx"
 }
 
 @test "ERL_EXPORT: Cache variable persists across reconfiguration" {
@@ -74,15 +70,13 @@ setup() {
         -DLIBRA_ERL_EXPORT=ON \
         -DLIBRA_ERL=ERROR)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL_EXPORT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL_EXPORT" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL_EXPORT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL_EXPORT" "ON"
 }
 
 @test "ERL_EXPORT: Can change value on reconfiguration" {
@@ -91,15 +85,13 @@ setup() {
         -DLIBRA_ERL_EXPORT=ON \
         -DLIBRA_ERL=ERROR)
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL_EXPORT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL_EXPORT" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_ERL_EXPORT=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_ERL_EXPORT" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_ERL_EXPORT" "OFF"
 }
 
 @test "ERL_EXPORT: INHERIT level with EXPORT=ON propagates INHERIT define" {
@@ -110,6 +102,5 @@ setup() {
         -DLIBRA_ERL=INHERIT)
 
     # With INHERIT the define is not set, so consumer should not see it
-    run consumer_define_absent "$test_dir" "LIBRA_ERL=" "c"
-    [ "$status" -eq 0 ]
+    assert_consumer_define_absent "$test_dir" "LIBRA_ERL=" "c"
 }

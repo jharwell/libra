@@ -20,50 +20,50 @@ setup() {
 
 @test "INFO: output contains 'Build configuration' section" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "Build configuration"
+    assert_success
+    assert_output --partial "Build configuration"
 }
 
 @test "INFO: output contains CMAKE_BUILD_TYPE" {
     run_clibra info --preset debug --log=trace
-    assert_clibra_success
-    assert_output_contains "CMAKE_BUILD_TYPE"
+    assert_success
+    assert_output --partial "CMAKE_BUILD_TYPE"
 }
 
 @test "INFO: output contains correct build type for preset" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "Debug"
+    assert_success
+    assert_output --partial "Debug"
 }
 
 @test "INFO: output contains generator name" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "Generator"
+    assert_success
+    assert_output --partial "Generator"
 }
 
 @test "INFO: output contains build directory path" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "Build dir"
+    assert_success
+    assert_output --partial "Build dir"
 }
 
 @test "INFO: build directory path contains preset name" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "debug"
+    assert_success
+    assert_output --partial "debug"
 }
 
 @test "INFO: output contains LIBRA feature flags section" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "LIBRA feature flags"
+    assert_success
+    assert_output --partial "LIBRA feature flags"
 }
 
 @test "INFO: output contains 'Available LIBRA targets' section" {
     run_clibra info --preset debug
-    assert_clibra_success
-    assert_output_contains "Available LIBRA targets"
+    assert_success
+    assert_output --partial "Available LIBRA targets"
 }
 
 # ==============================================================================
@@ -72,20 +72,20 @@ setup() {
 
 @test "INFO: --build shows build configuration section" {
     run_clibra info --preset debug --build
-    assert_clibra_success
-    assert_output_contains "Build configuration"
+    assert_success
+    assert_output --partial "Build configuration"
 }
 
 @test "INFO: --build shows LIBRA feature flags section" {
     run_clibra info --preset debug --build
-    assert_clibra_success
-    assert_output_contains "LIBRA feature flags"
+    assert_success
+    assert_output --partial "LIBRA feature flags"
 }
 
 @test "INFO: --build does not show targets section" {
     run_clibra info --preset debug --build
-    assert_clibra_success
-    assert_output_not_contains "Available LIBRA targets"
+    assert_success
+    refute_output --partial "Available LIBRA targets"
 }
 
 # ==============================================================================
@@ -94,32 +94,32 @@ setup() {
 
 @test "INFO: --targets shows targets section" {
     run_clibra info --preset debug --targets
-    assert_clibra_success
-    assert_output_contains "Available LIBRA targets"
+    assert_success
+    assert_output --partial "Available LIBRA targets"
 }
 
 @test "INFO: --targets shows tests group" {
     run_clibra info --preset debug --targets
-    assert_clibra_success
-    assert_output_contains "tests"
+    assert_success
+    assert_output --partial "tests"
 }
 
 @test "INFO: --targets shows analysis group" {
     run_clibra info --preset debug --targets
-    assert_clibra_success
-    assert_output_contains "analysis"
+    assert_success
+    assert_output --partial "analysis"
 }
 
 @test "INFO: --targets does not show build configuration section" {
     run_clibra info --preset debug --targets
-    assert_clibra_success
-    assert_output_not_contains "CMAKE_BUILD_TYPE"
+    assert_success
+    refute_output --partial "CMAKE_BUILD_TYPE"
 }
 
 @test "INFO: --targets does not show LIBRA feature flags section" {
     run_clibra info --preset debug --targets
-    assert_clibra_success
-    assert_output_not_contains "LIBRA feature flags"
+    assert_success
+    refute_output --partial "LIBRA feature flags"
 }
 
 # ==============================================================================
@@ -128,12 +128,12 @@ setup() {
 
 @test "INFO: fails when build directory does not exist" {
     run_clibra info --preset release
-    assert_clibra_failure
-    assert_output_contains "Build directory"
+    assert_failure
+    assert_output --partial "Build directory"
 }
 
 @test "INFO: fails when no preset files exist" {
     rm -f CMakePresets.json CMakeUserPresets.json
     run_clibra info --preset debug
-    assert_clibra_failure
+    assert_failure
 }

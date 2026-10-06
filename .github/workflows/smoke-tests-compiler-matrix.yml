@@ -58,7 +58,10 @@ jobs:
           }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
       - name: Configure compiler
         shell: bash
         run: |
@@ -69,14 +72,11 @@ jobs:
         if: inputs.pip-install-conan
         shell: bash
         run: pip3 install conan --break-system-packages
+      - name: Configure git
+        shell: bash
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
-        # 2026-09-23 [JRH]: Some of the intel tests are flaky for unknown
-        # reasons, but re-running them a second time seems to work reliably.
       - name: Run smoke tests
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 30
-          max_attempts: 2
-          shell: bash
-          command: |
-            cd tests && ${{ inputs.suite-script }} ${{ inputs.suite-args }}
+        shell: bash
+        run: |
+          cd tests && ${{ inputs.suite-script }} ${{ inputs.suite-args }}

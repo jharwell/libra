@@ -29,7 +29,7 @@ jobs:
       image: jharwell/ubuntu24.04-libra:20260918
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
             # Full history so tag creation and describe work.
             ref: master

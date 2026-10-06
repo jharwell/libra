@@ -59,19 +59,11 @@ pub enum DocsSubCommand {
 
 #[derive(clap::Parser, Debug)]
 pub struct DocsArgs {
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 
     #[command(flatten)]
     pub common: CommonArgs,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long, global = true)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long, global = true)]
-    pub fresh: bool,
 
     #[command(subcommand)]
     pub command: DocsSubCommand,
@@ -88,10 +80,7 @@ fn run_target(ctx: &runner::Context, args: &DocsArgs, target: &str) -> anyhow::R
 
     debug!("Begin");
 
-    if args.reconfigure || args.fresh {
-        debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
+    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
 
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_DOCS")?;

@@ -157,40 +157,46 @@ setup() {
 # Intel compiler - C
 # ------------------------------------------------------------------------------
 
-@test "OPT_NATIVE: Intel/C ON adds -xHost" {
+@test "OPT_NATIVE: Intel/C ON adds optimization options" {
     skip_if_compiler_missing "intel" "c"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_NATIVE=ON)
 
-    assert_compile_flag_present "$test_dir" "c" "-xHost"
+    # -xHost is rejected on non-intel CPUs
+    assert_compile_flag_present "$test_dir" "c" "-xHost" ||
+        assert_compile_flag_present "$test_dir" "c" "-march=native"
 }
 
-@test "OPT_NATIVE: Intel/C OFF does not add -xHost" {
+@test "OPT_NATIVE: Intel/C OFF does not add optimization options" {
     skip_if_compiler_missing "intel" "c"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_NATIVE=OFF)
 
-    assert_compile_flag_absent "$test_dir" "c" "-xHost"
+    assert_compile_flag_absent "$test_dir" "c" "-xHost" &&
+        assert_compile_flag_absent "$test_dir" "c" "-march=native"
 }
 
 # ------------------------------------------------------------------------------
 # Intel compiler - C++
 # ------------------------------------------------------------------------------
 
-@test "OPT_NATIVE: Intel/C++ ON adds -xHost" {
+@test "OPT_NATIVE: Intel/C++ ON adds optimization options" {
     skip_if_compiler_missing "intel" "cxx"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_NATIVE=ON)
 
-    assert_compile_flag_present "$test_dir" "cxx" "-xHost"
+    # -xHost is rejected on non-intel CPUs
+    assert_compile_flag_present "$test_dir" "cxx" "-xHost" ||
+        assert_compile_flag_present "$test_dir" "cxx" "-march=native"
 }
 
-@test "OPT_NATIVE: Intel/C++ OFF does not add -xHost" {
+@test "OPT_NATIVE: Intel/C++ OFF does not add optimization options" {
     skip_if_compiler_missing "intel" "cxx"
     COMPILER_TYPE=intel
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_OPT_NATIVE=OFF)
 
-    assert_compile_flag_absent "$test_dir" "cxx" "-xHost"
+    assert_compile_flag_absent "$test_dir" "cxx" "-xHost" &&
+        assert_compile_flag_absent "$test_dir" "cxx" "-march=native"
 }
 
 # ------------------------------------------------------------------------------
@@ -209,28 +215,24 @@ setup() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_NATIVE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NATIVE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NATIVE" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NATIVE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NATIVE" "ON"
 }
 
 @test "OPT_NATIVE: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_OPT_NATIVE=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NATIVE" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NATIVE" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_OPT_NATIVE=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_OPT_NATIVE" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_OPT_NATIVE" "OFF"
 }

@@ -27,7 +27,7 @@ The minimum setup to make your library installable and usable with
 .. code-block:: cmake
 
    libra_configure_exports(mylib)
-   libra_install_target(mylib INCLUDE_DIR include/)
+   libra_install_target(mylib)
 
 After ``cmake --build . --target install``, downstream projects can use:
 
@@ -88,7 +88,7 @@ path rather than importing exported targets:
 
    @PACKAGE_INIT@
 
-   set_and_check(mylib_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/include")
+   set_and_check(mylib)
    check_required_components(mylib)
 
 .. _cookbook/packaging/cmake-modules:
@@ -276,8 +276,7 @@ installation, and packaging:
    # ── Installation ───────────────────────────────────────────────────────────
    libra_configure_exports(${PROJECT_NAME})
 
-   libra_install_target(${PROJECT_NAME}
-     INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+   libra_install_target(${PROJECT_NAME})
 
    libra_install_cmake_modules(${PROJECT_NAME} cmake/modules)
 

@@ -6,6 +6,9 @@
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/include)
 file(WRITE ${CMAKE_BINARY_DIR}/include/a.hpp "int a(){return 0;}")
 file(WRITE ${CMAKE_BINARY_DIR}/include/b.hpp "int b(){return 0;}")
+# Nested header: lets LIBRA_INSTALL.bats verify that libra_install_headers()
+# keeps subdirectories instead of flattening them.
+file(WRITE ${CMAKE_BINARY_DIR}/include/nested/c.hpp "int c(){return 0;}")
 file(WRITE ${CMAKE_BINARY_DIR}/a.cpp "int f(){return 0;}")
 file(WRITE ${CMAKE_BINARY_DIR}/b.cpp "int g(){return 0;} int main(){return 0;}")
 
@@ -18,7 +21,7 @@ libra_add_library(NAME mylib ${CMAKE_BINARY_DIR}/a.cpp)
 libra_add_executable(NAME myexe ${CMAKE_BINARY_DIR}/b.cpp)
 
 libra_configure_exports(mylib)
-libra_install_headers(${CMAKE_BINARY_DIR}/include)
+libra_install_headers(${CMAKE_BINARY_DIR}/include/)
 libra_install_target(mylib)
 libra_install_cmake_modules(TARGET mylib FILES_OR_DIRS
                             ${CMAKE_BINARY_DIR}/cmake/foo.cmake)

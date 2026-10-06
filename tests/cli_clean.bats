@@ -30,8 +30,8 @@ setup() {
 
 @test "CLEAN: does not invoke configure step" {
     run_clibra --dry-run --preset debug clean
-    assert_clibra_success
-    assert_output_not_contains "cmake --preset"
+    assert_success
+    refute_output --partial "cmake --preset"
 }
 
 # ==============================================================================
@@ -41,27 +41,27 @@ setup() {
 @test "CLEAN: --all removes the build directory" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     assert_build_dir_exists "debug"
 
     run_clibra clean --all --preset debug
-    assert_clibra_success
+    assert_success
     assert_build_dir_absent "debug"
 }
 
 @test "CLEAN: default clean does not remove the build directory" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
 
     run_clibra clean --preset debug
-    assert_clibra_success
+    assert_success
     assert_build_dir_exists "debug"
 }
 
 @test "CLEAN: --all on non-existent build directory fails gracefully" {
     run_clibra clean --all --preset debug
-    assert_clibra_failure
+    assert_failure
 }
 
 # ==============================================================================
@@ -70,5 +70,5 @@ setup() {
 
 @test "CLEAN: non-existent preset causes failure" {
     run_clibra clean --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }

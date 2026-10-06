@@ -5,16 +5,13 @@
  */
 
 // Imports
+use clap;
+use log::{debug, warn};
+
 use crate::cmake;
 use crate::preset;
 use crate::runner;
 use crate::utils;
-
-use anyhow;
-use clap;
-use log::{debug, warn};
-
-// Traits
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -38,19 +35,8 @@ pub struct AnalyzeArgs {
     #[arg(short = 'k', long, global = true)]
     pub keep_going: bool,
 
-    /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
-    /// (with a warning) if the build directory exists and neither
-    /// --reconfigure nor --fresh is given.
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long, global = true)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long)]
-    pub fresh: bool,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -58,8 +44,6 @@ pub enum Tool {
     ClangTidy,
     ClangCheck,
     Cppcheck,
-    ClangFormat,
-    CmakeFormat,
 }
 
 pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
@@ -68,8 +52,6 @@ pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
             Some(Tool::ClangTidy) => run_target(ctx, &args, "fix-clang-tidy"),
             Some(Tool::ClangCheck) => run_target(ctx, &args, "fix-clang-check"),
             Some(Tool::Cppcheck) => anyhow::bail!("cppcheck has no fix target"),
-            Some(Tool::ClangFormat) => anyhow::bail!("clang-format has no fix target"),
-            Some(Tool::CmakeFormat) => anyhow::bail!("cmake-format has no fix target"),
             None => run_target(ctx, &args, "fix"),
         }
     } else {
@@ -77,8 +59,6 @@ pub fn run(ctx: &runner::Context, args: AnalyzeArgs) -> anyhow::Result<()> {
             Some(Tool::ClangTidy) => run_target(ctx, &args, "analyze-clang-tidy"),
             Some(Tool::ClangCheck) => run_target(ctx, &args, "analyze-clang-check"),
             Some(Tool::Cppcheck) => run_target(ctx, &args, "analyze-cppcheck"),
-            Some(Tool::ClangFormat) => run_target(ctx, &args, "analyze-clang-format"),
-            Some(Tool::CmakeFormat) => run_target(ctx, &args, "analyze-cmake-format"),
             None => run_target(ctx, &args, "analyze"),
         }
     }
@@ -90,10 +70,7 @@ pub fn run_target(ctx: &runner::Context, args: &AnalyzeArgs, target: &str) -> an
 
     debug!("Begin");
 
-    if args.reconfigure || args.fresh {
-        debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
+    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
 
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_ANALYSIS")?;

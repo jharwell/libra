@@ -20,9 +20,25 @@
 
 load test_helpers
 
+setup_file() {
+    # GNUInstallDirs' libdir (lib vs lib64) is a property of the platform,
+    # so probe it once per file rather than once per test.
+    INSTALL_LIBDIR=$(get_install_libdir)
+    export INSTALL_LIBDIR
+}
+
 setup() {
     setup_libra_test
-    INSTALL_LIBDIR=$(get_install_libdir)
+}
+
+# Build and install a configured sample, failing the test (with cmake's
+# output) if either step fails.
+# Usage: build_and_install TEST_DIR
+build_and_install() {
+    run cmake --build "$1"
+    assert_success
+    run cmake --install "$1"
+    assert_success
 }
 
 # ==============================================================================
@@ -66,19 +82,19 @@ run_libra_cmake_install_test() {
     assert_target_exists "$test_dir" "install"
 }
 
-@test "INSTALL: libra_install_target with INCLUDE_DIR creates install target" {
+@test "INSTALL: libra_install_target creates install target (sample_export)" {
     test_dir=$(run_libra_cmake_sample_test "sample_export")
     assert_target_exists "$test_dir" "install"
 }
 
 @test "INSTALL: sample_keywords configures without error with new API names" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords")
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "INSTALL: sample_export configures without error with new API names" {
     test_dir=$(run_libra_cmake_sample_test "sample_export")
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 # ==============================================================================
@@ -88,48 +104,36 @@ run_libra_cmake_install_test() {
 @test "INSTALL: libra_install_target installs library under lib/" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
     run find "$test_dir/install/${INSTALL_LIBDIR}" -maxdepth 1 \
         \( -name "libmylib.a" -o -name "libmylib.so" -o -name "libmylib.dylib" \)
-    [ -n "$output" ]
+    assert_output
 }
 
 @test "INSTALL: libra_install_target installs config file under lib/cmake/<target>/" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
-    [ -f "$test_dir/install/lib/cmake/mylib/mylib-config.cmake" ]
+    assert_file_exists "$test_dir/install/lib/cmake/mylib/mylib-config.cmake"
 }
 
 @test "INSTALL: libra_install_target installs exports file under lib/cmake/<target>/" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
-    [ -f "$test_dir/install/lib/cmake/mylib/mylib-exports.cmake" ]
+    assert_file_exists "$test_dir/install/lib/cmake/mylib/mylib-exports.cmake"
 }
 
-@test "INSTALL: libra_install_target with INCLUDE_DIR installs headers under include/" {
+@test "INSTALL: libra_install_target installs headers under include/" {
     test_dir=$(run_libra_cmake_sample_test "sample_export")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
     run find "$test_dir/install/include" \( -name "*.hpp" -o -name "*.h" \)
-    [ -n "$output" ]
+    assert_output
 }
 
 # ==============================================================================
@@ -139,27 +143,22 @@ run_libra_cmake_install_test() {
 @test "INSTALL: libra_install_headers installs headers under include/" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
     run find "$test_dir/install/include" \( -name "*.hpp" -o -name "*.h" \)
-    [ -n "$output" ]
+    assert_output
 }
 
 @test "INSTALL: libra_install_headers preserves directory structure" {
     test_dir=$(run_libra_cmake_sample_test "sample_export")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
-    # Both a.hpp and b.hpp must be present (not flattened)
-    [ -f "$test_dir/install/include/a.hpp" ] || \
-    run find "$test_dir/install/include" -name "a.hpp"
-    [ -n "$output" ]
+    # Top-level headers land directly under include/, and the nested header
+    # keeps its subdirectory.
+    assert_file_exists "$test_dir/install/include/a.hpp"
+    assert_file_exists "$test_dir/install/include/b.hpp"
+    assert_file_exists "$test_dir/install/include/nested/c.hpp"
 }
 
 # ==============================================================================
@@ -169,12 +168,9 @@ run_libra_cmake_install_test() {
 @test "INSTALL: libra_install_cmake_modules installs .cmake file under lib/cmake/<target>/" {
     test_dir=$(run_libra_cmake_sample_test "sample_keywords")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
-    [ -f "$test_dir/install/lib/cmake/mylib/foo.cmake" ]
+    assert_file_exists "$test_dir/install/lib/cmake/mylib/foo.cmake"
 }
 
 # ==============================================================================
@@ -184,12 +180,9 @@ run_libra_cmake_install_test() {
 @test "INSTALL: libra_install_copyright installs file renamed to 'copyright'" {
     test_dir=$(run_libra_cmake_sample_test "sample_components")
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . > /dev/null 2>&1
-    cmake --install . > /dev/null 2>&1
-    popd > /dev/null
+    build_and_install "$test_dir"
 
-    [ -f "$test_dir/install/share/doc/sample_components/copyright" ]
+    assert_file_exists "$test_dir/install/share/doc/sample_components/copyright"
 }
 
 # ==============================================================================
@@ -199,7 +192,7 @@ run_libra_cmake_install_test() {
 @test "COMPONENTS: library strategy configures without error" {
     test_dir=$(run_libra_cmake_sample_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_STRATEGY=library)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPONENTS: library strategy creates <target>_networking library target" {
@@ -219,19 +212,19 @@ run_libra_cmake_install_test() {
     # cmake exit 0 proves the flag was set.
     test_dir=$(run_libra_cmake_sample_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_STRATEGY=library)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPONENTS: library strategy sets <target>_serialization_FOUND" {
     test_dir=$(run_libra_cmake_sample_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_STRATEGY=library)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "COMPONENTS: library strategy generates config file in build dir" {
     test_dir=$(run_libra_cmake_sample_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_STRATEGY=library)
-    [ -f "$test_dir/sample_components-config.cmake" ]
+    assert_file_exists "$test_dir/sample_components-config.cmake"
 }
 
 # ==============================================================================
@@ -242,15 +235,11 @@ run_libra_cmake_install_test() {
     test_dir=$(run_libra_cmake_sample_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_STRATEGY=library)
 
-    pushd "$test_dir" > /dev/null
-    cmake --build . 
-    cmake --install .
-    popd > /dev/null
+    build_and_install "$test_dir"
 
     run find "$test_dir/install/${INSTALL_LIBDIR}" -maxdepth 1 \
         \( -name "*networking*" \)
-    echo $output >&3
-    [ -n "$output" ]
+    assert_output
 }
 
 # ==============================================================================
@@ -261,7 +250,7 @@ run_libra_cmake_install_test() {
     run_libra_cmake_install_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_STRATEGY=library
 
-    [ "$status" -eq 0 ]
+    assert_success
     # project-local.cmake doesn't call libra_check_components directly since
     # that's a config.cmake.in concern; verify configure succeeded and _FOUND
     # flags are set (proven by cmake exit 0 from assert_true calls)
@@ -275,35 +264,43 @@ run_libra_cmake_install_test() {
     run_libra_cmake_install_test "sample_keywords" \
         -DLIBRA_TEST_USE_DEPRECATED_NAMES=ON
 
-    assert_output_contains "deprecated"
+    assert_success
+    assert_output --partial "deprecated"
+    assert_output --partial "libra_register_target_for_install"
 }
 
 @test "DEPRECATED: libra_register_headers_for_install emits DEPRECATION warning" {
     run_libra_cmake_install_test "sample_keywords" \
         -DLIBRA_TEST_USE_DEPRECATED_NAMES=ON
 
-    assert_output_contains "deprecated"
+    assert_success
+    assert_output --partial "deprecated"
+    assert_output --partial "libra_register_headers_for_install"
 }
 
 @test "DEPRECATED: libra_register_extra_configs_for_install emits DEPRECATION warning" {
     run_libra_cmake_install_test "sample_keywords" \
         -DLIBRA_TEST_USE_DEPRECATED_NAMES=ON
 
-    assert_output_contains "deprecated"
+    assert_success
+    assert_output --partial "deprecated"
+    assert_output --partial "libra_register_extra_configs_for_install"
 }
 
 @test "DEPRECATED: libra_component_register_as_lib emits DEPRECATION warning" {
     run_libra_cmake_install_test "sample_components" \
         -DLIBRA_TEST_USE_DEPRECATED_NAMES=ON
 
-    assert_output_contains "deprecated"
+    assert_success
+    assert_output --partial "deprecated"
+    assert_output --partial "libra_component_register_as_lib"
 }
 
 @test "DEPRECATED: deprecated wrappers still configure successfully" {
     run_libra_cmake_install_test "sample_keywords" \
         -DLIBRA_TEST_USE_DEPRECATED_NAMES=ON
 
-    [ "$status" -eq 0 ]
+    assert_success
 }
 
 # ==============================================================================
@@ -314,12 +311,12 @@ run_libra_cmake_install_test() {
     run_libra_cmake_install_test "sample_keywords" \
         -DLIBRA_TEST_INSTALL_BAD_TARGET=ON
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }
 
 @test "COMPONENTS: libra_add_component_library without REGEX causes FATAL_ERROR" {
     run_libra_cmake_install_test "sample_components" \
         -DLIBRA_TEST_COMPONENT_MISSING_REGEX=ON
 
-    [ "$status" -ne 0 ]
+    assert_failure
 }

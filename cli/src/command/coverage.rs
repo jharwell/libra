@@ -5,7 +5,7 @@
  */
 
 // Imports
-use anyhow;
+use anyhow::Context;
 use clap;
 use log::debug;
 use open;
@@ -33,16 +33,8 @@ pub struct CoverageArgs {
     #[arg(long)]
     pub open: bool,
 
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long)]
-    pub fresh: bool,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 }
 
 // Traits
@@ -57,11 +49,7 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
 
     let preset = preset::resolve(ctx, Some("coverage"))?;
 
-    if args.reconfigure {
-        debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
-
+    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
     let mut success = false;
     if !args.html && !args.check {
         anyhow::bail!("No coverage target specified: either --html or --check must be given");
@@ -94,7 +82,14 @@ pub fn run(ctx: &runner::Context, args: CoverageArgs) -> anyhow::Result<()> {
 
         if args.open && !ctx.dry_run {
             let bdir = cmake::binary_dir(&preset)
-                .ok_or_else(|| anyhow::anyhow!("build directory not found"))?;
+                .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
+            if !bdir.exists() {
+                anyhow::bail!(
+                    "Build directory '{}' does not exist for preset '{preset}'.\n\
+         Run 'libra build --preset {preset}' first.",
+                    bdir.display()
+                );
+            }
             open::that(bdir.join("coverage").join("index.html"))?;
         }
         success = true;

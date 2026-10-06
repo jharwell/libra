@@ -5,7 +5,6 @@
  */
 
 // Imports
-use anyhow;
 use clap;
 use log::debug;
 
@@ -18,16 +17,8 @@ use crate::runner;
 // ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct FormatArgs {
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long)]
-    pub fresh: bool,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 
     /// The check to run. Defaults to nothing.
     #[arg(short, long)]
@@ -55,10 +46,7 @@ pub fn run_target(ctx: &runner::Context, args: &FormatArgs, target: &str) -> any
 
     debug!("Begin");
 
-    if args.reconfigure || args.fresh {
-        debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
+    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
 
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_FORMAT")?;

@@ -27,16 +27,6 @@ setup() {
     export LIBRA_DIR="${LIBRA_DIR:-$(cd "$BATS_TEST_DIRNAME/.." && pwd)}"
 }
 
-# Helper: assert flag present in both compile and link flags
-assert_pgo_flag_present() {
-    local test_dir="$1"
-    local lang="$2"
-    local flag="$3"
-
-    assert_compile_flag_present "$test_dir" "$lang" "$flag"
-    assert_link_flag_present    "$test_dir" "$lang" "$flag"
-}
-
 # ==============================================================================
 # NONE — no PGO
 # ==============================================================================
@@ -92,18 +82,18 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=GEN \
         -DLIBRA_TEST_LANGUAGE=C
-    [ "$status" -eq 0 ]
+    assert_success
 
     run make
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Verify GEN flags
-    assert_pgo_flag_present "$test_dir" "c" "-fprofile-generate"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-generate"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-use"
 
     # Run binary to generate profile data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Phase 2: USE - rebuild with profile data
     # Clean build artifacts but keep profile data
@@ -116,10 +106,10 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=USE \
         -DLIBRA_TEST_LANGUAGE=C
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Verify USE flags (don't need to make, just check flags)
-    assert_pgo_flag_present "$test_dir" "c" "-fprofile-use"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-use"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-generate"
 }
 
@@ -137,16 +127,16 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=GEN \
         -DLIBRA_TEST_LANGUAGE=CXX
-    [ "$status" -eq 0 ]
+    assert_success
 
     run make
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "cxx" "-fprofile-generate"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-generate"
 
     # Run binary to generate profile data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Phase 2: USE
     rm -rf "$test_dir/CMakeFiles" "$test_dir/CMakeCache.txt" "$test_dir/Makefile"
@@ -158,9 +148,9 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=USE \
         -DLIBRA_TEST_LANGUAGE=CXX
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "cxx" "-fprofile-use"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-use"
 }
 
 # ==============================================================================
@@ -182,17 +172,17 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=GEN \
         -DLIBRA_TEST_LANGUAGE=C
-    [ "$status" -eq 0 ]
+    assert_success
 
     run make
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "c" "-fprofile-generate"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-generate"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-use"
 
     # Run binary to generate .profraw files
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Merge profile data (Clang-specific step)
     if command -v llvm-profdata; then
@@ -201,7 +191,7 @@ assert_pgo_flag_present() {
         skip "llvm-profdata not found"
     fi
 
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Phase 2: USE
     rm -rf "$test_dir/CMakeFiles" "$test_dir/CMakeCache.txt" "$test_dir/Makefile"
@@ -213,9 +203,9 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=USE \
         -DLIBRA_TEST_LANGUAGE=C
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "c" "-fprofile-use"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-use"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-generate"
 }
 
@@ -234,16 +224,16 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=GEN \
         -DLIBRA_TEST_LANGUAGE=CXX
-    [ "$status" -eq 0 ]
+    assert_success
 
     run make
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "cxx" "-fprofile-generate"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-generate"
 
     # Run binary
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Merge profile data
     cd "$test_dir"
@@ -254,7 +244,7 @@ assert_pgo_flag_present() {
     else
         skip "llvm-profdata not found"
     fi
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Phase 2: USE
     rm -rf "$test_dir/CMakeFiles" "$test_dir/CMakeCache.txt" "$test_dir/Makefile"
@@ -266,9 +256,9 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=USE \
         -DLIBRA_TEST_LANGUAGE=CXX
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "cxx" "-fprofile-use"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-use"
 }
 
 # ==============================================================================
@@ -290,17 +280,17 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=GEN \
         -DLIBRA_TEST_LANGUAGE=C
-    [ "$status" -eq 0 ]
+    assert_success
 
     run make
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "c" "-fprofile-generate"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-generate"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-use"
 
     # Run binary to generate profile data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Phase 2: USE
     rm -rf "$test_dir/CMakeFiles" "$test_dir/CMakeCache.txt" "$test_dir/Makefile"
@@ -312,9 +302,9 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=USE \
         -DLIBRA_TEST_LANGUAGE=C
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "c" "-fprofile-use"
+    assert_compile_and_link_flag_present "$test_dir" "c" "-fprofile-use"
     assert_compile_flag_absent "$test_dir" "c" "-fprofile-generate"
 }
 
@@ -333,16 +323,16 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=GEN \
         -DLIBRA_TEST_LANGUAGE=CXX
-    [ "$status" -eq 0 ]
+    assert_success
 
     run make
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "cxx" "-fprofile-generate"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-generate"
 
     # Run binary to generate profile data
     run "$test_dir/bin/sample_build_info"
-    [ "$status" -eq 0 ]
+    assert_success
 
     # Phase 2: USE
     rm -rf "$test_dir/CMakeFiles" "$test_dir/CMakeCache.txt" "$test_dir/Makefile"
@@ -354,9 +344,9 @@ assert_pgo_flag_present() {
         -DCMAKE_BUILD_TYPE=Release \
         -DLIBRA_PGO=USE \
         -DLIBRA_TEST_LANGUAGE=CXX
-    [ "$status" -eq 0 ]
+    assert_success
 
-    assert_pgo_flag_present "$test_dir" "cxx" "-fprofile-use"
+    assert_compile_and_link_flag_present "$test_dir" "cxx" "-fprofile-use"
 }
 
 # ==============================================================================
@@ -376,28 +366,24 @@ assert_pgo_flag_present() {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_PGO=GEN)
 
-    run cache_value_equals "$test_dir" "LIBRA_PGO" "GEN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_PGO" "GEN"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_PGO" "GEN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_PGO" "GEN"
 }
 
 @test "PGO: Can change value on reconfiguration" {
     COMPILER_TYPE=gnu
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_PGO=GEN)
 
-    run cache_value_equals "$test_dir" "LIBRA_PGO" "GEN"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_PGO" "GEN"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_PGO=USE --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_PGO" "USE"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_PGO" "USE"
 }

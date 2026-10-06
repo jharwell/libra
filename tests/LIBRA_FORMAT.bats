@@ -215,27 +215,23 @@ setup() {
 @test "FORMAT: Cache variable persists across reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_FORMAT=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_FORMAT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORMAT" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FORMAT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORMAT" "ON"
 }
 
 @test "FORMAT: Can change value on reconfiguration" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_FORMAT=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_FORMAT" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORMAT" "ON"
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_FORMAT=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_FORMAT" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_FORMAT" "OFF"
 }

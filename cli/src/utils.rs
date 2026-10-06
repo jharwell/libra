@@ -7,6 +7,7 @@
 use std::io::Write;
 
 use anyhow::Context;
+use log::debug;
 use regex::Regex;
 
 // ---------------------------------------------------------------------------
@@ -87,7 +88,11 @@ message("VERSION=${{LIBRA_PROJECT_VERSION}}")"#,
     let output = std::process::Command::new("cmake")
         .args(["-P", temp_path])
         .output()?;
-
+    debug!(
+        "CMake output for self version extraction: stdout={},stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
     if !output.status.success() {
         anyhow::bail!(
             "cmake version extraction failed: {}",

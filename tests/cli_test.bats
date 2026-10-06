@@ -68,21 +68,21 @@ setup() {
 
 @test "TEST: --type=all passes no -L flag to ctest" {
     run_clibra --dry-run test --type=all --preset debug
-    assert_clibra_success
-    assert_output_not_contains " -L "
+    assert_success
+    refute_output --partial " -L "
 }
 
 @test "TEST: default type (no --type) passes no -L flag to ctest" {
     run_clibra --dry-run test --preset debug
-    assert_clibra_success
-    assert_output_not_contains " -L "
+    assert_success
+    refute_output --partial " -L "
 }
 
 @test "TEST: -L unit and -L integration are separate flags not combined" {
     run_clibra --dry-run test --type=unit --preset debug
-    assert_clibra_success
-    assert_output_contains "-L unit"
-    assert_output_not_contains "-Lunit"
+    assert_success
+    assert_output --partial "-L unit"
+    refute_output --partial "-Lunit"
 }
 
 # ==============================================================================
@@ -91,14 +91,14 @@ setup() {
 
 @test "TEST: --no-build skips cmake --build invocation" {
     run_clibra --dry-run test --no-build --preset debug
-    assert_clibra_success
-    assert_output_not_contains "cmake --build"
+    assert_success
+    refute_output --partial "cmake --build"
 }
 
 @test "TEST: without --no-build cmake --build is invoked" {
     run_clibra --dry-run test --preset debug
-    assert_clibra_success
-    assert_output_contains "cmake --build"
+    assert_success
+    assert_output --partial "cmake --build"
 }
 
 # ==============================================================================
@@ -121,28 +121,28 @@ setup() {
     skip_if_compiler_missing gnu c
     # 'release' preset does not have LIBRA_TESTS=ON
     run_clibra build --preset release $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra test --preset release
-    assert_clibra_failure
-    assert_output_contains "LIBRA_TESTS"
+    assert_failure
+    assert_output --partial "LIBRA_TESTS"
 }
 
 @test "TEST: error message names the preset when LIBRA_TESTS disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset release $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra test --preset release
-    assert_clibra_failure
-    assert_output_contains "release"
+    assert_failure
+    assert_output --partial "release"
 }
 
 @test "TEST: error message suggests fix when LIBRA_TESTS disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset release $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra test --preset release
-    assert_clibra_failure
-    assert_output_contains "LIBRA_TESTS=ON"
+    assert_failure
+    assert_output --partial "LIBRA_TESTS=ON"
 }
 
 # ==============================================================================
@@ -159,8 +159,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra test --dry-run
-    assert_clibra_failure
-    assert_output_contains "no preset"
+    assert_failure
+    assert_output --partial "no preset"
 }
 
 # ==============================================================================
@@ -170,7 +170,7 @@ print(json.dumps(d))
 @test "TEST: cold start configures and builds before running ctest" {
     skip_if_compiler_missing gnu c
     run_clibra test --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     assert_build_dir_exists "debug"
 }
 
@@ -180,5 +180,5 @@ print(json.dumps(d))
 
 @test "TEST: non-existent preset causes failure" {
     run_clibra test --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }

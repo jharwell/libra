@@ -45,14 +45,6 @@ setup() {
     assert_dry_run_contains "--target analyze-cppcheck" analyze cppcheck
 }
 
-@test "ANALYZE: clang-format subcommand targets analyze-clang-format" {
-    assert_dry_run_contains "--target analyze-clang-format" analyze clang-format
-}
-
-@test "ANALYZE: cmake-format subcommand targets analyze-cmake-format" {
-    assert_dry_run_contains "--target analyze-cmake-format" analyze cmake-format
-}
-
 # ==============================================================================
 # Flag forwarding
 # ==============================================================================
@@ -72,8 +64,8 @@ setup() {
 
 @test "ANALYZE: --keep-going does not add Ninja-style -k0 for Unix Makefiles" {
     run_clibra --dry-run analyze --keep-going --preset analyze --log trace
-    assert_clibra_success
-    assert_output_not_contains "-k0"
+    assert_success
+    refute_output --partial "-k0"
 }
 
 @test "ANALYZE: --reconfigure invokes configure step" {
@@ -92,28 +84,28 @@ setup() {
     skip_if_compiler_missing gnu c
     # debug preset has LIBRA_ANALYSIS=OFF
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra analyze --preset debug
-    assert_clibra_failure
-    assert_output_contains "LIBRA_ANALYSIS"
+    assert_failure
+    assert_output --partial "LIBRA_ANALYSIS"
 }
 
 @test "ANALYZE: error message names the preset when LIBRA_ANALYSIS disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra analyze --preset debug
-    assert_clibra_failure
-    assert_output_contains "debug"
+    assert_failure
+    assert_output --partial "debug"
 }
 
 @test "ANALYZE: error message suggests fix when LIBRA_ANALYSIS disabled" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run_clibra analyze --preset debug
-    assert_clibra_failure
-    assert_output_contains "LIBRA_ANALYSIS=ON"
+    assert_failure
+    assert_output --partial "LIBRA_ANALYSIS=ON"
 }
 
 # ==============================================================================
@@ -122,5 +114,5 @@ setup() {
 
 @test "ANALYZE: non-existent preset causes failure" {
     run_clibra analyze --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }

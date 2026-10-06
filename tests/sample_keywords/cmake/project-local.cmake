@@ -22,8 +22,7 @@ if(LIBRA_TEST_USE_DEPRECATED_NAMES)
   libra_register_extra_configs_for_install(TARGET mylib FILES_OR_DIRS
                                            ${CMAKE_BINARY_DIR}/cmake/foo.cmake)
 elseif(LIBRA_TEST_INSTALL_BAD_TARGET)
-  libra_register_target_for_install(nonexistent)
-
+  libra_install_target(nonexistent)
 else()
   libra_install_headers(${CMAKE_BINARY_DIR}/include)
   libra_install_target(mylib)

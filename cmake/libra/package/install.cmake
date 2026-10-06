@@ -12,8 +12,6 @@ cmake_policy(SET CMP0177 NEW) # Normalize paths
 # ##############################################################################
 # Exports Configuration
 # ##############################################################################
-include(GNUInstallDirs)
-
 #[[.rst:
 .. cmake:command:: libra_configure_exports
 
@@ -376,6 +374,11 @@ endfunction()
     libra_install_copyright(mylib ${PROJECT_SOURCE_DIR}/LICENSE)
 ]]
 function(libra_install_copyright)
+  # 2026-09-24 [JRH]: Included here, not at module scope, so it's available for
+  # consumers using this function but does not cause spurious "no architecture
+  # defined" warnings when LIBRA itself is installed.
+  include(GNUInstallDirs)
+
   # Support both: 1. libra_install_copyright(TARGET mylib FILE LICENSE) 2.
   # libra_install_copyright(mylib LICENSE)
   cmake_parse_arguments(
@@ -418,8 +421,11 @@ endfunction()
   Install header files from a DIRECTORY at ``${CMAKE_INSTALL_PREFIX}``.
 
   Recursively finds and installs all ``.hpp`` and ``.h`` files from the
-  specified directory, preserving the directory structure. These can be from
-  your project, a header-only dependency, etc.
+  specified directory, preserving the directory structure below it. These can
+  be from your project, a header-only dependency, etc.
+
+  ``DIRECTORY`` follows :cmake:command:`install(DIRECTORY)`: with a trailing
+  ``/`` its contents are installed; without one, the directory itself is.
 
   Useful if you need to selectively install only SOME headers from a project,
   add some third party headers from another dir, etc.
@@ -431,12 +437,18 @@ endfunction()
 
   .. code-block:: cmake
 
-    # Install headers from include/ to ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
-    libra_install_headers(${PROJECT_SOURCE_DIR}/include)
+    # Install the contents of include/ (note the trailing /) to
+    # ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
+    libra_install_headers(${PROJECT_SOURCE_DIR}/include/)
 
     # This installs: include/mylib/foo.hpp -> ${CMAKE_INSTALL_PREFIX}/include/mylib/foo.hpp
 ]]
 function(libra_install_headers)
+  # 2026-09-24 [JRH]: Included here, not at module scope, so it's available for
+  # consumers using this function but does not cause spurious "no architecture
+  # defined" warnings when LIBRA itself is installed.
+  include(GNUInstallDirs)
+
   # Support both: 1. libra_install_headers(DIRECTORY include/) 2.
   # libra_install_headers(include/)
   cmake_parse_arguments(
@@ -477,11 +489,11 @@ function(libra_install_headers)
     list(LENGTH HEADER_CHECK NUM_HEADERS)
   endif()
 
-  set(INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
-
+  # Relative, so `cmake --install --prefix` and CPack can relocate headers along
+  # with everything else.
   install(
     DIRECTORY ${ARG_DIRECTORY}
-    DESTINATION ${INSTALL_PATH}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING
     PATTERN "*.hpp"
     PATTERN "*.h")
@@ -489,6 +501,98 @@ function(libra_install_headers)
   libra_message(
     STATUS
     "Registered ${NUM_HEADERS} headers for install from ${ARG_DIRECTORY}")
+endfunction()
+
+# cmake-format: off
+# ##############################################################################
+# _libra_add_header_file_set
+#
+# Give TARGET a public HEADERS file set made of every header under its own
+# public/interface include directories, if it doesn't already declare one.
+#
+# Only the target's own INTERFACE_INCLUDE_DIRECTORIES are used (not those of
+# libraries it links), and only directories inside the project's source or
+# binary tree: build-time paths from $<BUILD_INTERFACE:...> and plain absolute
+# paths are globbed; $<INSTALL_INTERFACE:...> and other generator expressions
+# are skipped, as are directories outside the project (system/third-party).
+# ##############################################################################
+# cmake-format: on
+function(_libra_add_header_file_set TARGET)
+  # Only libraries that are built here have headers to install.
+  get_target_property(_imported ${TARGET} IMPORTED)
+  get_target_property(_type ${TARGET} TYPE)
+  if(_imported OR NOT _type MATCHES "^(STATIC|SHARED|MODULE)_LIBRARY$")
+    return()
+  endif()
+
+  # A file set the project declared itself wins.
+  get_target_property(_existing ${TARGET} INTERFACE_HEADER_SETS)
+  if(_existing)
+    return()
+  endif()
+
+  get_target_property(_dirs ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+  if(NOT _dirs)
+    return()
+  endif()
+
+  set(_base_dirs)
+  set(_headers)
+  foreach(_dir IN LISTS _dirs)
+    if(_dir MATCHES "^\\$<BUILD_INTERFACE:(.*)>$")
+      set(_dir "${CMAKE_MATCH_1}")
+    endif()
+    if(_dir MATCHES "\\$<" OR NOT IS_ABSOLUTE "${_dir}")
+      continue()
+    endif()
+
+    cmake_path(
+      IS_PREFIX
+      PROJECT_SOURCE_DIR
+      "${_dir}"
+      NORMALIZE
+      _in_src)
+    cmake_path(
+      IS_PREFIX
+      PROJECT_BINARY_DIR
+      "${_dir}"
+      NORMALIZE
+      _in_bin)
+    if(NOT (_in_src OR _in_bin) OR NOT IS_DIRECTORY "${_dir}")
+      continue()
+    endif()
+
+    file(
+      GLOB_RECURSE
+      _found
+      "${_dir}/*.h"
+      "${_dir}/*.hh"
+      "${_dir}/*.hpp"
+      "${_dir}/*.hxx")
+    if(_found)
+      list(APPEND _base_dirs "${_dir}")
+      list(APPEND _headers ${_found})
+    endif()
+  endforeach()
+
+  if(NOT _headers)
+    return()
+  endif()
+
+  list(REMOVE_DUPLICATES _base_dirs)
+  list(REMOVE_DUPLICATES _headers)
+
+  target_sources(
+    ${TARGET}
+    PUBLIC FILE_SET
+           HEADERS
+           BASE_DIRS
+           ${_base_dirs}
+           FILES
+           ${_headers})
+
+  list(LENGTH _headers _count)
+  libra_message(STATUS "Collected ${_count} public headers for ${TARGET}")
 endfunction()
 
 #[[.rst:
@@ -504,18 +608,21 @@ endfunction()
    with :cmake:command:`add_library` or :cmake:command:`add_executable`. Must be
    a target for which :cmake:command:`libra_configure_exports` has already been
    called.
-
-  :param INCLUDE_DIR: (Optional) Path to directory containing header files to
-   install. If omitted, no headers are installed. Use for libraries; omit for
-   executables.
-
   The target is installed with:
 
   - Libraries: ``${CMAKE_INSTALL_LIBDIR}``
   - Executables: ``${CMAKE_INSTALL_BINDIR}``
-  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}`` (if ``INCLUDE_DIR`` provided, OR
-    the ``PUBLIC_HEADER`` property is set on the target if ``INCLUDE_DIR`` is
-    omitted).
+  - Headers: ``${CMAKE_INSTALL_INCLUDEDIR}``. Headers are installed from two
+    disjoint sources:
+
+    #. From the target's public ``HEADERS`` file sets (paths kept relative to
+       each set's ``BASE_DIRS``, and the install location added to the exported
+       target's include directories, if the target defines them. Otherwise,
+       LIBRA computes the header list from the interface include dirs for the
+       target.
+
+    #. From the targets ``PUBLIC_HEADER`` property.
+
   - Export file: ``lib/cmake/${TARGET}/${TARGET}-exports.cmake``
 
   **What Gets Installed:**
@@ -523,16 +630,23 @@ endfunction()
   - Shared libraries (.so, .dylib, .dll)
   - Static libraries (.a, .lib)
   - Executables (if applicable)
-  - Headers (if ``INCLUDE_DIR`` provided)
   - CMake export file for use with ``find_package()``
 
   **Example:**
 
   .. code-block:: cmake
 
-    # Library with headers
+    # Headers found from the target's public include directories:
+    # include/mylib/foo.hpp installs to ${CMAKE_INSTALL_INCLUDEDIR}/mylib/foo.hpp
     add_library(mylib src/mylib.cpp)
-    libra_install_target(mylib INCLUDE_DIR include/)
+    target_include_directories(mylib PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+    libra_install_target(mylib)
+
+    # Or choose the headers explicitly with a file set, which takes precedence
+    target_sources(mylib PUBLIC FILE_SET HEADERS BASE_DIRS include
+                   FILES include/mylib/foo.hpp)
+    libra_install_target(mylib)
 
     # Executable, no headers
     add_executable(mytool src/main.cpp)
@@ -544,23 +658,24 @@ endfunction()
 
 ]]
 function(libra_install_target)
+  # 2026-09-24 [JRH]: Included here, not at module scope, so it's available for
+  # consumers using this function but does not cause spurious "no architecture
+  # defined" warnings when LIBRA itself is installed.
+  include(GNUInstallDirs)
+
   # Support: 1. libra_install_target(TARGET mylib) 2.
   # libra_install_target(mylib) 3. libra_install_target(mylib INCLUDE_DIR
   # include/) 4. libra_install_target(TARGET mylib INCLUDE_DIR include/)
   cmake_parse_arguments(
     ARG
     ""
-    "TARGET;INCLUDE_DIR"
+    "TARGET"
     ""
     ${ARGN})
 
   if(NOT ARG_TARGET AND ARG_UNPARSED_ARGUMENTS)
     list(GET ARG_UNPARSED_ARGUMENTS 0 ARG_TARGET)
     list(REMOVE_AT ARG_UNPARSED_ARGUMENTS 0)
-  endif()
-
-  if(NOT ARG_INCLUDE_DIR AND ARG_UNPARSED_ARGUMENTS)
-    list(GET ARG_UNPARSED_ARGUMENTS 0 ARG_INCLUDE_DIR)
   endif()
 
   if(NOT ARG_TARGET)
@@ -582,21 +697,34 @@ function(libra_install_target)
     )
   endif()
 
-  if(ARG_INCLUDE_DIR)
-    libra_install_headers(${ARG_INCLUDE_DIR})
+  _libra_add_header_file_set(${ARG_TARGET})
+
+  # Install the target's public header file sets, if any. install() errors on a
+  # FILE_SET the target doesn't have, so only name the ones it does.
+  set(_file_set_args)
+  get_target_property(_header_sets ${ARG_TARGET} INTERFACE_HEADER_SETS)
+  if(_header_sets)
+    foreach(_set IN LISTS _header_sets)
+      list(
+        APPEND
+        _file_set_args
+        FILE_SET
+        ${_set}
+        DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR})
+    endforeach()
   endif()
 
   # Install .so and .a libraries
   install(
     TARGETS ${ARG_TARGET}
     EXPORT ${ARG_TARGET}-exports
+    ${_file_set_args}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             # If the target sets the PUBLIC_HEADER property, then this will
-            # install the
-            # headers. But most targets don't set this property, so the
-            # libra_install_headers() call above is needed.
+            # install the headers. But most targets don't set this property.
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(
@@ -610,10 +738,8 @@ function(libra_install_target)
 
   libra_message(STATUS
                 "Libraries -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-  if(ARG_INCLUDE_DIR)
-    libra_message(
-      STATUS "Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
-  endif()
+  libra_message(
+    STATUS "Headers -> ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}")
   libra_message(
     STATUS
     "Exports -> ${CMAKE_INSTALL_PREFIX}/lib/cmake/${ARG_TARGET}/${ARG_TARGET}-exports.cmake"

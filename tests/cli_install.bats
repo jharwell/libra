@@ -57,8 +57,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra install --dry-run
-    assert_clibra_failure
-    assert_output_contains "no preset"
+    assert_failure
+    assert_output --partial "no preset"
 }
 
 # ==============================================================================
@@ -68,18 +68,18 @@ print(json.dumps(d))
 @test "INSTALL: -D with existing build dir and no --reconfigure fails with error" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     run_clibra install --preset debug -DFOO=BAR
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "INSTALL: -D error message mentions --reconfigure as fix" {
     skip_if_compiler_missing gnu c
     run_clibra build $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     run_clibra install --preset debug -DFOO=BAR
-    assert_clibra_failure
-    assert_output_contains "reconfigure"
+    assert_failure
+    assert_output --partial "reconfigure"
 }
 
 # ==============================================================================
@@ -89,22 +89,22 @@ print(json.dumps(d))
 @test "INSTALL: cold start exits 0" {
     skip_if_compiler_missing gnu c
     run_clibra install $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
 }
 
 @test "INSTALL: cold start creates build directory" {
     skip_if_compiler_missing gnu c
     run_clibra install $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     assert_build_dir_exists "debug"
 }
 
 @test "INSTALL: cold start installs binary under CMAKE_INSTALL_PREFIX" {
     skip_if_compiler_missing gnu c
     run_clibra install $CLI_CMAKE_DEFINES --preset debug
-    assert_clibra_success
+    assert_success
     # Base preset sets CMAKE_INSTALL_PREFIX = binaryDir/install
-    [ -d "build/debug/install" ]
+    assert_dir_exists "build/debug/install"
 }
 
 # ==============================================================================
@@ -113,12 +113,12 @@ print(json.dumps(d))
 
 @test "INSTALL: non-existent preset causes failure" {
     run_clibra install --preset no_such_preset_xyzzy
-    assert_clibra_failure
+    assert_failure
 }
 
 @test "INSTALL: fails when run outside project root" {
     cd /tmp
     run_clibra install --preset debug
-    assert_clibra_failure
-    assert_output_contains "CMakeLists.txt"
+    assert_failure
+    assert_output --partial "CMakeLists.txt"
 }

@@ -23,23 +23,23 @@ setup() {
 
 @test "GLOBAL: clibra --help exits 0" {
     run_clibra --help
-    assert_clibra_success
+    assert_success
 }
 
 @test "GLOBAL: clibra --version exits 0" {
     run_clibra --version
-    assert_clibra_success
+    assert_success
 }
 
 @test "GLOBAL: clibra --version prints a version string" {
     run_clibra --version
-    assert_clibra_success
-    assert_output_contains "clibra"
+    assert_success
+    assert_output --partial "clibra"
 }
 
 @test "GLOBAL: bare clibra with no subcommand prints help and exits non-zero" {
     run_clibra
-    assert_clibra_failure
+    assert_failure
 }
 
 # ==============================================================================
@@ -49,28 +49,28 @@ setup() {
 @test "GLOBAL: fails with error when run outside a project root" {
     cd /tmp
     run_clibra --dry-run build --preset debug
-    assert_clibra_failure
-    assert_output_contains "CMakeLists.txt"
+    assert_failure
+    assert_output --partial "CMakeLists.txt"
 }
 
 @test "GLOBAL: error message when outside project root mentions project root" {
     cd /tmp
     run_clibra --dry-run build --preset debug
-    assert_clibra_failure
-    assert_output_contains "project root"
+    assert_failure
+    assert_output --partial "project root"
 }
 
 @test "GLOBAL: fails with error when no preset files exist and no --preset given" {
     rm -f CMakePresets.json CMakeUserPresets.json
     run_clibra build --dry-run
-    assert_clibra_failure
-    assert_output_contains "CMakePresets.json"
+    assert_failure
+    assert_output --partial "CMakePresets.json"
 }
 
 @test "GLOBAL: succeeds with --preset even when no preset files exist" {
     rm -f CMakePresets.json CMakeUserPresets.json
     run_clibra --dry-run build --preset debug
-    assert_clibra_success
+    assert_success
 }
 
 # ==============================================================================
@@ -100,8 +100,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra build --dry-run
-    assert_clibra_failure
-    assert_output_contains "no preset"
+    assert_failure
+    assert_output --partial "no preset"
 }
 
 @test "PRESET: error message suggests --preset as fix option" {
@@ -113,8 +113,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra build --dry-run
-    assert_clibra_failure
-    assert_output_contains "--preset"
+    assert_failure
+    assert_output --partial "--preset"
 }
 
 @test "PRESET: error message suggests CMakeUserPresets.json as fix option" {
@@ -126,8 +126,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra build --dry-run
-    assert_clibra_failure
-    assert_output_contains "CMakeUserPresets.json"
+    assert_failure
+    assert_output --partial "CMakeUserPresets.json"
 }
 
 @test "PRESET: ci uses per-command default 'ci' when no vendor field" {
@@ -183,8 +183,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra test --dry-run
-    assert_clibra_failure
-    assert_output_contains "no preset"
+    assert_failure
+    assert_output --partial "no preset"
 }
 
 @test "PRESET: install has no per-command default — fails without --preset" {
@@ -196,8 +196,8 @@ print(json.dumps(d))
 " > CMakePresets.json.tmp && mv CMakePresets.json.tmp CMakePresets.json
     rm -f CMakeUserPresets.json
     run_clibra install --dry-run
-    assert_clibra_failure
-    assert_output_contains "no preset"
+    assert_failure
+    assert_output --partial "no preset"
 }
 
 # ==============================================================================
@@ -206,58 +206,58 @@ print(json.dumps(d))
 
 @test "DRY_RUN: exits 0" {
     run_clibra --dry-run build --preset debug
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: prints cmake command" {
     run_clibra --dry-run build --preset debug
-    assert_output_contains "cmake"
+    assert_output --partial "cmake"
 }
 
 @test "DRY_RUN: does not create build directory" {
     run_clibra --dry-run build --preset debug
-    assert_clibra_success
+    assert_success
     assert_build_dir_absent "debug"
 }
 
 @test "DRY_RUN: works with build subcommand" {
     run_clibra --dry-run --preset debug build
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with clean subcommand" {
     run_clibra --dry-run --preset debug clean
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with analyze subcommand" {
     run_clibra --dry-run --preset debug analyze
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with docs subcommand" {
     run_clibra --dry-run --preset debug docs build
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with ci subcommand" {
     run_clibra --dry-run --preset debug ci
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with coverage subcommand" {
     run_clibra --dry-run --preset debug coverage --html
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with test subcommand" {
     run_clibra --dry-run --preset debug test
-    assert_clibra_success
+    assert_success
 }
 
 @test "DRY_RUN: works with info subcommand" {
     run_clibra --dry-run --preset debug info
-    assert_clibra_success
+    assert_success
 }
 
 # ==============================================================================
@@ -266,14 +266,14 @@ print(json.dumps(d))
 
 @test "LOG: --log=debug prints cmake commands with + prefix" {
     run_clibra --log=debug --dry-run build --preset debug
-    assert_clibra_success
-    assert_output_contains "+ cmake"
+    assert_success
+    assert_output --partial "+ cmake"
 }
 
 @test "LOG: --log=debug prints preset resolution source" {
     run_clibra --log=debug --dry-run build --preset debug
-    assert_clibra_success
-    assert_output_contains "resolved"
+    assert_success
+    assert_output --partial "resolved"
 }
 
 # ==============================================================================
@@ -282,24 +282,21 @@ print(json.dumps(d))
 
 @test "COLOR: --color=never produces no ANSI escape codes" {
     run_clibra --color=never --dry-run build --preset debug
-    assert_clibra_success
-    if echo "$output" | grep -qP '\x1b\['; then
-        echo "Output contained ANSI codes with --color=never" >&3
-        false
-    fi
+    assert_success
+    refute_output --partial $'\x1b['
 }
 
 @test "COLOR: --color=always exits 0" {
     run_clibra --color=always --dry-run build --preset debug
-    assert_clibra_success
+    assert_success
 }
 
 @test "COLOR: --color=always produces ANSI escape codes in info output" {
     skip_if_compiler_missing gnu c
     run_clibra build --preset debug $CLI_CMAKE_DEFINES
-    assert_clibra_success
+    assert_success
     run "$CLIBRA_BIN" --color=always info --preset debug
-    assert_clibra_success
+    assert_success
     # info output uses colored crate for bold/green; verify ANSI codes present
-    echo "$output" | grep -qP '\x1b\['
+    assert_output --partial $'\x1b['
 }

@@ -73,7 +73,6 @@ macro(
         ${JOB_ARGS}
         ${STD_ARGS}
         --extra-arg=-Wno-unknown-warning-option
-        --warnings-as-errors=*
         ${EXTRACTED_ARGS}
         ${LIBRA_CLANG_TIDY_EXTRA_ARGS}
         ${FILE})
@@ -84,7 +83,6 @@ macro(
         ${HEADER_EXCLUDES}
         --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
         --checks=${CHECKS_EXPR}
-        --warnings-as-errors=*
         -p
         ${_LIBRA_FIXED_DB_SENTINEL}
         --quiet
@@ -102,7 +100,6 @@ macro(
         ${HEADER_EXCLUDES}
         --config-file=${LIBRA_CLANG_TIDY_FILEPATH}
         --checks=${CHECKS_EXPR}
-        --warnings-as-errors=*
         -p
         ${_LIBRA_FIXED_DB_SENTINEL}
         --quiet
@@ -195,28 +192,38 @@ function(
                                     EXCLUDE_FROM_ALL 1)
   endif()
 
-  if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
-    set(LIBRA_CLANG_TIDY_FILEPATH
-        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy")
-  endif()
-
   # Exclude conan-managed headers from analysis — they are not our code.
   if("${LIBRA_DRIVER}" STREQUAL "CONAN")
     set(HEADER_EXCLUDES --exclude-header-filter=*/.conan2/*)
   endif()
 
-  if(NOT DEFINED LIBRA_CLANG_TIDY_CHECKS_CONFIG)
-    set(LIBRA_CLANG_TIDY_CHECKS_CONFIG
-        "${LIBRA_CLANG_TIDY_CHECKS_CONFIG_DEFAULT}")
-  endif()
-
   get_filename_component(clang_tidy_NAME ${clang_tidy_EXECUTABLE} NAME)
 
-  _libra_get_project_language(_LANG)
-  if("${_LANG}" STREQUAL "CXX")
-    set(STD_ARGS --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD})
+  if(NOT LIBRA_ANALYSIS_LANGUAGE)
+    set(LIBRA_ANALYSIS_LANGUAGE ${LIBRA_ANALYSIS_LANGUAGE_DEFAULT})
+  endif()
+
+  if("${LIBRA_ANALYSIS_LANGUAGE}" STREQUAL "CXX")
+    set(STD_ARGS --extra-arg=-std=gnu++${LIBRA_CXX_STANDARD} --extra-arg=-xc++)
+    if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
+      set(LIBRA_CLANG_TIDY_FILEPATH
+          "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy-cxx")
+    endif()
+    if(NOT DEFINED LIBRA_CLANG_TIDY_CHECKS_CONFIG)
+      set(LIBRA_CLANG_TIDY_CHECKS_CONFIG
+          "${LIBRA_CLANG_TIDY_CHECKS_CONFIG_CXX_DEFAULT}")
+    endif()
+
   else()
-    set(STD_ARGS --extra-arg=-std=gnu${LIBRA_C_STANDARD})
+    set(STD_ARGS --extra-arg=-std=gnu${LIBRA_C_STANDARD} --extra-arg=-xc)
+    if(NOT DEFINED LIBRA_CLANG_TIDY_FILEPATH)
+      set(LIBRA_CLANG_TIDY_FILEPATH
+          "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../../dots/.clang-tidy-c")
+    endif()
+    if(NOT DEFINED LIBRA_CLANG_TIDY_CHECKS_CONFIG)
+      set(LIBRA_CLANG_TIDY_CHECKS_CONFIG
+          "${LIBRA_CLANG_TIDY_CHECKS_CONFIG_C_DEFAULT}")
+    endif()
   endif()
 
   if(LIBRA_USE_COMPDB)

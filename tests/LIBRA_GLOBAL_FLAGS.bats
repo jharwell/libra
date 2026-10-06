@@ -29,26 +29,24 @@ setup() {
 
 @test "GLOBAL_C_FLAGS: OFF configures without error" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_GLOBAL_C_FLAGS=OFF)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "GLOBAL_C_FLAGS: ON configures without error" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_GLOBAL_C_FLAGS=ON)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "GLOBAL_C_FLAGS: OFF value stored in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_GLOBAL_C_FLAGS=OFF)
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "OFF"
 }
 
 @test "GLOBAL_C_FLAGS: ON value stored in cache" {
     test_dir=$(run_libra_cmake_test "c" -DLIBRA_GLOBAL_C_FLAGS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "ON"
 }
 
 @test "GLOBAL_C_FLAGS: ON with LIBRA_SAN=ASAN adds -fsanitize=address to target compile flags" {
@@ -75,10 +73,9 @@ setup() {
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "ON"
 }
 
 @test "GLOBAL_C_FLAGS: Can change from ON to OFF on reconfiguration" {
@@ -86,10 +83,9 @@ setup() {
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_GLOBAL_C_FLAGS=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "OFF"
 }
 
 # ==============================================================================
@@ -98,26 +94,24 @@ setup() {
 
 @test "GLOBAL_CXX_FLAGS: OFF configures without error" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_GLOBAL_CXX_FLAGS=OFF)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "GLOBAL_CXX_FLAGS: ON configures without error" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_GLOBAL_CXX_FLAGS=ON)
-    [ -n "$test_dir" ]
+    assert [ -n "$test_dir" ]
 }
 
 @test "GLOBAL_CXX_FLAGS: OFF value stored in cache" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_GLOBAL_CXX_FLAGS=OFF)
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "OFF"
 }
 
 @test "GLOBAL_CXX_FLAGS: ON value stored in cache" {
     test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_GLOBAL_CXX_FLAGS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "ON"
 }
 
 @test "GLOBAL_CXX_FLAGS: ON with LIBRA_SAN=ASAN adds -fsanitize=address to target compile flags" {
@@ -143,10 +137,9 @@ setup() {
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "ON"
 }
 
 @test "GLOBAL_CXX_FLAGS: Can change from ON to OFF on reconfiguration" {
@@ -154,10 +147,9 @@ setup() {
 
     cd "$test_dir"
     run cmake "$BATS_TEST_DIRNAME/sample_build_info" -DLIBRA_GLOBAL_CXX_FLAGS=OFF --log-level=ERROR
-    [ "$status" -eq 0 ]
+    assert_success
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "OFF"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "OFF"
 }
 
 # ==============================================================================
@@ -169,8 +161,6 @@ setup() {
         -DLIBRA_GLOBAL_C_FLAGS=ON \
         -DLIBRA_GLOBAL_CXX_FLAGS=ON)
 
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "ON"
-    [ "$status" -eq 0 ]
-    run cache_value_equals "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "ON"
-    [ "$status" -eq 0 ]
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_C_FLAGS" "ON"
+    assert_cache_value "$test_dir" "LIBRA_GLOBAL_CXX_FLAGS" "ON"
 }
