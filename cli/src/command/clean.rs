@@ -5,7 +5,7 @@
  */
 
 // Imports
-use anyhow;
+use anyhow::Context;
 use clap;
 use log::debug;
 
@@ -35,13 +35,15 @@ pub fn run(ctx: &runner::Context, args: CleanArgs) -> anyhow::Result<()> {
     let preset = preset::resolve(ctx, None)?;
 
     if args.all {
-        let bdir = cmake::binary_dir(&preset).ok_or_else(|| {
-            anyhow::anyhow!(
-                "Build directory does not exist for preset '{}'.\n\
-         Run 'clibra build' first to configure the project.",
-                ctx.preset.as_deref().unwrap_or("unknown")
-            )
-        })?;
+        let bdir = cmake::binary_dir(&preset)
+            .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
+        if !bdir.exists() && !ctx.dry_run {
+            anyhow::bail!(
+                "Build directory '{}' does not exist for preset '{preset}'.\n\
+         Run 'libra build --preset {preset}' first.",
+                bdir.display()
+            );
+        }
         std::fs::remove_dir_all(bdir)?;
     } else {
         ctx.run(

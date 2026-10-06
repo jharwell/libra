@@ -5,7 +5,7 @@
  */
 
 // Imports
-use anyhow;
+use anyhow::Context;
 use clap;
 use colored::Colorize;
 use log::{debug, trace, warn};
@@ -109,14 +109,18 @@ pub fn run_paged(output: &str) -> anyhow::Result<()> {
 /// This is read from the LIBRA cmake output, so if that changes, this
 /// function will probably need to too.
 fn emit_libra_targets(out: &mut String, preset: &str) -> anyhow::Result<()> {
-    let bdir = cmake::binary_dir(preset);
-
-    if bdir.is_none() {
-        warn!("Build directory does not exist--no available target info can be emitted");
+    let bdir = cmake::binary_dir(preset)
+        .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
+    if !bdir.exists() {
+        warn!(
+            "Build directory '{}' for preset '{preset}' does not exist--\n\
+no available target info can be emitted",
+            bdir.display()
+        );
         return Ok(());
-    }
+    };
 
-    let text = std::fs::read_to_string(bdir.unwrap().join("libra_targets.json"))?;
+    let text = std::fs::read_to_string(bdir.join("libra_targets.json"))?;
     let data: HelpTargets = serde_json::from_str(&text)?;
 
     let s = format!("\nAvailable LIBRA targets for {}\n", data.project)
@@ -147,16 +151,21 @@ fn emit_build_configuration(
     items: &[(String, String)],
     width: usize,
 ) -> anyhow::Result<()> {
-    let bdir = cmake::binary_dir(preset);
-    if bdir.is_none() {
-        warn!("Build directory does not exist--no build configuration info can be emitted");
+    let bdir = cmake::binary_dir(preset)
+        .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
+    if !bdir.exists() {
+        warn!(
+            "Build directory '{}' does not exist for preset '{preset}'\n\
+--no build configuration info can be emitted",
+            bdir.display()
+        );
         return Ok(());
     }
     let _ = writeln!(out, "{}", "\nBuild configuration\n".bold().underline());
 
     let generator = cmake::generator(&preset)?;
 
-    let _ = writeln!(out, "  Build dir: {}", bdir.unwrap().to_string_lossy());
+    let _ = writeln!(out, "  Build dir: {}", bdir.to_string_lossy());
     let _ = writeln!(out, "  Generator: {}", generator);
     for (k, v) in items {
         let _ = writeln!(out, "  {:<width$} = {}", k, v);
@@ -196,9 +205,15 @@ fn parse_cmake_cache(
         debug!("dry-run: skipping cache read");
         return Ok((Vec::new(), Vec::new()));
     }
-    let bdir = cmake::binary_dir(&preset).ok_or_else(|| {
-        anyhow::anyhow!("Build directory does not exist — run 'clibra build' first")
-    })?;
+    let bdir = cmake::binary_dir(&preset)
+        .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
+    if !bdir.exists() {
+        anyhow::bail!(
+            "Build directory '{}' does not exist for preset '{preset}'.\n\
+Run 'libra build --preset {preset}' first.",
+            bdir.display()
+        );
+    }
 
     // 2026-03-16 [JRH]: Note that we do not use cmake -N, because (among other
     // reasons), CMAKE_BUILD_TYPE is not visible, because that's a build-time

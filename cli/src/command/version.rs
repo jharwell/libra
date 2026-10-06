@@ -69,7 +69,7 @@ pub fn run(ctx: &runner::Context, args: VersionArgs) -> anyhow::Result<()> {
             cmake::reconf(ctx, &preset, args.fresh, &[])?;
         }
 
-        versioning::resolve(&preset)?
+        versioning::resolve(ctx, &preset)?
     };
 
     debug!(

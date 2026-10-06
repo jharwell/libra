@@ -50,6 +50,7 @@ use anyhow::Context;
 use log::{debug, warn};
 
 use crate::cmake;
+use crate::runner;
 use crate::utils;
 
 // ---------------------------------------------------------------------------
@@ -62,15 +63,16 @@ use crate::utils;
 /// components into the cache, so this just reads them back — the repo's own
 /// CMake already handled libra discovery (submodule / CPM / system) during
 /// configure.
-pub fn resolve(preset: &str) -> anyhow::Result<utils::ResolvedVersion> {
-    let bdir = cmake::binary_dir(preset).ok_or_else(|| {
-        anyhow::anyhow!(
-            "Build directory does not exist for preset '{}'.\n\
-             Run 'clibra build --preset {}' first to configure the project.",
-            preset,
-            preset
-        )
-    })?;
+pub fn resolve(ctx: &runner::Context, preset: &str) -> anyhow::Result<utils::ResolvedVersion> {
+    let bdir = cmake::binary_dir(preset)
+        .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
+    if !bdir.exists() && !ctx.dry_run {
+        anyhow::bail!(
+            "Build directory '{}' does not exist for preset '{preset}'.\n\
+         Run 'libra build --preset {preset}' first.",
+            bdir.display()
+        );
+    }
 
     let full_str = cmake::cache_value(&bdir, "LIBRA_PROJECT_VERSION")?.ok_or_else(|| {
         anyhow::anyhow!("LIBRA_PROJECT_VERSION not in cache; is this a LIBRA project?")

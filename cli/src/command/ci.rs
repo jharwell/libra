@@ -5,31 +5,20 @@
  */
 
 // Imports
+use clap;
+use log::{debug, warn};
+
 use crate::cmake;
 use crate::preset;
 use crate::runner;
-use anyhow;
-use clap;
-use log::{debug, warn};
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 #[derive(clap::Parser, Debug)]
 pub struct CiArgs {
-    /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
-    /// (with a warning) if the build directory exists and neither
-    /// --reconfigure nor --fresh is given.
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long)]
-    pub fresh: bool,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 }
 
 // Traits
@@ -52,11 +41,7 @@ pub fn run(ctx: &runner::Context, args: CiArgs) -> anyhow::Result<()> {
         }
     }
     warn!("No ci workflow preset found--falling back to manual steps");
-
-    if args.reconfigure || args.fresh {
-        debug!("Begin reconfigure");
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
+    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
 
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_COVERAGE")?;

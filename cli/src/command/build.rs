@@ -5,7 +5,6 @@
  */
 
 // Imports
-use clap;
 use log::debug;
 
 use crate::cmake;
@@ -35,31 +34,12 @@ pub struct BuildArgs {
     #[arg(short = 'k', long)]
     pub keep_going: bool,
 
-    /// Forward -DVAR=VALUE to the CMake configure step when active. If the
-    /// build directory exists and neither --reconfigure nor --fresh is given,
-    /// abort.
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh build directory by wiping the CMake cache.
-    #[arg(short, long)]
-    pub fresh: bool,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 
     /// Run the build in verbose mode, printing build commands
     #[arg(short, long)]
     pub verbose: bool,
-
-    /// Enable LTO via LIBRA.
-    #[arg(long, default_value_t = false, overrides_with = "no_lto")]
-    pub lto: bool,
-
-    /// Disable LTO via LIBRA.
-    #[arg(long, overrides_with = "lto", hide = true)]
-    no_lto: bool,
 }
 
 // Traits
@@ -67,54 +47,12 @@ pub struct BuildArgs {
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
-pub fn run(ctx: &runner::Context, mut args: BuildArgs) -> anyhow::Result<()> {
+pub fn run(ctx: &runner::Context, args: BuildArgs) -> anyhow::Result<()> {
     preset::ensure_project_root(ctx)?;
     debug!("Begin");
 
     let preset = preset::resolve(ctx, None)?;
-    let bdir = cmake::binary_dir(&preset);
-
-    if bdir.is_some() && !args.defines.is_empty() && !args.reconfigure && !args.fresh {
-        anyhow::bail!(
-            "{} -D values given but build directory exists and no --reconfigure; values will not be applied. This is probably a configuration error.",
-            args.defines.len()
-        );
-    }
-
-    // 2026-06-03 [JRH]: This is here so that people who want to just tack on
-    // LTO to whatever their current build config is can use clibra + LTO
-    // without having to define CMake presets with LTO.
-    let needs_lto = args.lto
-        && !args.no_lto
-        && !bdir.as_ref().is_some_and(|b| {
-            cmake::cache_bool(b.as_ref(), "LIBRA_LTO")
-                .unwrap_or(Some(false))
-                .unwrap_or(false)
-        });
-
-    let needs_no_lto = args.no_lto
-        && bdir.as_ref().is_some_and(|b| {
-            cmake::cache_bool(b.as_ref(), "LIBRA_LTO")
-                .unwrap_or(Some(true))
-                .unwrap_or(true)
-        });
-    debug!("lto={}, no_lto={}", args.lto, args.no_lto);
-    debug!(
-        "cache LIBRA_LTO={:?}",
-        bdir.as_ref()
-            .map(|b| cmake::cache_bool(b.as_ref(), "LIBRA_LTO"))
-    );
-    debug!("needs_lto={needs_lto}, needs_no_lto={needs_no_lto}");
-    if args.reconfigure || args.fresh || bdir.is_none() || needs_lto || needs_no_lto {
-        debug!("Begin reconfigure");
-        if needs_lto {
-            args.defines.push("LIBRA_LTO=YES".to_string());
-        }
-        if needs_no_lto {
-            args.defines.push("LIBRA_LTO=NO".to_string());
-        }
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
-    }
+    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
 
     let mut cmd = cmake::base_build(&preset);
     cmd.args(["--parallel", &args.jobs.to_string()]);

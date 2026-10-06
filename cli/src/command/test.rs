@@ -6,8 +6,6 @@
 
 // Imports
 
-use anyhow;
-use clap;
 use log::debug;
 
 use crate::cmake;
@@ -18,9 +16,10 @@ use crate::utils;
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-#[derive(clap::ValueEnum, Clone, Debug, Default)]
+#[derive(clap::ValueEnum, Clone, Copy, Debug, Default)]
 pub enum TestType {
     #[default]
+    /// Run all tests.
     All,
 
     /// Only run unit tests.
@@ -60,7 +59,7 @@ pub enum ValgrindPolicy {
 #[derive(clap::Parser, Debug)]
 pub struct TestArgs {
     /// Filter by test type. Defaults to no filtering.
-    #[arg(long, default_value = "all")]
+    #[arg(long, value_enum, default_value_t)]
     pub r#type: TestType,
 
     /// Run only tests matching this regex (ctest --tests-regex).
@@ -95,19 +94,8 @@ pub struct TestArgs {
     #[arg(long)]
     pub no_build: bool,
 
-    /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
-    /// (with a warning) if the build directory exists and neither
-    /// --reconfigure nor --fresh is given.
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
-    pub defines: Vec<String>,
-
-    /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
-    pub reconfigure: bool,
-
-    /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long)]
-    pub fresh: bool,
+    #[command(flatten)]
+    pub configure: cmake::ConfigureArgs,
 
     /// Run the build and/or tests in verbose mode, printing commands
     #[arg(short, long)]
@@ -166,28 +154,9 @@ pub fn run(ctx: &runner::Context, args: TestArgs) -> anyhow::Result<()> {
     debug!("Begin");
     let preset = preset::resolve(ctx, None)?;
 
+    let bdir = cmake::ensure_configured(&ctx, &preset, &args.configure)?;
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_TESTS")?;
-    }
-
-    let bdir_raw = cmake::binary_dir(&preset);
-    let bdir = if ctx.dry_run {
-        // Nothing runs in a dry run, so the directory needn't exist; use a
-        // placeholder for the commands that get printed.
-        bdir_raw.unwrap_or_else(|| std::path::PathBuf::from("build"))
-    } else {
-        bdir_raw.ok_or_else(|| {
-            anyhow::anyhow!(
-                "Build directory does not exist for preset '{}'.\n\
-             Run 'libra build --preset {}' first.",
-                preset,
-                preset
-            )
-        })?
-    };
-
-    if args.reconfigure || args.fresh || !bdir.exists() {
-        cmake::reconf(ctx, &preset, args.fresh, &args.defines)?;
     }
 
     if !args.no_build {
