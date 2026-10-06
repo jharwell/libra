@@ -3,13 +3,6 @@
 #
 # SPDX-License-Identifier: MIT
 #
-_libra_register_custom_target(apidoc-check LIBRA_DOCS NONE)
-_libra_register_custom_target(apidoc-check-clang LIBRA_DOCS clang_EXECUTABLE)
-_libra_register_custom_target(apidoc-check-doxygen LIBRA_DOCS
-                              DOXYGEN_EXECUTABLE)
-_libra_register_custom_target(apidoc LIBRA_DOCS DOXYGEN_EXECUTABLE)
-_libra_register_custom_target(sphinxdoc LIBRA_DOCS LIBRA_SPHINXDOC_COMMAND)
-
 # Put this AFTER sourcing the project-local.cmake to enable disabling
 # documentation builds for projects that don't have docs.
 if(LIBRA_DOCS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -52,4 +45,11 @@ if(LIBRA_DOCS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   libra_message(STATUS "Configuring sphinxdoc")
   include(libra/docs/sphinx)
   _libra_sphinxdoc_configure(sphinxdoc apidoc)
+
+  _libra_register_custom_target(apidoc-check LIBRA_DOCS NONE)
+  _libra_register_custom_target(apidoc-check-clang LIBRA_DOCS clang_EXECUTABLE)
+  _libra_register_custom_target(apidoc-check-doxygen LIBRA_DOCS
+                                DOXYGEN_EXECUTABLE)
+  _libra_register_custom_target(apidoc LIBRA_DOCS DOXYGEN_EXECUTABLE)
+  _libra_register_custom_target(sphinxdoc LIBRA_DOCS LIBRA_SPHINXDOC_COMMAND)
 endif()

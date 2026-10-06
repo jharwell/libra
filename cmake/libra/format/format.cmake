@@ -8,9 +8,6 @@ include(libra/format/cmake-format)
 include(libra/messaging)
 include(libra/utils)
 
-_libra_register_custom_target(format LIBRA_FORMAT NONE)
-_libra_register_custom_target(format-check LIBRA_FORMAT NONE)
-
 #[[.rst:
 .. cmake:command:: _libra_find_formatting_tools
 
@@ -97,4 +94,7 @@ if(LIBRA_FORMAT AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     format "${${PROJECT_NAME}_ANALYSIS_SRC}"
     "${${PROJECT_NAME}_ANALYSIS_HEADERS}")
   _libra_register_formatter_cmake_format(format ${${PROJECT_NAME}_CMAKE_SRC})
+  _libra_register_custom_target(format LIBRA_FORMAT NONE)
+  _libra_register_custom_target(format-check LIBRA_FORMAT NONE)
+
 endif()

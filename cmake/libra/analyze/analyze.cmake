@@ -10,9 +10,6 @@ include(libra/analyze/utils)
 include(libra/messaging)
 include(libra/utils)
 
-_libra_register_custom_target(analyze LIBRA_ANALYSIS NONE)
-_libra_register_custom_target(fix LIBRA_ANALYSIS NONE)
-
 #[[.rst:
 .. cmake:command:: _libra_register_code_checkers
 
@@ -476,4 +473,6 @@ if(LIBRA_ANALYSIS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Configure fixing tools
   libra_message(STATUS "Enabling analysis tools: fixers")
   _libra_register_code_fixers(${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}")
+  _libra_register_custom_target(analyze LIBRA_ANALYSIS NONE)
+  _libra_register_custom_target(fix LIBRA_ANALYSIS NONE)
 endif()

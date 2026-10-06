@@ -161,6 +161,9 @@ endmacro()
   :cmake:command:`_libra_create_targets_json` can later serialise availability
   state into ``libra_targets.json``.
 
+  .. IMPORTANT:: Only call this function AFTER the necessary tool variable has
+     been populated or the tool will always report "unavailable".
+
   Each call appends a 3-element record to the ``_LIBRA_SUMMARY_TARGETS`` list
   stored in the ``.cmake`` file::
 
@@ -213,7 +216,6 @@ function(_libra_register_custom_target NAME OPTIONS TOOL)
   else()
     set(_tool_val "")
   endif()
-
   # Serialize the options list with \; so CMake list separators survive the
   # file(APPEND) round-trip inside [[ ]] brackets.
   string(REPLACE ";" "\\;" _opts_serialized "${OPTIONS}")
