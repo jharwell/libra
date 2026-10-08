@@ -88,6 +88,9 @@ option(LIBRA_GLOBAL_C_FLAGS "Should LIBRA set C flags globally?" OFF)
 option(LIBRA_GLOBAL_CXX_FLAGS "Should LIBRA set C++ flags globally" OFF)
 option(LIBRA_FPC_EXPORT "Should LIBRA_FPC be visible downstream?" OFF)
 option(LIBRA_ERL_EXPORT "Should LIBRA_ERL be visible downstream?" OFF)
+option(LIBRA_GLOBAL_32BIT "Build everything 32 bit instead of platform native"
+       OFF)
+
 if(DEFINED LIBRA_CODE_COV_NATIVE)
   libra_message(
     WARNING

@@ -29,7 +29,7 @@ jobs:
       !contains(github.event.release.tag_name, '-')
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:20260918
+      image: jharwell/ubuntu24.04-libra:20261008
     steps:
       - uses: actions/checkout@v4
         with:

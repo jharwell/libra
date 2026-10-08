@@ -27,8 +27,12 @@ RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | \
 # Install GCC/G++ versions
 ################################################################################
 RUN apt-get update && apt-get install -y \
-    gcc-9 g++-9 \
-    gcc-14 g++-14
+    gcc-9 \
+    g++-9 \
+    gcc-9-multilib \
+    gcc-14 \
+    g++-14 \
+    gcc-14-multilib
 
 # Set up alternatives for gcc/g++
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 \
@@ -53,7 +57,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     llvm-14-tools \
     clang-tidy-14 \
     clang-format-14 \
-    clang-tools-14
+    clang-tools-14 \
+    libclang-rt-14-dev
 
 RUN apt-get install -y --no-install-recommends \
     clang-19 \
@@ -67,7 +72,8 @@ RUN apt-get install -y --no-install-recommends \
     llvm-19 \
     clang-tidy-19 \
     clang-format-19 \
-    clang-tools-19
+    clang-tools-19 \
+    libclang-rt-14-dev
 
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-14 140 \
         --slave /usr/bin/clang++ clang++ /usr/bin/clang++-14 \

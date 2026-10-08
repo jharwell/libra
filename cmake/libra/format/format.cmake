@@ -97,4 +97,13 @@ if(LIBRA_FORMAT AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   _libra_register_custom_target(format LIBRA_FORMAT NONE)
   _libra_register_custom_target(format-check LIBRA_FORMAT NONE)
 
+  _libra_register_custom_target(format-check-clang LIBRA_FORMAT
+                                clang_format_EXECUTABLE)
+  _libra_register_custom_target(format-clang LIBRA_FORMAT
+                                clang_format_EXECUTABLE)
+
+  _libra_register_custom_target(format-check-cmake LIBRA_FORMAT
+                                cmake_format_EXECUTABLE)
+  _libra_register_custom_target(format-cmake LIBRA_FORMAT
+                                cmake_format_EXECUTABLE)
 endif()

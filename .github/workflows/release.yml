@@ -27,7 +27,7 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:20260918
+      image: jharwell/ubuntu24.04-libra:20261008
     permissions:
       contents: write
     steps:

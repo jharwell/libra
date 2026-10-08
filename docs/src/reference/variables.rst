@@ -512,6 +512,15 @@ Toolchain/compiler
 
    .. versionchanged:: 0.9.14
 
+.. cmake:variable:: LIBRA_GLOBAL_32BIT
+
+   :default: NO
+   :type: CACHE BOOL
+
+   Build everything in 32-bit mode instead of toolchain default. Use with care.
+
+   .. versionchanged:: 0.13.15
+
 Build tooling
 =============
 

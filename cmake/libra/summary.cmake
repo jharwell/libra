@@ -303,7 +303,8 @@ function(libra_config_summary)
       LIBRA_GCOVR_BRANCHES_THRESH
       LIBRA_FORMAT
       LIBRA_WERROR
-      LIBRA_CLANG_TOOLS_USE_FIXED_DB)
+      LIBRA_CLANG_TOOLS_USE_FIXED_DB
+      LIBRA_GLOBAL_32BIT)
 
   libra_config_summary_prepare_fields("${fields}")
 
@@ -347,6 +348,8 @@ function(libra_config_summary)
     "[CMAKE_HOST_SYSTEM_PROCESSOR]")
   _libra_summary_row("Build target architecture............."
                      EMIT_CMAKE_SYSTEM_PROCESSOR "[CMAKE_SYSTEM_PROCESSOR]")
+  _libra_summary_row("Force build 32 bit globally..........."
+                     EMIT_LIBRA_GLOBAL_32BIT "[LIBRA_GLOBAL_32BIT]")
 
   message("")
 
