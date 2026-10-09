@@ -67,8 +67,8 @@ function(libra_add_library)
   target_include_directories(
     ${NAME}
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-           $<INSTALL_INTERFACE:include>
-    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/src)
+           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+           $<INSTALL_INTERFACE:include>)
 
   set(_LIBRA_TARGET_OWNER_${NAME}
       "${PROJECT_NAME}"
