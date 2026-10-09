@@ -125,8 +125,8 @@ conventions:
    ├── CMakePresets.json
    ├── cmake/
    │   └── project-local.cmake   ← target definitions (required)
-   ├── src/                      ← .cpp / .c files (auto-discovered)
-   ├── include/                  ← .hpp / .h headers (auto-discovered)
+   ├── src/                      ← .cpp / .c files .hpp/.h private headers (auto-discovered)
+   ├── include/                  ← .hpp / .h public headers (auto-discovered)
    ├── tests/                    ← test files (auto-discovered by suffix)
    └── docs/
        ├── Doxyfile.in           ← doxygen configuration (LIBRA_DOCS=ON)

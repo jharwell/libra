@@ -41,7 +41,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     container:
-      image: jharwell/ubuntu24.04-libra:20261008
+      image: jharwell/ubuntu24.04-libra:20261009
     strategy:
       fail-fast: false
       matrix:

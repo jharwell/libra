@@ -18,7 +18,8 @@ include(libra/compile/standard)
    the list of targets to apply the LIBRA magic to.
 
    It also adds the ``include/`` directory as a public dependency for
-   building/consuming downstream.
+   building/consuming downstream, and the ``src/`` for private
+   includes.
 
    When the library is SHARED or MODULE, its sources are also compiled with
    :cmake:variable:`LIBRA_EXPORT_SYMBOL` defined (default
@@ -64,8 +65,10 @@ function(libra_add_library)
   add_library(${NAME} ${_rest})
 
   target_include_directories(
-    ${NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-                   $<INSTALL_INTERFACE:include>)
+    ${NAME}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>
+    PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/src)
 
   set(_LIBRA_TARGET_OWNER_${NAME}
       "${PROJECT_NAME}"
