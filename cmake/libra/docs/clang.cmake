@@ -40,6 +40,7 @@ function(_libra_apidoc_register_clang CHECK_TARGET)
       COMMAND
         ${clang_EXECUTABLE} ${STD_ARG} ${EXTRACTED_ARGS} -fsyntax-only
         -Wno-everything -Wdocumentation -Wdocumentation-pedantic -Werror ${file}
+        ${LIBRA_CLANG_EXTRA_ARGS}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Checking doxygen markup on ${file} with ${clang_NAME}")
     add_dependencies(${CHECK_TARGET} ${CHECK_TARGET}-${file_target})

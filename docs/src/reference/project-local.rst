@@ -147,6 +147,18 @@ Analysis
 
    .. versionadded:: 0.8.5
 
+.. cmake:variable:: LIBRA_CLANG_EXTRA_ARGS
+
+   A list of extra arguments to pass as-is to clang when LIBRA invokes it
+   as a checker (e.g., ``make apidoc-check-clang``), not when it compiles
+   your targets. Useful for telling clang about custom documentation commands
+   defined in your Doxyfile, e.g. ``-fcomment-block-commands=internal,todo``,
+   so they aren't rejected as unknown. If clang is also your compiler, add the
+   same flags to your targets directly. For clang-tidy, use
+   :cmake:variable:`LIBRA_CLANG_TIDY_EXTRA_ARGS`.
+
+   .. versionadded:: 0.13.16
+
 .. cmake:variable:: LIBRA_CLANG_FORMAT_FILEPATH
 
    The path to the ``.clang-format`` file you want to use. If not defined, LIBRA
