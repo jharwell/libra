@@ -292,25 +292,6 @@ endif()
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
                                                "RelWithDebInfo")
 
-  # Setting these prevents issues with static linking when using LTO
-  find_program(AR_EXECUTABLE gcc-ar)
-  if(AR_EXECUTABLE)
-    set(CMAKE_AR ${AR_EXECUTABLE})
-    libra_message(STATUS "Using gcc-ar=${AR_EXECUTABLE}")
-  endif()
-
-  find_program(NM_EXECUTABLE gcc-nm)
-  if(NM_EXECUTABLE)
-    set(CMAKE_NM ${NM_EXECUTABLE})
-    libra_message(STATUS "Using gcc-nm=${NM_EXECUTABLE}")
-  endif()
-
-  find_program(RANLIB_EXECUTABLE gcc-ranlib)
-  if(RANLIB_EXECUTABLE)
-    set(CMAKE_RANLIB ${RANLIB_EXECUTABLE})
-    libra_message(STATUS "Using gcc-ranlib=${RANLIB_EXECUTABLE}")
-  endif()
-
   # Without turning off these warnings we get a bunch of spurious warnings about
   # the attributes, even though they are already present.
   list(

@@ -240,28 +240,6 @@ if(LIBRA_OPT_FAST_MATH)
   list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -ffast-math)
 endif()
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
-                                               "RelWithDebInfo")
-  # Setting these prevents issues with static linking when using LTO
-  find_program(AR_EXECUTABLE llvm-ar)
-  if(AR_EXECUTABLE)
-    set(CMAKE_AR ${AR_EXECUTABLE})
-    libra_message(STATUS "Using llvm-ar=${AR_EXECUTABLE}")
-  endif()
-
-  find_program(NM_EXECUTABLE llvm-nm)
-  if(NM_EXECUTABLE)
-    set(CMAKE_NM ${NM_EXECUTABLE})
-    libra_message(STATUS "Using llvm-nm=${NM_EXECUTABLE}")
-  endif()
-
-  find_program(RANLIB_EXECUTABLE llvm-ranlib)
-  if(RANLIB_EXECUTABLE)
-    set(CMAKE_RANLIB ${RANLIB_EXECUTABLE})
-    libra_message(STATUS "Using llvm-ranlib=${RANLIB_EXECUTABLE}")
-  endif()
-endif()
-
 # ##############################################################################
 # Sanitizer Options
 # ##############################################################################
