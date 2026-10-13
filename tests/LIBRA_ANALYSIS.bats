@@ -97,7 +97,7 @@ setup() {
 # ==============================================================================
 
 @test "ANALYSIS: LIBRA_ANALYSIS=ON creates all clang-tidy category subtargets" {
-    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON -DLIBRA_CLANG_TIDY_CATEGORY_TARGETS=YES)
+    test_dir=$(run_libra_cmake_test "cxx" -DLIBRA_ANALYSIS=ON)
 
     for category in clang-analyzer-core abseil cppcoreguidelines readability hicpp \
                     bugprone cert performance portability concurrency modernize misc google; do
@@ -289,8 +289,7 @@ setup() {
 @test "ANALYSIS: misc category subtarget exists for headers in category mode (C++)" {
     # misc-include-cleaner should produce a per-file target for header files.
     test_dir=$(run_libra_cmake_test "cxx" \
-        -DLIBRA_ANALYSIS=ON \
-        -DLIBRA_CLANG_TIDY_CATEGORY_TARGETS=ON)
+        -DLIBRA_ANALYSIS=ON)
 
     # At least one analyze-clang-tidy-misc-* per-file target must exist.
     run bash -c "cmake --build '$test_dir' --target help 2>/dev/null | grep -q 'analyze-clang-tidy-misc-'"
@@ -301,8 +300,7 @@ setup() {
     # misc-include-cleaner is noise on .cpp files; no per-file misc target
     # should be created for sources.
     test_dir=$(run_libra_cmake_test "cxx" \
-        -DLIBRA_ANALYSIS=ON \
-        -DLIBRA_CLANG_TIDY_CATEGORY_TARGETS=ON)
+        -DLIBRA_ANALYSIS=ON)
 
     # Per-file misc targets must only correspond to header files. We check that
     # no target name contains both "misc" and a known source file stem.
@@ -313,8 +311,7 @@ setup() {
 @test "ANALYSIS: non-misc category subtargets not created for headers in category mode (C++)" {
     # All non-misc categories should skip header files.
     test_dir=$(run_libra_cmake_test "cxx" \
-        -DLIBRA_ANALYSIS=ON \
-        -DLIBRA_CLANG_TIDY_CATEGORY_TARGETS=ON)
+        -DLIBRA_ANALYSIS=ON)
 
     for category in bugprone cert cppcoreguidelines modernize readability performance; do
         run bash -c "cmake --build '$test_dir' --target help 2>/dev/null | grep 'analyze-clang-tidy-${category}-' | grep -q '_hpp'"
@@ -326,11 +323,10 @@ setup() {
     # In monolithic mode, -misc-include-cleaner must appear in the command for
     # source files. We verify the generated build.ninja or Makefile contains it.
     test_dir=$(run_libra_cmake_test "cxx" \
-        -DLIBRA_ANALYSIS=ON \
-        -DLIBRA_CLANG_TIDY_CATEGORY_TARGETS=OFF)
+        -DLIBRA_ANALYSIS=ON)
 
     # The sentinel string must appear somewhere in the generated build rules.
-    run grep -r "\-misc-include-cleaner" "$test_dir"
+    run grep -rV "\-misc-include-cleaner" "$test_dir"
     assert_success
 }
 

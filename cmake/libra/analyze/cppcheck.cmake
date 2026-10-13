@@ -6,9 +6,6 @@
 include(libra/messaging)
 include(libra/utils)
 
-_libra_register_custom_target(analyze-cppcheck LIBRA_ANALYSIS
-                              cppcheck_EXECUTABLE)
-
 #[[.rst
 .. cmake:command: _libra_register_cppcheck
 
@@ -65,7 +62,7 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
         --inline-suppr ${_suppr_args} ${_ignore_args}
         ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
-      COMMENT "Running ${cppcheck_NAME} with compdb")
+      COMMENT "Running ${cppcheck_EXECUTABLE} with compdb")
   else()
     add_custom_target(${ANALYSIS_TARGET})
 
@@ -86,7 +83,7 @@ function(_libra_register_cppcheck ANALYSIS_TARGET TARGET)
           --inline-suppr ${_suppr_args} ${_ignore_args}
           ${LIBRA_CPPCHECK_EXTRA_ARGS} --error-exitcode=1 ${file}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${cppcheck_NAME} without compdb on ${file}")
+        COMMENT "Running ${cppcheck_EXECUTABLE} without compdb on ${file}")
       add_dependencies(${ANALYSIS_TARGET} ${ANALYSIS_TARGET}-${file_target})
     endforeach()
   endif()

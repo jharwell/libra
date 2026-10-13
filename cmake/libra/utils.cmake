@@ -181,8 +181,8 @@ endmacro()
 
   :param OPTIONS: A CMake list of one or more LIBRA option variable names that
    must **all** be ``ON`` for the target to be available, e.g.
-   ``"LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"``.  A single option
-   may be passed as a plain string.
+   ``"LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORIES"``.  A single option may be
+   passed as a plain string.
 
   :param TOOL: The CMake variable name whose value is the path to the required
    tool executable (e.g. ``CLANG_TIDY_EXECUTABLE``).  Pass ``NONE`` for
