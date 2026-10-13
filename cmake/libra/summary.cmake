@@ -285,7 +285,6 @@ function(libra_config_summary)
       LIBRA_CLANG_FORMAT_FILEPATH
       LIBRA_CLANG_TIDY_FILEPATH
       LIBRA_CLANG_TIDY_CHECKS_CONFIG
-      LIBRA_CLANG_TIDY_CATEGORY_TARGETS
       LIBRA_C_DIAG_CANDIDATES
       LIBRA_CXX_DIAG_CANDIDATES
       LIBRA_TEST_HARNESS_LIBS
@@ -456,10 +455,6 @@ function(libra_config_summary)
     _libra_summary_row(
       "clang tools use fixed DB.............."
       EMIT_LIBRA_CLANG_TOOLS_USE_FIXED_DB "[LIBRA_CLANG_TOOLS_USE_FIXED_DB]")
-    _libra_summary_row(
-      "clang-tidy category targets..........."
-      EMIT_LIBRA_CLANG_TIDY_CATEGORY_TARGETS
-      "[LIBRA_CLANG_TIDY_CATEGORY_TARGETS]")
 
   endif()
   if(LIBRA_TESTS)

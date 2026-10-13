@@ -53,7 +53,7 @@ pub struct HelpTargets {
 
 /// Emit output for a single target group; that is, for a collection of
 /// buildable targets which all fall under the same semantic umbrella.
-fn emit_target_group(out: &mut String, category: &str, items: &Vec<Target>) {
+fn emit_target_group(out: &mut String, category: &str, items: &[Target]) {
     let indent = "    "; // 4 spaces
     let filtered: Vec<_> = items.iter().filter(|t| t.category == category).collect();
     let width = filtered.iter().map(|t| t.name.len()).max().unwrap_or(20) + 1;
@@ -162,7 +162,7 @@ fn emit_build_configuration(
     }
     let _ = writeln!(out, "{}", "\nBuild configuration\n".bold().underline());
 
-    let generator = cmake::generator(&preset)?;
+    let generator = cmake::generator(preset)?;
 
     let _ = writeln!(out, "  Build dir: {}", bdir.to_string_lossy());
     let _ = writeln!(out, "  Generator: {}", generator);
@@ -204,7 +204,7 @@ fn parse_cmake_cache(
         debug!("dry-run: skipping cache read");
         return Ok((Vec::new(), Vec::new()));
     }
-    let bdir = cmake::binary_dir(&preset)
+    let bdir = cmake::binary_dir(preset)
         .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
     if !bdir.exists() {
         anyhow::bail!(
@@ -255,7 +255,7 @@ Run 'libra build --preset {preset}' first.",
             }
         }
     }
-    return Ok((cmake_items, libra_items));
+    Ok((cmake_items, libra_items))
 }
 
 // ---------------------------------------------------------------------------

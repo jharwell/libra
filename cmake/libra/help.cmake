@@ -36,15 +36,14 @@ file(WRITE "${CMAKE_BINARY_DIR}/libra_targets.cmake" "")
      ``find_program`` / ``find_package``).
 
   The ``unavailable_reason`` string always lists **all** gating options with
-  their current values (e.g. ``LIBRA_ANALYSIS=OFF,
-  LIBRA_CLANG_TIDY_CATEGORY_TARGETS=ON``) so the user sees the complete
+  their current values (e.g. ``LIBRA_ANALYSIS=OFF``) so the user sees the complete
   picture in one glance rather than having to fix options one at a time.  When
   the target is available the reason is set to the empty string (serialised as
   JSON ``null`` by the caller).
 
-  :param _option_names: Semicolon-separated list of LIBRA option variable
-   names, e.g. ``"LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"``.  All
-   must be ``ON`` for the target to be considered available.
+  :param _option_names: Semicolon-separated list of LIBRA option variable names,
+   e.g. ``"LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORIES"``.  All must be ``ON``
+   for the target to be considered available.
 
   :param _tool_var: Name of the CMake variable that holds the resolved tool
    path (e.g. ``clang_tidy_EXECUTABLE``), or the literal string ``NONE`` when

@@ -5,9 +5,6 @@
 #
 include(libra/utils)
 
-_libra_register_custom_target(analyze-clang-check LIBRA_ANALYSIS NONE)
-_libra_register_custom_target(fix-clang-check LIBRA_ANALYSIS NONE)
-
 #[[.rst
 .. cmake:command: _libra_register_clang_check
 
