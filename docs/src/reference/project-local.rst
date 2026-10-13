@@ -147,6 +147,18 @@ Analysis
 
    .. versionadded:: 0.8.5
 
+.. cmake:variable:: LIBRA_CLANG_EXTRA_ARGS
+
+   A list of extra arguments to pass as-is to clang when LIBRA invokes it
+   as a checker (e.g., ``make apidoc-check-clang``), not when it compiles
+   your targets. Useful for telling clang about custom documentation commands
+   defined in your Doxyfile, e.g. ``-fcomment-block-commands=internal,todo``,
+   so they aren't rejected as unknown. If clang is also your compiler, add the
+   same flags to your targets directly. For clang-tidy, use
+   :cmake:variable:`LIBRA_CLANG_TIDY_EXTRA_ARGS`.
+
+   .. versionadded:: 0.13.16
+
 .. cmake:variable:: LIBRA_CLANG_FORMAT_FILEPATH
 
    The path to the ``.clang-format`` file you want to use. If not defined, LIBRA
@@ -215,20 +227,6 @@ Analysis
 
    .. versionadded:: 0.10.0
 
-.. cmake:variable:: LIBRA_CLANG_TIDY_CATEGORY_TARGETS
-
-   :default: OFF
-
-   When ``ON``, ``analyze-clang-tidy-XX`` targets are created for all clang-tidy
-   categories. Otherwise, all files are registered under a monolithic
-   ``analyze-clang-tidy``
-   target. :cmake:variable:`LIBRA_CLANG_TIDY_CHECKS_CONFIG` can be used to tune
-   which checks are included; by default all checks are included.
-
-   Useful on smaller projects/projects where multiple check targets is overkill.
-
-   .. versionadded:: 0.10.0
-
 .. cmake:variable:: LIBRA_CLANG_TIDY_CATEGORIES
 
    :default: ``abseil``, ``bugprone``, ``cert``, ``clang-analyzer-core``,
@@ -236,10 +234,11 @@ Analysis
              ``misc``, ``modernize``, ``performance``, ``portability``,
              ``readability``
 
-   If :cmake:variable:`LIBRA_CLANG_TIDY_CATEGORY_TARGETS` is enabled, then this
-   variable defines the categories of clang-tidy checks to enable. Useful for
-   creating a single ``make analyze`` target which will run all
-   analyzers/analyses you care about.
+   This variable defines the categories of clang-tidy checks to create dedicated
+   targets for; full analysis is always available via the umbrella analysis
+   target for clang-tidy. Useful for creating a single ``make analyze`` target
+   which will run all analyzers/analyses you care about. *Must be specified as
+   a CMake list*.
 
    .. versionadded:: 0.12.8
 

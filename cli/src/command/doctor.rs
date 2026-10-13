@@ -322,8 +322,6 @@ pub fn run(ctx: &runner::Context, _args: DoctorArgs) -> anyhow::Result<()> {
         warn_count,
         ok_count
     );
-    if err_count > 0 {
-        anyhow::bail!("doctor found errors!");
-    }
+    anyhow::ensure!(err_count == 0, "doctor found errors!");
     Ok(())
 }

@@ -7,10 +7,6 @@
 include(libra/messaging)
 include(libra/utils)
 
-_libra_register_custom_target(format-check-cmake LIBRA_FORMAT
-                              cmake_format_EXECUTABLE)
-_libra_register_custom_target(format-cmake LIBRA_FORMAT cmake_format_EXECUTABLE)
-
 #[[.rst
 .. cmake:command: _libra_register_cmake_format
 

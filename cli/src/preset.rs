@@ -39,21 +39,21 @@ fn load_configure_presets(dir: &std::path::PathBuf) -> anyhow::Result<Vec<serde_
 
 /// Die with an actionable message if the project structure is not usable.
 pub fn ensure_project_root(ctx: &crate::runner::Context) -> anyhow::Result<()> {
-    if !std::path::Path::new("CMakeLists.txt").exists() {
-        anyhow::bail!("no CMakeLists.txt found. Run libra from the project root.");
-    }
+    anyhow::ensure!(
+        std::path::Path::new("CMakeLists.txt").exists(),
+        "No CMakeLists.txt found. Run libra from the project root."
+    );
     debug!("CMakelists.txt found");
     let has_presets = std::path::Path::new("CMakePresets.json").exists()
         || std::path::Path::new("CMakeUserPresets.json").exists();
 
-    if !has_presets && ctx.preset.is_none() {
-        anyhow::bail!(
-            "no CMakePresets.json or CMakeUserPresets.json found.\n\
-             clibra requires CMake presets to function. Options:\n\
-               - Create CMakePresets.json manually\n\
-               - Use 'clibra init' to scaffold a full preset hierarchy"
-        );
-    }
+    anyhow::ensure!(
+        has_presets || ctx.preset.is_some(),
+        "no CMakePresets.json or CMakeUserPresets.json found.\n\
+         clibra requires CMake presets to function. Options:\n\
+           - Create CMakePresets.json manually\n\
+           - Use 'clibra init' to scaffold a full preset hierarchy"
+    );
     debug!("CMakelists.txt and one of {{CMakePresets.json,CMakeUserPresets}} found");
     Ok(())
 }

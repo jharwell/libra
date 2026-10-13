@@ -7,21 +7,6 @@
 include(libra/defaults)
 include(libra/utils)
 
-if(LIBRA_CLANG_TIDY_CATEGORY_TARGETS)
-  if(NOT LIBRA_CLANG_TIDY_CATEGORIES)
-    set(LIBRA_CLANG_TIDY_CATEGORIES ${LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT})
-  endif()
-endif()
-
-foreach(c ${LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT})
-  _libra_register_custom_target(
-    analyze-clang-tidy-${c} "LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"
-    clang_tidy_EXECUTABLE)
-  _libra_register_custom_target(
-    fix-clang-tidy-${c} "LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"
-    clang_tidy_EXECUTABLE)
-endforeach()
-
 _libra_register_custom_target(analyze-clang-tidy LIBRA_ANALYSIS
                               clang_tidy_EXECUTABLE)
 _libra_register_custom_target(fix-clang-tidy LIBRA_ANALYSIS
@@ -232,60 +217,30 @@ function(
     set(HEADER_FILTER ${CMAKE_CURRENT_SOURCE_DIR}/include/.*)
   endif()
 
-  if(LIBRA_CLANG_TIDY_CATEGORY_TARGETS)
-    foreach(CATEGORY ${LIBRA_CLANG_TIDY_CATEGORIES})
-      if(NOT TARGET ${UMBRELLA_TARGET}-${CATEGORY})
-        add_custom_target(${UMBRELLA_TARGET}-${CATEGORY})
-        set_target_properties(
-          ${UMBRELLA_TARGET}-${CATEGORY} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
-                                                    EXCLUDE_FROM_ALL 1)
-        add_dependencies(${UMBRELLA_TARGET} ${UMBRELLA_TARGET}-${CATEGORY})
-      endif()
+  libra_message(
+    STATUS
+    "Creating clang-tidy category targets: ${LIBRA_CLANG_TIDY_CATEGORIES}")
+  foreach(CATEGORY ${LIBRA_CLANG_TIDY_CATEGORIES})
+    if(NOT TARGET ${UMBRELLA_TARGET}-${CATEGORY})
+      add_custom_target(${UMBRELLA_TARGET}-${CATEGORY})
+      set_target_properties(
+        ${UMBRELLA_TARGET}-${CATEGORY} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD 1
+                                                  EXCLUDE_FROM_ALL 1)
+      add_dependencies(${UMBRELLA_TARGET} ${UMBRELLA_TARGET}-${CATEGORY})
+    endif()
 
-      # We generate per-file commands so that we (a) get more fine-grained
-      # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
-      # finishes running against ALL files to get feedback for a given file.
-      foreach(FILE ${SRCS} ${HEADERS} ${STUBS})
-        _libra_clang_tidy_should_skip(${FILE} HEADERS ${CATEGORY} _SKIP)
-        if(_SKIP)
-          continue()
-        endif()
-
-        # Targets can't have '/' or '.' in their names.
-        string(REPLACE "/" "_" file_target "${FILE}")
-        string(REPLACE "." "_" file_target "${file_target}")
-
-        set(_CHECKS_EXPR "-*,${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}")
-        _libra_clang_tidy_build_cmd(
-          ${FILE}
-          "${_CHECKS_EXPR}"
-          "${JOB_ARGS}"
-          "${STD_ARGS}"
-          "${EXTRACTED_ARGS}"
-          "${HEADER_FILTER}"
-          "${HEADER_EXCLUDES}")
-
-        add_custom_target(
-          ${UMBRELLA_TARGET}-${CATEGORY}-${file_target}
-          COMMAND ${CLANG_TIDY_CMD}
-          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-          COMMENT
-            "Running ${clang_tidy_NAME} on ${FILE} [category=${CATEGORY}, JOB=${JOB}]"
-        )
-        add_dependencies(${UMBRELLA_TARGET}-${CATEGORY}
-                         ${UMBRELLA_TARGET}-${CATEGORY}-${file_target})
-      endforeach()
-    endforeach()
-
-  else()
-    # Monolithic mode: all checks in a single analyze-clang-tidy target.
+    # We generate per-file commands so that we (a) get more fine-grained
+    # feedback from clang-tidy, and (b) don't have to wait until clang-tidy
+    # finishes running against ALL files to get feedback for a given file.
     foreach(FILE ${SRCS} ${HEADERS} ${STUBS})
-
-      # misc-include-cleaner is only meaningful on headers.
-      set(_is_header FALSE)
-      if("${FILE}" IN_LIST HEADERS)
-        set(_is_header TRUE)
+      _libra_clang_tidy_should_skip(${FILE} HEADERS ${CATEGORY} _SKIP)
+      if(_SKIP)
+        continue()
       endif()
+
+      # Targets can't have '/' or '.' in their names.
+      string(REPLACE "/" "_" file_target "${FILE}")
+      string(REPLACE "." "_" file_target "${file_target}")
 
       if(_is_header)
         set(_NO_MISC "")
@@ -293,10 +248,8 @@ function(
         set(_NO_MISC "-misc-include-cleaner")
       endif()
 
-      string(REPLACE "/" "_" file_target "${FILE}")
-      string(REPLACE "." "_" file_target "${file_target}")
-
-      set(_CHECKS_EXPR "*,${_NO_MISC}${LIBRA_CLANG_TIDY_CHECKS_CONFIG}")
+      set(_CHECKS_EXPR
+          "-*,${NO_MISC},${CATEGORY}*${LIBRA_CLANG_TIDY_CHECKS_CONFIG}")
       _libra_clang_tidy_build_cmd(
         ${FILE}
         "${_CHECKS_EXPR}"
@@ -307,13 +260,52 @@ function(
         "${HEADER_EXCLUDES}")
 
       add_custom_target(
-        ${UMBRELLA_TARGET}-${file_target}
+        ${UMBRELLA_TARGET}-${CATEGORY}-${file_target}
         COMMAND ${CLANG_TIDY_CMD}
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Running ${clang_tidy_NAME} on ${FILE} [JOB=${JOB}]")
-      add_dependencies(${UMBRELLA_TARGET} ${UMBRELLA_TARGET}-${file_target})
+        COMMENT
+          "Running ${clang_tidy_NAME} on ${FILE} [category=${CATEGORY}, JOB=${JOB}]"
+      )
+      add_dependencies(${UMBRELLA_TARGET}-${CATEGORY}
+                       ${UMBRELLA_TARGET}-${CATEGORY}-${file_target})
     endforeach()
-  endif()
+  endforeach()
+
+  # Monolithic mode: all checks in a single analyze-clang-tidy target.
+  foreach(FILE ${SRCS} ${HEADERS} ${STUBS})
+
+    # misc-include-cleaner is only meaningful on headers.
+    set(_is_header FALSE)
+    if("${FILE}" IN_LIST HEADERS)
+      set(_is_header TRUE)
+    endif()
+
+    if(_is_header)
+      set(_NO_MISC "")
+    else()
+      set(_NO_MISC "-misc-include-cleaner")
+    endif()
+
+    string(REPLACE "/" "_" file_target "${FILE}")
+    string(REPLACE "." "_" file_target "${file_target}")
+
+    set(_CHECKS_EXPR "*,${_NO_MISC}${LIBRA_CLANG_TIDY_CHECKS_CONFIG}")
+    _libra_clang_tidy_build_cmd(
+      ${FILE}
+      "${_CHECKS_EXPR}"
+      "${JOB_ARGS}"
+      "${STD_ARGS}"
+      "${EXTRACTED_ARGS}"
+      "${HEADER_FILTER}"
+      "${HEADER_EXCLUDES}")
+
+    add_custom_target(
+      ${UMBRELLA_TARGET}-${file_target}
+      COMMAND ${CLANG_TIDY_CMD}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT "Running ${clang_tidy_NAME} on ${FILE} [JOB=${JOB}]")
+    add_dependencies(${UMBRELLA_TARGET} ${UMBRELLA_TARGET}-${file_target})
+  endforeach()
 endfunction()
 
 #[[.rst

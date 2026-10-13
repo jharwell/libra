@@ -15,6 +15,7 @@ use crate::runner;
 // ---------------------------------------------------------------------------
 // Private API
 // ---------------------------------------------------------------------------
+#[derive(PartialEq)]
 pub enum TargetStatus {
     /// The target is available in the build system.
     Available,
@@ -35,15 +36,15 @@ pub struct ConfigureArgs {
     /// Forward -DVAR=VALUE to the CMake configure step when active. Ignored
     /// (with a warning) if the build directory exists and neither
     /// --reconfigure nor --fresh is given.
-    #[arg(short = 'D', value_name = "VAR=VALUE")]
+    #[arg(short = 'D', value_name = "VAR=VALUE", global = true)]
     pub defines: Vec<String>,
 
     /// Force the configure step even if the build directory exists.
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub reconfigure: bool,
 
     /// Reconfigure with a --fresh cmake build directory.
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     pub fresh: bool,
 }
 
@@ -110,13 +111,12 @@ pub fn ensure_libra_feature_enabled(
     }
     let bdir = binary_dir(preset)
         .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
-    if !bdir.exists() {
-        anyhow::bail!(
-            "Build directory '{}' does not exist for preset '{preset}'.\n\
+    anyhow::ensure!(
+        bdir.exists(),
+        "Build directory '{}' does not exist for preset '{preset}'.\n\
          Run 'libra build --preset {preset}' first.",
-            bdir.display()
-        );
-    }
+        bdir.display()
+    );
 
     match cache_bool(&bdir, variable)? {
         // variable present and false — emit error
@@ -136,13 +136,13 @@ pub fn ensure_libra_feature_enabled(
 pub fn generator(preset: &str) -> anyhow::Result<String> {
     let bdir = binary_dir(preset)
         .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
-    if !bdir.exists() {
-        anyhow::bail!(
-            "Build directory '{}' does not exist for preset '{preset}'.\n\
+
+    anyhow::ensure!(
+        bdir.exists(),
+        "Build directory '{}' does not exist for preset '{preset}'.\n\
          Run 'libra build --preset {preset}' first.",
-            bdir.display()
-        );
-    }
+        bdir.display()
+    );
 
     let content = std::fs::read_to_string(bdir.join("CMakeCache.txt"))?;
     let generator = content
@@ -169,24 +169,27 @@ pub fn binary_dir(preset: &str) -> anyhow::Result<std::path::PathBuf> {
 pub fn target_status(target: &str, preset: &str) -> anyhow::Result<TargetStatus> {
     let bdir = binary_dir(preset)
         .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
-    if !bdir.exists() {
-        anyhow::bail!(
-            "Build directory '{}' does not exist for preset '{preset}'.\n\
+    anyhow::ensure!(
+        bdir.exists(),
+        "Build directory '{}' does not exist for preset '{preset}'.\n\
          Run 'libra build --preset {preset}' first.",
-            bdir.display()
-        );
-    }
+        bdir.display()
+    );
 
     let text = std::fs::read_to_string(bdir.join("libra_targets.json"))?;
     let data: info::HelpTargets = serde_json::from_str(&text)?;
 
     for t in data.targets {
-        if t.name == target {
+        if t.name == target && t.available {
             return Ok(TargetStatus::Available);
+        } else if t.name == target && !t.available {
+            return Ok(TargetStatus::Unavailable(
+                t.unavailable_reason.expect("No unavailable reason given?"),
+            ));
         }
     }
 
-    Ok(TargetStatus::Unavailable("unknown".to_string()))
+    Ok(TargetStatus::Unavailable("Unknown".to_string()))
 }
 
 pub fn reconf(
@@ -260,21 +263,27 @@ pub fn ensure_configured(
     preset: &str,
     args: &ConfigureArgs,
 ) -> anyhow::Result<std::path::PathBuf> {
-    let bdir = binary_dir(&preset)
+    let bdir = binary_dir(preset)
         .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
-    if bdir.exists() && !ctx.dry_run && !args.defines.is_empty() && !args.reconfigure && !args.fresh
-    {
-        anyhow::bail!(
-            "{} -D values given but build directory '{}' exists for preset\n\
+
+    let ignored_defines = bdir.exists()
+        && !ctx.dry_run
+        && !args.defines.is_empty()
+        && !args.reconfigure
+        && !args.fresh;
+
+    anyhow::ensure!(
+        !ignored_defines,
+        "{} -D values given but build directory '{}' exists for preset\n\
 {preset} and no --reconfigure; values will not be applied. This is probably\n\
  a configuration error.",
-            args.defines.len(),
-            bdir.display()
-        )
-    }
+        args.defines.len(),
+        bdir.display()
+    );
+
     if args.reconfigure || args.fresh || !bdir.exists() {
         debug!("Begin reconfigure");
-        reconf(ctx, &preset, args.fresh, &args.defines)?;
+        reconf(ctx, preset, args.fresh, &args.defines)?;
     }
     Ok(bdir)
 }

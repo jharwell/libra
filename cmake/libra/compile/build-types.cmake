@@ -44,6 +44,11 @@ set(_LIBRA_CXX_LINK_OPTIONS ${_LIBRA_COMMON_LINK_OPTIONS}
 
 get_property(LANGUAGES_LIST GLOBAL PROPERTY ENABLED_LANGUAGES)
 
+libra_message(STATUS "Using C ar=${CMAKE_C_COMPILER_AR}")
+libra_message(STATUS "Using CXX ar=${CMAKE_CXX_COMPILER_AR}")
+libra_message(STATUS "Using C ranlib=${CMAKE_C_COMPILER_RANLIB}")
+libra_message(STATUS "Using CXX ranlib=${CMAKE_CXX_COMPILER_RANLIB}")
+libra_message(STATUS "Using nm=${CMAKE_NM}")
 # We have to do this by target, because setting
 # CMAKE_INTERPROCEDURAL_OPTIMIZATION in the per-compiler .cmake files only
 # affects targets created AFTER that, and since that stuff is currently included

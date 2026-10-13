@@ -37,13 +37,13 @@ pub fn run(ctx: &runner::Context, args: CleanArgs) -> anyhow::Result<()> {
     if args.all {
         let bdir = cmake::binary_dir(&preset)
             .with_context(|| format!("Resolving binary directory for preset '{preset}'"))?;
-        if !bdir.exists() && !ctx.dry_run {
-            anyhow::bail!(
-                "Build directory '{}' does not exist for preset '{preset}'.\n\
-         Run 'libra build --preset {preset}' first.",
-                bdir.display()
-            );
-        }
+
+        anyhow::ensure!(
+            bdir.exists() || ctx.dry_run,
+            "Build directory '{}' does not exist for preset '{preset}'.\n\
+        Run 'libra build --preset {preset}' first.",
+            bdir.display()
+        );
         std::fs::remove_dir_all(bdir)?;
     } else {
         ctx.run(

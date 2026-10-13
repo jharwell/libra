@@ -10,9 +10,6 @@ include(libra/analyze/utils)
 include(libra/messaging)
 include(libra/utils)
 
-_libra_register_custom_target(analyze LIBRA_ANALYSIS NONE)
-_libra_register_custom_target(fix LIBRA_ANALYSIS NONE)
-
 #[[.rst:
 .. cmake:command:: _libra_register_code_checkers
 
@@ -50,9 +47,28 @@ function(
                                            EXCLUDE_FROM_ALL 1)
 
   _libra_register_checker_cppcheck(${TARGET} ${SRCS} ${STUBS})
+  _libra_register_custom_target(analyze-cppcheck LIBRA_ANALYSIS
+                                cppcheck_EXECUTABLE)
+
+  if(NOT LIBRA_CLANG_TIDY_CATEGORIES)
+    set(LIBRA_CLANG_TIDY_CATEGORIES ${LIBRA_CLANG_TIDY_CATEGORIES_DEFAULT})
+  endif()
   _libra_register_checker_clang_tidy(${TARGET} "${SRCS}" "${HEADERS}"
                                      "${STUBS}")
+
+  foreach(c ${LIBRA_CLANG_TIDY_CATEGORIES})
+    _libra_register_custom_target(analyze-clang-tidy-${c} LIBRA_ANALYSIS
+                                  clang_tidy_EXECUTABLE)
+    _libra_register_custom_target(fix-clang-tidy-${c} LIBRA_ANALYSIS
+                                  clang_tidy_EXECUTABLE)
+  endforeach()
+
   _libra_register_checker_clang_check(${TARGET} ${SRCS} ${STUBS})
+  _libra_register_custom_target(analyze-clang-check LIBRA_ANALYSIS
+                                clang_check_EXECUTABLE)
+  _libra_register_custom_target(fix-clang-check LIBRA_ANALYSIS
+                                clang_check_EXECUTABLE)
+
   list(POP_BACK CMAKE_MESSAGE_INDENT)
 endfunction()
 
@@ -476,4 +492,7 @@ if(LIBRA_ANALYSIS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   # Configure fixing tools
   libra_message(STATUS "Enabling analysis tools: fixers")
   _libra_register_code_fixers(${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}")
+  _libra_register_custom_target(analyze LIBRA_ANALYSIS NONE)
+  _libra_register_custom_target(fix LIBRA_ANALYSIS NONE)
+
 endif()

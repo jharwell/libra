@@ -126,12 +126,11 @@ no available target info can be emitted",
     let s = format!("\nAvailable LIBRA targets for {}\n", data.project)
         .bold()
         .underline();
-    if data.schema_version != 1 {
-        anyhow::bail!(
-            "Only info schema v1 supported, have {}",
-            data.schema_version
-        );
-    }
+    anyhow::ensure!(
+        data.schema_version == 1,
+        "Only info schema v1 supported, have {}",
+        data.schema_version
+    );
     let _ = writeln!(out, "{}", s);
 
     emit_target_group(out, "analysis", &data.targets);

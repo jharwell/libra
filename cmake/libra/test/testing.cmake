@@ -11,11 +11,6 @@ include(libra/defaults)
 include(libra/test/negative)
 include(libra/utils)
 
-_libra_register_custom_target(unit-tests LIBRA_TESTS NONE)
-_libra_register_custom_target(integration-tests LIBRA_TESTS NONE)
-_libra_register_custom_target(regression-tests LIBRA_TESTS NONE)
-_libra_register_custom_target(all-tests LIBRA_TESTS NONE)
-
 # ##############################################################################
 # Test sources
 # ##############################################################################
@@ -641,4 +636,8 @@ if(LIBRA_TESTS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   libra_message(STATUS "negative:    ${_n_neg_total}")
 
   list(POP_BACK CMAKE_MESSAGE_INDENT)
+  _libra_register_custom_target(unit-tests LIBRA_TESTS NONE)
+  _libra_register_custom_target(integration-tests LIBRA_TESTS NONE)
+  _libra_register_custom_target(regression-tests LIBRA_TESTS NONE)
+  _libra_register_custom_target(all-tests LIBRA_TESTS NONE)
 endif()

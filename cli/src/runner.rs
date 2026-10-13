@@ -32,13 +32,12 @@ impl Context {
             debug!("+ {}", format_cmd(cmd));
         }
         let status = cmd.status()?;
-        if !status.success() {
-            anyhow::bail!(
-                "command failed with exit code {}: {}",
-                status.code().unwrap_or(-1),
-                format_cmd(cmd)
-            );
-        }
+        anyhow::ensure!(
+            status.success(),
+            "command failed with exit code {}: {}",
+            status.code().unwrap_or(-1),
+            format_cmd(cmd)
+        );
         Ok(())
     }
 }

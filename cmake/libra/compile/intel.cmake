@@ -9,6 +9,7 @@
 # ##############################################################################
 include(libra/compile/standard)
 include(libra/defaults)
+include(libra/messaging)
 
 # ##############################################################################
 # Diagnostic Options
@@ -120,7 +121,7 @@ on the build host:
 
 ``-xHost`` targets Intel processors; on hosts the compiler can't identify
 (e.g., AMD, or Intel CPUs newer than the compiler), it resolves to an invalid
-CPU name and compilation fails, hence the fallbacks. 
+CPU name and compilation fails, hence the fallbacks.
 ]]
 
 # Check a flag against every loaded language (C, C++, or both). The result is
@@ -135,7 +136,9 @@ function(_libra_intel_check_flag_all_langs flag outvar)
     check_c_compiler_flag(${flag}
                           _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
     if(NOT _LIBRA_C_COMPILER_SUPPORTS_${checked_flag_output})
-      set(${outvar} FALSE PARENT_SCOPE)
+      set(${outvar}
+          FALSE
+          PARENT_SCOPE)
       return()
     endif()
     set(_ok TRUE)
@@ -146,13 +149,17 @@ function(_libra_intel_check_flag_all_langs flag outvar)
     check_cxx_compiler_flag(${flag}
                             _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
     if(NOT _LIBRA_CXX_COMPILER_SUPPORTS_${checked_flag_output})
-      set(${outvar} FALSE PARENT_SCOPE)
+      set(${outvar}
+          FALSE
+          PARENT_SCOPE)
       return()
     endif()
     set(_ok TRUE)
   endif()
 
-  set(${outvar} ${_ok} PARENT_SCOPE)
+  set(${outvar}
+      ${_ok}
+      PARENT_SCOPE)
 endfunction()
 
 set(LIBRA_OPT_NATIVE_FLAG_INTEL "")
@@ -166,7 +173,8 @@ if(LIBRA_OPT_NATIVE)
   endforeach()
 
   if(LIBRA_OPT_NATIVE_FLAG_INTEL)
-    libra_message(STATUS "LIBRA_OPT_NATIVE: using ${LIBRA_OPT_NATIVE_FLAG_INTEL}")
+    libra_message(STATUS
+                  "LIBRA_OPT_NATIVE: using ${LIBRA_OPT_NATIVE_FLAG_INTEL}")
     list(APPEND _LIBRA_OPT_COMPILE_OPTIONS ${LIBRA_OPT_NATIVE_FLAG_INTEL})
   else()
     libra_message(
@@ -408,6 +416,13 @@ if(LIBRA_OPT_REPORT)
   if(LIBRA_LTO)
     set(_LIBRA_OPT_REPORT_LINK_OPTIONS -qopt-report=3 -qopt-report-phase=all)
   endif()
+endif()
+
+# ##############################################################################
+# 32 bit build options
+# ##############################################################################
+if(LIBRA_ENABLE_32BIT)
+  libra_message(FATAL_ERROR "Intel LLVM does not support 32-bit builds")
 endif()
 
 # ##############################################################################

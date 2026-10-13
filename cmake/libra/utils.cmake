@@ -161,6 +161,9 @@ endmacro()
   :cmake:command:`_libra_create_targets_json` can later serialise availability
   state into ``libra_targets.json``.
 
+  .. IMPORTANT:: Only call this function AFTER the necessary tool variable has
+     been populated or the tool will always report "unavailable".
+
   Each call appends a 3-element record to the ``_LIBRA_SUMMARY_TARGETS`` list
   stored in the ``.cmake`` file::
 
@@ -178,8 +181,8 @@ endmacro()
 
   :param OPTIONS: A CMake list of one or more LIBRA option variable names that
    must **all** be ``ON`` for the target to be available, e.g.
-   ``"LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORY_TARGETS"``.  A single option
-   may be passed as a plain string.
+   ``"LIBRA_ANALYSIS;LIBRA_CLANG_TIDY_CATEGORIES"``.  A single option may be
+   passed as a plain string.
 
   :param TOOL: The CMake variable name whose value is the path to the required
    tool executable (e.g. ``CLANG_TIDY_EXECUTABLE``).  Pass ``NONE`` for
@@ -213,7 +216,6 @@ function(_libra_register_custom_target NAME OPTIONS TOOL)
   else()
     set(_tool_val "")
   endif()
-
   # Serialize the options list with \; so CMake list separators survive the
   # file(APPEND) round-trip inside [[ ]] brackets.
   string(REPLACE ";" "\\;" _opts_serialized "${OPTIONS}")

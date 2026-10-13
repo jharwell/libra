@@ -93,12 +93,11 @@ message("VERSION=${{LIBRA_PROJECT_VERSION}}")"#,
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    if !output.status.success() {
-        anyhow::bail!(
-            "cmake version extraction failed: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
+    anyhow::ensure!(
+        output.status.success(),
+        "cmake version extraction failed: {}",
+        String::from_utf8_lossy(&output.stderr).trim()
+    );
 
     // cmake message()s go to stderr, not stdout.
     let stderr = String::from_utf8_lossy(&output.stderr);

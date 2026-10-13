@@ -240,28 +240,6 @@ if(LIBRA_OPT_FAST_MATH)
   list(APPEND _LIBRA_OPT_COMPILE_OPTIONS -ffast-math)
 endif()
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
-                                               "RelWithDebInfo")
-  # Setting these prevents issues with static linking when using LTO
-  find_program(AR_EXECUTABLE llvm-ar)
-  if(AR_EXECUTABLE)
-    set(CMAKE_AR ${AR_EXECUTABLE})
-    libra_message(STATUS "Using llvm-ar=${AR_EXECUTABLE}")
-  endif()
-
-  find_program(NM_EXECUTABLE llvm-nm)
-  if(NM_EXECUTABLE)
-    set(CMAKE_NM ${NM_EXECUTABLE})
-    libra_message(STATUS "Using llvm-nm=${NM_EXECUTABLE}")
-  endif()
-
-  find_program(RANLIB_EXECUTABLE llvm-ranlib)
-  if(RANLIB_EXECUTABLE)
-    set(CMAKE_RANLIB ${RANLIB_EXECUTABLE})
-    libra_message(STATUS "Using llvm-ranlib=${RANLIB_EXECUTABLE}")
-  endif()
-endif()
-
 # ##############################################################################
 # Sanitizer Options
 # ##############################################################################
@@ -485,6 +463,29 @@ if(LIBRA_OPT_REPORT)
     set(_LIBRA_OPT_REPORT_LINK_OPTIONS -Rpass=.* -Rpass-missed=.*
                                        -Rpass-analysis=.*)
   endif()
+endif()
+
+# ##############################################################################
+# 32 bit build options
+# ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_GLOBAL_32BIT_CLANG
+
+If enabled: ``-m32`` at compile/link, both C/C++.
+]]
+if(LIBRA_GLOBAL_32BIT)
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -m32"
+      CACHE STRING "" FORCE)
+  set(CMAKE_SHARED_LINKER_FLAGS
+      "${CMAKE_SHARED_LINKER_FLAGS} -m32"
+      CACHE STRING "" FORCE)
+  set(CMAKE_C_FLAGS
+      "${CMAKE_C_FLAGS} -m32"
+      CACHE STRING "" FORCE)
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -m32"
+      CACHE STRING "" FORCE)
 endif()
 
 # ##############################################################################

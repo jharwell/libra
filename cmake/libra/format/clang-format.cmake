@@ -6,10 +6,6 @@
 include(libra/messaging)
 include(libra/utils)
 
-_libra_register_custom_target(format-check-clang LIBRA_FORMAT
-                              clang_format_EXECUTABLE)
-_libra_register_custom_target(format-clang LIBRA_FORMAT clang_format_EXECUTABLE)
-
 #[[.rst
 .. cmake:command: _libra_register_clang_format
 

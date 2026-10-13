@@ -138,6 +138,7 @@ foreach(flag ${LIBRA_CXX_DIAG_CANDIDATES})
     list(APPEND _LIBRA_CXX_DIAG_OPTIONS ${flag})
   endif()
 endforeach()
+
 # ##############################################################################
 # Build-time Profiling Options
 # ##############################################################################
@@ -290,25 +291,6 @@ endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR "${CMAKE_BUILD_TYPE}" STREQUAL
                                                "RelWithDebInfo")
-
-  # Setting these prevents issues with static linking when using LTO
-  find_program(AR_EXECUTABLE gcc-ar)
-  if(AR_EXECUTABLE)
-    set(CMAKE_AR ${AR_EXECUTABLE})
-    libra_message(STATUS "Using gcc-ar=${AR_EXECUTABLE}")
-  endif()
-
-  find_program(NM_EXECUTABLE gcc-nm)
-  if(NM_EXECUTABLE)
-    set(CMAKE_NM ${NM_EXECUTABLE})
-    libra_message(STATUS "Using gcc-nm=${NM_EXECUTABLE}")
-  endif()
-
-  find_program(RANLIB_EXECUTABLE gcc-ranlib)
-  if(RANLIB_EXECUTABLE)
-    set(CMAKE_RANLIB ${RANLIB_EXECUTABLE})
-    libra_message(STATUS "Using gcc-ranlib=${RANLIB_EXECUTABLE}")
-  endif()
 
   # Without turning off these warnings we get a bunch of spurious warnings about
   # the attributes, even though they are already present.
@@ -533,6 +515,29 @@ if(NOT ${_LIBRA_STDLIB_MATCH} AND NOT "${LIBRA_STDLIB}" STREQUAL "UNDEFINED")
   libra_message(
     WARNING
     "Bad LIBRA_STDLIB setting '${LIBRA_STDLIB}': Must be one of {NONE,STDCXX}")
+endif()
+
+# ##############################################################################
+# 32 bit build options
+# ##############################################################################
+#[[.rst:
+.. cmake:variable:: LIBRA_GLOBAL_32BIT_GNU
+
+If enabled: ``-m32`` at compile/link, both C/C++.
+]]
+if(LIBRA_GLOBAL_32BIT)
+  set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -m32"
+      CACHE STRING "" FORCE)
+  set(CMAKE_SHARED_LINKER_FLAGS
+      "${CMAKE_SHARED_LINKER_FLAGS} -m32"
+      CACHE STRING "" FORCE)
+  set(CMAKE_C_FLAGS
+      "${CMAKE_C_FLAGS} -m32"
+      CACHE STRING "" FORCE)
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -m32"
+      CACHE STRING "" FORCE)
 endif()
 
 # ##############################################################################
