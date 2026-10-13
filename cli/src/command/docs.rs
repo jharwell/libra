@@ -80,7 +80,7 @@ fn run_target(ctx: &runner::Context, args: &DocsArgs, target: &str) -> anyhow::R
 
     debug!("Begin");
 
-    cmake::ensure_configured(&ctx, &preset, &args.configure)?;
+    cmake::ensure_configured(ctx, &preset, &args.configure)?;
 
     if !ctx.dry_run {
         cmake::ensure_libra_feature_enabled(ctx, &preset, "LIBRA_DOCS")?;
