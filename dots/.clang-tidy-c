@@ -133,7 +133,7 @@ CheckOptions:
   readability-function-cognitive-complexity.DescribeBasicIncrements: 'true'
   readability-function-cognitive-complexity.IgnoreMacros: 'true'
   readability-function-cognitive-complexity.Threshold: '25'
-  readability-function-size.BranchThreshold: '20'
+  readability-function-size.BranchThreshold: '25'
   readability-function-size.IgnoreMacros: 'true'
   readability-function-size.LineThreshold: '120'
   readability-function-size.NestingThreshold: '8'

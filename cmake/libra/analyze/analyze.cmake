@@ -55,6 +55,10 @@ function(
   endif()
   _libra_register_checker_clang_tidy(${TARGET} "${SRCS}" "${HEADERS}"
                                      "${STUBS}")
+  _libra_register_custom_target(analyze-clang-tidy LIBRA_ANALYSIS
+                                clang_tidy_EXECUTABLE)
+  _libra_register_custom_target(fix-clang-tidy LIBRA_ANALYSIS
+                                clang_tidy_EXECUTABLE)
 
   foreach(c ${LIBRA_CLANG_TIDY_CATEGORIES})
     _libra_register_custom_target(analyze-clang-tidy-${c} LIBRA_ANALYSIS
@@ -494,5 +498,4 @@ if(LIBRA_ANALYSIS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   _libra_register_code_fixers(${PROJECT_NAME} "${${PROJECT_NAME}_ANALYSIS_SRC}")
   _libra_register_custom_target(analyze LIBRA_ANALYSIS NONE)
   _libra_register_custom_target(fix LIBRA_ANALYSIS NONE)
-
 endif()
