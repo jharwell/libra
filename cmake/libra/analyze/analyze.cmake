@@ -475,10 +475,11 @@ if(LIBRA_ANALYSIS AND CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 
   if(${PROJECT_NAME}_ANALYSIS_STUBS)
     # Now stubs get compdb entries and --header-filter picks up their headers
-    add_library(_${PROJECT_NAME}_analysis_stubs OBJECT
-                EXCLUDE_FROM_ALL ${${PROJECT_NAME}_ANALYSIS_STUBS})
+    libra_add_library(_${PROJECT_NAME}_analysis_stubs OBJECT EXCLUDE_FROM_ALL
+                      ${${PROJECT_NAME}_ANALYSIS_STUBS})
     target_link_libraries(_${PROJECT_NAME}_analysis_stubs
                           PRIVATE ${PROJECT_NAME})
+
   endif()
   list(LENGTH ${PROJECT_NAME}_ANALYSIS_STUBS STUBS_LEN)
   list(LENGTH ${PROJECT_NAME}_ANALYSIS_SRC SRC_LEN)
