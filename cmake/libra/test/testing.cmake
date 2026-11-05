@@ -47,9 +47,15 @@ set(_LIBRA_COMPILED_EXTENSIONS c cpp)
 set(_LIBRA_INTERPRETED_EXTENSIONS bats py sh)
 
 # Map interpreted extensions to their interpreter executable.
-set(_LIBRA_INTERPRETER_bats "bats")
-set(_LIBRA_INTERPRETER_py "python3")
-set(_LIBRA_INTERPRETER_sh "bash")
+if(NOT LIBRA_bats_INTERPRETER)
+  set(LIBRA_bats_INTERPRETER ${LIBRA_bats_INTERPRETER_DEFAULT})
+endif()
+if(NOT LIBRA_py_INTERPRETER)
+  set(LIBRA_py_INTERPRETER ${LIBRA_py_INTERPRETER_DEFAULT})
+endif()
+if(NOT LIBRA_sh_INTERPRETER)
+  set(LIBRA_sh_INTERPRETER ${LIBRA_sh_INTERPRETER_DEFAULT})
+endif()
 
 # ##############################################################################
 # Glob for all test sources
@@ -202,7 +208,7 @@ function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   string(SUBSTRING ${test_ext} 1 -1 ext_key)
 
   # Look up the interpreter for this extension
-  if(NOT DEFINED _LIBRA_INTERPRETER_${ext_key})
+  if(NOT DEFINED LIBRA_${ext_key}_INTERPRETER)
     libra_message(
       WARNING
       "No interpreter registered for extension '${ext_key}' (file: ${t}) -- skipping"
@@ -210,9 +216,9 @@ function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
     return()
   endif()
 
-  find_program(_LIBRA_INTERP_${ext_key}_EXE ${_LIBRA_INTERPRETER_${ext_key}})
-  if(NOT _LIBRA_INTERP_${ext_key}_EXE)
-    string(CONCAT _msg "Interpreter '${_LIBRA_INTERPRETER_${ext_key}}' for "
+  find_program(_LIBRA_${ext_key}_INTERP_EXE ${LIBRA_${ext_key}_INTERPRETER})
+  if(NOT _LIBRA_${ext_key}_INTERP_EXE)
+    string(CONCAT _msg "Interpreter '${LIBRA_${ext_key}_INTERPRETER}' for "
                   "extension '${ext_key}' not found -- skipping ${test_name}")
     libra_message(WARNING "${_msg}")
     return()
@@ -222,7 +228,8 @@ function(enable_single_interpreted_test t UMBRELLA_TARGET INCLUDE_IN_CTEST)
   if(INCLUDE_IN_CTEST)
     add_test(
       NAME ${test_name}
-      COMMAND ${_LIBRA_INTERP_${ext_key}_EXE} ${t}
+      COMMAND ${_LIBRA_${ext_key}_INTERP_EXE}
+              ${LIBRA_${ext_key}_INTERPRETER_ARGS} ${t}
       WORKING_DIRECTORY ${${PROJECT_NAME}_TEST_PATH})
 
     # Set target properties:

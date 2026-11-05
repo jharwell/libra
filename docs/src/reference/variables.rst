@@ -179,6 +179,51 @@ Quality Gates
 
    Should registered regression tests be included in the ``test`` target to run?
 
+.. cmake:variable:: LIBRA_py_INTERPRETER
+
+   :default: python3
+   :type: string
+
+   For ``.py`` tests, the interpreter to use.
+
+.. cmake:variable:: LIBRA_py_INTERPRETER_ARGS
+
+   :default: ""
+   :type: string
+
+   Extra args for the selected interpreter needed to run the tests, passed to
+   the ``.py`` interpreter as ``<interpreter> <args> <test>``.
+
+.. cmake:variable:: LIBRA_sh_INTERPRETER
+
+   :default: bash
+   :type: string
+
+   For ``.sh`` tests, the interpreter to use.
+
+.. cmake:variable:: LIBRA_sh_INTERPRETER_ARGS
+
+   :default: ""
+   :type: string
+
+   Extra args for the selected interpreter needed to run the tests, passed to
+   the ``.sh`` interpreter as ``<interpreter> <args> <test>``.
+
+.. cmake:variable:: LIBRA_bats_INTERPRETER
+
+   :default: bats
+   :type: string
+
+   For ``.bats`` tests, the interpreter to use.
+
+.. cmake:variable:: LIBRA_bats_INTERPRETER_ARGS
+
+   :default: ""
+   :type: string
+
+   Extra args for the selected interpreter needed to run the tests, passed to
+   the ``.bats`` interpreter as ``<interpreter> <args> <test>``.
+
 .. cmake:variable:: LIBRA_GCOVR_LINES_THRESH
 
    :default: 95
